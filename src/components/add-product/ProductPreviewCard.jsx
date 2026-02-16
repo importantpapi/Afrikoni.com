@@ -12,9 +12,9 @@ export default function ProductPreviewCard({ formData, className }) {
   const hasPrice = formData.price;
 
   return (
-    <div className={cn('border border-white/10 rounded-2xl overflow-hidden bg-white/5', className)}>
+    <div className={cn('border border-white/10 rounded-os-md overflow-hidden bg-white/5', className)}>
       <div className="px-4 py-2 bg-white/5 border-b border-white/10">
-        <p className="text-xs text-[var(--os-text-secondary)] text-center">
+        <p className="text-os-xs text-[var(--os-text-secondary)] text-center">
           👁️ Buyer View Preview
         </p>
       </div>
@@ -25,18 +25,18 @@ export default function ProductPreviewCard({ formData, className }) {
         ) : (
           <div className="w-full h-full flex flex-col items-center justify-center text-[var(--os-text-secondary)]">
             <Package className="w-12 h-12 mb-2 opacity-50" />
-            <p className="text-sm">No image yet</p>
+            <p className="text-os-sm">No image yet</p>
           </div>
         )}
 
         {formData.imageUrls.length > 1 && (
-          <span className="absolute bottom-2 right-2 text-xs bg-black/70 text-white px-2 py-0.5 rounded-full">
+          <span className="absolute bottom-2 right-2 text-os-xs bg-black/70 text-white px-2 py-0.5 rounded-full">
             +{formData.imageUrls.length - 1} more
           </span>
         )}
 
         <div className="absolute top-2 left-2">
-          <Badge variant="secondary" className="bg-black/40 text-xs gap-1 border-white/10">
+          <Badge variant="secondary" className="bg-black/40 text-os-xs gap-1 border-white/10">
             <CheckCircle2 className="w-3 h-3 text-white" />
             Verified Supplier
           </Badge>
@@ -45,7 +45,7 @@ export default function ProductPreviewCard({ formData, className }) {
 
       <div className="p-4 space-y-3">
         {category && (
-          <Badge variant="secondary" className="text-xs border-white/10 bg-white/10">
+          <Badge variant="secondary" className="text-os-xs border-white/10 bg-white/10">
             {category.icon} {category.label}
           </Badge>
         )}
@@ -57,46 +57,46 @@ export default function ProductPreviewCard({ formData, className }) {
         <div className="flex items-baseline gap-1">
           {hasPrice ? (
             <>
-              <span className="text-xl font-bold text-[var(--os-text-primary)]">
+              <span className="text-os-xl font-bold text-[var(--os-text-primary)]">
                 {currency?.symbol}{formData.price}
               </span>
-              <span className="text-sm text-[var(--os-text-secondary)]">/ {formData.unit}</span>
+              <span className="text-os-sm text-[var(--os-text-secondary)]">/ {formData.unit}</span>
             </>
           ) : (
-            <span className="text-[var(--os-text-secondary)] text-sm">Price not set</span>
+            <span className="text-[var(--os-text-secondary)] text-os-sm">Price not set</span>
           )}
         </div>
 
         {formData.moq && (
-          <div className="flex items-center gap-1.5 text-sm text-[var(--os-text-secondary)]">
+          <div className="flex items-center gap-1.5 text-os-sm text-[var(--os-text-secondary)]">
             <Package className="w-4 h-4" />
             <span>MOQ: {formData.moq}</span>
           </div>
         )}
 
         {selectedRegions.length > 0 && (
-          <div className="flex items-center gap-1.5 text-sm text-[var(--os-text-secondary)]">
+          <div className="flex items-center gap-1.5 text-os-sm text-[var(--os-text-secondary)]">
             <MapPin className="w-4 h-4" />
             <span>{selectedRegions.length === 1 ? selectedRegions[0].label : `${selectedRegions.length} regions`}</span>
           </div>
         )}
 
         {formData.leadTime && (
-          <div className="flex items-center gap-1.5 text-sm text-[var(--os-text-secondary)]">
+          <div className="flex items-center gap-1.5 text-os-sm text-[var(--os-text-secondary)]">
             <Clock className="w-4 h-4" />
             <span>{formData.leadTime}</span>
           </div>
         )}
 
         {formData.description && (
-          <p className="text-sm text-[var(--os-text-secondary)] line-clamp-2 pt-2 border-t border-white/10">
+          <p className="text-os-sm text-[var(--os-text-secondary)] line-clamp-2 pt-2 border-t border-white/10">
             {formData.description}
           </p>
         )}
       </div>
 
       <div className="px-4 pb-4">
-        <div className="w-full h-10 rounded-lg bg-white/10 flex items-center justify-center text-sm text-white font-medium">
+        <div className="w-full h-10 rounded-lg bg-white/10 flex items-center justify-center text-os-sm text-white font-medium">
           Request Quote
         </div>
       </div>

@@ -76,8 +76,8 @@ export default function Disputes() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <div className="os-label">Disputes</div>
-            <h1 className="text-2xl font-semibold text-foreground">Resolution Center</h1>
-            <p className="text-sm text-os-muted mt-1">
+            <h1 className="text-os-2xl font-semibold text-foreground">Resolution Center</h1>
+            <p className="text-os-sm text-os-muted mt-1">
               Track dispute status, evidence, and outcomes across your trades.
             </p>
           </div>
@@ -107,16 +107,16 @@ export default function Disputes() {
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <StatusBadge label={d.status.replace('_', ' ').toUpperCase()} tone={statusTone[d.status] || 'neutral'} />
-                    <span className="text-xs text-os-muted">Opened {formatDate(d.opened_at)}</span>
+                    <span className="text-os-xs text-os-muted">Opened {formatDate(d.opened_at)}</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-os-muted">
+                  <div className="flex items-center gap-2 text-os-sm text-os-muted">
                     <FileText className="w-4 h-4" /> {d.id} · Order {d.order}
                   </div>
-                  <p className="text-sm text-foreground">{d.summary}</p>
+                  <p className="text-os-sm text-foreground">{d.summary}</p>
                 </div>
                 <div className="text-right min-w-[120px]">
-                  <p className="text-xs text-os-muted">Amount</p>
-                  <p className="text-lg font-semibold text-foreground">${d.amount.toLocaleString()}</p>
+                  <p className="text-os-xs text-os-muted">Amount</p>
+                  <p className="text-os-lg font-semibold text-foreground">${d.amount.toLocaleString()}</p>
                   <div className="flex flex-col gap-2 mt-3">
                     <Button size="sm" variant="outline">View Case</Button>
                     <Button size="sm" className="gap-1">

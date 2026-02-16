@@ -19,9 +19,9 @@ export function StatCard({
 
   const colors = {
     orange: {
-      bg: 'bg-afrikoni-gold/20',
-      text: 'text-afrikoni-gold',
-      icon: 'text-afrikoni-gold'
+      bg: 'bg-os-accent/20',
+      text: 'text-os-accent',
+      icon: 'text-os-accent'
     },
     blue: {
       bg: 'bg-blue-100',
@@ -95,7 +95,7 @@ export function StatCard({
       viewport={{ once: true }}
       transition={{ duration: 0.15 }}
       whileHover={{ y: -2, scale: 1.01 }}
-      className={cn('rounded-xl border border-afrikoni-gold/20 bg-afrikoni-offwhite p-5 md:p-6 shadow-afrikoni hover:shadow-afrikoni-lg transition-all cursor-default', className)}
+      className={cn('rounded-os-sm border border-os-accent/20 bg-afrikoni-offwhite p-5 md:p-6 shadow-os-gold hover:shadow-os-gold-lg transition-all cursor-default', className)}
     >
       <div className="flex items-start justify-between mb-4">
         <Tooltip content={tooltip || label} position="top">
@@ -105,7 +105,7 @@ export function StatCard({
         </Tooltip>
         {trend && (
           <div className={cn(
-            'text-xs font-semibold flex items-center gap-1',
+            'text-os-xs font-semibold flex items-center gap-1',
             trend === 'up' ? 'text-green-600' : 'text-red-600'
           )}>
             {trend === 'up' ? '↑' : '↓'} {trendValue}
@@ -115,7 +115,7 @@ export function StatCard({
       <div className={cn('text-3xl md:text-4xl font-bold mb-1', colorScheme.text)}>
         {displayValue}
       </div>
-      <div className="text-sm md:text-base text-afrikoni-deep font-medium">
+      <div className="text-os-sm md:text-os-base text-afrikoni-deep font-medium">
         {label}
       </div>
     </motion.div>

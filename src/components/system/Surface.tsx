@@ -12,12 +12,12 @@ interface SurfaceProps extends Omit<HTMLMotionProps<"div">, "onDrag" | "onDragSt
 }
 
 const variantClasses: Record<SurfaceVariant, string> = {
-  panel: 'os-panel shadow-premium',
-  soft: 'os-panel-soft shadow-subtle',
+  panel: 'bg-os-card border border-os-stroke rounded-os-md shadow-os-md',
+  soft: 'bg-os-card/40 border border-os-stroke/50 rounded-os-md shadow-os-sm backdrop-blur-xl',
   glass: 'glass-surface',
-  flat: 'bg-os-surface-solid border border-os-stroke rounded-2xl',
-  ivory: 'bg-[#FBFBF9] border border-[#00000005] rounded-3xl shadow-premium',
-  charcoal: 'bg-[#1A1A1A] border border-[#ffffff08] rounded-3xl shadow-dark',
+  flat: 'bg-os-surface-solid border border-os-stroke rounded-os-md',
+  ivory: 'bg-os-bg border border-os-stroke rounded-os-lg shadow-os-md',
+  charcoal: 'bg-black/60 backdrop-blur-3xl border border-white/5 rounded-os-lg shadow-os-lg',
 };
 
 const glowClasses: Record<GlowIntensity, string> = {
@@ -56,7 +56,7 @@ export function Surface({
       className={cn(
         variantClasses[variant],
         glowClass,
-        hover && 'hover:translate-y-[-2px] hover:shadow-premium-xl transition-all duration-300 cursor-pointer',
+        hover && 'hover:translate-y-[-2px] hover:shadow-os-md-xl transition-all duration-300 cursor-pointer',
         'text-os-text-primary overflow-hidden',
         className
       )}

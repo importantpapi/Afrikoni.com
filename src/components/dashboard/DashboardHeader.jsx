@@ -72,9 +72,9 @@ export default function DashboardHeader({ user, company, activeRole, onRoleSwitc
           <NotificationBell />
           <div className="flex items-center gap-3">
             <div className="text-right">
-              <div className="text-sm font-semibold">{user?.email}</div>
+              <div className="text-os-sm font-semibold">{user?.email}</div>
               {company && (
-                <div className="text-xs">{company.company_name}</div>
+                <div className="text-os-xs">{company.company_name}</div>
               )}
             </div>
             <div className="w-10 h-10 rounded-full flex items-center justify-center">

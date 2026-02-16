@@ -183,10 +183,10 @@ export default function Products() {
       />
       <StructuredData type="WebSite" />
       <div className="min-h-screen bg-stone-50">
-      <div className="bg-afrikoni-offwhite border-b border-afrikoni-gold/20">
+      <div className="bg-afrikoni-offwhite border-b border-os-accent/20">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <h1 className="text-4xl font-bold text-afrikoni-chestnut mb-4">Discover Products</h1>
-          <p className="text-lg text-afrikoni-deep mb-6">Browse thousands of products from verified African suppliers</p>
+          <p className="text-os-lg text-afrikoni-deep mb-6">Browse thousands of products from verified African suppliers</p>
           <div className="flex gap-3">
             <div className="flex-1 relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
@@ -194,10 +194,10 @@ export default function Products() {
                 placeholder="Search for products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 h-12 text-lg"
+                className="pl-12 h-12 text-os-lg"
               />
             </div>
-            <Button size="lg" className="bg-afrikoni-gold hover:bg-amber-700">Search</Button>
+            <Button size="lg" className="bg-os-accent hover:bg-amber-700">Search</Button>
           </div>
           {/* Chip Filters */}
           <div className="flex items-center gap-2 mt-4">
@@ -223,7 +223,7 @@ export default function Products() {
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid md:grid-cols-4 gap-8">
           <div className="md:col-span-1">
-            <Card className="border-afrikoni-gold/20 sticky top-24">
+            <Card className="border-os-accent/20 sticky top-24">
               <CardContent className="p-6 space-y-6">
                 <div>
                   <h3 className="font-bold text-afrikoni-chestnut mb-3 flex items-center gap-2">
@@ -231,7 +231,7 @@ export default function Products() {
                   </h3>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-afrikoni-deep mb-2 block">Category</label>
+                  <label className="text-os-sm font-medium text-afrikoni-deep mb-2 block">Category</label>
                   <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                     <SelectTrigger>
                       <SelectValue placeholder="All Categories" />
@@ -245,7 +245,7 @@ export default function Products() {
                   </Select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-afrikoni-deep mb-2 block">Country</label>
+                  <label className="text-os-sm font-medium text-afrikoni-deep mb-2 block">Country</label>
                   <Select value={selectedCountry} onValueChange={setSelectedCountry}>
                     <SelectTrigger>
                       <SelectValue placeholder="All Countries" />
@@ -259,7 +259,7 @@ export default function Products() {
                   </Select>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-afrikoni-deep mb-2 block">Price Range (USD)</label>
+                  <label className="text-os-sm font-medium text-afrikoni-deep mb-2 block">Price Range (USD)</label>
                   <Select value={priceRange} onValueChange={setPriceRange}>
                     <SelectTrigger>
                       <SelectValue placeholder="Any Price" />
@@ -292,7 +292,7 @@ export default function Products() {
 
           <div className="md:col-span-3">
             <div className="flex justify-between items-center mb-6">
-              <p className="text-sm text-afrikoni-deep">{products.length} products found</p>
+              <p className="text-os-sm text-afrikoni-deep">{products.length} products found</p>
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="w-48">
                   <SelectValue />
@@ -319,10 +319,10 @@ export default function Products() {
                 ))}
               </div>
             ) : products.length === 0 ? (
-              <Card className="border-afrikoni-gold/20">
+              <Card className="border-os-accent/20">
                 <CardContent className="p-12 text-center">
                   <Package className="w-16 h-16 text-afrikoni-deep/70 mx-auto mb-4" />
-                  <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2">No products found</h3>
+                  <h3 className="text-os-xl font-bold text-afrikoni-chestnut mb-2">No products found</h3>
                   <p className="text-afrikoni-deep">Try adjusting your filters or search query</p>
                 </CardContent>
               </Card>
@@ -338,7 +338,7 @@ export default function Products() {
                         country: product.country_of_origin
                       })}
                     >
-                      <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold transition-all duration-300 hover:shadow-lg overflow-hidden">
+                      <Card className="border-os-accent/20 hover:border-os-accent transition-all duration-300 hover:shadow-os-md overflow-hidden">
                         <div className="h-48 bg-gradient-to-br from-zinc-100 to-zinc-200 overflow-hidden relative">
                           {(() => {
                             const imageUrl = getPrimaryImageFromProduct(product);
@@ -359,7 +359,7 @@ export default function Products() {
                             );
                           })()}
                           {product.views > 50 && (
-                            <Badge className="absolute top-3 left-3 bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream">
+                            <Badge className="absolute top-3 left-3 bg-os-accent hover:bg-os-accentDark text-afrikoni-cream">
                               <TrendingUp className="w-3 h-3 mr-1" /> Trending
                             </Badge>
                           )}
@@ -368,35 +368,35 @@ export default function Products() {
                           </div>
                         </div>
                       <CardContent className="p-4">
-                        <h3 className="font-bold text-afrikoni-chestnut group-hover:text-afrikoni-gold transition mb-2 line-clamp-2 h-12">
+                        <h3 className="font-bold text-afrikoni-chestnut group-hover:text-os-accent transition mb-2 line-clamp-2 h-12">
                           {product.title}
                         </h3>
                         {/* Trust Signals */}
                         {product.companies && (
                           <div className="flex items-center gap-2 mb-2 flex-wrap">
                             {product.companies.verified && (
-                              <Badge variant="verified" className="text-xs">Verified</Badge>
+                              <Badge variant="verified" className="text-os-xs">Verified</Badge>
                             )}
                             {product.companies.trust_score > 0 && (
-                              <Badge variant="outline" className="text-xs">
+                              <Badge variant="outline" className="text-os-xs">
                                 Trust: {product.companies.trust_score}%
                               </Badge>
                             )}
                             {product.companies.response_rate > 0 && (
-                              <Badge variant="outline" className="text-xs">
+                              <Badge variant="outline" className="text-os-xs">
                                 {product.companies.response_rate}% Response
                               </Badge>
                             )}
                           </div>
                         )}
                         <div className="flex items-baseline gap-2 mb-3">
-                          <span className="text-2xl font-bold text-amber-600">${product.price}</span>
-                          <span className="text-sm text-afrikoni-deep/70">/ {product.unit}</span>
+                          <span className="text-os-2xl font-bold text-amber-600">${product.price}</span>
+                          <span className="text-os-sm text-afrikoni-deep/70">/ {product.unit}</span>
                         </div>
-                        <div className="space-y-1.5 text-sm text-afrikoni-deep">
+                        <div className="space-y-1.5 text-os-sm text-afrikoni-deep">
                           <div>MOQ: {product.moq} {product.unit}</div>
                           {product.delivery_time && (
-                            <div className="text-xs text-afrikoni-deep/70">Delivery: {product.delivery_time}</div>
+                            <div className="text-os-xs text-afrikoni-deep/70">Delivery: {product.delivery_time}</div>
                           )}
                         </div>
                       </CardContent>

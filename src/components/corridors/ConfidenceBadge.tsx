@@ -44,8 +44,8 @@ export function ConfidenceBadge({
             dot: 'bg-emerald-500',
         },
         partner: {
-            bg: 'bg-blue-500/10',
-            border: 'border-blue-500/20',
+            bg: 'bg-os-blue/10',
+            border: 'border-os-blue/20',
             text: 'text-blue-400',
             dot: 'bg-blue-500',
         },
@@ -62,8 +62,8 @@ export function ConfidenceBadge({
             dot: 'bg-orange-500',
         },
         low: {
-            bg: 'bg-red-500/10',
-            border: 'border-red-500/20',
+            bg: 'bg-os-red/10',
+            border: 'border-os-red/20',
             text: 'text-red-400',
             dot: 'bg-red-500',
         },
@@ -72,9 +72,9 @@ export function ConfidenceBadge({
     const color = colors[tier];
 
     const sizeClasses = {
-        sm: 'px-2 py-0.5 text-xs',
-        md: 'px-2 py-1 text-xs',
-        lg: 'px-3 py-1.5 text-sm',
+        sm: 'px-2 py-0.5 text-os-xs',
+        md: 'px-2 py-1 text-os-xs',
+        lg: 'px-3 py-1.5 text-os-sm',
     };
 
     const dotSizes = {

@@ -14,16 +14,16 @@ export default function AISuggestionCard({
 
   return (
     <Card
-      className={`border-afrikoni-gold/30 hover:border-afrikoni-gold hover:shadow-afrikoni transition cursor-pointer ${className}`}
+      className={`border-os-accent/30 hover:border-os-accent hover:shadow-os-gold transition cursor-pointer ${className}`}
       onClick={onClick}
     >
       <CardContent className="p-4 space-y-2">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-4 h-4 text-afrikoni-gold" />
-          <h3 className="font-semibold text-sm text-afrikoni-chestnut line-clamp-2">{title}</h3>
+          <Sparkles className="w-4 h-4 text-os-accent" />
+          <h3 className="font-semibold text-os-sm text-afrikoni-chestnut line-clamp-2">{title}</h3>
         </div>
         {description && (
-          <p className="text-xs text-afrikoni-deep/80 line-clamp-3">{description}</p>
+          <p className="text-os-xs text-afrikoni-deep/80 line-clamp-3">{description}</p>
         )}
         {Array.isArray(badges) && badges.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-1">
@@ -31,7 +31,7 @@ export default function AISuggestionCard({
               <Badge
                 key={idx}
                 variant={b.variant || 'outline'}
-                className="text-[10px] py-0.5 px-1.5"
+                className="text-os-xs py-0.5 px-1.5"
               >
                 {b.label}
               </Badge>

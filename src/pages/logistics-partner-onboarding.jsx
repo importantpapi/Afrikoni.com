@@ -284,13 +284,13 @@ export default function LogisticsPartnerOnboarding() {
               animate={{ opacity: 1, y: 0 }}
               className="text-center mb-12"
             >
-              <Badge className="mb-4 bg-afrikoni-gold text-afrikoni-chestnut">
+              <Badge className="mb-4 bg-os-accent text-afrikoni-chestnut">
                 Join Afrikoni Logistics Network
               </Badge>
               <h1 className="text-5xl md:text-6xl font-bold text-afrikoni-text-dark mb-6">
                 Logistics Partner Program
               </h1>
-              <p className="text-xl text-afrikoni-text-dark/70 max-w-3xl mx-auto mb-8">
+              <p className="text-os-xl text-afrikoni-text-dark/70 max-w-3xl mx-auto mb-8">
                 Join Afrikoni's logistics network and help facilitate trade from {config.name} to the world. 
                 Earn revenue share on every shipment.
               </p>
@@ -305,12 +305,12 @@ export default function LogisticsPartnerOnboarding() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.1 }}
                 >
-                  <Card className="h-full border-afrikoni-gold/20 hover:border-afrikoni-gold/40 transition-colors">
+                  <Card className="h-full border-os-accent/20 hover:border-os-accent/40 transition-colors">
                     <CardContent className="p-6">
-                      <div className="w-12 h-12 bg-afrikoni-gold/10 rounded-lg flex items-center justify-center mb-4">
-                        <benefit.icon className="w-6 h-6 text-afrikoni-gold" />
+                      <div className="w-12 h-12 bg-os-accent/10 rounded-lg flex items-center justify-center mb-4">
+                        <benefit.icon className="w-6 h-6 text-os-accent" />
                       </div>
-                      <h3 className="text-xl font-semibold text-afrikoni-text-dark mb-2">
+                      <h3 className="text-os-xl font-semibold text-afrikoni-text-dark mb-2">
                         {benefit.title}
                       </h3>
                       <p className="text-afrikoni-text-dark/70">{benefit.description}</p>
@@ -327,9 +327,9 @@ export default function LogisticsPartnerOnboarding() {
               transition={{ delay: 0.2 }}
               className="max-w-3xl mx-auto"
             >
-              <Card className="border-afrikoni-gold/20 shadow-premium-lg">
+              <Card className="border-os-accent/20 shadow-os-md-lg">
                 <CardHeader>
-                  <CardTitle className="text-2xl">Apply to Join Our Network</CardTitle>
+                  <CardTitle className="text-os-2xl">Apply to Join Our Network</CardTitle>
                   <p className="text-afrikoni-text-dark/70">
                     Complete the form below and we'll review your application within 24 hours
                   </p>
@@ -424,9 +424,9 @@ export default function LogisticsPartnerOnboarding() {
                                   setFormData({ ...formData, services: formData.services.filter(s => s !== service) });
                                 }
                               }}
-                              className="w-4 h-4 text-afrikoni-gold rounded"
+                              className="w-4 h-4 text-os-accent rounded"
                             />
-                            <span className="text-sm">{service}</span>
+                            <span className="text-os-sm">{service}</span>
                           </label>
                         ))}
                       </div>
@@ -475,7 +475,7 @@ export default function LogisticsPartnerOnboarding() {
                     <Button
                       type="submit"
                       disabled={isSubmitting || formData.services.length === 0}
-                      className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut"
+                      className="w-full bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut"
                       size="lg"
                     >
                       {isSubmitting ? 'Submitting...' : 'Submit Application'}

@@ -52,7 +52,7 @@ export default function Blog() {
       />
       <div className="min-h-screen bg-afrikoni-offwhite">
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-afrikoni-gold/20 via-afrikoni-cream to-afrikoni-offwhite border-b border-afrikoni-gold/20">
+        <section className="bg-gradient-to-br from-os-accent/20 via-afrikoni-cream to-afrikoni-offwhite border-b border-os-accent/20">
           <div className="max-w-7xl mx-auto px-4 py-12 md:py-16">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -63,7 +63,7 @@ export default function Blog() {
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-serif text-afrikoni-chestnut mb-6">
                 Afrikoni Blog & News
               </h1>
-              <p className="text-lg md:text-xl text-afrikoni-deep mb-8">
+              <p className="text-os-lg md:text-os-xl text-afrikoni-deep mb-8">
                 Insights, guides, and updates about B2B trade across Africa
               </p>
             </motion.div>
@@ -77,10 +77,10 @@ export default function Blog() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              className="text-center bg-gradient-to-r from-afrikoni-gold/20 to-afrikoni-chestnut/20 rounded-2xl p-8 md:p-12"
+              className="text-center bg-gradient-to-r from-os-accent/20 to-afrikoni-chestnut/20 rounded-os-md p-8 md:p-12"
             >
-              <FileText className="w-16 h-16 text-afrikoni-gold mx-auto mb-6" />
-              <h2 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-4">
+              <FileText className="w-16 h-16 text-os-accent mx-auto mb-6" />
+              <h2 className="text-os-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-4">
                 Content Coming Soon
               </h2>
               <p className="text-afrikoni-deep mb-6 max-w-2xl mx-auto">
@@ -89,7 +89,7 @@ export default function Blog() {
               </p>
               <Button
                 onClick={() => openWhatsAppCommunity('blog_cta')}
-                className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut"
+                className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut"
                 size="lg"
               >
                 <MessageCircle className="w-5 h-5 mr-2" />
@@ -111,7 +111,7 @@ export default function Blog() {
               <h2 className="text-3xl md:text-4xl font-bold font-serif text-afrikoni-chestnut mb-4">
                 Upcoming Articles
               </h2>
-              <p className="text-lg text-afrikoni-deep/80">
+              <p className="text-os-lg text-afrikoni-deep/80">
                 Preview of content we're working on
               </p>
             </motion.div>
@@ -125,7 +125,7 @@ export default function Blog() {
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: idx * 0.1 }}
                 >
-                  <Card className="h-full border-afrikoni-gold/20 hover:border-afrikoni-gold transition-all flex flex-col">
+                  <Card className="h-full border-os-accent/20 hover:border-os-accent transition-all flex flex-col">
                     <div className="relative aspect-video overflow-hidden rounded-t-lg">
                       <img
                         src={post.image}
@@ -134,23 +134,23 @@ export default function Blog() {
                         loading="lazy"
                       />
                       <div className="absolute top-4 left-4">
-                        <span className="bg-afrikoni-gold text-afrikoni-chestnut px-3 py-1 rounded-full text-xs font-semibold">
+                        <span className="bg-os-accent text-afrikoni-chestnut px-3 py-1 rounded-full text-os-xs font-semibold">
                           {post.category}
                         </span>
                       </div>
                     </div>
                     <CardContent className="p-6 flex-1 flex flex-col">
-                      <div className="flex items-center gap-2 text-sm text-afrikoni-deep/70 mb-3">
+                      <div className="flex items-center gap-2 text-os-sm text-afrikoni-deep/70 mb-3">
                         <Calendar className="w-4 h-4" />
                         <span>{post.date}</span>
                       </div>
-                      <h3 className="font-bold text-afrikoni-chestnut text-xl mb-3 line-clamp-2">
+                      <h3 className="font-bold text-afrikoni-chestnut text-os-xl mb-3 line-clamp-2">
                         {post.title}
                       </h3>
                       <p className="text-afrikoni-deep leading-relaxed mb-4 flex-1 line-clamp-3">
                         {post.excerpt}
                       </p>
-                      <div className="flex items-center text-afrikoni-gold font-semibold text-sm">
+                      <div className="flex items-center text-os-accent font-semibold text-os-sm">
                         <span>Coming Soon</span>
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </div>

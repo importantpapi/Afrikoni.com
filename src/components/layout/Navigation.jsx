@@ -60,10 +60,10 @@ export default function Navigation({ user, onLogout }) {
             key={idx}
             to={link.path}
             className={`
-              flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-colors
+              flex items-center gap-1.5 px-3 py-2 rounded-md text-os-sm font-medium transition-colors
               ${active 
-                ? 'text-afrikoni-gold bg-afrikoni-gold/10' 
-                : 'text-afrikoni-deep hover:text-afrikoni-gold hover:bg-afrikoni-gold/5'
+                ? 'text-os-accent bg-os-accent/10' 
+                : 'text-afrikoni-deep hover:text-os-accent hover:bg-os-accent/5'
               }
             `}
           >
@@ -78,7 +78,7 @@ export default function Navigation({ user, onLogout }) {
       <div className="relative">
         <button
           onClick={() => setLanguageOpen(!languageOpen)}
-          className="flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 transition-colors"
+          className="flex items-center gap-1.5 px-3 py-2 rounded-md text-os-sm font-medium text-afrikoni-cream hover:text-os-accent hover:bg-os-accent/10 transition-colors"
         >
           <Globe className="w-4 h-4" />
           <span>{selectedLanguage}</span>
@@ -96,7 +96,7 @@ export default function Navigation({ user, onLogout }) {
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="absolute right-0 mt-2 w-48 bg-afrikoni-offwhite rounded-lg shadow-afrikoni-lg border border-afrikoni-gold/30 z-50 py-1"
+                className="absolute right-0 mt-2 w-48 bg-afrikoni-offwhite rounded-lg shadow-os-gold-lg border border-os-accent/30 z-50 py-1"
               >
                 {languages.map((lang) => (
                   <button
@@ -106,8 +106,8 @@ export default function Navigation({ user, onLogout }) {
                       setLanguageOpen(false);
                     }}
                     className={`
-                      w-full text-left px-4 py-2 text-sm hover:bg-afrikoni-gold/10 transition-colors
-                      ${language === lang.code ? 'bg-afrikoni-gold/15 text-afrikoni-gold' : 'text-afrikoni-deep'}
+                      w-full text-left px-4 py-2 text-os-sm hover:bg-os-accent/10 transition-colors
+                      ${language === lang.code ? 'bg-os-accent/15 text-os-accent' : 'text-afrikoni-deep'}
                     `}
                   >
                     <span className="mr-2">{lang.flag}</span>
@@ -123,7 +123,7 @@ export default function Navigation({ user, onLogout }) {
       {/* CTA: Start Selling */}
       {!user && (
         <Link to="/signup">
-          <Button className="bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight">
+          <Button className="bg-os-accent text-afrikoni-chestnut hover:bg-os-accentLight">
             Start Selling
           </Button>
         </Link>

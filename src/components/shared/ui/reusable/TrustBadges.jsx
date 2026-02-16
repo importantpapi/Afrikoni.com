@@ -43,7 +43,7 @@ export const TrustBadges = React.memo(function TrustBadges({
       label: 'Fast Response',
       icon: Zap,
       variant: 'outline',
-      className: 'bg-afrikoni-gold/20 text-afrikoni-gold'
+      className: 'bg-os-accent/20 text-os-accent'
     });
   }
 
@@ -53,7 +53,7 @@ export const TrustBadges = React.memo(function TrustBadges({
       label: 'Ready to Ship',
       icon: Truck,
       variant: 'outline',
-      className: 'bg-afrikoni-gold/20 text-afrikoni-gold'
+      className: 'bg-os-accent/20 text-os-accent'
     });
   }
 
@@ -63,7 +63,7 @@ export const TrustBadges = React.memo(function TrustBadges({
       label: 'Premium',
       icon: CheckCircle,
       variant: 'premium',
-      className: 'bg-afrikoni-gold text-afrikoni-chestnut'
+      className: 'bg-os-accent text-afrikoni-chestnut'
     });
   }
 
@@ -77,7 +77,7 @@ export const TrustBadges = React.memo(function TrustBadges({
           <Badge
             key={badge.key}
             variant={badge.variant}
-            className={cn('flex items-center gap-1 text-xs', badge.className)}
+            className={cn('flex items-center gap-1 text-os-xs', badge.className)}
           >
             <Icon className="w-3 h-3" aria-hidden="true" />
             {badge.label}

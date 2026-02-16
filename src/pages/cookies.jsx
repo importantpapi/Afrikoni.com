@@ -14,7 +14,7 @@ export default function Cookies() {
           <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
             Cookie Policy
           </h1>
-          <p className="text-sm text-afrikoni-deep/80">
+          <p className="text-os-sm text-afrikoni-deep/80">
             This page will describe the types of cookies and similar technologies used on Afrikoni,
             how we use them, and how you can manage your preferences.
           </p>

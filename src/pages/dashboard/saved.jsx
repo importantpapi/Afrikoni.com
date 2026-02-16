@@ -412,7 +412,7 @@ function DashboardSavedInner() {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2" />
-        <p className="mt-4 text-sm">Loading saved items...</p>
+        <p className="mt-4 text-os-sm">Loading saved items...</p>
       </div>
     );
   }
@@ -445,14 +445,14 @@ function DashboardSavedInner() {
           <div>
             <h1 className="text-3xl md:text-4xl font-bold mb-2 leading-tight">Saved Items</h1>
             {activeTab === 'products' && (
-              <p className="text-sm md:text-base leading-relaxed">
+              <p className="text-os-sm md:text-os-base leading-relaxed">
                 {normalizedProducts.length > 0
                   ? `You saved ${normalizedProducts.length} product${normalizedProducts.length !== 1 ? 's' : ''}`
                   : 'No saved products yet'}
               </p>
             )}
             {activeTab === 'suppliers' && (
-              <p className="text-sm md:text-base leading-relaxed">
+              <p className="text-os-sm md:text-os-base leading-relaxed">
                 {savedSuppliers.length > 0
                   ? `You saved ${savedSuppliers.length} supplier${savedSuppliers.length !== 1 ? 's' : ''}`
                   : 'No saved suppliers yet'}
@@ -479,30 +479,30 @@ function DashboardSavedInner() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-2">
           <Card>
             <CardContent className="p-4">
-              <p className="text-xs uppercase tracking-wide">
+              <p className="text-os-xs uppercase tracking-wide">
                 Total saved
               </p>
-              <p className="text-2xl font-bold mt-1">
+              <p className="text-os-2xl font-bold mt-1">
                 {(savedProducts || []).length + (savedSuppliers || []).length}
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
-              <p className="text-xs uppercase tracking-wide">
+              <p className="text-os-xs uppercase tracking-wide">
                 Products
               </p>
-              <p className="text-2xl font-bold mt-1">
+              <p className="text-os-2xl font-bold mt-1">
                 {(savedProducts || []).length}
               </p>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4">
-              <p className="text-xs uppercase tracking-wide">
+              <p className="text-os-xs uppercase tracking-wide">
                 Suppliers
               </p>
-              <p className="text-2xl font-bold mt-1">
+              <p className="text-os-2xl font-bold mt-1">
                 {(savedSuppliers || []).length}
               </p>
             </CardContent>
@@ -517,17 +517,17 @@ function DashboardSavedInner() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search saved items…"
-              className="w-full pl-9 pr-3 py-2 rounded-full border text-sm focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/60"
+              className="w-full pl-9 pr-3 py-2 rounded-full border text-os-sm focus:outline-none focus:ring-2 focus:ring-os-accent/60"
             />
           </div>
 
           {/* Plain Tab Buttons (replaces Radix Tabs) */}
-          <div className="flex gap-2 border rounded-full p-1 shadow-premium">
+          <div className="flex gap-2 border rounded-full p-1 shadow-os-md">
             <button
               onClick={() => setActiveTab('products')}
               className={`px-4 py-2 rounded-full font-semibold transition-all duration-200 ${activeTab === 'products'
-                ? 'bg-afrikoni-gold text-afrikoni-charcoal shadow-afrikoni'
-                : 'text-afrikoni-text-dark/70 hover:text-afrikoni-gold'
+                ? 'bg-os-accent text-afrikoni-charcoal shadow-os-gold'
+                : 'text-afrikoni-text-dark/70 hover:text-os-accent'
                 }`}
             >
               Saved Products
@@ -535,8 +535,8 @@ function DashboardSavedInner() {
             <button
               onClick={() => setActiveTab('suppliers')}
               className={`px-4 py-2 rounded-full font-semibold transition-all duration-200 ${activeTab === 'suppliers'
-                ? 'bg-afrikoni-gold text-afrikoni-charcoal shadow-afrikoni'
-                : 'text-afrikoni-text-dark/70 hover:text-afrikoni-gold'
+                ? 'bg-os-accent text-afrikoni-charcoal shadow-os-gold'
+                : 'text-afrikoni-text-dark/70 hover:text-os-accent'
                 }`}
             >
               Saved Suppliers
@@ -552,7 +552,7 @@ function DashboardSavedInner() {
             {normalizedProducts.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 px-4">
                 <Package className="w-16 h-16 mb-4" />
-                <h3 className="text-xl font-semibold mb-2">
+                <h3 className="text-os-xl font-semibold mb-2">
                   {savedProducts.length === 0 ? "No saved products yet" : "No products match your search"}
                 </h3>
                 <p className="text-center mb-6 max-w-md">
@@ -563,7 +563,7 @@ function DashboardSavedInner() {
                 <Link to="/products">
                   <Button
                     variant="default"
-                    className="hover:bg-afrikoni-gold/90"
+                    className="hover:bg-os-accent/90"
                   >
                     Browse Marketplace
                   </Button>
@@ -581,7 +581,7 @@ function DashboardSavedInner() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <div className="rounded-xl border-2 p-4 shadow-sm hover:border-afrikoni-gold/60 hover:shadow-xl transition-all duration-300 group">
+                      <div className="rounded-os-sm border-2 p-4 shadow-sm hover:border-os-accent/60 hover:shadow-os-lg transition-all duration-300 group">
                         <Link to={`/product?id=${p.id}`} className="block">
                           {/* Image Section - Always renders */}
                           <div className="aspect-[4/3] w-full overflow-hidden rounded-lg mb-3 relative">
@@ -597,7 +597,7 @@ function DashboardSavedInner() {
                                 }}
                               />
                             ) : (
-                              <div className="flex h-full w-full items-center justify-center text-sm opacity-60">
+                              <div className="flex h-full w-full items-center justify-center text-os-sm opacity-60">
                                 <Package className="w-12 h-12" />
                               </div>
                             )}
@@ -607,7 +607,7 @@ function DashboardSavedInner() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="hover:bg-white shadow-lg backdrop-blur-sm h-9 w-9 p-0"
+                                className="hover:bg-white shadow-os-md backdrop-blur-sm h-9 w-9 p-0"
                                 onClick={(e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
@@ -622,37 +622,37 @@ function DashboardSavedInner() {
                             {/* Badges */}
                             {p.featured && (
                               <div className="absolute top-2 left-2">
-                                <Badge variant="primary" className="text-xs">⭐ Featured</Badge>
+                                <Badge variant="primary" className="text-os-xs">⭐ Featured</Badge>
                               </div>
                             )}
                             {p.status === 'active' && (
                               <div className="absolute top-2 left-2" style={{ top: p.featured ? '2.5rem' : '0.5rem' }}>
-                                <Badge variant="success" className="text-xs">✓ Active</Badge>
+                                <Badge variant="success" className="text-os-xs">✓ Active</Badge>
                               </div>
                             )}
                           </div>
 
                           {/* Product Info */}
                           <div className="mt-3">
-                            <h3 className="font-semibold mb-1 line-clamp-2 group-hover:text-afrikoni-gold transition-colors">
+                            <h3 className="font-semibold mb-1 line-clamp-2 group-hover:text-os-accent transition-colors">
                               {p.name || p.title}
                             </h3>
-                            <div className="flex items-center gap-2 text-sm mb-2">
+                            <div className="flex items-center gap-2 text-os-sm mb-2">
                               <Users className="w-3 h-3" />
                               <span>{p.companyName}</span>
                               {p.company?.verified && (
-                                <Badge variant="success" className="text-xs ml-1">✓ Verified</Badge>
+                                <Badge variant="success" className="text-os-xs ml-1">✓ Verified</Badge>
                               )}
                             </div>
                             {p.price != null && (
-                              <div className="text-base font-bold mb-2">
+                              <div className="text-os-base font-bold mb-2">
                                 {p.priceMax
                                   ? `${p.currency} ${p.price} - ${p.priceMax}`
                                   : `${p.currency} ${p.price}`}
                               </div>
                             )}
                             {p.country_of_origin && (
-                              <div className="flex items-center gap-1 text-xs mb-3">
+                              <div className="flex items-center gap-1 text-os-xs mb-3">
                                 <span>📍</span>
                                 <span>{p.country_of_origin}</span>
                               </div>
@@ -665,7 +665,7 @@ function DashboardSavedInner() {
                           <Link to={`/product?id=${p.id}`} className="flex-1">
                             <Button
                               variant="outline"
-                              className="w-full text-sm"
+                              className="w-full text-os-sm"
                               size="sm"
                             >
                               View Details
@@ -673,7 +673,7 @@ function DashboardSavedInner() {
                           </Link>
                           <Button
                             variant="default"
-                            className="flex-1 hover:bg-afrikoni-gold/90 text-sm"
+                            className="flex-1 hover:bg-os-accent/90 text-os-sm"
                             size="sm"
                             onClick={(e) => {
                               e.preventDefault();
@@ -711,7 +711,7 @@ function DashboardSavedInner() {
             ) : (
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {(filteredSuppliers || []).map((supplier) => (
-                  <Card key={supplier.id} className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
+                  <Card key={supplier.id} className="hover:border-os-accent/40 hover:shadow-os-md-lg transition-all rounded-afrikoni-lg">
                     <CardContent className="p-5 md:p-6">
                       <div className="flex items-center gap-4 mb-4">
                         <div className="w-16 h-16 rounded-afrikoni flex items-center justify-center">
@@ -719,14 +719,14 @@ function DashboardSavedInner() {
                         </div>
                         <div className="flex-1">
                           <h3 className="font-semibold">{supplier.company_name}</h3>
-                          <p className="text-sm">{supplier.country}</p>
+                          <p className="text-os-sm">{supplier.country}</p>
                         </div>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleUnsave(supplier.id, 'supplier')}
                         >
-                          <Bookmark className="w-4 h-4 fill-afrikoni-gold" />
+                          <Bookmark className="w-4 h-4 fill-os-accent" />
                         </Button>
                       </div>
                       <Link to={`/business/${supplier.id}`}>

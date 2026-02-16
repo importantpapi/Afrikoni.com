@@ -146,7 +146,7 @@ export default function NewMessageDialog({ open, onOpenChange, recipientCompany,
           {subject && (
             <div>
               <Label>Subject</Label>
-              <div className="text-sm text-afrikoni-deep mt-1">{subject}</div>
+              <div className="text-os-sm text-afrikoni-deep mt-1">{subject}</div>
             </div>
           )}
           <div>
@@ -164,7 +164,7 @@ export default function NewMessageDialog({ open, onOpenChange, recipientCompany,
             <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
               Cancel
             </Button>
-            <Button onClick={handleSend} disabled={isLoading} className="flex-1 bg-afrikoni-gold hover:bg-amber-700">
+            <Button onClick={handleSend} disabled={isLoading} className="flex-1 bg-os-accent hover:bg-amber-700">
               {isLoading ? 'Sending...' : 'Send Message'}
             </Button>
           </div>

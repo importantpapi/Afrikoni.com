@@ -23,18 +23,18 @@ export default function ProductPricingStep({ formData, onUpdate }) {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="space-y-4">
-        <div className="flex items-center gap-2 text-sm font-medium text-[var(--os-text-primary)]">
+        <div className="flex items-center gap-2 text-os-sm font-medium text-[var(--os-text-primary)]">
           <DollarSign className="w-4 h-4 text-white" />
           Pricing
         </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="price" className="text-sm font-medium">
+            <Label htmlFor="price" className="text-os-sm font-medium">
               Price per Unit <span className="text-white/70">*</span>
             </Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--os-text-secondary)] text-sm">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--os-text-secondary)] text-os-sm">
                 {selectedCurrency?.symbol || '$'}
               </span>
               <Input
@@ -49,7 +49,7 @@ export default function ProductPricingStep({ formData, onUpdate }) {
           </div>
 
           <div className="space-y-2">
-            <Label className="text-sm font-medium">Currency</Label>
+            <Label className="text-os-sm font-medium">Currency</Label>
             <Select
               value={formData.currency}
               onValueChange={(value) => onUpdate({ currency: value })}
@@ -69,7 +69,7 @@ export default function ProductPricingStep({ formData, onUpdate }) {
         </div>
 
         <div className="space-y-2">
-          <Label className="text-sm font-medium">Unit of Measurement</Label>
+          <Label className="text-os-sm font-medium">Unit of Measurement</Label>
           <Select
             value={formData.unit}
             onValueChange={(value) => onUpdate({ unit: value })}
@@ -89,13 +89,13 @@ export default function ProductPricingStep({ formData, onUpdate }) {
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-center gap-2 text-sm font-medium text-[var(--os-text-primary)]">
+        <div className="flex items-center gap-2 text-os-sm font-medium text-[var(--os-text-primary)]">
           <Package className="w-4 h-4 text-white" />
           Order Quantity
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="moq" className="text-sm font-medium">
+          <Label htmlFor="moq" className="text-os-sm font-medium">
             Minimum Order Quantity (MOQ) <span className="text-white/70">*</span>
           </Label>
           <Input
@@ -114,7 +114,7 @@ export default function ProductPricingStep({ formData, onUpdate }) {
                 variant="outline"
                 size="sm"
                 className={cn(
-                  'text-xs h-7 border-white/20',
+                  'text-os-xs h-7 border-white/20',
                   formData.moq === suggestion && 'bg-white text-black border-white'
                 )}
                 onClick={() => onUpdate({ moq: suggestion })}
@@ -126,9 +126,9 @@ export default function ProductPricingStep({ formData, onUpdate }) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="maxQuantity" className="text-sm font-medium">
+          <Label htmlFor="maxQuantity" className="text-os-sm font-medium">
             Maximum Supply Capacity
-            <span className="text-xs text-[var(--os-text-secondary)] font-normal ml-2">(optional)</span>
+            <span className="text-os-xs text-[var(--os-text-secondary)] font-normal ml-2">(optional)</span>
           </Label>
           <Input
             id="maxQuantity"
@@ -141,7 +141,7 @@ export default function ProductPricingStep({ formData, onUpdate }) {
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm font-medium">Availability Status</Label>
+        <Label className="text-os-sm font-medium">Availability Status</Label>
         <Select
           value={formData.availability}
           onValueChange={(value) => onUpdate({ availability: value })}
@@ -161,9 +161,9 @@ export default function ProductPricingStep({ formData, onUpdate }) {
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <Clock className="w-4 h-4 text-[var(--os-text-secondary)]" />
-          <Label htmlFor="leadTime" className="text-sm font-medium">
+          <Label htmlFor="leadTime" className="text-os-sm font-medium">
             Lead Time
-            <span className="text-xs text-[var(--os-text-secondary)] font-normal ml-2">(optional)</span>
+            <span className="text-os-xs text-[var(--os-text-secondary)] font-normal ml-2">(optional)</span>
           </Label>
         </div>
         <Input
@@ -178,7 +178,7 @@ export default function ProductPricingStep({ formData, onUpdate }) {
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <MapPin className="w-4 h-4 text-[var(--os-text-secondary)]" />
-          <Label className="text-sm font-medium">
+          <Label className="text-os-sm font-medium">
             Delivery Regions <span className="text-white/70">*</span>
           </Label>
         </div>
@@ -200,7 +200,7 @@ export default function ProductPricingStep({ formData, onUpdate }) {
                   checked={isSelected}
                   onChange={() => toggleRegion(region.value)}
                 />
-                <span className="text-sm text-[var(--os-text-primary)]">{region.label}</span>
+                <span className="text-os-sm text-[var(--os-text-primary)]">{region.label}</span>
               </label>
             );
           })}
@@ -210,8 +210,8 @@ export default function ProductPricingStep({ formData, onUpdate }) {
       <div className="flex items-start gap-3 p-4 rounded-lg bg-white/5 border border-white/10">
         <Lightbulb className="w-5 h-5 text-white mt-0.5 flex-shrink-0" />
         <div>
-          <p className="text-sm font-medium text-[var(--os-text-primary)]">Competitive Pricing</p>
-          <p className="text-xs text-[var(--os-text-secondary)] mt-0.5">
+          <p className="text-os-sm font-medium text-[var(--os-text-primary)]">Competitive Pricing</p>
+          <p className="text-os-xs text-[var(--os-text-secondary)] mt-0.5">
             Buyers compare prices. Be transparent about MOQ and include bulk discounts.
           </p>
         </div>

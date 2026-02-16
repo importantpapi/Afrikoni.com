@@ -113,10 +113,10 @@ export default function Disputes() {
 
         {/* Before You Worry Notice */}
         <SystemPageSection>
-          <div className="bg-afrikoni-cream rounded-xl border-2 border-afrikoni-gold/40 p-8 mb-12">
+          <div className="bg-afrikoni-cream rounded-os-sm border-2 border-os-accent/40 p-8 mb-12">
             <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-afrikoni-gold/20 flex items-center justify-center">
-                <Shield className="w-6 h-6 text-afrikoni-gold" />
+              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-os-accent/20 flex items-center justify-center">
+                <Shield className="w-6 h-6 text-os-accent" />
               </div>
               <div>
                 <h3 className="text-h3 font-semibold leading-[1.3] text-afrikoni-chestnut mb-3">
@@ -146,7 +146,7 @@ export default function Disputes() {
           <div className="grid md:grid-cols-2 gap-8 mb-12">
             {/* Required Evidence */}
             <div>
-              <h3 className="text-h3 font-semibold leading-[1.3] text-afrikoni-gold mb-6">
+              <h3 className="text-h3 font-semibold leading-[1.3] text-os-accent mb-6">
                 Required Evidence
               </h3>
               <div className="space-y-4">
@@ -167,7 +167,7 @@ export default function Disputes() {
 
             {/* Timelines */}
             <div>
-              <h3 className="text-h3 font-semibold leading-[1.3] text-afrikoni-gold mb-6">
+              <h3 className="text-h3 font-semibold leading-[1.3] text-os-accent mb-6">
                 Typical Timelines
               </h3>
               <div className="space-y-4">
@@ -184,8 +184,8 @@ export default function Disputes() {
                   );
                 })}
               </div>
-              <div className="mt-6 p-4 bg-afrikoni-cream/50 rounded-lg border border-afrikoni-gold/20">
-                <p className="text-body font-normal leading-[1.6] text-afrikoni-chestnut/70 text-sm">
+              <div className="mt-6 p-4 bg-afrikoni-cream/50 rounded-lg border border-os-accent/20">
+                <p className="text-body font-normal leading-[1.6] text-afrikoni-chestnut/70 text-os-sm">
                   <strong>Note:</strong> Complex cross-border cases may take longer, but Afrikoni will always communicate clearly inside the order chat about the status and next steps.
                 </p>
               </div>
@@ -195,10 +195,10 @@ export default function Disputes() {
 
         {/* Important Notice */}
         <SystemPageSection>
-          <div className="bg-afrikoni-cream rounded-xl border-2 border-afrikoni-gold/40 p-8 mb-12">
+          <div className="bg-afrikoni-cream rounded-os-sm border-2 border-os-accent/40 p-8 mb-12">
             <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-afrikoni-gold/20 flex items-center justify-center">
-                <AlertCircle className="w-6 h-6 text-afrikoni-gold" />
+              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-os-accent/20 flex items-center justify-center">
+                <AlertCircle className="w-6 h-6 text-os-accent" />
               </div>
               <div>
                 <h3 className="text-h3 font-semibold leading-[1.3] text-afrikoni-chestnut mb-3">

@@ -62,7 +62,7 @@ export default function ProductBasicsStep({ formData, onUpdate }) {
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="space-y-2">
-        <Label htmlFor="name" className="text-sm font-medium">
+        <Label htmlFor="name" className="text-os-sm font-medium">
           Product Name <span className="text-white/70">*</span>
         </Label>
         <Input
@@ -72,13 +72,13 @@ export default function ProductBasicsStep({ formData, onUpdate }) {
           placeholder="e.g., Premium Ghanaian Cocoa Beans"
           className="os-input h-12"
         />
-        <p className="text-xs text-[var(--os-text-secondary)]">
+        <p className="text-os-xs text-[var(--os-text-secondary)]">
           Use a clear, descriptive name that buyers will search for.
         </p>
       </div>
 
       <div className="space-y-2">
-        <Label className="text-sm font-medium">
+        <Label className="text-os-sm font-medium">
           Category <span className="text-white/70">*</span>
         </Label>
         <Select
@@ -103,7 +103,7 @@ export default function ProductBasicsStep({ formData, onUpdate }) {
 
       {subcategories.length > 0 && (
         <div className="space-y-2 animate-fade-in">
-          <Label className="text-sm font-medium">Subcategory</Label>
+          <Label className="text-os-sm font-medium">Subcategory</Label>
           <Select
             value={formData.subcategory}
             onValueChange={(value) => onUpdate({ subcategory: value })}
@@ -124,7 +124,7 @@ export default function ProductBasicsStep({ formData, onUpdate }) {
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label htmlFor="description" className="text-sm font-medium">
+          <Label htmlFor="description" className="text-os-sm font-medium">
             Product Description <span className="text-white/70">*</span>
           </Label>
           <Button
@@ -133,7 +133,7 @@ export default function ProductBasicsStep({ formData, onUpdate }) {
             size="sm"
             onClick={handleGenerateDescription}
             disabled={!formData.name || !formData.category || isGenerating}
-            className="text-xs gap-1.5 text-white hover:text-white/80"
+            className="text-os-xs gap-1.5 text-white hover:text-white/80"
           >
             <Sparkles className="w-3.5 h-3.5" />
             {isGenerating ? 'Generating...' : 'Generate for me'}
@@ -150,7 +150,7 @@ export default function ProductBasicsStep({ formData, onUpdate }) {
         <div className="flex items-center justify-between">
           <p
             className={cn(
-              'text-xs',
+              'text-os-xs',
               descriptionLength === 0 && 'text-[var(--os-text-secondary)]',
               descriptionLength > 0 && descriptionLength < 50 && 'text-white/70',
               isDescriptionGood && 'text-white',
@@ -162,7 +162,7 @@ export default function ProductBasicsStep({ formData, onUpdate }) {
             {isDescriptionGood && ' ✓ Great!'}
           </p>
           {showFeedback && (
-            <span className="text-xs text-white animate-fade-in">
+            <span className="text-os-xs text-white animate-fade-in">
               ✨ Description generated!
             </span>
           )}
@@ -175,8 +175,8 @@ export default function ProductBasicsStep({ formData, onUpdate }) {
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-emerald-400" />
             <div>
-              <h4 className="text-sm font-semibold text-white">AfCFTA Compliance</h4>
-              <p className="text-xs text-white/50">Auto-mapped Harmonized System Code</p>
+              <h4 className="text-os-sm font-semibold text-white">AfCFTA Compliance</h4>
+              <p className="text-os-xs text-white/50">Auto-mapped Harmonized System Code</p>
             </div>
           </div>
           <Button
@@ -184,7 +184,7 @@ export default function ProductBasicsStep({ formData, onUpdate }) {
             size="sm"
             onClick={handlePredictHS}
             disabled={isPredictingHS}
-            className="text-xs"
+            className="text-os-xs"
           >
             {isPredictingHS ? <RefreshCw className="w-3 h-3 animate-spin" /> : 'Map Code'}
           </Button>
@@ -192,27 +192,27 @@ export default function ProductBasicsStep({ formData, onUpdate }) {
 
         <div className="flex items-center gap-4 bg-black/20 p-3 rounded-lg border border-white/5">
           <div className="flex-1">
-            <Label className="text-xs text-white/50 mb-1 block">HS Code</Label>
-            <div className="font-mono text-lg font-bold text-emerald-400">
+            <Label className="text-os-xs text-white/50 mb-1 block">HS Code</Label>
+            <div className="font-mono text-os-lg font-bold text-emerald-400">
               {hsPrediction ? hsPrediction.code : '----.--'}
             </div>
           </div>
           <div className="flex-1 border-l border-white/10 pl-4">
-            <Label className="text-xs text-white/50 mb-1 block">Duty Rate</Label>
-            <div className="font-mono text-sm font-medium text-white">
+            <Label className="text-os-xs text-white/50 mb-1 block">Duty Rate</Label>
+            <div className="font-mono text-os-sm font-medium text-white">
               {hsPrediction ? hsPrediction.duty : '--%'}
             </div>
           </div>
           <div className="flex-1 border-l border-white/10 pl-4 hidden sm:block">
-            <Label className="text-xs text-white/50 mb-1 block">Classification</Label>
-            <div className="text-xs text-white truncate max-w-[150px]" title={hsPrediction?.desc}>
+            <Label className="text-os-xs text-white/50 mb-1 block">Classification</Label>
+            <div className="text-os-xs text-white truncate max-w-[150px]" title={hsPrediction?.desc}>
               {hsPrediction ? hsPrediction.desc : 'Waiting for input...'}
             </div>
           </div>
         </div>
         {hsPrediction?.duty === '0%' && (
           <div className="space-y-3">
-            <div className="text-xs text-emerald-400 flex items-center gap-1.5">
+            <div className="text-os-xs text-emerald-400 flex items-center gap-1.5">
               <CheckCircle2 className="w-3 h-3" />
               Eligible for 100% Duty-Free Export under AfCFTA
             </div>
@@ -220,14 +220,14 @@ export default function ProductBasicsStep({ formData, onUpdate }) {
             {/* TAX SHIELD SAVINGS CARD */}
             <div className="bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 rounded-lg p-3 flex items-center justify-between">
               <div>
-                <p className="text-[10px] text-emerald-400 uppercase tracking-wider font-bold">AfCFTA Tax Shield</p>
-                <p className="text-white text-sm font-medium mt-0.5">Potential Duty Savings</p>
+                <p className="text-os-xs text-emerald-400 uppercase tracking-wider font-bold">AfCFTA Tax Shield</p>
+                <p className="text-white text-os-sm font-medium mt-0.5">Potential Duty Savings</p>
               </div>
               <div className="text-right">
-                <p className="text-lg font-bold text-emerald-400">
+                <p className="text-os-lg font-bold text-emerald-400">
                   {hsPrediction ? calculateDutySavings(hsPrediction.code).formatted : '$0'}
                 </p>
-                <p className="text-[10px] text-emerald-400/70">per $50k volume</p>
+                <p className="text-os-xs text-emerald-400/70">per $50k volume</p>
               </div>
             </div>
           </div>
@@ -237,8 +237,8 @@ export default function ProductBasicsStep({ formData, onUpdate }) {
       <div className="flex items-start gap-3 p-4 rounded-lg bg-white/5 border border-white/10">
         <Lightbulb className="w-5 h-5 text-white mt-0.5 flex-shrink-0" />
         <div>
-          <p className="text-sm font-medium text-[var(--os-text-primary)]">Pro Tip</p>
-          <p className="text-xs text-[var(--os-text-secondary)] mt-0.5">
+          <p className="text-os-sm font-medium text-[var(--os-text-primary)]">Pro Tip</p>
+          <p className="text-os-xs text-[var(--os-text-secondary)] mt-0.5">
             Products with detailed descriptions get 3x more buyer inquiries.
           </p>
         </div>

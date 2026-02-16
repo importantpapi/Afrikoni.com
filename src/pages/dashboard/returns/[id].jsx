@@ -140,7 +140,7 @@ export default function ReturnDetailPage() {
               Reject
             </Button>
             <Button
-              className="hover:bg-afrikoni-gold/90"
+              className="hover:bg-os-accent/90"
               onClick={() => handleUpdateStatus('approved')}
             >
               <CheckCircle className="w-4 h-4 mr-2" />
@@ -153,11 +153,11 @@ export default function ReturnDetailPage() {
       {/* Return Details */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Surface className="md:col-span-2 p-5">
-          <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Return Details</h2>
+          <h2 className="text-os-lg font-semibold text-[var(--os-text-primary)] mb-4">Return Details</h2>
           <div className="space-y-6">
             {/* Product Info */}
             <div>
-              <p className="text-sm text-[var(--os-text-secondary)] mb-2">Product</p>
+              <p className="text-os-sm text-[var(--os-text-secondary)] mb-2">Product</p>
               <div className="flex items-center gap-3">
                 <Package className="w-5 h-5" />
                 <div>
@@ -165,7 +165,7 @@ export default function ReturnDetailPage() {
                     {returnItem.products?.title || 'Product'}
                   </p>
                   {returnItem.products?.sku && (
-                    <p className="text-sm text-[var(--os-text-secondary)]">
+                    <p className="text-os-sm text-[var(--os-text-secondary)]">
                       SKU: {returnItem.products.sku}
                     </p>
                   )}
@@ -176,7 +176,7 @@ export default function ReturnDetailPage() {
             {/* Order Info */}
             {returnItem.orders && (
               <div>
-                <p className="text-sm text-[var(--os-text-secondary)] mb-2">Related Order</p>
+                <p className="text-os-sm text-[var(--os-text-secondary)] mb-2">Related Order</p>
                 <Link to={`/dashboard/orders/${returnItem.orders.id}`}>
                   <p className="hover:underline">
                     Order #{returnItem.orders.order_number || returnItem.orders.id.slice(0, 8)}
@@ -187,14 +187,14 @@ export default function ReturnDetailPage() {
 
             {/* Reason */}
             <div>
-              <p className="text-sm text-[var(--os-text-secondary)] mb-2">Return Reason</p>
+              <p className="text-os-sm text-[var(--os-text-secondary)] mb-2">Return Reason</p>
               <p className="font-semibold text-[var(--os-text-primary)]">{returnItem.reason}</p>
             </div>
 
             {/* Notes */}
             {returnItem.notes && (
               <div>
-                <p className="text-sm mb-2">Notes</p>
+                <p className="text-os-sm mb-2">Notes</p>
                 <p className="">{returnItem.notes}</p>
               </div>
             )}
@@ -203,8 +203,8 @@ export default function ReturnDetailPage() {
             {returnItem.refund_amount && (
               <div className="border-t pt-4">
                 <div className="flex justify-between">
-                  <p className="text-lg font-bold">Refund Amount</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-os-lg font-bold">Refund Amount</p>
+                  <p className="text-os-2xl font-bold">
                     {returnItem.currency} {parseFloat(returnItem.refund_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
@@ -215,11 +215,11 @@ export default function ReturnDetailPage() {
 
         {/* Status Card */}
         <Surface className="p-5">
-          <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Status</h2>
+          <h2 className="text-os-lg font-semibold text-[var(--os-text-primary)] mb-4">Status</h2>
           <div>
             <Badge
               variant={returnItem.status === 'refunded' ? 'success' : returnItem.status === 'rejected' ? 'destructive' : 'default'}
-              className="text-lg px-4 py-2"
+              className="text-os-lg px-4 py-2"
             >
               {returnItem.status === 'refunded' && <CheckCircle className="w-5 h-5 mr-2" />}
               {returnItem.status === 'rejected' && <XCircle className="w-5 h-5 mr-2" />}
@@ -228,14 +228,14 @@ export default function ReturnDetailPage() {
             </Badge>
           </div>
           <div>
-            <p className="text-sm text-[var(--os-text-secondary)] mb-1">Requested</p>
+            <p className="text-os-sm text-[var(--os-text-secondary)] mb-1">Requested</p>
             <p className="font-semibold text-[var(--os-text-primary)]">
               {format(new Date(returnItem.requested_at), 'MMM dd, yyyy')}
             </p>
           </div>
           {returnItem.resolved_at && (
             <div>
-              <p className="text-sm text-[var(--os-text-secondary)] mb-1">Resolved</p>
+              <p className="text-os-sm text-[var(--os-text-secondary)] mb-1">Resolved</p>
               <p className="font-semibold text-[var(--os-text-primary)]">
                 {format(new Date(returnItem.resolved_at), 'MMM dd, yyyy')}
               </p>

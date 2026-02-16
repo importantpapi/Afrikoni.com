@@ -31,7 +31,7 @@ export function CorridorHealthGauge({
     const colors = getHealthStatusColor(score);
 
     const sizes = {
-        sm: { gauge: 80, stroke: 6, text: 'text-2xl' },
+        sm: { gauge: 80, stroke: 6, text: 'text-os-2xl' },
         md: { gauge: 128, stroke: 8, text: 'text-3xl' },
         lg: { gauge: 160, stroke: 10, text: 'text-4xl' },
     };
@@ -87,7 +87,7 @@ export function CorridorHealthGauge({
                     {/* Score text */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center">
                         <span className={cn('font-bold text-white', textSize)}>{score}</span>
-                        <span className="text-xs text-white/60 uppercase tracking-wider mt-1">
+                        <span className="text-os-xs text-white/60 uppercase tracking-wider mt-1">
                             {statusLabel}
                         </span>
                     </div>
@@ -99,7 +99,7 @@ export function CorridorHealthGauge({
                 <div className="space-y-2">
                     {breakdownItems.map(({ key, label, score: itemScore }) => (
                         <div key={key} className="flex items-center gap-3">
-                            <span className="text-sm text-white/70 w-24 flex-shrink-0">{label}</span>
+                            <span className="text-os-sm text-white/70 w-24 flex-shrink-0">{label}</span>
                             <div className="flex-1 h-2 bg-white/10 rounded-full overflow-hidden">
                                 <motion.div
                                     className={cn('h-full bg-gradient-to-r', colors.gradient)}
@@ -108,7 +108,7 @@ export function CorridorHealthGauge({
                                     transition={{ duration: 0.8, delay: 0.2, ease: 'easeOut' }}
                                 />
                             </div>
-                            <span className="text-sm font-medium text-white w-12 text-right">
+                            <span className="text-os-sm font-medium text-white w-12 text-right">
                                 {itemScore}
                             </span>
                         </div>

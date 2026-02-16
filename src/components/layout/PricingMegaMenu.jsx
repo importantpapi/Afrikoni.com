@@ -162,11 +162,11 @@ export default function PricingMegaMenu({ isOpen, onClose, triggerRef }) {
               right-0
               w-full
               bg-white
-              shadow-lg
+              shadow-os-md
               border-t-0
               border-x-0
               border-b
-              border-afrikoni-gold/20
+              border-os-accent/20
               mt-0
               z-50
               overflow-y-auto
@@ -182,12 +182,12 @@ export default function PricingMegaMenu({ isOpen, onClose, triggerRef }) {
             {/* Inner container matching navbar width */}
             <div className="max-w-[1440px] mx-auto w-full">
               {/* Header with clear divider - Amazon style */}
-              <div className="border-b-2 border-afrikoni-gold/20 bg-afrikoni-offwhite/30">
+              <div className="border-b-2 border-os-accent/20 bg-afrikoni-offwhite/30">
                 <div className="flex items-center justify-between px-4 sm:px-6 lg:px-8 pt-5 lg:pt-6 pb-4 lg:pb-5">
-                  <h2 className="text-xl lg:text-2xl font-bold text-afrikoni-chestnut">Pricing & Plans</h2>
+                  <h2 className="text-os-xl lg:text-os-2xl font-bold text-afrikoni-chestnut">Pricing & Plans</h2>
                   <button
                     onClick={onClose}
-                    className="p-2 sm:p-1.5 rounded-lg hover:bg-afrikoni-gold/10 active:bg-afrikoni-gold/20 text-afrikoni-deep/60 hover:text-afrikoni-deep transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
+                    className="p-2 sm:p-1.5 rounded-lg hover:bg-os-accent/10 active:bg-os-accent/20 text-afrikoni-deep/60 hover:text-afrikoni-deep transition-colors touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
                     aria-label="Close menu"
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -202,7 +202,7 @@ export default function PricingMegaMenu({ isOpen, onClose, triggerRef }) {
               <div className="hidden lg:grid lg:grid-cols-2 gap-8 lg:gap-10">
                 {/* Left Column - Pricing & Fees */}
                 <div className="min-w-0">
-                  <h3 className="text-base lg:text-lg font-bold text-afrikoni-chestnut mb-5 lg:mb-6">
+                  <h3 className="text-os-base lg:text-os-lg font-bold text-afrikoni-chestnut mb-5 lg:mb-6">
                     Pricing & Plans
                   </h3>
                   <div className="space-y-5 lg:space-y-6">
@@ -211,14 +211,14 @@ export default function PricingMegaMenu({ isOpen, onClose, triggerRef }) {
                       return (
                         <div key={idx} className="mb-5 lg:mb-6 last:mb-0">
                           <div className="flex items-start gap-3 mb-3">
-                            <div className="p-2.5 rounded-lg bg-gradient-to-br from-afrikoni-gold/15 to-afrikoni-gold/5 text-afrikoni-gold flex-shrink-0">
+                            <div className="p-2.5 rounded-lg bg-gradient-to-br from-os-accent/15 to-os-accent/5 text-os-accent flex-shrink-0">
                               <Icon className="w-5 h-5" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-afrikoni-chestnut mb-1.5 text-base">
+                              <h4 className="font-semibold text-afrikoni-chestnut mb-1.5 text-os-base">
                                 {section.title}
                               </h4>
-                              <p className="text-xs text-afrikoni-deep/65 leading-relaxed mb-2">
+                              <p className="text-os-xs text-afrikoni-deep/65 leading-relaxed mb-2">
                                 {section.description}
                               </p>
                             </div>
@@ -228,14 +228,14 @@ export default function PricingMegaMenu({ isOpen, onClose, triggerRef }) {
                               <li key={itemIdx}>
                                 <button
                                   onClick={() => handleNavigate(item.path)}
-                                  className="text-left w-full text-sm text-afrikoni-deep hover:text-afrikoni-gold active:text-afrikoni-gold transition-all group py-2 px-3 rounded-lg hover:bg-afrikoni-gold/5 active:bg-afrikoni-gold/10 -ml-3 touch-manipulation"
+                                  className="text-left w-full text-os-sm text-afrikoni-deep hover:text-os-accent active:text-os-accent transition-all group py-2 px-3 rounded-lg hover:bg-os-accent/5 active:bg-os-accent/10 -ml-3 touch-manipulation"
                                 >
                                   <div className="flex items-center gap-2">
                                     <span className="font-medium group-hover:underline text-afrikoni-chestnut">
                                       {item.name}
                                     </span>
                                   </div>
-                                  <p className="text-xs text-afrikoni-deep/55 mt-1 leading-relaxed">
+                                  <p className="text-os-xs text-afrikoni-deep/55 mt-1 leading-relaxed">
                                     {item.description}
                                   </p>
                                 </button>
@@ -250,7 +250,7 @@ export default function PricingMegaMenu({ isOpen, onClose, triggerRef }) {
 
                 {/* Right Column - Calculator (Amazon-style card) */}
                 <div className="min-w-0">
-                  <h3 className="text-base lg:text-lg font-bold text-afrikoni-chestnut mb-5 lg:mb-6">
+                  <h3 className="text-os-base lg:text-os-lg font-bold text-afrikoni-chestnut mb-5 lg:mb-6">
                     Estimate revenue & costs
                   </h3>
                   <div className="space-y-4">
@@ -260,37 +260,37 @@ export default function PricingMegaMenu({ isOpen, onClose, triggerRef }) {
                         <div
                           key={idx}
                           className={`
-                            bg-afrikoni-gold/5 rounded-xl p-5 shadow-sm border border-afrikoni-gold/20
+                            bg-os-accent/5 rounded-os-sm p-5 shadow-sm border border-os-accent/20
                             transition-all cursor-pointer group touch-manipulation
                             ${section.highlighted 
-                              ? 'bg-gradient-to-br from-afrikoni-gold/10 via-afrikoni-gold/5 to-afrikoni-cream/10 border-afrikoni-gold/40 shadow-md hover:shadow-lg active:shadow-md' 
-                              : 'hover:bg-afrikoni-gold/10 hover:border-afrikoni-gold/30 active:bg-afrikoni-gold/15'
+                              ? 'bg-gradient-to-br from-os-accent/10 via-os-accent/5 to-afrikoni-cream/10 border-os-accent/40 shadow-md hover:shadow-os-md active:shadow-md' 
+                              : 'hover:bg-os-accent/10 hover:border-os-accent/30 active:bg-os-accent/15'
                             }
                           `}
                           onClick={() => handleNavigate(section.path)}
                         >
                           <div className="flex items-start gap-4 mb-4">
                             <div className={`
-                              p-3 rounded-xl flex-shrink-0 transition-transform group-hover:scale-110
+                              p-3 rounded-os-sm flex-shrink-0 transition-transform group-hover:scale-110
                               ${section.highlighted 
-                                ? 'bg-gradient-to-br from-afrikoni-gold to-afrikoni-goldDark text-white shadow-lg' 
-                                : 'bg-afrikoni-gold/10 text-afrikoni-gold'
+                                ? 'bg-gradient-to-br from-os-accent to-os-accentDark text-white shadow-os-md' 
+                                : 'bg-os-accent/10 text-os-accent'
                               }
                             `}>
                               <Icon className="w-6 h-6" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-2">
-                                <h4 className="font-semibold text-afrikoni-chestnut text-base">
+                                <h4 className="font-semibold text-afrikoni-chestnut text-os-base">
                                   {section.title}
                                 </h4>
                                 {section.badge && (
-                                  <span className="text-xs bg-afrikoni-gold text-white px-2 py-1 rounded-full font-semibold whitespace-nowrap">
+                                  <span className="text-os-xs bg-os-accent text-white px-2 py-1 rounded-full font-semibold whitespace-nowrap">
                                     {section.badge}
                                   </span>
                                 )}
                               </div>
-                              <p className="text-sm text-afrikoni-deep/70 leading-relaxed">
+                              <p className="text-os-sm text-afrikoni-deep/70 leading-relaxed">
                                 {section.description}
                               </p>
                             </div>
@@ -298,7 +298,7 @@ export default function PricingMegaMenu({ isOpen, onClose, triggerRef }) {
                           <Button
                             variant={section.highlighted ? 'default' : 'outline'}
                             size="sm"
-                            className={`w-full mt-4 text-sm h-10 touch-manipulation min-h-[44px] ${section.highlighted ? 'bg-afrikoni-gold hover:bg-afrikoni-goldDark active:bg-afrikoni-goldDark text-white' : ''}`}
+                            className={`w-full mt-4 text-os-sm h-10 touch-manipulation min-h-[44px] ${section.highlighted ? 'bg-os-accent hover:bg-os-accentDark active:bg-os-accentDark text-white' : ''}`}
                             onClick={(e) => {
                               e.stopPropagation();
                               handleNavigate(section.path);
@@ -322,16 +322,16 @@ export default function PricingMegaMenu({ isOpen, onClose, triggerRef }) {
                   {reviewSections.map((section, idx) => {
                     const Icon = section.icon;
                     return (
-                      <div key={idx} className="border border-afrikoni-gold/20 rounded-lg p-3 sm:p-4">
+                      <div key={idx} className="border border-os-accent/20 rounded-lg p-3 sm:p-4">
                         <div className="flex items-start gap-3 mb-3">
-                          <div className="p-2 rounded-lg bg-afrikoni-gold/10 text-afrikoni-gold">
+                          <div className="p-2 rounded-lg bg-os-accent/10 text-os-accent">
                             <Icon className="w-5 h-5" />
                           </div>
                           <div className="flex-1">
                             <h4 className="font-medium text-afrikoni-chestnut mb-1">
                               {section.title}
                             </h4>
-                            <p className="text-xs text-afrikoni-deep/70">
+                            <p className="text-os-xs text-afrikoni-deep/70">
                               {section.description}
                             </p>
                           </div>
@@ -341,10 +341,10 @@ export default function PricingMegaMenu({ isOpen, onClose, triggerRef }) {
                               <li key={itemIdx}>
                                 <button
                                   onClick={() => handleNavigate(item.path)}
-                                  className="text-left w-full text-sm text-afrikoni-deep hover:text-afrikoni-gold active:text-afrikoni-gold transition-colors touch-manipulation py-2 px-2 rounded-lg active:bg-afrikoni-gold/5"
+                                  className="text-left w-full text-os-sm text-afrikoni-deep hover:text-os-accent active:text-os-accent transition-colors touch-manipulation py-2 px-2 rounded-lg active:bg-os-accent/5"
                                 >
                                   <span className="font-medium block">{item.name}</span>
-                                  <p className="text-xs text-afrikoni-deep/60 mt-0.5">
+                                  <p className="text-os-xs text-afrikoni-deep/60 mt-0.5">
                                     {item.description}
                                   </p>
                                 </button>
@@ -367,8 +367,8 @@ export default function PricingMegaMenu({ isOpen, onClose, triggerRef }) {
                       <Card
                         key={idx}
                         className={`
-                          border-afrikoni-gold/20 cursor-pointer
-                          ${section.highlighted ? 'bg-gradient-to-br from-afrikoni-gold/5 to-afrikoni-cream/10' : ''}
+                          border-os-accent/20 cursor-pointer
+                          ${section.highlighted ? 'bg-gradient-to-br from-os-accent/5 to-afrikoni-cream/10' : ''}
                         `}
                         onClick={() => handleNavigate(section.path)}
                       >
@@ -376,7 +376,7 @@ export default function PricingMegaMenu({ isOpen, onClose, triggerRef }) {
                           <div className="flex items-start gap-3 mb-3">
                             <div className={`
                               p-2 rounded-lg
-                              ${section.highlighted ? 'bg-afrikoni-gold text-white' : 'bg-afrikoni-gold/10 text-afrikoni-gold'}
+                              ${section.highlighted ? 'bg-os-accent text-white' : 'bg-os-accent/10 text-os-accent'}
                             `}>
                               <Icon className="w-5 h-5" />
                             </div>
@@ -386,12 +386,12 @@ export default function PricingMegaMenu({ isOpen, onClose, triggerRef }) {
                                   {section.title}
                                 </h4>
                                 {section.badge && (
-                                  <Badge className="bg-afrikoni-gold text-white text-xs">
+                                  <Badge className="bg-os-accent text-white text-os-xs">
                                     {section.badge}
                                   </Badge>
                                 )}
                               </div>
-                              <p className="text-sm text-afrikoni-deep/70">
+                              <p className="text-os-sm text-afrikoni-deep/70">
                                 {section.description}
                               </p>
                             </div>

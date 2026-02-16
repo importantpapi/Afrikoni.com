@@ -12,64 +12,64 @@ export default function QuickActions() {
       icon: Search, 
       title: 'Find Products', 
       description: 'Search millions of products',
-      iconColor: 'text-afrikoni-gold',
-      iconBg: 'bg-afrikoni-gold/20',
+      iconColor: 'text-os-accent',
+      iconBg: 'bg-os-accent/20',
       link: createPageUrl('Products')
     },
     { 
       icon: Users, 
       title: 'Find Suppliers', 
       description: 'Connect with verified suppliers',
-      iconColor: 'text-afrikoni-gold',
-      iconBg: 'bg-afrikoni-gold/20',
+      iconColor: 'text-os-accent',
+      iconBg: 'bg-os-accent/20',
       link: createPageUrl('Suppliers')
     },
     { 
       icon: TrendingUp, 
       title: 'Become a Seller', 
       description: 'Start selling on Afrikoni',
-      iconColor: 'text-afrikoni-gold',
-      iconBg: 'bg-afrikoni-gold/20',
+      iconColor: 'text-os-accent',
+      iconBg: 'bg-os-accent/20',
       link: createPageUrl('SellerOnboarding')
     },
     { 
       icon: Users, 
       title: 'Become a Buyer', 
       description: 'Join as a verified buyer',
-      iconColor: 'text-afrikoni-gold',
-      iconBg: 'bg-afrikoni-gold/20',
+      iconColor: 'text-os-accent',
+      iconBg: 'bg-os-accent/20',
       link: createPageUrl('BuyerCentral')
     },
     { 
       icon: Zap, 
       title: 'AI Matchmaking', 
       description: 'AI-powered supplier matching',
-      iconColor: 'text-afrikoni-gold',
-      iconBg: 'bg-afrikoni-gold/20',
+      iconColor: 'text-os-accent',
+      iconBg: 'bg-os-accent/20',
       link: createPageUrl('AIMatchmaking')
     },
     { 
       icon: CheckCircle, 
       title: 'Afrikoni Verification', 
       description: 'Get verified and trusted',
-      iconColor: 'text-afrikoni-gold',
-      iconBg: 'bg-afrikoni-gold/20',
+      iconColor: 'text-os-accent',
+      iconBg: 'bg-os-accent/20',
       link: '/dashboard/verification'
     },
     { 
       icon: FileText, 
       title: 'Post RFQ', 
       description: 'Request for quotations',
-      iconColor: 'text-afrikoni-gold',
-      iconBg: 'bg-afrikoni-gold/20',
+      iconColor: 'text-os-accent',
+      iconBg: 'bg-os-accent/20',
       link: createPageUrl('CreateRFQ')
     },
     { 
       icon: Package, 
       title: 'Browse Categories', 
       description: 'Explore product categories',
-      iconColor: 'text-afrikoni-gold',
-      iconBg: 'bg-afrikoni-gold/20',
+      iconColor: 'text-os-accent',
+      iconBg: 'bg-os-accent/20',
       link: createPageUrl('Categories')
     }
   ];
@@ -82,7 +82,7 @@ export default function QuickActions() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5 }}
-          className="text-2xl md:text-3xl font-bold font-serif text-afrikoni-chestnut text-center mb-3 md:mb-4"
+          className="text-os-2xl md:text-3xl font-bold font-serif text-afrikoni-chestnut text-center mb-3 md:mb-4"
         >
           Quick Actions
         </motion.h2>
@@ -91,7 +91,7 @@ export default function QuickActions() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.5, delay: 0.1 }}
-          className="text-base md:text-lg text-afrikoni-deep text-center mb-8 md:mb-12"
+          className="text-os-base md:text-os-lg text-afrikoni-deep text-center mb-8 md:mb-12"
         >
           Everything you need to trade successfully across Africa
         </motion.p>
@@ -111,14 +111,14 @@ export default function QuickActions() {
                     whileHover={{ y: -8, scale: 1.02 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 transition-all hover:shadow-afrikoni-lg h-full">
+                    <Card className="border-os-accent/20 hover:border-os-accent/40 transition-all hover:shadow-os-gold-lg h-full">
                       <CardContent className="p-5 md:p-6 text-center">
-                        <div className={`w-14 h-14 md:w-16 md:h-16 ${action.iconBg} rounded-xl flex items-center justify-center mx-auto mb-4`}>
+                        <div className={`w-14 h-14 md:w-16 md:h-16 ${action.iconBg} rounded-os-sm flex items-center justify-center mx-auto mb-4`}>
                           <Icon className={`w-7 h-7 md:w-8 md:h-8 ${action.iconColor}`} />
                         </div>
-                        <h3 className="font-bold text-afrikoni-chestnut mb-2 text-sm md:text-base">{action.title}</h3>
-                        <p className="text-xs md:text-sm text-afrikoni-deep mb-4">{action.description}</p>
-                        <Button variant="secondary" className="w-full text-sm">
+                        <h3 className="font-bold text-afrikoni-chestnut mb-2 text-os-sm md:text-os-base">{action.title}</h3>
+                        <p className="text-os-xs md:text-os-sm text-afrikoni-deep mb-4">{action.description}</p>
+                        <Button variant="secondary" className="w-full text-os-sm">
                           Start
                         </Button>
                       </CardContent>

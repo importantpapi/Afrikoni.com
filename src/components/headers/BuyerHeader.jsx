@@ -23,16 +23,16 @@ export default function BuyerHeader({
       <div className="flex flex-1 items-center">
         {/* Search Bar */}
         <div className="relative w-full max-w-[520px]">
-          <Search className="w-4 h-4 text-afrikoni-gold absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="w-4 h-4 text-os-accent absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <Input
             placeholder={
               t?.('buyer.searchPlaceholder') ||
               'Search products, suppliers, RFQs...'
             }
-            className="pl-10 pr-4 h-10 w-full border-afrikoni-gold/30
-                       focus:border-afrikoni-gold focus:ring-2
-                       focus:ring-afrikoni-gold/20 shadow-sm
-                       transition-all text-sm bg-white rounded-lg"
+            className="pl-10 pr-4 h-10 w-full border-os-accent/30
+                       focus:border-os-accent focus:ring-2
+                       focus:ring-os-accent/20 shadow-sm
+                       transition-all text-os-sm bg-white rounded-lg"
             onFocus={() => setSearchOpen?.(true)}
             onBlur={() =>
               setTimeout(() => setSearchOpen?.(false), 200)
@@ -48,15 +48,15 @@ export default function BuyerHeader({
         <div className="shrink-0">
           <Button
             onClick={() => navigate('/dashboard/rfqs/new')}
-            className="flex items-center gap-2 bg-afrikoni-gold
-                       hover:bg-afrikoni-gold/90
+            className="flex items-center gap-2 bg-os-accent
+                       hover:bg-os-accent/90
                        text-afrikoni-charcoal font-semibold
                        shadow-md rounded-lg px-6 h-11
-                       transition-all hover:shadow-lg
+                       transition-all hover:shadow-os-md
                        whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
-            <span className="text-sm">Create RFQ</span>
+            <span className="text-os-sm">Create RFQ</span>
           </Button>
         </div>
 
@@ -71,7 +71,7 @@ export default function BuyerHeader({
           >
             <MessageSquare className="w-5 h-5 text-afrikoni-text-dark" />
             <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5
-                           bg-afrikoni-gold rounded-full border-2
+                           bg-os-accent rounded-full border-2
                            border-afrikoni-ivory"></span>
           </Link>
 
@@ -84,8 +84,8 @@ export default function BuyerHeader({
             className="inline-flex items-center justify-center
                        w-10 h-10 rounded-lg
                        text-afrikoni-charcoal
-                       hover:bg-afrikoni-gold/10
-                       focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/30
+                       hover:bg-os-accent/10
+                       focus:outline-none focus:ring-2 focus:ring-os-accent/30
                        transition-colors"
             aria-label="Toggle menu"
           >

@@ -16,10 +16,10 @@ export function IntakeStrip() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-foreground">
         {items.map((item) => (
           <div key={item.label} className="space-y-1">
-            <div className="text-[11px] uppercase tracking-wide text-muted-foreground">{item.label}</div>
+            <div className="text-os-xs uppercase tracking-wide text-muted-foreground">{item.label}</div>
             <div className="flex items-center justify-between">
-              <span className="text-xl font-semibold">{item.value}</span>
-              <span className="text-xs text-muted-foreground">{item.amount}</span>
+              <span className="text-os-xl font-semibold">{item.value}</span>
+              <span className="text-os-xs text-muted-foreground">{item.amount}</span>
             </div>
             <Progress value={72} className="h-1" />
           </div>

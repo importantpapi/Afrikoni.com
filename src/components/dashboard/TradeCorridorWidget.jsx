@@ -91,14 +91,14 @@ export default function TradeCorridorWidget({ className = '' }) {
   }, [canLoadData, profileCompanyId]);
 
   return (
-    <Card className={`border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl ${className}`}>
+    <Card className={`border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-os-sm ${className}`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-sm font-semibold dark:text-[#F5F0E8] flex items-center gap-2">
+          <CardTitle className="text-os-sm font-semibold dark:text-[#F5F0E8] flex items-center gap-2">
             <Globe className="w-4 h-4" />
             Trade Corridors
           </CardTitle>
-          <span className="text-[10px] font-mono dark:text-gray-600">{corridors.length} routes</span>
+          <span className="text-os-xs font-mono dark:text-gray-600">{corridors.length} routes</span>
         </div>
       </CardHeader>
       <CardContent>
@@ -112,29 +112,29 @@ export default function TradeCorridorWidget({ className = '' }) {
               className="flex items-center justify-between p-2.5 rounded-lg dark:bg-[#1A1A1A] hover:bg-gray-100 dark:hover:bg-[#222] border border-transparent hover:border-[#D4A937]/10 transition-all"
             >
               <div className="flex items-center gap-2 min-w-0">
-                <span className="text-sm">{corridor.flag_from}</span>
-                <span className="text-[13px] font-medium dark:text-gray-200 truncate">
+                <span className="text-os-sm">{corridor.flag_from}</span>
+                <span className="text-os-sm font-medium dark:text-gray-200 truncate">
                   {corridor.from}
                 </span>
                 <ArrowRight className="w-3 h-3 flex-shrink-0" />
-                <span className="text-sm">{corridor.flag_to}</span>
-                <span className="text-[13px] font-medium dark:text-gray-200 truncate">
+                <span className="text-os-sm">{corridor.flag_to}</span>
+                <span className="text-os-sm font-medium dark:text-gray-200 truncate">
                   {corridor.to}
                 </span>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
-                <span className="text-[13px] font-bold font-mono dark:text-[#F5F0E8]">
+                <span className="text-os-sm font-bold font-mono dark:text-[#F5F0E8]">
                   ${(corridor.volume / 1000).toFixed(0)}K
                 </span>
                 <div className="flex items-center gap-0.5">
                   <TrendIcon trend={corridor.trend} />
-                  <span className={`text-[10px] font-medium font-mono ${corridor.trend === 'up' ? 'text-emerald-500' :
-                      corridor.trend === 'down' ? 'text-red-500' : 'text-gray-400'
+                  <span className={`text-os-xs font-medium font-mono ${corridor.trend === 'up' ? 'text-emerald-500' :
+                      corridor.trend === 'down' ? 'text-os-red' : 'text-gray-400'
                     }`}>
                     {corridor.change}
                   </span>
                 </div>
-                <Badge variant="outline" className="text-[10px] font-mono dark:border-[#2A2A2A] dark:text-gray-400">
+                <Badge variant="outline" className="text-os-xs font-mono dark:border-[#2A2A2A] dark:text-gray-400">
                   {corridor.trades}
                 </Badge>
               </div>

@@ -81,24 +81,24 @@ function SocialProofSection() {
       className="flex flex-wrap items-center justify-center gap-3 md:gap-8 mt-6 md:mt-8 text-meta px-2 md:px-0"
     >
       {stats.verifiedSuppliers > 0 && (
-        <div className="flex items-center gap-2 text-afrikoni-cream/95 bg-afrikoni-cream/8 md:bg-afrikoni-cream/5 border border-afrikoni-gold/30 md:border-afrikoni-gold/20 rounded-full px-3 md:px-4 py-1.5 md:py-2 backdrop-blur-sm shadow-sm md:shadow-none">
-          <CheckCircle className="w-4 h-4 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0" />
-          <span className="text-xs md:text-body">
-            <span className="font-bold text-afrikoni-gold">{stats.verifiedSuppliers}+</span>
+        <div className="flex items-center gap-2 text-afrikoni-cream/95 bg-afrikoni-cream/8 md:bg-afrikoni-cream/5 border border-os-accent/30 md:border-os-accent/20 rounded-full px-3 md:px-4 py-1.5 md:py-2 backdrop-blur-sm shadow-sm md:shadow-none">
+          <CheckCircle className="w-4 h-4 md:w-6 md:h-6 text-os-accent flex-shrink-0" />
+          <span className="text-os-xs md:text-body">
+            <span className="font-bold text-os-accent">{stats.verifiedSuppliers}+</span>
             <span className="ml-1 md:ml-1.5 font-normal hidden sm:inline">Verified Suppliers</span>
             <span className="ml-1 md:hidden font-normal">Suppliers</span>
           </span>
         </div>
       )}
-      <div className="flex items-center gap-2 text-afrikoni-cream/95 bg-afrikoni-cream/8 md:bg-afrikoni-cream/5 border border-afrikoni-gold/30 md:border-afrikoni-gold/20 rounded-full px-3 md:px-4 py-1.5 md:py-2 backdrop-blur-sm shadow-sm md:shadow-none">
-        <Globe className="w-4 h-4 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0" />
-        <span className="text-xs md:text-body font-normal">{t('active_54')}</span>
+      <div className="flex items-center gap-2 text-afrikoni-cream/95 bg-afrikoni-cream/8 md:bg-afrikoni-cream/5 border border-os-accent/30 md:border-os-accent/20 rounded-full px-3 md:px-4 py-1.5 md:py-2 backdrop-blur-sm shadow-sm md:shadow-none">
+        <Globe className="w-4 h-4 md:w-6 md:h-6 text-os-accent flex-shrink-0" />
+        <span className="text-os-xs md:text-body font-normal">{t('active_54')}</span>
       </div>
       {stats.activeBusinesses > 0 && (
-        <div className="flex items-center gap-2 text-afrikoni-cream/95 bg-afrikoni-cream/8 md:bg-afrikoni-cream/5 border border-afrikoni-gold/30 md:border-afrikoni-gold/20 rounded-full px-3 md:px-4 py-1.5 md:py-2 backdrop-blur-sm shadow-sm md:shadow-none">
-          <Users className="w-4 h-4 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0" />
-          <span className="text-xs md:text-body">
-            <span className="font-bold text-afrikoni-gold">{stats.activeBusinesses}+</span>
+        <div className="flex items-center gap-2 text-afrikoni-cream/95 bg-afrikoni-cream/8 md:bg-afrikoni-cream/5 border border-os-accent/30 md:border-os-accent/20 rounded-full px-3 md:px-4 py-1.5 md:py-2 backdrop-blur-sm shadow-sm md:shadow-none">
+          <Users className="w-4 h-4 md:w-6 md:h-6 text-os-accent flex-shrink-0" />
+          <span className="text-os-xs md:text-body">
+            <span className="font-bold text-os-accent">{stats.activeBusinesses}+</span>
             <span className="ml-1 md:ml-1.5 font-normal hidden sm:inline">Active Businesses</span>
             <span className="ml-1 md:hidden font-normal">Businesses</span>
           </span>
@@ -208,7 +208,7 @@ export default function HeroSection({ categories = [] }) {
     <div className="relative bg-gradient-to-br from-afrikoni-earth via-afrikoni-deep to-afrikoni-chestnut py-12 md:py-24 overflow-visible">
       {/* Faint Afrikoni Logo Watermark */}
       <div className="absolute inset-0 flex items-center justify-center opacity-[0.04]">
-        <Logo type="icon" size="xl" link={false} className="scale-150 text-afrikoni-gold" />
+        <Logo type="icon" size="xl" link={false} className="scale-150 text-os-accent" />
       </div>
 
       {/* Subtle Pattern Overlay */}
@@ -228,43 +228,43 @@ export default function HeroSection({ categories = [] }) {
             transition={{ duration: 0.4, delay: 0.1, ease: 'easeOut' }}
             className="hidden lg:block lg:col-span-3"
           >
-            <Card className="border border-afrikoni-gold/20 bg-afrikoni-cream/5 backdrop-blur-sm shadow-lg opacity-70">
+            <Card className="border border-os-accent/20 bg-afrikoni-cream/5 backdrop-blur-sm shadow-os-md opacity-70">
               <CardContent className="p-4 space-y-2">
-                <h3 className="text-meta font-medium text-afrikoni-gold/80 mb-4 tracking-[0.02em]">
+                <h3 className="text-meta font-medium text-os-accent/80 mb-4 tracking-[0.02em]">
                   {t('quick_access')}
                 </h3>
                 <motion.button
                   whileHover={{ x: 2 }}
                   onClick={() => navigate('/services/buyers')}
-                  className="w-full flex items-center gap-2 p-2.5 rounded-lg bg-transparent hover:bg-afrikoni-gold/5 transition-all text-left group border border-afrikoni-gold/20"
+                  className="w-full flex items-center gap-2 p-2.5 rounded-lg bg-transparent hover:bg-os-accent/5 transition-all text-left group border border-os-accent/20"
                 >
-                  <ShoppingBag className="w-4 h-4 text-afrikoni-gold/70 group-hover:scale-110 transition-transform" />
+                  <ShoppingBag className="w-4 h-4 text-os-accent/70 group-hover:scale-110 transition-transform" />
                   <div className="flex-1">
                     <p className="text-body font-normal leading-[1.6] text-afrikoni-cream/80">{t('buy_source')}</p>
                   </div>
-                  <ArrowRight className="w-3 h-3 text-afrikoni-gold/50 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-3 h-3 text-os-accent/50 group-hover:translate-x-1 transition-transform" />
                 </motion.button>
                 <motion.button
                   whileHover={{ x: 2 }}
                   onClick={() => navigate('/become-supplier')}
-                  className="w-full flex items-center gap-2 p-2.5 rounded-lg bg-transparent hover:bg-afrikoni-gold/5 transition-all text-left group border border-afrikoni-gold/20"
+                  className="w-full flex items-center gap-2 p-2.5 rounded-lg bg-transparent hover:bg-os-accent/5 transition-all text-left group border border-os-accent/20"
                 >
-                  <Store className="w-4 h-4 text-afrikoni-gold/70 group-hover:scale-110 transition-transform" />
+                  <Store className="w-4 h-4 text-os-accent/70 group-hover:scale-110 transition-transform" />
                   <div className="flex-1">
                     <p className="text-body font-normal leading-[1.6] text-afrikoni-cream/80">{t('sell_products')}</p>
                   </div>
-                  <ArrowRight className="w-3 h-3 text-afrikoni-gold/50 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-3 h-3 text-os-accent/50 group-hover:translate-x-1 transition-transform" />
                 </motion.button>
                 <motion.button
                   whileHover={{ x: 2 }}
                   onClick={() => navigate('/logistics-partner-onboarding')}
-                  className="w-full flex items-center gap-2 p-2.5 rounded-lg bg-transparent hover:bg-afrikoni-gold/5 transition-all text-left group border border-afrikoni-gold/20"
+                  className="w-full flex items-center gap-2 p-2.5 rounded-lg bg-transparent hover:bg-os-accent/5 transition-all text-left group border border-os-accent/20"
                 >
-                  <Truck className="w-4 h-4 text-afrikoni-gold/70 group-hover:scale-110 transition-transform" />
+                  <Truck className="w-4 h-4 text-os-accent/70 group-hover:scale-110 transition-transform" />
                   <div className="flex-1">
                     <p className="text-body font-normal leading-[1.6] text-afrikoni-cream/80">{t('ship_goods')}</p>
                   </div>
-                  <ArrowRight className="w-3 h-3 text-afrikoni-gold/50 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-3 h-3 text-os-accent/50 group-hover:translate-x-1 transition-transform" />
                 </motion.button>
               </CardContent>
             </Card>
@@ -281,24 +281,24 @@ export default function HeroSection({ categories = [] }) {
             >
               {/* Mobile: Operational, Action-Oriented */}
               <div className="md:hidden space-y-4 mb-6">
-                <h1 className="text-2xl font-bold leading-tight text-afrikoni-gold mb-2">
+                <h1 className="text-os-2xl font-bold leading-tight text-os-accent mb-2">
                   Find verified African suppliers
                 </h1>
-                <p className="text-base font-medium text-afrikoni-cream/95 leading-relaxed">
+                <p className="text-os-base font-medium text-afrikoni-cream/95 leading-relaxed">
                   Search products or verified suppliers across 54 countries
                 </p>
                 {/* Small brand seal */}
-                <p className="text-xs text-afrikoni-cream/70 font-medium">
+                <p className="text-os-xs text-afrikoni-cream/70 font-medium">
                   Trade. Trust. Thrive.
                 </p>
               </div>
 
               {/* Desktop: Brand Header (restored) */}
               <div className="hidden md:block">
-                <h1 className="text-[60px] font-bold leading-[1.1] tracking-[-0.02em] text-afrikoni-gold mb-4 md:mb-8">
+                <h1 className="text-os-5xl font-bold leading-[1.1] tracking-[-0.02em] text-os-accent mb-4 md:mb-8">
                   {t('trade_trust_thrive')}
                 </h1>
-                <p className="text-[18px] font-normal leading-[1.6] text-afrikoni-cream/90 mb-5 md:mb-8 max-w-3xl mx-auto">
+                <p className="text-os-lg font-normal leading-[1.6] text-afrikoni-cream/90 mb-5 md:mb-8 max-w-3xl mx-auto">
                   {t('hero_subtitle') || 'A Pan-African B2B marketplace where verified African suppliers, buyers, and logistics partners build, trade, and scale safely across 54 countries.'}
                 </p>
               </div>
@@ -309,17 +309,17 @@ export default function HeroSection({ categories = [] }) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.22 }}
-            className="inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 bg-afrikoni-cream/5 border border-afrikoni-gold/40 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-[11px] md:text-xs text-afrikoni-cream mb-5 mx-2"
+            className="inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 bg-afrikoni-cream/5 border border-os-accent/40 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 text-os-xs sm:text-os-xs md:text-os-xs text-afrikoni-cream mb-5 mx-2"
           >
-            <span className="font-semibold uppercase tracking-wide text-afrikoni-gold">
+            <span className="font-semibold uppercase tracking-wide text-os-accent">
               Afrikoni&nbsp;Shield™
             </span>
             <span className="opacity-80">Verified suppliers</span>
-            <span className="w-1 h-1 rounded-full bg-afrikoni-gold/70" />
+            <span className="w-1 h-1 rounded-full bg-os-accent/70" />
             <span className="opacity-80">KYC / AML &amp; anti-corruption</span>
-            <span className="w-1 h-1 rounded-full bg-afrikoni-gold/70" />
+            <span className="w-1 h-1 rounded-full bg-os-accent/70" />
             <span className="opacity-80">Escrow-protected payments</span>
-            <span className="w-1 h-1 rounded-full bg-afrikoni-gold/70" />
+            <span className="w-1 h-1 rounded-full bg-os-accent/70" />
             <span className="opacity-80">Cross-border logistics support</span>
           </motion.div> */}
 
@@ -337,13 +337,13 @@ export default function HeroSection({ categories = [] }) {
                     className={`
                       flex items-center gap-2 md:gap-3
                       bg-white/98 md:bg-white/95
-                      rounded-2xl md:rounded-full
-                      shadow-xl md:shadow-lg
-                      border-2 md:border border-afrikoni-gold/30 md:border-afrikoni-gold/20
+                      rounded-os-md md:rounded-full
+                      shadow-os-lg md:shadow-os-md
+                      border-2 md:border border-os-accent/30 md:border-os-accent/20
                       px-3 md:px-4 py-2.5 md:py-3
                       transition-all duration-300
-                      focus-within:ring-2 md:focus-within:ring-1 focus-within:ring-afrikoni-gold/40 md:focus-within:ring-afrikoni-gold/30 focus-within:shadow-2xl md:focus-within:shadow-xl
-                      ${searchFocused ? 'shadow-2xl md:shadow-xl border-afrikoni-gold/40 md:border-afrikoni-gold/30' : ''}
+                      focus-within:ring-2 md:focus-within:ring-1 focus-within:ring-os-accent/40 md:focus-within:ring-os-accent/30 focus-within:shadow-2xl md:focus-within:shadow-os-lg
+                      ${searchFocused ? 'shadow-2xl md:shadow-os-lg border-os-accent/40 md:border-os-accent/30' : ''}
                     `}
                   >
                     {/* Main Search Input - DOMINANT, HIGH CONTRAST */}
@@ -370,7 +370,7 @@ export default function HeroSection({ categories = [] }) {
                           setSearchFocused(false);
                         }, 200);
                       }}
-                      className="flex-1 text-sm md:text-base px-3 md:px-3 py-2 md:py-1.5 focus:outline-none placeholder:text-afrikoni-deep/70 md:placeholder:text-afrikoni-deep/50 bg-afrikoni-cream/40 md:bg-afrikoni-cream/20 border border-afrikoni-gold/30 md:border-afrikoni-gold/20 rounded-lg md:rounded-full text-afrikoni-chestnut min-h-[44px] md:min-h-[44px] focus:bg-afrikoni-cream/60 md:focus:bg-afrikoni-cream/30 focus:border-afrikoni-gold/50 md:focus:border-afrikoni-gold/40 transition-all duration-200"
+                      className="flex-1 text-os-sm md:text-os-base px-3 md:px-3 py-2 md:py-1.5 focus:outline-none placeholder:text-afrikoni-deep/70 md:placeholder:text-afrikoni-deep/50 bg-afrikoni-cream/40 md:bg-afrikoni-cream/20 border border-os-accent/30 md:border-os-accent/20 rounded-lg md:rounded-full text-afrikoni-chestnut min-h-[44px] md:min-h-[44px] focus:bg-afrikoni-cream/60 md:focus:bg-afrikoni-cream/30 focus:border-os-accent/50 md:focus:border-os-accent/40 transition-all duration-200"
                     />
 
                     {/* Clear button */}
@@ -382,7 +382,7 @@ export default function HeroSection({ categories = [] }) {
                           setSearchQuery('');
                           setShowSuggestions(false);
                         }}
-                        className="p-1.5 rounded-full hover:bg-afrikoni-gold/10 text-afrikoni-deep/50 hover:text-afrikoni-chestnut transition-colors"
+                        className="p-1.5 rounded-full hover:bg-os-accent/10 text-afrikoni-deep/50 hover:text-afrikoni-chestnut transition-colors"
                         aria-label="Clear search"
                       >
                         <X className="w-4 h-4" />
@@ -392,10 +392,10 @@ export default function HeroSection({ categories = [] }) {
                     {/* Search Button - Desktop */}
                     <button
                       onClick={handleSearch}
-                      className="flex items-center gap-1.5 md:gap-2 bg-afrikoni-gold text-afrikoni-chestnut font-semibold md:font-medium px-4 md:px-5 py-2.5 md:py-2 rounded-xl md:rounded-full hover:bg-afrikoni-gold/90 md:hover:bg-afrikoni-gold/70 active:scale-95 md:active:scale-100 transition-all duration-200 min-h-[44px] touch-manipulation shadow-md md:shadow-none"
+                      className="flex items-center gap-1.5 md:gap-2 bg-os-accent text-afrikoni-chestnut font-semibold md:font-medium px-4 md:px-5 py-2.5 md:py-2 rounded-os-sm md:rounded-full hover:bg-os-accent/90 md:hover:bg-os-accent/70 active:scale-95 md:active:scale-100 transition-all duration-200 min-h-[44px] touch-manipulation shadow-md md:shadow-none"
                     >
                       <Search className="w-4.5 h-4.5 md:w-4 md:h-4" />
-                      <span className="hidden sm:inline text-sm md:text-base">Search</span>
+                      <span className="hidden sm:inline text-os-sm md:text-os-base">Search</span>
                     </button>
                   </div>
 
@@ -435,28 +435,28 @@ export default function HeroSection({ categories = [] }) {
                   className={`
                     flex items-center gap-2 md:gap-3
                     bg-white/98 md:bg-white/95
-                    rounded-2xl md:rounded-full
-                    shadow-xl md:shadow-lg
-                    border-2 md:border border-afrikoni-gold/30 md:border-afrikoni-gold/20
+                    rounded-os-md md:rounded-full
+                    shadow-os-lg md:shadow-os-md
+                    border-2 md:border border-os-accent/30 md:border-os-accent/20
                     px-3 md:px-4 py-2.5 md:py-3
                     transition-all duration-300
-                    focus-within:ring-2 md:focus-within:ring-1 focus-within:ring-afrikoni-gold/40 md:focus-within:ring-afrikoni-gold/30 focus-within:shadow-2xl md:focus-within:shadow-xl
-                    ${searchFocused ? 'shadow-2xl md:shadow-xl border-afrikoni-gold/40 md:border-afrikoni-gold/30' : ''}
+                    focus-within:ring-2 md:focus-within:ring-1 focus-within:ring-os-accent/40 md:focus-within:ring-os-accent/30 focus-within:shadow-2xl md:focus-within:shadow-os-lg
+                    ${searchFocused ? 'shadow-2xl md:shadow-os-lg border-os-accent/40 md:border-os-accent/30' : ''}
                   `}
                 >
                   {/* Category Dropdown - Desktop only */}
                   <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="bg-transparent text-xs md:text-sm text-afrikoni-deep/70 px-2 md:px-3 focus:outline-none border-0 focus:ring-0 h-auto py-1 md:py-1.5 min-w-[70px] sm:min-w-[100px] font-medium">
+                    <SelectTrigger className="bg-transparent text-os-xs md:text-os-sm text-afrikoni-deep/70 px-2 md:px-3 focus:outline-none border-0 focus:ring-0 h-auto py-1 md:py-1.5 min-w-[70px] sm:min-w-[100px] font-medium">
                       <SelectValue placeholder="All" />
                     </SelectTrigger>
-                    <SelectContent className="max-h-[60vh] sm:max-h-[400px] bg-white shadow-xl border-afrikoni-gold/20">
-                      <div className="sticky top-0 bg-white z-10 p-3 border-b border-afrikoni-gold/20">
+                    <SelectContent className="max-h-[60vh] sm:max-h-[400px] bg-white shadow-os-lg border-os-accent/20">
+                      <div className="sticky top-0 bg-white z-10 p-3 border-b border-os-accent/20">
                         <Input
                           type="text"
                           placeholder="Search categories..."
                           value={categorySearchQuery}
                           onChange={(e) => setCategorySearchQuery(e.target.value)}
-                          className="w-full h-9 text-sm border-afrikoni-gold/30 focus:border-afrikoni-gold"
+                          className="w-full h-9 text-os-sm border-os-accent/30 focus:border-os-accent"
                           onClick={(e) => e.stopPropagation()}
                         />
                       </div>
@@ -464,10 +464,10 @@ export default function HeroSection({ categories = [] }) {
                         <SelectItem value="all" className="font-semibold">{t('categories.all') || 'All'}</SelectItem>
                         {displayedCategories.length > 0 ? (
                           displayedCategories.map(cat => (
-                            <SelectItem key={cat.id} value={cat.id} className="text-sm">{cat.name}</SelectItem>
+                            <SelectItem key={cat.id} value={cat.id} className="text-os-sm">{cat.name}</SelectItem>
                           ))
                         ) : (
-                          <div className="px-4 py-6 text-sm text-afrikoni-deep/60 text-center">
+                          <div className="px-4 py-6 text-os-sm text-afrikoni-deep/60 text-center">
                             No categories found
                           </div>
                         )}
@@ -499,7 +499,7 @@ export default function HeroSection({ categories = [] }) {
                         setSearchFocused(false);
                       }, 200);
                     }}
-                    className="flex-1 text-sm md:text-base px-3 md:px-3 py-2 md:py-1.5 focus:outline-none placeholder:text-afrikoni-deep/70 md:placeholder:text-afrikoni-deep/50 bg-afrikoni-cream/40 md:bg-afrikoni-cream/20 border border-afrikoni-gold/30 md:border-afrikoni-gold/20 rounded-lg md:rounded-full text-afrikoni-chestnut min-h-[44px] md:min-h-[44px] focus:bg-afrikoni-cream/60 md:focus:bg-afrikoni-cream/30 focus:border-afrikoni-gold/50 md:focus:border-afrikoni-gold/40 transition-all duration-200"
+                    className="flex-1 text-os-sm md:text-os-base px-3 md:px-3 py-2 md:py-1.5 focus:outline-none placeholder:text-afrikoni-deep/70 md:placeholder:text-afrikoni-deep/50 bg-afrikoni-cream/40 md:bg-afrikoni-cream/20 border border-os-accent/30 md:border-os-accent/20 rounded-lg md:rounded-full text-afrikoni-chestnut min-h-[44px] md:min-h-[44px] focus:bg-afrikoni-cream/60 md:focus:bg-afrikoni-cream/30 focus:border-os-accent/50 md:focus:border-os-accent/40 transition-all duration-200"
                   />
 
                   {/* Clear button */}
@@ -511,7 +511,7 @@ export default function HeroSection({ categories = [] }) {
                         setSearchQuery('');
                         setShowSuggestions(false);
                       }}
-                      className="p-1.5 rounded-full hover:bg-afrikoni-gold/10 text-afrikoni-deep/50 hover:text-afrikoni-chestnut transition-colors"
+                      className="p-1.5 rounded-full hover:bg-os-accent/10 text-afrikoni-deep/50 hover:text-afrikoni-chestnut transition-colors"
                       aria-label="Clear search"
                     >
                       <X className="w-4 h-4" />
@@ -521,10 +521,10 @@ export default function HeroSection({ categories = [] }) {
                   {/* Search Button - Desktop */}
                   <button
                     onClick={handleSearch}
-                    className="flex items-center gap-1.5 md:gap-2 bg-afrikoni-gold text-afrikoni-chestnut font-semibold md:font-medium px-4 md:px-5 py-2.5 md:py-2 rounded-xl md:rounded-full hover:bg-afrikoni-gold/90 md:hover:bg-afrikoni-gold/70 active:scale-95 md:active:scale-100 transition-all duration-200 min-h-[44px] touch-manipulation shadow-md md:shadow-none"
+                    className="flex items-center gap-1.5 md:gap-2 bg-os-accent text-afrikoni-chestnut font-semibold md:font-medium px-4 md:px-5 py-2.5 md:py-2 rounded-os-sm md:rounded-full hover:bg-os-accent/90 md:hover:bg-os-accent/70 active:scale-95 md:active:scale-100 transition-all duration-200 min-h-[44px] touch-manipulation shadow-md md:shadow-none"
                   >
                     <Search className="w-4.5 h-4.5 md:w-4 md:h-4" />
-                    <span className="hidden sm:inline text-sm md:text-base">Search</span>
+                    <span className="hidden sm:inline text-os-sm md:text-os-base">Search</span>
                   </button>
                 </div>
 
@@ -568,35 +568,35 @@ export default function HeroSection({ categories = [] }) {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="hidden lg:block lg:col-span-3"
           >
-            <Card className="border border-afrikoni-gold/20 bg-afrikoni-cream/5 backdrop-blur-sm shadow-lg opacity-70">
+            <Card className="border border-os-accent/20 bg-afrikoni-cream/5 backdrop-blur-sm shadow-os-md opacity-70">
               <CardContent className="p-4 space-y-2">
-                <h3 className="text-meta font-medium text-afrikoni-gold/80 mb-4 tracking-[0.02em]">
+                <h3 className="text-meta font-medium text-os-accent/80 mb-4 tracking-[0.02em]">
                   Why Afrikoni
                 </h3>
                 <div className="space-y-3">
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-afrikoni-gold/5 border border-afrikoni-gold/10">
-                    <Shield className="w-5 h-5 text-afrikoni-gold/70 flex-shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-os-accent/5 border border-os-accent/10">
+                    <Shield className="w-5 h-5 text-os-accent/70 flex-shrink-0 mt-0.5" />
                     <div>
                       <h4 className="text-h3 font-semibold leading-[1.3] text-afrikoni-cream/90 mb-1">Verified Only</h4>
                       <p className="text-body font-normal leading-[1.6] text-afrikoni-cream/70">Only vetted African suppliers</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-afrikoni-gold/5 border border-afrikoni-gold/10">
-                    <Lock className="w-5 h-5 text-afrikoni-gold/70 flex-shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-os-accent/5 border border-os-accent/10">
+                    <Lock className="w-5 h-5 text-os-accent/70 flex-shrink-0 mt-0.5" />
                     <div>
                       <h4 className="text-h3 font-semibold leading-[1.3] text-afrikoni-cream/90 mb-1">Secure Payments</h4>
                       <p className="text-body font-normal leading-[1.6] text-afrikoni-cream/70">Escrow‑protected trade</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-afrikoni-gold/5 border border-afrikoni-gold/10">
-                    <Globe className="w-5 h-5 text-afrikoni-gold/70 flex-shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-os-accent/5 border border-os-accent/10">
+                    <Globe className="w-5 h-5 text-os-accent/70 flex-shrink-0 mt-0.5" />
                     <div>
                       <h4 className="text-h3 font-semibold leading-[1.3] text-afrikoni-cream/90 mb-1">54 Countries</h4>
                       <p className="text-body font-normal leading-[1.6] text-afrikoni-cream/70">Pan-African reach</p>
                     </div>
                   </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-afrikoni-gold/5 border border-afrikoni-gold/10">
-                    <TrendingUp className="w-5 h-5 text-afrikoni-gold/70 flex-shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-3 p-3 rounded-lg bg-os-accent/5 border border-os-accent/10">
+                    <TrendingUp className="w-5 h-5 text-os-accent/70 flex-shrink-0 mt-0.5" />
                     <div>
                       <h4 className="text-h3 font-semibold leading-[1.3] text-afrikoni-cream/90 mb-1">Growing Network</h4>
                       <p className="text-body font-normal leading-[1.6] text-afrikoni-cream/70">New suppliers onboarding regularly</p>

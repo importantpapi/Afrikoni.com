@@ -20,7 +20,7 @@ export default function PrivacyPolicy() {
           <h1 className="text-3xl md:text-4xl font-bold mb-6 text-afrikoni-chestnut">Privacy Policy</h1>
           
           <section className="space-y-4">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-os-sm text-gray-600 dark:text-gray-400">
               <strong>Last Updated:</strong> December 2025<br />
               <strong>Effective Date:</strong> December 2025<br />
               <strong>Company Name:</strong> Afrikoni (pending full legal registration)<br />
@@ -29,7 +29,7 @@ export default function PrivacyPolicy() {
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">1. Introduction</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">1. Introduction</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               Afrikoni ("we", "our", "us") is a B2B marketplace enabling trusted trade across Africa and beyond.
             </p>
@@ -42,7 +42,7 @@ export default function PrivacyPolicy() {
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">2. Information We Collect</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">2. Information We Collect</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               We may collect:
             </p>
@@ -59,7 +59,7 @@ export default function PrivacyPolicy() {
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">3. How We Use Your Data</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">3. How We Use Your Data</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               We use personal data to:
             </p>
@@ -75,7 +75,7 @@ export default function PrivacyPolicy() {
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">4. Legal Basis</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">4. Legal Basis</h2>
             <ul className="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300 ml-4">
               <li>Contractual necessity</li>
               <li>Legitimate interests (security, analytics)</li>
@@ -85,7 +85,7 @@ export default function PrivacyPolicy() {
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">5. Data Sharing</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">5. Data Sharing</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               We may share data with:
             </p>
@@ -98,7 +98,7 @@ export default function PrivacyPolicy() {
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">6. Security</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">6. Security</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               We protect your data with encryption, monitoring, and access controls.
             </p>
@@ -108,24 +108,24 @@ export default function PrivacyPolicy() {
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">7. International Transfers</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">7. International Transfers</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               Safeguards like Standard Contractual Clauses are used when required.
             </p>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">8. Your Rights</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">8. Your Rights</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               You may access, correct, delete, restrict processing, or withdraw consent.
             </p>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-              Email: <a href="mailto:hello@afrikoni.com" className="text-afrikoni-gold hover:underline">hello@afrikoni.com</a>
+              Email: <a href="mailto:hello@afrikoni.com" className="text-os-accent hover:underline">hello@afrikoni.com</a>
             </p>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">9. Cookies</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">9. Cookies</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               Used for:
             </p>
@@ -140,23 +140,23 @@ export default function PrivacyPolicy() {
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">10. Retention</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">10. Retention</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               Data kept while accounts remain active or as required by law.
             </p>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">11. Updates</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">11. Updates</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               We may revise this policy. Changes will be communicated clearly.
             </p>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">12. Contact</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">12. Contact</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-              Email: <a href="mailto:hello@afrikoni.com" className="text-afrikoni-gold hover:underline">hello@afrikoni.com</a>
+              Email: <a href="mailto:hello@afrikoni.com" className="text-os-accent hover:underline">hello@afrikoni.com</a>
             </p>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               Address: Kortenberg, Belgium (temporary)

@@ -1,85 +1,52 @@
 /**
  * Email Confirmation Success Page
- * 
- * Clean success page shown after email confirmation.
- * MVP-clean, Amazon-simple, Stripe-clear.
+ * Institutional design - celebrates success with restraint
  */
 
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { CheckCircle, ArrowRight, LogIn } from 'lucide-react';
-import { Logo } from '@/components/shared/ui/Logo';
+import { CheckCircle, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/shared/ui/button';
-import { Card, CardContent } from '@/components/shared/ui/card';
+import AuthLayout from '@/components/auth/AuthLayout';
 
 export default function AuthSuccess() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite flex items-center justify-center py-8 sm:py-12 px-4">
+    <AuthLayout
+      title="Email confirmed"
+      subtitle="Your Afrikoni account is now active and ready to use"
+    >
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md"
+        transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+        className="space-y-8"
       >
-        <Card className="border-afrikoni-gold/20 shadow-2xl bg-afrikoni-offwhite rounded-xl">
-          <CardContent className="p-6 sm:p-8 md:p-10 text-center">
-            <div className="flex justify-center mb-6">
-              <Logo type="full" size="lg" link={true} showTagline={false} />
+        <div className="text-center">
+          <motion.div
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.1, type: 'spring', stiffness: 200, damping: 15 }}
+          >
+            <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="w-12 h-12 text-green-600" />
             </div>
+          </motion.div>
+          <p className="text-[14px] text-gray-600 leading-relaxed">
+            You can now access all features of your account
+          </p>
+        </div>
 
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-            >
-              <CheckCircle className="w-20 h-20 mx-auto mb-6 text-green-600" />
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-            >
-              <h1 className="text-3xl font-bold text-afrikoni-chestnut mb-4">
-                Your email is confirmed ✅
-              </h1>
-              <p className="text-lg text-afrikoni-deep mb-2">
-                Your Afrikoni account is now active.
-              </p>
-              <p className="text-base text-afrikoni-deep/80 mb-8">
-                You can explore Afrikoni freely.
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="space-y-3"
-            >
-              <Button
-                onClick={() => navigate('/')}
-                variant="primary"
-                className="w-full h-12 text-base font-semibold"
-              >
-                Go to Afrikoni
-                <ArrowRight className="w-5 h-5 ml-2" />
-              </Button>
-              <Button
-                onClick={() => navigate('/login')}
-                variant="outline"
-                className="w-full h-12 text-base"
-              >
-                <LogIn className="w-5 h-5 mr-2" />
-                Log in
-              </Button>
-            </motion.div>
-          </CardContent>
-        </Card>
+        <Button
+          onClick={() => navigate('/dashboard')}
+          className="w-full h-[52px] bg-[#D4A937] hover:bg-[#C29931] active:bg-[#B38A2C] text-white font-semibold text-[15px] rounded-[14px] transition-all shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(212,169,55,0.15)] hover:shadow-[0_2px_4px_rgba(0,0,0,0.1),0_6px_16px_rgba(212,169,55,0.2)] active:shadow-[0_1px_2px_rgba(0,0,0,0.12)]"
+        >
+          Go to dashboard
+          <ArrowRight className="w-[18px] h-[18px] ml-2" />
+        </Button>
       </motion.div>
-    </div>
+    </AuthLayout>
   );
 }
 

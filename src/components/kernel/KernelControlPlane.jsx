@@ -75,7 +75,7 @@ export default function KernelControlPlane({ companyId }) {
       <div className="flex items-center justify-between">
         <div>
           <div className="os-label">Kernel Control Plane</div>
-          <h3 className="text-lg font-semibold text-[var(--os-text-primary)] mt-1">System Integrity</h3>
+          <h3 className="text-os-lg font-semibold text-[var(--os-text-primary)] mt-1">System Integrity</h3>
         </div>
         <StatusBadge label={kernelLoading ? 'SYNCING' : 'LIVE'} tone="neutral" />
       </div>
@@ -88,17 +88,17 @@ export default function KernelControlPlane({ companyId }) {
           className="os-panel-soft p-4 text-left transition-all hover:bg-white/10 hover:border-white/20 border border-transparent group"
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm font-semibold">
+            <div className="flex items-center gap-2 text-os-sm font-semibold">
               <ShieldCheck className="w-4 h-4 text-emerald-400" /> Trust Score
             </div>
             <ChevronRight className="w-4 h-4 text-white/40 group-hover:text-white/70 transition-colors" />
           </div>
-          <div className="text-2xl font-semibold mt-2">{kernelLoading ? '…' : trustScore}</div>
-          <div className="text-xs text-os-muted mt-1">
+          <div className="text-os-2xl font-semibold mt-2">{kernelLoading ? '…' : trustScore}</div>
+          <div className="text-os-xs text-os-muted mt-1">
             KYC: {kycStatus === 'verified' ? 'Verified' : 'Pending'}
           </div>
           {kycStatus !== 'verified' && (
-            <div className="mt-2 text-xs text-amber-400">
+            <div className="mt-2 text-os-xs text-amber-400">
               → Complete KYC to unlock features
             </div>
           )}
@@ -110,15 +110,15 @@ export default function KernelControlPlane({ companyId }) {
           className="os-panel-soft p-4 text-left transition-all hover:bg-white/10 hover:border-white/20 border border-transparent group"
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm font-semibold">
+            <div className="flex items-center gap-2 text-os-sm font-semibold">
               <Wallet className="w-4 h-4 text-amber-400" /> Escrow Exposure
             </div>
             <ChevronRight className="w-4 h-4 text-white/40 group-hover:text-white/70 transition-colors" />
           </div>
-          <div className="text-2xl font-semibold mt-2">{kernelLoading ? '…' : escrowDisplay}</div>
-          <div className="text-xs text-os-muted mt-1">Pipeline: {kernelLoading ? '…' : pipelineDisplay}</div>
+          <div className="text-os-2xl font-semibold mt-2">{kernelLoading ? '…' : escrowDisplay}</div>
+          <div className="text-os-xs text-os-muted mt-1">Pipeline: {kernelLoading ? '…' : pipelineDisplay}</div>
           {escrowLockedValue > 0 && (
-            <div className="mt-2 text-xs text-emerald-400">
+            <div className="mt-2 text-os-xs text-emerald-400">
               → View payment details
             </div>
           )}
@@ -133,7 +133,7 @@ export default function KernelControlPlane({ companyId }) {
           )}
         >
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-sm font-semibold">
+            <div className="flex items-center gap-2 text-os-sm font-semibold">
               <AlertTriangle className={cn(
                 "w-4 h-4",
                 riskLevel === 'high' ? 'text-red-400' : riskLevel === 'medium' ? 'text-amber-400' : 'text-emerald-400'
@@ -141,10 +141,10 @@ export default function KernelControlPlane({ companyId }) {
             </div>
             <ChevronRight className="w-4 h-4 text-white/40 group-hover:text-white/70 transition-colors" />
           </div>
-          <div className="text-2xl font-semibold mt-2">{riskLevel.toUpperCase()}</div>
-          <div className="text-xs text-os-muted mt-1">Blocked Trades: {tradeStats.blocked}</div>
+          <div className="text-os-2xl font-semibold mt-2">{riskLevel.toUpperCase()}</div>
+          <div className="text-os-xs text-os-muted mt-1">Blocked Trades: {tradeStats.blocked}</div>
           {tradeStats.blocked > 0 && (
-            <div className="mt-2 text-xs text-red-400">
+            <div className="mt-2 text-os-xs text-red-400">
               → Resolve {tradeStats.blocked} dispute{tradeStats.blocked !== 1 ? 's' : ''}
             </div>
           )}
@@ -155,14 +155,14 @@ export default function KernelControlPlane({ companyId }) {
         {/* Kernel Event Stream - Actionable Events */}
         <div className="os-panel-soft p-4">
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-2 text-sm font-semibold">
+            <div className="flex items-center gap-2 text-os-sm font-semibold">
               <Radar className="w-4 h-4 text-os-gold" /> Kernel Event Stream
             </div>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => navigate('/dashboard/trace-center')}
-              className="h-auto py-1 px-2 text-xs"
+              className="h-auto py-1 px-2 text-os-xs"
             >
               View All
               <ArrowRight className="w-3 h-3 ml-1" />
@@ -178,24 +178,24 @@ export default function KernelControlPlane({ companyId }) {
                   else if (item.type === 'rfq') navigate(`/dashboard/rfqs/${item.relatedId}`);
                   else if (item.type === 'shipment') navigate(`/dashboard/shipments/${item.relatedId}`);
                 }}
-                className="w-full flex items-center justify-between text-xs hover:bg-white/5 p-2 rounded transition-colors group"
+                className="w-full flex items-center justify-between text-os-xs hover:bg-white/5 p-2 rounded transition-colors group"
               >
                 <span className="text-[var(--os-text-primary)] group-hover:text-white">{item.label}</span>
                 <span className="text-os-muted font-mono">{item.time}</span>
               </button>
             ))}
             {!eventLoading && timeline.length === 0 && (
-              <div className="text-xs text-os-muted">No kernel events yet.</div>
+              <div className="text-os-xs text-os-muted">No kernel events yet.</div>
             )}
           </div>
         </div>
 
         {/* Corridor Health - Actionable Metrics */}
         <div className="os-panel-soft p-4">
-          <div className="flex items-center gap-2 text-sm font-semibold mb-3">
+          <div className="flex items-center gap-2 text-os-sm font-semibold mb-3">
             <Globe className="w-4 h-4 text-emerald-400" /> Corridor Health
           </div>
-          <div className="space-y-2 text-xs text-os-muted">
+          <div className="space-y-2 text-os-xs text-os-muted">
             {/* AfCFTA Readiness - Actionable */}
             <button
               onClick={() => navigate('/dashboard/compliance')}

@@ -43,10 +43,10 @@ export const TimelineItem = React.memo(function TimelineItem({
           className={cn(
             'w-10 h-10 rounded-full flex items-center justify-center',
             isCompleted
-              ? 'bg-afrikoni-gold text-white'
+              ? 'bg-os-accent text-white'
               : isCurrent
-              ? 'bg-afrikoni-gold/20 text-afrikoni-gold border-2 border-afrikoni-gold'
-              : 'bg-afrikoni-cream border-2 border-afrikoni-gold/30'
+              ? 'bg-os-accent/20 text-os-accent border-2 border-os-accent'
+              : 'bg-afrikoni-cream border-2 border-os-accent/30'
           )}
         >
           {isCompleted ? (
@@ -61,7 +61,7 @@ export const TimelineItem = React.memo(function TimelineItem({
           <div
             className={cn(
               'w-0.5',
-              isCompleted ? 'bg-afrikoni-gold' : 'bg-afrikoni-gold/20'
+              isCompleted ? 'bg-os-accent' : 'bg-os-accent/20'
             )}
             style={{ minHeight: '40px' }}
             aria-hidden="true"
@@ -73,7 +73,7 @@ export const TimelineItem = React.memo(function TimelineItem({
           className={cn(
             'font-medium',
             isCurrent
-              ? 'text-afrikoni-gold'
+              ? 'text-os-accent'
               : isCompleted
               ? 'text-afrikoni-chestnut'
               : 'text-afrikoni-deep/70'
@@ -82,10 +82,10 @@ export const TimelineItem = React.memo(function TimelineItem({
           {title}
         </h4>
         {description && (
-          <p className="text-sm text-afrikoni-deep/70 mt-1">{description}</p>
+          <p className="text-os-sm text-afrikoni-deep/70 mt-1">{description}</p>
         )}
         {formattedDate && (
-          <p className="text-xs text-afrikoni-deep/50 mt-1">{formattedDate}</p>
+          <p className="text-os-xs text-afrikoni-deep/50 mt-1">{formattedDate}</p>
         )}
       </div>
     </div>

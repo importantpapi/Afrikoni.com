@@ -71,8 +71,8 @@ export default function ProductRecommendations({ productId, currentUserId, curre
     return (
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-afrikoni-gold" />
-          <h2 className="text-2xl font-bold text-afrikoni-chestnut">Recommended for You</h2>
+          <Sparkles className="w-5 h-5 text-os-accent" />
+          <h2 className="text-os-2xl font-bold text-afrikoni-chestnut">Recommended for You</h2>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[1, 2, 3, 4].map((i) => (
@@ -101,9 +101,9 @@ export default function ProductRecommendations({ productId, currentUserId, curre
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-afrikoni-gold" />
-          <h2 className="text-2xl font-bold text-afrikoni-chestnut">Recommended for You</h2>
-          <span className="text-sm text-afrikoni-deep/60">({recommendations.length})</span>
+          <Sparkles className="w-5 h-5 text-os-accent" />
+          <h2 className="text-os-2xl font-bold text-afrikoni-chestnut">Recommended for You</h2>
+          <span className="text-os-sm text-afrikoni-deep/60">({recommendations.length})</span>
         </div>
         {recommendations.length > itemsPerView && (
           <div className="flex gap-2">
@@ -156,8 +156,8 @@ export default function ProductRecommendations({ productId, currentUserId, curre
                           placeholder="/product-placeholder.svg"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-afrikoni-gold/20 to-afrikoni-cream flex items-center justify-center">
-                          <Package className="w-12 h-12 text-afrikoni-gold/50" />
+                        <div className="w-full h-full bg-gradient-to-br from-os-accent/20 to-afrikoni-cream flex items-center justify-center">
+                          <Package className="w-12 h-12 text-os-accent/50" />
                         </div>
                       )}
                     </div>
@@ -166,11 +166,11 @@ export default function ProductRecommendations({ productId, currentUserId, curre
                         {product.title || product.name}
                       </h3>
                       <div className="flex items-center justify-between">
-                        <span className="text-lg font-bold text-afrikoni-gold">
+                        <span className="text-os-lg font-bold text-os-accent">
                           {product.currency || 'USD'} {product.price_min || product.price || 'N/A'}
                         </span>
                         {product.country_of_origin && (
-                          <span className="text-xs text-afrikoni-deep/60">
+                          <span className="text-os-xs text-afrikoni-deep/60">
                             {product.country_of_origin}
                           </span>
                         )}

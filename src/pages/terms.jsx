@@ -14,7 +14,7 @@ export default function Terms() {
           <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
             Terms &amp; Conditions
           </h1>
-          <p className="text-sm text-afrikoni-deep/80">
+          <p className="text-os-sm text-afrikoni-deep/80">
             This page will contain the full legal terms governing the use of Afrikoni by buyers,
             suppliers, and partners. Work with your legal counsel to finalise the text here.
           </p>

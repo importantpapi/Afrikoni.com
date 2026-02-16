@@ -42,7 +42,7 @@ export const Dialog = ({ open, onOpenChange, children }) => {
 
 export const DialogContent = ({ children, className }) => {
   return (
-    <div className={cn('bg-afrikoni-offwhite rounded-xl shadow-2xl p-6', className)}>
+    <div className={cn('bg-afrikoni-offwhite rounded-os-sm shadow-2xl p-6', className)}>
       {children}
     </div>
   );
@@ -58,7 +58,7 @@ export const DialogHeader = ({ children, className }) => {
 
 export const DialogTitle = ({ children, className }) => {
   return (
-    <h2 className={cn('text-2xl font-bold text-afrikoni-chestnut', className)}>
+    <h2 className={cn('text-os-2xl font-bold text-afrikoni-chestnut', className)}>
       {children}
     </h2>
   );
@@ -66,7 +66,7 @@ export const DialogTitle = ({ children, className }) => {
 
 export const DialogDescription = ({ children, className }) => {
   return (
-    <p className={cn('text-sm text-afrikoni-deep/70 mt-1', className)}>
+    <p className={cn('text-os-sm text-afrikoni-deep/70 mt-1', className)}>
       {children}
     </p>
   );
@@ -76,7 +76,7 @@ export const DialogClose = ({ onClose }) => {
   return (
     <button
       onClick={onClose}
-      className="absolute right-2 top-2 sm:right-4 sm:top-4 rounded-lg opacity-70 ring-offset-white transition-opacity hover:opacity-100 hover:bg-afrikoni-cream p-2.5 sm:p-2 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-afrikoni-gold focus:ring-offset-2 text-afrikoni-deep touch-manipulation"
+      className="absolute right-2 top-2 sm:right-4 sm:top-4 rounded-lg opacity-70 ring-offset-white transition-opacity hover:opacity-100 hover:bg-afrikoni-cream p-2.5 sm:p-2 min-w-[44px] min-h-[44px] sm:min-w-0 sm:min-h-0 flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-os-accent focus:ring-offset-2 text-afrikoni-deep touch-manipulation"
     >
       <X className="h-5 w-5 sm:h-4 sm:w-4" />
       <span className="sr-only">Close</span>

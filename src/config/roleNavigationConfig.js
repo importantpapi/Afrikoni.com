@@ -12,25 +12,25 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
     const sections = [
         {
             id: 'intent',
-            label: 'Intent',
+            label: 'Business Today',
             items: [
                 {
                     id: 'dashboard',
-                    label: 'Command Center',
+                    label: 'My Business',
                     path: '/dashboard',
                     icon: LayoutDashboard,
                     activeMatch: (path) => path === '/dashboard'
                 },
                 isBuyer && {
                     id: 'marketplace',
-                    label: 'Discovery',
+                    label: 'Marketplace',
                     path: '/marketplace',
                     icon: Globe,
                     activeMatch: (path) => path.startsWith('/marketplace')
                 },
                 (isBuyer || isSeller) && {
                     id: 'rfqs',
-                    label: isSeller ? "Quote Intake" : "Sourcing (RFQ)",
+                    label: isSeller ? "Find Buyers" : "My Requests",
                     path: isSeller ? "/dashboard/supplier-rfqs" : "/dashboard/rfqs",
                     icon: FileText,
                     badge: notificationCounts.rfqs || 0,
@@ -41,18 +41,18 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
         {
             id: 'match',
             divider: true,
-            label: 'Match',
+            label: 'Communications',
             items: [
                 {
                     id: 'trade-pipeline',
-                    label: 'Match Pipeline',
+                    label: 'Deal Pipeline',
                     path: '/dashboard/trade-pipeline',
                     icon: GitBranch,
                     activeMatch: (path) => path.startsWith('/dashboard/trade-pipeline')
                 },
                 {
                     id: 'messages',
-                    label: 'Negotiation',
+                    label: 'Messages',
                     path: '/dashboard/messages',
                     icon: MessageSquare,
                     activeMatch: (path) => path.startsWith('/dashboard/messages')
@@ -62,11 +62,11 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
         {
             id: 'contract',
             divider: true,
-            label: 'Contract',
+            label: 'Operations',
             items: [
                 {
                     id: 'orders',
-                    label: 'Smart Agreements',
+                    label: 'My Deals',
                     path: '/dashboard/orders',
                     icon: ShoppingCart,
                     activeMatch: (path) => path.startsWith('/dashboard/orders') || path.startsWith('/dashboard/trade/')
@@ -76,11 +76,11 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
         {
             id: 'move',
             divider: true,
-            label: 'Move',
+            label: 'Logistics',
             items: [
                 {
                     id: 'trace',
-                    label: 'Forensic Trace',
+                    label: 'Track My Trade',
                     path: '/dashboard/trace-center',
                     icon: Lock,
                     badge: 'LIVE',
@@ -88,7 +88,7 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
                 },
                 (isLogistics || isBuyer || isSeller) && {
                     id: 'logistics',
-                    label: 'Logistics Rail',
+                    label: 'Shipments',
                     path: '/dashboard/shipments',
                     icon: Truck,
                     activeMatch: (path) => path.startsWith('/dashboard/shipments')
@@ -98,18 +98,18 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
         {
             id: 'pay',
             divider: true,
-            label: 'Pay',
+            label: 'Treasury',
             items: [
                 {
                     id: 'finance',
-                    label: 'Sovereign Pay',
+                    label: 'My Payments',
                     path: '/dashboard/payments',
                     icon: Wallet,
                     activeMatch: (path) => path.startsWith('/dashboard/payments')
                 },
                 workspaceMode === 'operator' && {
                     id: 'revenue',
-                    label: 'Treasury',
+                    label: 'Platform Treasury',
                     path: '/dashboard/revenue',
                     icon: Landmark,
                     activeMatch: (path) => path.startsWith('/dashboard/revenue')
@@ -119,11 +119,11 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
         {
             id: 'trust',
             divider: true,
-            label: 'Trust',
+            label: 'Integrity',
             items: [
                 {
                     id: 'trust-center',
-                    label: 'Trust DNA',
+                    label: 'Trust & Safety',
                     path: '/dashboard/trust-center',
                     icon: Shield,
                     badge: 'NEW',
@@ -131,7 +131,7 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
                 },
                 {
                     id: 'verification',
-                    label: 'Forensic Lab',
+                    label: 'Identity Check',
                     path: '/dashboard/verification-center',
                     icon: Building,
                     badge: 'BETA',

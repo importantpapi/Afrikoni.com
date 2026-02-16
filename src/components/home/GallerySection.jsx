@@ -51,7 +51,7 @@ export default function GallerySection() {
           <h2 className="text-3xl md:text-4xl font-bold font-serif text-afrikoni-chestnut mb-4">
             {t('gallery.title') || 'Gallery'}
           </h2>
-          <p className="text-lg text-afrikoni-deep max-w-2xl mx-auto">
+          <p className="text-os-lg text-afrikoni-deep max-w-2xl mx-auto">
             {t('gallery.subtitle') || 'See Afrikoni in action across Africa'}
           </p>
         </motion.div>
@@ -78,7 +78,7 @@ export default function GallerySection() {
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
-                  <p className="font-semibold text-sm">{image.title}</p>
+                  <p className="font-semibold text-os-sm">{image.title}</p>
                 </div>
               </div>
               <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -107,7 +107,7 @@ export default function GallerySection() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.8 }}
                 onClick={() => setSelectedImage(null)}
-                className="absolute top-4 right-4 text-white hover:text-afrikoni-gold transition-colors z-10"
+                className="absolute top-4 right-4 text-white hover:text-os-accent transition-colors z-10"
                 aria-label="Close lightbox"
               >
                 <X className="w-8 h-8" />

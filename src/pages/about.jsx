@@ -97,10 +97,10 @@ export default function About() {
       />
       <div className="min-h-screen bg-afrikoni-offwhite">
         {/* Hero Section */}
-        <section className="relative bg-gradient-to-br from-afrikoni-gold/10 via-afrikoni-chestnut/10 to-afrikoni-gold/5 py-20 md:py-28 lg:py-32 overflow-hidden">
+        <section className="relative bg-gradient-to-br from-os-accent/10 via-afrikoni-chestnut/10 to-os-accent/5 py-20 md:py-28 lg:py-32 overflow-hidden">
           {/* Decorative elements */}
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            <div className="absolute top-20 left-10 w-72 h-72 bg-afrikoni-gold/5 rounded-full blur-3xl"></div>
+            <div className="absolute top-20 left-10 w-72 h-72 bg-os-accent/5 rounded-full blur-3xl"></div>
             <div className="absolute bottom-20 right-10 w-96 h-96 bg-afrikoni-chestnut/5 rounded-full blur-3xl"></div>
           </div>
           
@@ -126,7 +126,7 @@ export default function About() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.6 }}
-                className="text-xl md:text-2xl lg:text-3xl text-afrikoni-deep font-semibold max-w-4xl mx-auto mb-6 leading-relaxed"
+                className="text-os-xl md:text-os-2xl lg:text-3xl text-afrikoni-deep font-semibold max-w-4xl mx-auto mb-6 leading-relaxed"
               >
                 A digital B2B trade platform focused on building trust, structure, and reliability in African trade, starting within Africa and expanding globally over time.
               </motion.p>
@@ -135,7 +135,7 @@ export default function About() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.6 }}
-                className="text-lg md:text-xl text-afrikoni-deep/80 max-w-3xl mx-auto leading-relaxed"
+                className="text-os-lg md:text-os-xl text-afrikoni-deep/80 max-w-3xl mx-auto leading-relaxed"
               >
                 The platform is designed to support buyers, sellers, and logistics partners through verification, standardized listings, and structured trade workflows.
               </motion.p>
@@ -148,17 +148,17 @@ export default function About() {
               transition={{ delay: 0.5, duration: 0.6 }}
               className="max-w-5xl mx-auto"
             >
-              <Card className="border-2 border-afrikoni-gold/30 shadow-2xl overflow-hidden bg-gradient-to-br from-white to-afrikoni-offwhite">
-                <div className="relative aspect-video bg-gradient-to-br from-afrikoni-gold/20 via-afrikoni-chestnut/20 to-afrikoni-gold/10 flex items-center justify-center group cursor-pointer hover:from-afrikoni-gold/30 hover:via-afrikoni-chestnut/30 hover:to-afrikoni-gold/20 transition-all duration-300">
+              <Card className="border-2 border-os-accent/30 shadow-2xl overflow-hidden bg-gradient-to-br from-white to-afrikoni-offwhite">
+                <div className="relative aspect-video bg-gradient-to-br from-os-accent/20 via-afrikoni-chestnut/20 to-os-accent/10 flex items-center justify-center group cursor-pointer hover:from-os-accent/30 hover:via-afrikoni-chestnut/30 hover:to-os-accent/20 transition-all duration-300">
                   <div className="text-center z-10">
                     <motion.div
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
-                      className="w-24 h-24 rounded-full bg-white/30 backdrop-blur-md flex items-center justify-center mx-auto mb-6 shadow-xl border-2 border-white/50 group-hover:bg-white/40 transition-all"
+                      className="w-24 h-24 rounded-full bg-white/30 backdrop-blur-md flex items-center justify-center mx-auto mb-6 shadow-os-lg border-2 border-white/50 group-hover:bg-white/40 transition-all"
                     >
                       <Play className="w-12 h-12 text-white ml-1" fill="white" />
                     </motion.div>
-                    <p className="text-white font-semibold text-lg md:text-xl">Company Video Coming Soon</p>
+                    <p className="text-white font-semibold text-os-lg md:text-os-xl">Company Video Coming Soon</p>
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                 </div>
@@ -180,15 +180,15 @@ export default function About() {
                 className="space-y-6"
               >
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="w-12 h-12 rounded-lg bg-afrikoni-gold/20 flex items-center justify-center">
-                    <Sparkles className="w-6 h-6 text-afrikoni-gold" />
+                  <div className="w-12 h-12 rounded-lg bg-os-accent/20 flex items-center justify-center">
+                    <Sparkles className="w-6 h-6 text-os-accent" />
                   </div>
                   <h2 className="text-3xl md:text-4xl font-bold font-serif text-afrikoni-chestnut">
                   Our Story
                 </h2>
                 </div>
                 
-                <div className="space-y-5 text-afrikoni-deep leading-relaxed text-base md:text-lg">
+                <div className="space-y-5 text-afrikoni-deep leading-relaxed text-os-base md:text-os-lg">
                       <p>
                         Afrikoni was born from a simple but critical insight: <span className="font-semibold text-afrikoni-chestnut">without structure, there is no trust, and without trust, trade cannot scale.</span>
                       </p>
@@ -211,21 +211,21 @@ export default function About() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6 }}
               >
-                <Card className="border-2 border-afrikoni-gold/20 h-full shadow-lg hover:shadow-xl transition-shadow">
+                <Card className="border-2 border-os-accent/20 h-full shadow-os-md hover:shadow-os-lg transition-shadow">
                   <CardContent className="p-8 md:p-10">
                     <div className="flex items-center gap-3 mb-6">
-                      <div className="w-12 h-12 rounded-lg bg-afrikoni-gold/20 flex items-center justify-center">
-                        <Target className="w-6 h-6 text-afrikoni-gold" />
+                      <div className="w-12 h-12 rounded-lg bg-os-accent/20 flex items-center justify-center">
+                        <Target className="w-6 h-6 text-os-accent" />
                       </div>
-                      <h3 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut">Our Vision</h3>
+                      <h3 className="text-os-2xl md:text-3xl font-bold text-afrikoni-chestnut">Our Vision</h3>
                     </div>
-                    <p className="text-afrikoni-deep leading-relaxed text-base md:text-lg mb-8">
+                    <p className="text-afrikoni-deep leading-relaxed text-os-base md:text-os-lg mb-8">
                       To help establish trusted, transparent, and structured trade across African markets, enabling businesses of all sizes to trade with confidence and reliability.
                     </p>
                     <Link to="/services/buyers">
                       <Button 
                         size="lg" 
-                        className="w-full md:w-auto bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut font-semibold group"
+                        className="w-full md:w-auto bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut font-semibold group"
                       >
                         <ShoppingBag className="w-5 h-5 mr-2" />
                         Join as a Buyer
@@ -244,34 +244,34 @@ export default function About() {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <Card className="border-2 border-afrikoni-gold/20 shadow-lg bg-gradient-to-br from-white to-afrikoni-offwhite">
+              <Card className="border-2 border-os-accent/20 shadow-os-md bg-gradient-to-br from-white to-afrikoni-offwhite">
                 <CardContent className="p-8 md:p-10">
                   <div className="flex items-center gap-3 mb-6">
-                    <div className="w-12 h-12 rounded-lg bg-afrikoni-gold/20 flex items-center justify-center">
-                      <Target className="w-6 h-6 text-afrikoni-gold" />
+                    <div className="w-12 h-12 rounded-lg bg-os-accent/20 flex items-center justify-center">
+                      <Target className="w-6 h-6 text-os-accent" />
                     </div>
-                    <h3 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut">Our Mission</h3>
+                    <h3 className="text-os-2xl md:text-3xl font-bold text-afrikoni-chestnut">Our Mission</h3>
                   </div>
-                  <p className="text-afrikoni-deep leading-relaxed text-base md:text-lg mb-8">
+                  <p className="text-afrikoni-deep leading-relaxed text-os-base md:text-os-lg mb-8">
                     To empower African businesses by providing the digital structure, verification, and governance needed to trade reliably within Africa and, over time, globally.
                   </p>
                   
                   <div className="mb-6">
-                    <h4 className="text-lg font-bold text-afrikoni-chestnut mb-4">What We Are Building</h4>
+                    <h4 className="text-os-lg font-bold text-afrikoni-chestnut mb-4">What We Are Building</h4>
                     <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="flex items-start gap-3 p-4 rounded-lg bg-afrikoni-gold/5 border border-afrikoni-gold/10">
+                      <div className="flex items-start gap-3 p-4 rounded-lg bg-os-accent/5 border border-os-accent/10">
                         <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
                         <span className="text-afrikoni-deep font-medium">Enable structured B2B connections across African markets</span>
                       </div>
-                      <div className="flex items-start gap-3 p-4 rounded-lg bg-afrikoni-gold/5 border border-afrikoni-gold/10">
+                      <div className="flex items-start gap-3 p-4 rounded-lg bg-os-accent/5 border border-os-accent/10">
                         <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
                         <span className="text-afrikoni-deep font-medium">Support supplier verification and standardized product information</span>
                       </div>
-                      <div className="flex items-start gap-3 p-4 rounded-lg bg-afrikoni-gold/5 border border-afrikoni-gold/10">
+                      <div className="flex items-start gap-3 p-4 rounded-lg bg-os-accent/5 border border-os-accent/10">
                         <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
                         <span className="text-afrikoni-deep font-medium">Facilitate assisted and secure trade workflows</span>
                       </div>
-                      <div className="flex items-start gap-3 p-4 rounded-lg bg-afrikoni-gold/5 border border-afrikoni-gold/10">
+                      <div className="flex items-start gap-3 p-4 rounded-lg bg-os-accent/5 border border-os-accent/10">
                         <CheckCircle className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
                         <span className="text-afrikoni-deep font-medium">Collaborate with logistics partners to improve trade execution</span>
                       </div>
@@ -282,7 +282,7 @@ export default function About() {
                     <Button 
                       size="lg" 
                       variant="outline"
-                      className="w-full md:w-auto border-2 border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10 font-semibold group"
+                      className="w-full md:w-auto border-2 border-os-accent text-afrikoni-chestnut hover:bg-os-accent/10 font-semibold group"
                     >
                       <Store className="w-5 h-5 mr-2" />
                   Join as a Supplier
@@ -299,7 +299,7 @@ export default function About() {
         <BusinessModel />
 
         {/* Afrikoni Code CTA */}
-        <section className="py-16 md:py-24 lg:py-28 bg-gradient-to-br from-afrikoni-chestnut/5 via-afrikoni-gold/5 to-afrikoni-chestnut/5">
+        <section className="py-16 md:py-24 lg:py-28 bg-gradient-to-br from-afrikoni-chestnut/5 via-os-accent/5 to-afrikoni-chestnut/5">
           <div className="max-w-7xl mx-auto px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -307,24 +307,24 @@ export default function About() {
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <Card className="border-2 border-afrikoni-gold/30 shadow-2xl bg-gradient-to-br from-afrikoni-chestnut/10 to-afrikoni-deep/10">
+              <Card className="border-2 border-os-accent/30 shadow-2xl bg-gradient-to-br from-afrikoni-chestnut/10 to-afrikoni-deep/10">
                 <CardContent className="p-10 md:p-14 text-center">
                   <motion.div
                     whileHover={{ scale: 1.1, rotate: 5 }}
-                    className="w-20 h-20 rounded-xl bg-gradient-to-br from-afrikoni-gold/20 to-afrikoni-gold/10 flex items-center justify-center mx-auto mb-6 shadow-lg"
+                    className="w-20 h-20 rounded-os-sm bg-gradient-to-br from-os-accent/20 to-os-accent/10 flex items-center justify-center mx-auto mb-6 shadow-os-md"
                   >
-                    <Shield className="w-10 h-10 text-afrikoni-gold" />
+                    <Shield className="w-10 h-10 text-os-accent" />
                   </motion.div>
                   <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-serif text-afrikoni-chestnut mb-6">
                     The Afrikoni Code
                   </h2>
-                  <p className="text-lg md:text-xl text-afrikoni-deep mb-8 max-w-2xl mx-auto leading-relaxed">
+                  <p className="text-os-lg md:text-os-xl text-afrikoni-deep mb-8 max-w-2xl mx-auto leading-relaxed">
                     Discover the internal principles guiding how Afrikoni is built and operated. This is not marketing. This is a commitment.
                   </p>
                   <Link to="/afrikoni-code">
                     <Button 
                       size="lg" 
-                      className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut px-8 py-6 text-lg font-semibold group"
+                      className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut px-8 py-6 text-os-lg font-semibold group"
                     >
                       Read The Afrikoni Code
                       <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -349,7 +349,7 @@ export default function About() {
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-serif text-afrikoni-chestnut mb-4">
                 Our Values
               </h2>
-              <p className="text-lg md:text-xl text-afrikoni-deep/80 max-w-3xl mx-auto">
+              <p className="text-os-lg md:text-os-xl text-afrikoni-deep/80 max-w-3xl mx-auto">
                 The principles that guide everything we do
               </p>
             </motion.div>
@@ -365,16 +365,16 @@ export default function About() {
                     transition={{ duration: 0.6, delay: idx * 0.1 }}
                     whileHover={{ y: -8, scale: 1.02 }}
                   >
-                    <Card className="h-full border-2 border-afrikoni-gold/20 hover:border-afrikoni-gold transition-all hover:shadow-xl group bg-white">
+                    <Card className="h-full border-2 border-os-accent/20 hover:border-os-accent transition-all hover:shadow-os-lg group bg-white">
                       <CardContent className="p-6 md:p-8">
                         <motion.div
                           whileHover={{ scale: 1.15, rotate: 5 }}
-                          className="w-14 h-14 rounded-xl bg-gradient-to-br from-afrikoni-gold/20 to-afrikoni-gold/10 flex items-center justify-center mb-6 group-hover:from-afrikoni-gold/30 group-hover:to-afrikoni-gold/20 transition-all shadow-lg"
+                          className="w-14 h-14 rounded-os-sm bg-gradient-to-br from-os-accent/20 to-os-accent/10 flex items-center justify-center mb-6 group-hover:from-os-accent/30 group-hover:to-os-accent/20 transition-all shadow-os-md"
                         >
-                          <Icon className="w-7 h-7 text-afrikoni-gold" />
+                          <Icon className="w-7 h-7 text-os-accent" />
                         </motion.div>
-                        <h3 className="font-bold text-lg text-afrikoni-chestnut mb-3">{value.title}</h3>
-                        <p className="text-sm md:text-base text-afrikoni-deep leading-relaxed">{value.description}</p>
+                        <h3 className="font-bold text-os-lg text-afrikoni-chestnut mb-3">{value.title}</h3>
+                        <p className="text-os-sm md:text-os-base text-afrikoni-deep leading-relaxed">{value.description}</p>
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -397,7 +397,7 @@ export default function About() {
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-serif text-afrikoni-chestnut mb-4">
                 Our Team
               </h2>
-              <p className="text-lg md:text-xl text-afrikoni-deep/80 max-w-3xl mx-auto">
+              <p className="text-os-lg md:text-os-xl text-afrikoni-deep/80 max-w-3xl mx-auto">
                 Passionate individuals dedicated to transforming African trade
               </p>
             </motion.div>
@@ -411,7 +411,7 @@ export default function About() {
                   transition={{ duration: 0.6, delay: idx * 0.1 }}
                   whileHover={{ y: -8 }}
                 >
-                  <Card className="border-2 border-afrikoni-gold/20 text-center hover:border-afrikoni-gold transition-all hover:shadow-xl h-full bg-white">
+                  <Card className="border-2 border-os-accent/20 text-center hover:border-os-accent transition-all hover:shadow-os-lg h-full bg-white">
                     <CardContent className="p-6 md:p-8">
                       {member.image ? (
                         <motion.div
@@ -419,7 +419,7 @@ export default function About() {
                           whileInView={{ scale: 1, opacity: 1 }}
                           viewport={{ once: true }}
                           transition={{ duration: 0.5, delay: idx * 0.1 + 0.2 }}
-                          className="w-32 h-32 md:w-36 md:h-36 rounded-full overflow-hidden mx-auto mb-6 border-4 border-afrikoni-gold/30 shadow-xl relative"
+                          className="w-32 h-32 md:w-36 md:h-36 rounded-full overflow-hidden mx-auto mb-6 border-4 border-os-accent/30 shadow-os-lg relative"
                         >
                           <img
                             src={member.image}
@@ -428,17 +428,17 @@ export default function About() {
                             loading="lazy"
                             onError={(e) => {
                               e.target.style.display = 'none';
-                              e.target.parentElement.innerHTML = '<div class="w-full h-full bg-gradient-to-br from-afrikoni-gold/20 to-afrikoni-chestnut/20 flex items-center justify-center"><span class="text-afrikoni-gold text-xs text-center px-2">Image<br/>Loading</span></div>';
+                              e.target.parentElement.innerHTML = '<div class="w-full h-full bg-gradient-to-br from-os-accent/20 to-afrikoni-chestnut/20 flex items-center justify-center"><span class="text-os-accent text-os-xs text-center px-2">Image<br/>Loading</span></div>';
                             }}
                           />
                         </motion.div>
                       ) : (
-                        <div className="w-32 h-32 md:w-36 md:h-36 rounded-full bg-gradient-to-br from-afrikoni-gold/30 to-afrikoni-chestnut/30 mx-auto mb-6 flex items-center justify-center border-4 border-afrikoni-gold/30 shadow-xl">
-                          <Users className="w-16 h-16 text-afrikoni-gold" />
+                        <div className="w-32 h-32 md:w-36 md:h-36 rounded-full bg-gradient-to-br from-os-accent/30 to-afrikoni-chestnut/30 mx-auto mb-6 flex items-center justify-center border-4 border-os-accent/30 shadow-os-lg">
+                          <Users className="w-16 h-16 text-os-accent" />
                         </div>
                       )}
-                      <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2">{member.name}</h3>
-                      <p className="text-base font-semibold text-afrikoni-gold mb-4">{member.role}</p>
+                      <h3 className="text-os-xl font-bold text-afrikoni-chestnut mb-2">{member.name}</h3>
+                      <p className="text-os-base font-semibold text-os-accent mb-4">{member.role}</p>
                       
                       {/* Badges */}
                       {member.badges && (
@@ -446,7 +446,7 @@ export default function About() {
                           {member.badges.map((badge, badgeIdx) => (
                             <span
                               key={badgeIdx}
-                              className="text-xs px-3 py-1 bg-afrikoni-gold/10 text-afrikoni-chestnut rounded-full border border-afrikoni-gold/30 font-medium"
+                              className="text-os-xs px-3 py-1 bg-os-accent/10 text-afrikoni-chestnut rounded-full border border-os-accent/30 font-medium"
                             >
                               {badge}
                             </span>
@@ -454,14 +454,14 @@ export default function About() {
                         </div>
                       )}
                       
-                      <p className="text-sm md:text-base text-afrikoni-deep mb-4 leading-relaxed">{member.description}</p>
+                      <p className="text-os-sm md:text-os-base text-afrikoni-deep mb-4 leading-relaxed">{member.description}</p>
                       
                       {/* Country Flags */}
                       {member.countries && member.countries.length > 0 ? (
-                        <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-afrikoni-deep/70">
+                        <div className="flex flex-wrap items-center justify-center gap-3 text-os-sm text-afrikoni-deep/70">
                           {member.countries.map((country, countryIdx) => (
                             <div key={countryIdx} className="flex items-center gap-1.5">
-                              <span className="text-xl" role="img" aria-label={`Flag of ${country.name}`}>
+                              <span className="text-os-xl" role="img" aria-label={`Flag of ${country.name}`}>
                                 {country.flag}
                               </span>
                               <span className="font-medium">{country.name}</span>
@@ -469,8 +469,8 @@ export default function About() {
                           ))}
                         </div>
                       ) : member.country ? (
-                        <div className="flex items-center justify-center gap-2 text-sm text-afrikoni-deep/70">
-                          <span className="text-xl" role="img" aria-label={`Flag of ${member.country}`}>
+                        <div className="flex items-center justify-center gap-2 text-os-sm text-afrikoni-deep/70">
+                          <span className="text-os-xl" role="img" aria-label={`Flag of ${member.country}`}>
                             {member.flag}
                           </span>
                           <span className="font-medium">{member.country}</span>
@@ -494,7 +494,7 @@ export default function About() {
                 <Button 
                   size="lg" 
                   variant="outline"
-                  className="border-2 border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10 font-semibold group"
+                  className="border-2 border-os-accent text-afrikoni-chestnut hover:bg-os-accent/10 font-semibold group"
                 >
                   <Truck className="w-5 h-5 mr-2" />
                   Logistics Partner (Pilot)
@@ -506,7 +506,7 @@ export default function About() {
         </section>
 
         {/* Final CTA Section */}
-        <section className="py-16 md:py-24 lg:py-28 bg-gradient-to-br from-afrikoni-gold/10 via-afrikoni-chestnut/10 to-afrikoni-gold/5">
+        <section className="py-16 md:py-24 lg:py-28 bg-gradient-to-br from-os-accent/10 via-afrikoni-chestnut/10 to-os-accent/5">
           <div className="max-w-4xl mx-auto px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -515,19 +515,19 @@ export default function About() {
               transition={{ duration: 0.6 }}
               className="text-center"
             >
-              <Card className="border-2 border-afrikoni-gold/30 shadow-2xl bg-gradient-to-br from-white to-afrikoni-offwhite">
+              <Card className="border-2 border-os-accent/30 shadow-2xl bg-gradient-to-br from-white to-afrikoni-offwhite">
                 <CardContent className="p-10 md:p-14">
                   <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-serif text-afrikoni-chestnut mb-6">
                     Ready to Build Something Meaningful?
               </h2>
-                  <p className="text-lg md:text-xl text-afrikoni-deep mb-8 max-w-2xl mx-auto leading-relaxed">
+                  <p className="text-os-lg md:text-os-xl text-afrikoni-deep mb-8 max-w-2xl mx-auto leading-relaxed">
                     If you decide to build it, build it RIGHT. Build it with INTEGRITY. Build it to LAST.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link to="/signup">
                       <Button 
                         size="lg" 
-                        className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut px-8 py-6 text-lg font-semibold group"
+                        className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut px-8 py-6 text-os-lg font-semibold group"
                       >
                     Get Started
                         <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -537,7 +537,7 @@ export default function About() {
                       <Button 
                         size="lg" 
                         variant="outline" 
-                        className="border-2 border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10 px-8 py-6 text-lg font-semibold"
+                        className="border-2 border-os-accent text-afrikoni-chestnut hover:bg-os-accent/10 px-8 py-6 text-os-lg font-semibold"
                       >
                     Contact Us
                   </Button>

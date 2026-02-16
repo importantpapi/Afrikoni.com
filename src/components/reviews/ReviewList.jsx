@@ -61,13 +61,13 @@ const ReviewList = React.memo(function ReviewList({ reviews, companies, isSeller
               <h3 className="font-semibold mb-1">
                 {t('reviews.shareExperience') || 'Share Your Experience'}
               </h3>
-              <p className="text-sm">
+              <p className="text-os-sm">
                 {t('reviews.helpOthers') || 'Help other buyers by leaving a review'}
               </p>
             </div>
             <Button
               onClick={() => setShowReviewForm(true)}
-              className="hover:bg-afrikoni-goldDark"
+              className="hover:bg-os-accentDark"
               size="sm"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -97,7 +97,7 @@ const ReviewList = React.memo(function ReviewList({ reviews, companies, isSeller
             ))}
           </div>
           {existingReview.comment && (
-            <p className="text-sm">{existingReview.comment}</p>
+            <p className="text-os-sm">{existingReview.comment}</p>
           )}
         </div>
       )}
@@ -130,13 +130,13 @@ const ReviewList = React.memo(function ReviewList({ reviews, companies, isSeller
             const reviewerCompany = companies?.find(c => c.id === review.reviewer_company_id);
             const isUserReview = review.reviewer_company_id === userCompanyId;
             return (
-              <div key={review.id} className={`border-b border-afrikoni-gold/20 pb-4 last:border-0 ${isUserReview ? 'bg-afrikoni-gold/5 p-4 rounded-lg' : ''}`}>
+              <div key={review.id} className={`border-b border-os-accent/20 pb-4 last:border-0 ${isUserReview ? 'bg-os-accent/5 p-4 rounded-lg' : ''}`}>
                 <div className="flex items-start justify-between mb-2">
                   <div>
                     <div className="font-semibold">
                       {reviewerCompany?.company_name || 'Anonymous'}
                       {isUserReview && (
-                        <span className="ml-2 text-xs">(You)</span>
+                        <span className="ml-2 text-os-xs">(You)</span>
                       )}
                     </div>
                     <div className="flex items-center gap-1 mt-1">
@@ -148,7 +148,7 @@ const ReviewList = React.memo(function ReviewList({ reviews, companies, isSeller
                           }`}
                         />
                       ))}
-                      <span className="ml-2 text-xs">
+                      <span className="ml-2 text-os-xs">
                         {new Date(review.created_at).toLocaleDateString()}
                       </span>
                     </div>
@@ -159,9 +159,9 @@ const ReviewList = React.memo(function ReviewList({ reviews, companies, isSeller
                     </Badge>
                   )}
                 </div>
-                {review.comment && <p className="text-sm mt-2">{review.comment}</p>}
+                {review.comment && <p className="text-os-sm mt-2">{review.comment}</p>}
                 {review.quality_rating && (
-                  <div className="grid grid-cols-3 gap-3 mt-3 text-xs">
+                  <div className="grid grid-cols-3 gap-3 mt-3 text-os-xs">
                     <div>{t('reviews.quality') || 'Quality'}: {review.quality_rating}/5</div>
                     {review.communication_rating && <div>{t('reviews.communication') || 'Communication'}: {review.communication_rating}/5</div>}
                     {review.delivery_rating && <div>{t('reviews.delivery') || 'Delivery'}: {review.delivery_rating}/5</div>}

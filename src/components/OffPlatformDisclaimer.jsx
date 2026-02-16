@@ -14,7 +14,7 @@ export default function OffPlatformDisclaimer({ variant = 'default', className =
     default: 'border-amber-300 bg-amber-50/50 text-amber-800',
     warning: 'border-red-300 bg-red-50/50 text-red-800',
     info: 'border-blue-300 bg-blue-50/50 text-blue-800',
-    compact: 'border-afrikoni-gold/30 bg-afrikoni-gold/5 text-afrikoni-deep'
+    compact: 'border-os-accent/30 bg-os-accent/5 text-afrikoni-deep'
   };
 
   return (
@@ -30,15 +30,15 @@ export default function OffPlatformDisclaimer({ variant = 'default', className =
             <AlertTriangle className="w-5 h-5 flex-shrink-0 mt-0.5" />
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
-                <h4 className="font-bold text-sm md:text-base">
+                <h4 className="font-bold text-os-sm md:text-os-base">
                   Important: Off-Platform Transaction Warning
                 </h4>
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-os-xs">
                   <Shield className="w-3 h-3 mr-1" />
                   Protection Policy
                 </Badge>
               </div>
-              <div className="text-xs md:text-sm space-y-2">
+              <div className="text-os-xs md:text-os-sm space-y-2">
                 <p>
                   <strong>Afrikoni's protection and escrow services only apply to transactions completed through our platform.</strong>
                 </p>
@@ -60,7 +60,7 @@ export default function OffPlatformDisclaimer({ variant = 'default', className =
                 <div className="flex items-center gap-2 mt-3 pt-2 border-t border-current/20">
                   <a
                     href="/order-protection"
-                    className="text-xs font-semibold hover:underline flex items-center gap-1"
+                    className="text-os-xs font-semibold hover:underline flex items-center gap-1"
                   >
                     Learn more about our protection policies
                     <ExternalLink className="w-3 h-3" />
@@ -80,7 +80,7 @@ export default function OffPlatformDisclaimer({ variant = 'default', className =
  */
 export function OffPlatformDisclaimerCompact({ className = '' }) {
   return (
-    <div className={`text-xs text-afrikoni-deep/70 bg-afrikoni-cream/30 border border-afrikoni-gold/20 rounded p-2 ${className}`}>
+    <div className={`text-os-xs text-afrikoni-deep/70 bg-afrikoni-cream/30 border border-os-accent/20 rounded p-2 ${className}`}>
       <div className="flex items-start gap-2">
         <Shield className="w-3 h-3 flex-shrink-0 mt-0.5 text-afrikoni-deep/60" />
         <div>

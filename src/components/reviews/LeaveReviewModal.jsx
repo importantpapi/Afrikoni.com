@@ -100,7 +100,7 @@ export default function LeaveReviewModal({ isOpen, onClose, order, buyerCompanyI
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose(false)}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">
+          <DialogTitle className="text-os-2xl font-bold">
             Leave a Review
           </DialogTitle>
           <DialogDescription>
@@ -111,21 +111,21 @@ export default function LeaveReviewModal({ isOpen, onClose, order, buyerCompanyI
         <div className="space-y-6 py-4">
           {/* Order Info */}
           <div className="p-4 rounded-lg border">
-            <div className="flex items-center gap-2 text-sm mb-1">
+            <div className="flex items-center gap-2 text-os-sm mb-1">
               <CheckCircle className="w-4 h-4" />
               <span>Verified Order</span>
             </div>
             <p className="font-semibold">
               Order #{order.id.slice(0, 8)}
             </p>
-            <p className="text-sm">
+            <p className="text-os-sm">
               {order.currency} {order.total_amount?.toLocaleString() || '0'}
             </p>
           </div>
 
           {/* Rating */}
           <div>
-            <label className="block text-sm font-medium mb-3">
+            <label className="block text-os-sm font-medium mb-3">
               Rating <span className="">*</span>
             </label>
             <div className="flex items-center gap-2">
@@ -142,14 +142,14 @@ export default function LeaveReviewModal({ isOpen, onClose, order, buyerCompanyI
                   <Star
                     className={`w-10 h-10 ${
                       star <= (hoverRating || rating)
-                        ? 'text-afrikoni-gold fill-afrikoni-gold'
+                        ? 'text-os-accent fill-os-accent'
                         : 'text-afrikoni-deep/20'
                     }`}
                   />
                 </button>
               ))}
               {rating > 0 && (
-                <span className="ml-2 text-lg font-bold">
+                <span className="ml-2 text-os-lg font-bold">
                   {rating}.0
                 </span>
               )}
@@ -158,7 +158,7 @@ export default function LeaveReviewModal({ isOpen, onClose, order, buyerCompanyI
 
           {/* Comment */}
           <div>
-            <label className="block text-sm font-medium mb-2">
+            <label className="block text-os-sm font-medium mb-2">
               Comment (Optional)
             </label>
             <Textarea
@@ -169,14 +169,14 @@ export default function LeaveReviewModal({ isOpen, onClose, order, buyerCompanyI
               maxLength={500}
               disabled={isSubmitting}
             />
-            <p className="text-xs mt-1 text-right">
+            <p className="text-os-xs mt-1 text-right">
               {comment.length}/500 characters
             </p>
           </div>
 
           {/* Tags */}
           <div>
-            <label className="block text-sm font-medium mb-3">
+            <label className="block text-os-sm font-medium mb-3">
               Tags (Optional)
             </label>
             <div className="flex flex-wrap gap-2">
@@ -186,8 +186,8 @@ export default function LeaveReviewModal({ isOpen, onClose, order, buyerCompanyI
                   variant={selectedTags.includes(tag.value) ? 'default' : 'outline'}
                   className={`cursor-pointer transition-all ${
                     selectedTags.includes(tag.value)
-                      ? 'bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white'
-                      : 'hover:bg-afrikoni-gold/10'
+                      ? 'bg-os-accent hover:bg-os-accentDark text-white'
+                      : 'hover:bg-os-accent/10'
                   }`}
                   onClick={() => !isSubmitting && handleTagToggle(tag.value)}
                 >
@@ -199,7 +199,7 @@ export default function LeaveReviewModal({ isOpen, onClose, order, buyerCompanyI
 
           {/* Info Notice */}
           <div className="p-4 border rounded-lg">
-            <p className="text-sm">
+            <p className="text-os-sm">
               <strong>Note:</strong> Your review will be pending verification by our admin team. 
               Only verified reviews from completed orders are published to maintain trust and quality.
             </p>
@@ -218,7 +218,7 @@ export default function LeaveReviewModal({ isOpen, onClose, order, buyerCompanyI
           <Button
             onClick={handleSubmit}
             disabled={isSubmitting || rating === 0}
-            className="hover:bg-afrikoni-goldDark"
+            className="hover:bg-os-accentDark"
           >
             {isSubmitting ? 'Submitting...' : 'Submit Review'}
           </Button>

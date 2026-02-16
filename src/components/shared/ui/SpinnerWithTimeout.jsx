@@ -57,7 +57,7 @@ export function SpinnerWithTimeout({
       <div className={`min-h-screen flex items-center justify-center bg-afrikoni-offwhite ${className}`}>
         <Card className="p-8 max-w-md w-full text-center">
           <AlertCircle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-afrikoni-text-dark mb-2">
+          <h2 className="text-os-xl font-semibold text-afrikoni-text-dark mb-2">
             Loading took too long
           </h2>
           <p className="text-afrikoni-text-dark/70 mb-6">
@@ -67,7 +67,7 @@ export function SpinnerWithTimeout({
             {onRetry && (
               <Button
                 onClick={onRetry}
-                className="bg-afrikoni-gold hover:bg-afrikoni-gold/90"
+                className="bg-os-accent hover:bg-os-accent/90"
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Retry
@@ -95,7 +95,7 @@ export function SpinnerWithTimeout({
   return (
     <div className={`min-h-screen flex items-center justify-center bg-afrikoni-offwhite ${className}`}>
       <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold mx-auto mb-4" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-os-accent mx-auto mb-4" />
         <p className="text-afrikoni-text-dark/70">{message}</p>
       </div>
     </div>

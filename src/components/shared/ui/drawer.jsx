@@ -71,11 +71,11 @@ export function Drawer({ open, onOpenChange, children, position = 'bottom', titl
             )}
           >
             {title && (
-              <div className="flex items-center justify-between p-4 border-b border-afrikoni-gold/20">
-                <h2 className="text-lg font-bold text-afrikoni-chestnut">{title}</h2>
+              <div className="flex items-center justify-between p-4 border-b border-os-accent/20">
+                <h2 className="text-os-lg font-bold text-afrikoni-chestnut">{title}</h2>
                 <button
                   onClick={() => onOpenChange(false)}
-                  className="rounded-lg p-1 hover:bg-afrikoni-cream transition-colors focus:outline-none focus:ring-2 focus:ring-afrikoni-gold focus:ring-offset-2"
+                  className="rounded-lg p-1 hover:bg-afrikoni-cream transition-colors focus:outline-none focus:ring-2 focus:ring-os-accent focus:ring-offset-2"
                   aria-label="Close drawer"
                 >
                   <X className="h-5 w-5 text-afrikoni-deep" aria-hidden="true" />

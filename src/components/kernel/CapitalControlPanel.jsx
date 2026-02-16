@@ -22,28 +22,28 @@ export function CapitalControlPanel() {
       <div className="flex items-center justify-between mb-3">
         <div>
           <div className="os-label">Capital Control</div>
-          <p className="text-sm text-muted-foreground">Escrow posture & blockers</p>
+          <p className="text-os-sm text-muted-foreground">Escrow posture & blockers</p>
         </div>
         <Wallet className="h-4 w-4 text-primary" />
       </div>
       <div className="space-y-3">
-        <div className="flex items-center justify-between text-sm">
+        <div className="flex items-center justify-between text-os-sm">
           <span className="text-muted-foreground">Locked</span>
           <span className="font-semibold tabular-nums text-foreground">${state.totalCapitalLocked.toLocaleString()}</span>
         </div>
-        <div className="flex items-center justify-between text-sm">
+        <div className="flex items-center justify-between text-os-sm">
           <span className="text-muted-foreground">Released</span>
           <span className="font-semibold tabular-nums text-success">${state.capitalReleased.toLocaleString()}</span>
         </div>
         <Progress value={releasedPct} className="h-2" />
-        <div className="text-[11px] text-muted-foreground">{releasedPct}% of locked capital released</div>
+        <div className="text-os-xs text-muted-foreground">{releasedPct}% of locked capital released</div>
         <div className="border border-border/60 rounded-lg p-3 bg-card/60">
-          <div className="flex items-center gap-2 text-sm text-warning"><AlertTriangle className="h-4 w-4" />Blockers</div>
-          <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 text-os-sm text-warning"><AlertTriangle className="h-4 w-4" />Blockers</div>
+          <ul className="mt-2 space-y-1 text-os-xs text-muted-foreground">
             {state.blockers.length === 0 ? <li>No blockers detected</li> : state.blockers.map((b) => <li key={b}>• {b}</li>)}
           </ul>
         </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <div className="flex items-center gap-2 text-os-xs text-muted-foreground">
           <Shield className="h-3 w-3" /> Capital at risk: ${state.capitalAtRisk.toLocaleString()}
         </div>
       </div>

@@ -7,8 +7,8 @@ import { Logo } from '@/components/shared/ui/Logo';
  */
 export default function KoniAILogo({ size = 'default', className = '' }) {
   const sizeClasses = {
-    small: 'text-lg',
-    default: 'text-2xl',
+    small: 'text-os-lg',
+    default: 'text-os-2xl',
     large: 'text-3xl'
   };
 
@@ -27,7 +27,7 @@ export default function KoniAILogo({ size = 'default', className = '' }) {
           strokeWidth={3}
         />
       </div>
-      <span className={`${sizeClasses[size]} font-black tracking-tighter bg-gradient-to-r from-afrikoni-charcoal to-afrikoni-gold bg-clip-text text-transparent`}>
+      <span className={`${sizeClasses[size]} font-black tracking-tighter bg-gradient-to-r from-afrikoni-charcoal to-os-accent bg-clip-text text-transparent`}>
         KoniAI
       </span>
     </div>

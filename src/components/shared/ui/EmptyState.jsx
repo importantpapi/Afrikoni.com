@@ -24,8 +24,8 @@ const configMap = {
     description: 'Start building your catalog by adding your first product listing.',
     cta: 'Add Product',
     ctaLink: '/dashboard/products/new',
-    iconColor: 'text-afrikoni-gold',
-    iconBg: 'bg-afrikoni-gold/20'
+    iconColor: 'text-os-accent',
+    iconBg: 'bg-os-accent/20'
   },
   orders: {
     icon: ShoppingCart,
@@ -78,8 +78,8 @@ const configMap = {
     description: 'There are no items to display at this time.',
     cta: 'Get Started',
     ctaLink: '/dashboard',
-    iconColor: 'text-afrikoni-gold',
-    iconBg: 'bg-afrikoni-gold/20'
+    iconColor: 'text-os-accent',
+    iconBg: 'bg-os-accent/20'
   }
 };
 
@@ -111,7 +111,7 @@ export default function EmptyState({
         <Icon className={`w-10 h-10 ${config.iconColor}`} />
       </div>
       
-      <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2 text-center">
+      <h3 className="text-os-xl font-bold text-afrikoni-chestnut mb-2 text-center">
         {finalTitle}
       </h3>
       

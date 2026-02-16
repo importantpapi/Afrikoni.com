@@ -60,7 +60,7 @@ export default function Help() {
         },
         {
           question: 'What is Trade Shield escrow?',
-          answer: 'Trade Shield is our escrow protection system. When you pay for an order, funds are held securely until you confirm delivery and satisfaction. This protects you from fraud and ensures you receive what you ordered. Learn more on our <Link to="/escrow-policy" className="text-afrikoni-gold hover:underline">Escrow Policy</Link> page.'
+          answer: 'Trade Shield is our escrow protection system. When you pay for an order, funds are held securely until you confirm delivery and satisfaction. This protects you from fraud and ensures you receive what you ordered. Learn more on our <Link to="/escrow-policy" className="text-os-accent hover:underline">Escrow Policy</Link> page.'
         },
         {
           question: 'How do I create an RFQ?',
@@ -79,7 +79,7 @@ export default function Help() {
         },
         {
           question: 'What are the fees?',
-          answer: 'We offer transparent pricing: Bronze (Free, 3% transaction fee), Silver ($49/month or 2% fee), Gold ($199/month or 1% fee), and Enterprise (custom pricing). First 10 transactions are FREE for Bronze sellers. See our <Link to="/pricing" className="text-afrikoni-gold hover:underline">Pricing</Link> page for details.'
+          answer: 'We offer transparent pricing: Bronze (Free, 3% transaction fee), Silver ($49/month or 2% fee), Gold ($199/month or 1% fee), and Enterprise (custom pricing). First 10 transactions are FREE for Bronze sellers. See our <Link to="/pricing" className="text-os-accent hover:underline">Pricing</Link> page for details.'
         },
         {
           question: 'How do I get verified?',
@@ -95,7 +95,7 @@ export default function Help() {
         },
         {
           question: 'What happens if a buyer disputes an order?',
-          answer: 'Our dispute resolution team will review the case within 48 hours. We\'ll examine evidence from both sides and make a fair decision. Funds remain in escrow until resolution. See our <Link to="/disputes" className="text-afrikoni-gold hover:underline">Dispute Resolution</Link> page for more information.'
+          answer: 'Our dispute resolution team will review the case within 48 hours. We\'ll examine evidence from both sides and make a fair decision. Funds remain in escrow until resolution. See our <Link to="/disputes" className="text-os-accent hover:underline">Dispute Resolution</Link> page for more information.'
         }
       ]
     },
@@ -118,7 +118,7 @@ export default function Help() {
         },
         {
           question: 'Are there any hidden fees?',
-          answer: 'No hidden fees! Our pricing is completely transparent. You only pay the transaction fee shown (1-3% depending on your tier) or your monthly subscription. See our <Link to="/pricing" className="text-afrikoni-gold hover:underline">Pricing</Link> page for full details.'
+          answer: 'No hidden fees! Our pricing is completely transparent. You only pay the transaction fee shown (1-3% depending on your tier) or your monthly subscription. See our <Link to="/pricing" className="text-os-accent hover:underline">Pricing</Link> page for full details.'
         },
         {
           question: 'What is Afrikoni\'s fee?',
@@ -164,7 +164,7 @@ export default function Help() {
         },
         {
           question: 'What can I dispute?',
-          answer: 'You can dispute orders that don\'t match the description, are damaged, arrive late beyond agreed terms, or if the supplier doesn\'t fulfill their obligations. See our <Link to="/disputes" className="text-afrikoni-gold hover:underline">Dispute Resolution</Link> page for full details.'
+          answer: 'You can dispute orders that don\'t match the description, are damaged, arrive late beyond agreed terms, or if the supplier doesn\'t fulfill their obligations. See our <Link to="/disputes" className="text-os-accent hover:underline">Dispute Resolution</Link> page for full details.'
         },
         {
           question: 'How long does dispute resolution take?',
@@ -223,7 +223,7 @@ export default function Help() {
             <h1 className="text-4xl md:text-5xl font-bold text-afrikoni-chestnut mb-4">
               Help Center
             </h1>
-            <p className="text-lg text-afrikoni-deep/80 max-w-2xl mx-auto">
+            <p className="text-os-lg text-afrikoni-deep/80 max-w-2xl mx-auto">
               Find answers to your questions or get in touch with our support team
             </p>
           </div>
@@ -235,7 +235,7 @@ export default function Help() {
                 placeholder="Search for help..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 h-12 text-lg"
+                className="pl-12 h-12 text-os-lg"
               />
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
             </div>
@@ -243,40 +243,40 @@ export default function Help() {
 
           {/* Support Options */}
           <div className="grid md:grid-cols-3 gap-6 mb-12">
-            <Card className="border-afrikoni-gold/20 hover:shadow-lg transition-shadow">
+            <Card className="border-os-accent/20 hover:shadow-os-md transition-shadow">
               <CardContent className="p-6 text-center">
                 <MessageCircle className="w-12 h-12 text-blue-600 mx-auto mb-4" />
                 <h3 className="font-bold text-afrikoni-chestnut mb-2">Live Chat</h3>
-                <p className="text-sm text-afrikoni-deep mb-4">Get instant help from our support team</p>
-                <Button className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark">
+                <p className="text-os-sm text-afrikoni-deep mb-4">Get instant help from our support team</p>
+                <Button className="w-full bg-os-accent hover:bg-os-accentDark">
                   Start Chat
                 </Button>
               </CardContent>
             </Card>
 
-            <Card className="border-afrikoni-gold/20 hover:shadow-lg transition-shadow">
+            <Card className="border-os-accent/20 hover:shadow-os-md transition-shadow">
               <CardContent className="p-6 text-center">
                 <Mail className="w-12 h-12 text-green-600 mx-auto mb-4" />
                 <h3 className="font-bold text-afrikoni-chestnut mb-2">Email Support</h3>
-                <p className="text-sm text-afrikoni-deep mb-2">
-                  <a href="mailto:hello@afrikoni.com" className="text-afrikoni-gold hover:underline">
+                <p className="text-os-sm text-afrikoni-deep mb-2">
+                  <a href="mailto:hello@afrikoni.com" className="text-os-accent hover:underline">
                     hello@afrikoni.com
                   </a>
                 </p>
-                <p className="text-xs text-afrikoni-deep/70">Response within 24 hours</p>
+                <p className="text-os-xs text-afrikoni-deep/70">Response within 24 hours</p>
               </CardContent>
             </Card>
 
-            <Card className="border-afrikoni-gold/20 hover:shadow-lg transition-shadow">
+            <Card className="border-os-accent/20 hover:shadow-os-md transition-shadow">
               <CardContent className="p-6 text-center">
-                <Phone className="w-12 h-12 text-afrikoni-gold mx-auto mb-4" />
+                <Phone className="w-12 h-12 text-os-accent mx-auto mb-4" />
                 <h3 className="font-bold text-afrikoni-chestnut mb-2">Phone Support</h3>
-                <p className="text-sm text-afrikoni-deep mb-2">
-                  <a href="tel:+32456779368" className="text-afrikoni-gold hover:underline">
+                <p className="text-os-sm text-afrikoni-deep mb-2">
+                  <a href="tel:+32456779368" className="text-os-accent hover:underline">
                     +32 456 77 93 68
                   </a>
                 </p>
-                <p className="text-xs text-afrikoni-deep/70">Mon-Fri 9AM-6PM CET</p>
+                <p className="text-os-xs text-afrikoni-deep/70">Mon-Fri 9AM-6PM CET</p>
               </CardContent>
             </Card>
           </div>
@@ -284,11 +284,11 @@ export default function Help() {
           {/* FAQ Categories */}
           {searchQuery ? (
             <div className="space-y-6">
-              <h2 className="text-2xl font-bold text-afrikoni-chestnut">
+              <h2 className="text-os-2xl font-bold text-afrikoni-chestnut">
                 Search Results
               </h2>
               {filteredCategories.map((category) => (
-                <Card key={category.id} className="border-afrikoni-gold/20">
+                <Card key={category.id} className="border-os-accent/20">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <category.icon className="w-5 h-5" />
@@ -299,7 +299,7 @@ export default function Help() {
                     {category.faqs.map((faq, idx) => {
                       const faqId = `${category.id}-${idx}`;
                       return (
-                        <div key={idx} className="border-b border-afrikoni-gold/20 pb-4 last:border-0">
+                        <div key={idx} className="border-b border-os-accent/20 pb-4 last:border-0">
                           <button
                             onClick={() => setOpenFaq(openFaq === faqId ? null : faqId)}
                             className="w-full flex items-center justify-between text-left"
@@ -323,11 +323,11 @@ export default function Help() {
                 </Card>
               ))}
               {filteredCategories.length === 0 && (
-                <Card className="border-afrikoni-gold/20">
+                <Card className="border-os-accent/20">
                   <CardContent className="p-8 text-center">
                     <p className="text-afrikoni-deep/80">
                       No results found for "{searchQuery}". Try different keywords or{' '}
-                      <Link to="/contact" className="text-afrikoni-gold hover:underline">
+                      <Link to="/contact" className="text-os-accent hover:underline">
                         contact support
                       </Link>.
                     </p>
@@ -338,9 +338,9 @@ export default function Help() {
           ) : (
             <div className="space-y-8">
               {faqCategories.map((category) => (
-                <Card key={category.id} className="border-afrikoni-gold/20">
+                <Card key={category.id} className="border-os-accent/20">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2 text-xl">
+                    <CardTitle className="flex items-center gap-2 text-os-xl">
                       <category.icon className="w-6 h-6" />
                       {category.name}
                     </CardTitle>
@@ -349,12 +349,12 @@ export default function Help() {
                     {category.faqs.map((faq, idx) => {
                       const faqId = `${category.id}-${idx}`;
                       return (
-                        <div key={idx} className="border-b border-afrikoni-gold/20 pb-4 last:border-0">
+                        <div key={idx} className="border-b border-os-accent/20 pb-4 last:border-0">
                           <button
                             onClick={() => setOpenFaq(openFaq === faqId ? null : faqId)}
                             className="w-full flex items-center justify-between text-left group"
                           >
-                            <span className="font-semibold text-afrikoni-chestnut group-hover:text-afrikoni-gold transition-colors pr-4">
+                            <span className="font-semibold text-afrikoni-chestnut group-hover:text-os-accent transition-colors pr-4">
                               {faq.question}
                             </span>
                             {openFaq === faqId ? (
@@ -376,9 +376,9 @@ export default function Help() {
           )}
 
           {/* Still Need Help */}
-          <Card className="mt-12 bg-afrikoni-cream/50 border-afrikoni-gold/30">
+          <Card className="mt-12 bg-afrikoni-cream/50 border-os-accent/30">
             <CardContent className="p-8 text-center">
-              <h2 className="text-2xl font-bold text-afrikoni-chestnut mb-4">
+              <h2 className="text-os-2xl font-bold text-afrikoni-chestnut mb-4">
                 Still Need Help?
               </h2>
               <p className="text-afrikoni-deep/80 mb-6">

@@ -20,7 +20,7 @@ export default function TermsAndConditions() {
           <h1 className="text-3xl md:text-4xl font-bold mb-6 text-afrikoni-chestnut">Terms & Conditions</h1>
           
           <section className="space-y-4">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+            <p className="text-os-sm text-gray-600 dark:text-gray-400">
               <strong>Last Updated:</strong> December 2025<br />
               <strong>Effective Date:</strong> December 2025<br />
               <strong>Company Name:</strong> Afrikoni (pending registration)<br />
@@ -30,14 +30,14 @@ export default function TermsAndConditions() {
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">1. Agreement</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">1. Agreement</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               By using Afrikoni, you agree to these Terms. If not, stop using the service.
             </p>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">2. Role of Afrikoni</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">2. Role of Afrikoni</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               Afrikoni is a technology platform enabling business connections.
             </p>
@@ -50,7 +50,7 @@ export default function TermsAndConditions() {
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">3. Eligibility</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">3. Eligibility</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               Users must be:
             </p>
@@ -62,7 +62,7 @@ export default function TermsAndConditions() {
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">4. Platform Rules</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">4. Platform Rules</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               Users must not:
             </p>
@@ -77,7 +77,7 @@ export default function TermsAndConditions() {
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">5. Listings & Transactions</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">5. Listings & Transactions</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               Users are responsible for verification, negotiations, and due diligence.
             </p>
@@ -92,7 +92,7 @@ export default function TermsAndConditions() {
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">6. Payments</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">6. Payments</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               Financial data is processed by certified partners.
             </p>
@@ -102,7 +102,7 @@ export default function TermsAndConditions() {
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">7. Intellectual Property</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">7. Intellectual Property</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               Afrikoni owns the platform brand and design system.
             </p>
@@ -112,14 +112,14 @@ export default function TermsAndConditions() {
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">8. Data Protection</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">8. Data Protection</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               Follow the Privacy Policy.
             </p>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">9. Uptime</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">9. Uptime</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               No guarantees of uninterrupted service.
             </p>
@@ -129,7 +129,7 @@ export default function TermsAndConditions() {
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">10. Termination</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">10. Termination</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               We may suspend accounts that violate these terms.
             </p>
@@ -139,7 +139,7 @@ export default function TermsAndConditions() {
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">11. Limited Liability</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">11. Limited Liability</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               Afrikoni is not liable for:
             </p>
@@ -154,7 +154,7 @@ export default function TermsAndConditions() {
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">12. Governing Law</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">12. Governing Law</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               Belgian laws apply
             </p>
@@ -164,16 +164,16 @@ export default function TermsAndConditions() {
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">13. Changes to Terms</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">13. Changes to Terms</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               We may update these terms anytime. Users will be notified if important changes occur.
             </p>
           </section>
 
           <section className="space-y-4">
-            <h2 className="text-2xl md:text-3xl font-semibold text-afrikoni-chestnut">14. Contact</h2>
+            <h2 className="text-os-2xl md:text-3xl font-semibold text-afrikoni-chestnut">14. Contact</h2>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
-              Email: <a href="mailto:hello@afrikoni.com" className="text-afrikoni-gold hover:underline">hello@afrikoni.com</a>
+              Email: <a href="mailto:hello@afrikoni.com" className="text-os-accent hover:underline">hello@afrikoni.com</a>
             </p>
             <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
               Address: Kortenberg, Belgium (temporary)

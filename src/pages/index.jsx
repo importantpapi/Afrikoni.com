@@ -98,10 +98,9 @@ export default function Home() {
         {/* ✅ MOBILE BENTO ARCHITECTURE - Mobile Only */}
         {/* ============================================================ */}
 
-        {/* 1. Command Center: Sticky Header with Glassmorphism */}
-        <StickySearchBar />
+        {/* Search is now in UnifiedMobileHeader - no separate search bar needed */}
 
-        {/* 2. Category Hub: 2x4 Dense Grid - Mobile Only */}
+        {/* 1. Category Hub: 2x4 Dense Grid - Mobile Only */}
         <MobileCategoryGrid />
 
         {/* Country Filters - Mobile Only: Top 5 Trending + Search */}
@@ -171,7 +170,7 @@ export default function Home() {
         </section>
 
         {/* RFQ Card - Prominent Placement - Mobile: Reduced padding */}
-        <section className="py-8 md:py-16 lg:py-20 bg-gradient-to-br from-afrikoni-gold/10 via-afrikoni-chestnut/10 to-afrikoni-gold/5">
+        <section className="py-8 md:py-16 lg:py-20 bg-gradient-to-br from-os-accent/10 via-afrikoni-chestnut/10 to-os-accent/5">
           <RFQCard />
         </section>
 

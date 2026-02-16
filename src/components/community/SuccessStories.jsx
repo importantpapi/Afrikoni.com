@@ -100,10 +100,10 @@ export default function SuccessStories({ limit = 3 }) {
 
   if (stories.length === 0) {
     return (
-      <Card className="border-afrikoni-gold/20">
+      <Card className="border-os-accent/20">
         <CardContent className="p-8 text-center">
           <Package className="w-16 h-16 text-afrikoni-text-dark/30 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-afrikoni-text-dark mb-2">
+          <h3 className="text-os-xl font-semibold text-afrikoni-text-dark mb-2">
             Early Adopters — Join Now to Be Featured First!
           </h3>
           <p className="text-afrikoni-text-dark/70">
@@ -123,20 +123,20 @@ export default function SuccessStories({ limit = 3 }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: idx * 0.1 }}
         >
-          <Card className="h-full border-afrikoni-gold/20 hover:border-afrikoni-gold/40 transition-colors">
+          <Card className="h-full border-os-accent/20 hover:border-os-accent/40 transition-colors">
             <CardContent className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-semibold text-afrikoni-text-dark">{story.supplier}</h3>
                     {story.verified && (
-                      <Badge className="bg-afrikoni-green text-white text-xs">
+                      <Badge className="bg-afrikoni-green text-white text-os-xs">
                         <CheckCircle className="w-3 h-3 mr-1" />
                         Verified
                       </Badge>
                     )}
                   </div>
-                  <p className="text-sm text-afrikoni-text-dark/70">to {story.buyer}</p>
+                  <p className="text-os-sm text-afrikoni-text-dark/70">to {story.buyer}</p>
                 </div>
                 <div className="flex items-center gap-1">
                   {[...Array(5)].map((_, i) => (
@@ -144,24 +144,24 @@ export default function SuccessStories({ limit = 3 }) {
                       key={i}
                       className={`w-4 h-4 ${
                         i < story.rating
-                          ? 'fill-afrikoni-gold text-afrikoni-gold'
+                          ? 'fill-os-accent text-os-accent'
                           : 'text-afrikoni-text-dark/20'
                       }`}
                     />
                   ))}
                 </div>
               </div>
-              <p className="text-sm text-afrikoni-text-dark/70 mb-4 italic">
+              <p className="text-os-sm text-afrikoni-text-dark/70 mb-4 italic">
                 "{story.comment}"
               </p>
-              <div className="flex items-center justify-between pt-4 border-t border-afrikoni-gold/10">
-                <div className="flex items-center gap-2 text-sm">
-                  <DollarSign className="w-4 h-4 text-afrikoni-gold" />
+              <div className="flex items-center justify-between pt-4 border-t border-os-accent/10">
+                <div className="flex items-center gap-2 text-os-sm">
+                  <DollarSign className="w-4 h-4 text-os-accent" />
                   <span className="font-semibold text-afrikoni-text-dark">
                     {story.currency} {parseFloat(story.amount).toLocaleString()}
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-afrikoni-text-dark/60">
+                <div className="flex items-center gap-2 text-os-xs text-afrikoni-text-dark/60">
                   <TrendingUp className="w-3 h-3" />
                   <span>Success</span>
                 </div>

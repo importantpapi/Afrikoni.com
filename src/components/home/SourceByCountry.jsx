@@ -30,7 +30,7 @@ export default function SourceByCountry() {
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-serif text-afrikoni-chestnut mb-4">
             Source by Country
           </h2>
-          <p className="text-lg md:text-xl text-afrikoni-deep/80 max-w-3xl mx-auto">
+          <p className="text-os-lg md:text-os-xl text-afrikoni-deep/80 max-w-3xl mx-auto">
             Discover products and suppliers from specific African countries
           </p>
         </motion.div>
@@ -46,16 +46,16 @@ export default function SourceByCountry() {
               whileHover={{ y: -4, scale: 1.02 }}
             >
               <Link to={country.link}>
-                <Card className="h-full hover:shadow-afrikoni-lg transition-all cursor-pointer border-[1.5px] border-afrikoni-gold bg-afrikoni-offwhite">
+                <Card className="h-full hover:shadow-os-gold-lg transition-all cursor-pointer border-[1.5px] border-os-accent bg-afrikoni-offwhite">
                   <CardContent className="p-4 text-center">
                     <div className="text-4xl mb-2">{country.flag}</div>
                     <h3 className="font-bold text-afrikoni-chestnut mb-1">
                       {country.name}
                     </h3>
-                    <p className="text-sm text-afrikoni-deep mb-2">
+                    <p className="text-os-sm text-afrikoni-deep mb-2">
                       Products available
                     </p>
-                    <div className="flex items-center justify-center gap-1 text-afrikoni-gold text-sm font-medium">
+                    <div className="flex items-center justify-center gap-1 text-os-accent text-os-sm font-medium">
                       <span>Explore</span>
                       <ArrowRight className="w-4 h-4" />
                     </div>

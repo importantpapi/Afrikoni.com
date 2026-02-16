@@ -41,12 +41,12 @@ export default function MobileHeader({ user }: MobileHeaderProps) {
 
   return (
     <header 
-      className="mobile-header fixed top-0 left-0 right-0 h-14 bg-afrikoni-chestnut border-b border-afrikoni-gold/20 z-30 flex items-center justify-between px-3"
+      className="mobile-header fixed top-0 left-0 right-0 h-14 bg-afrikoni-chestnut border-b border-os-accent/20 z-30 flex items-center justify-between px-3"
       role="banner"
     >
       {/* Left: Logo */}
       <Link to="/" className="flex-shrink-0">
-        <Logo type="icon" size="sm" link={false} className="text-afrikoni-gold" />
+        <Logo type="icon" size="sm" link={false} className="text-os-accent" />
       </Link>
 
       {/* Center: Empty space for balance */}
@@ -63,7 +63,7 @@ export default function MobileHeader({ user }: MobileHeaderProps) {
                 setLanguage(e.target.value);
               }
             }}
-            className="appearance-none bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg px-2 py-1.5 text-xs text-afrikoni-gold font-medium focus:outline-none focus:ring-1 focus:ring-afrikoni-gold"
+            className="appearance-none bg-os-accent/10 border border-os-accent/30 rounded-lg px-2 py-1.5 text-os-xs text-os-accent font-medium focus:outline-none focus:ring-1 focus:ring-os-accent"
             aria-label="Select language"
           >
             {languages.map((lang) => (
@@ -78,7 +78,7 @@ export default function MobileHeader({ user }: MobileHeaderProps) {
         {user ? (
           <Link
             to="/dashboard"
-            className="flex items-center justify-center w-9 h-9 rounded-full bg-afrikoni-gold/10 border border-afrikoni-gold/30 text-afrikoni-gold hover:bg-afrikoni-gold/20 transition-colors"
+            className="flex items-center justify-center w-9 h-9 rounded-full bg-os-accent/10 border border-os-accent/30 text-os-accent hover:bg-os-accent/20 transition-colors"
             aria-label="Go to dashboard"
           >
             <User className="w-5 h-5" />
@@ -86,7 +86,7 @@ export default function MobileHeader({ user }: MobileHeaderProps) {
         ) : (
           <Link
             to="/login"
-            className="flex items-center justify-center w-9 h-9 rounded-full bg-afrikoni-gold/10 border border-afrikoni-gold/30 text-afrikoni-gold hover:bg-afrikoni-gold/20 transition-colors"
+            className="flex items-center justify-center w-9 h-9 rounded-full bg-os-accent/10 border border-os-accent/30 text-os-accent hover:bg-os-accent/20 transition-colors"
             aria-label="Login or signup"
           >
             <User className="w-5 h-5" />

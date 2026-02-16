@@ -12,7 +12,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import MobileHeader from '@/components/mobile/MobileHeader';
+import UnifiedMobileHeader from '@/components/mobile/UnifiedMobileHeader';
 import MobileBottomNav from '@/components/mobile/MobileBottomNav';
 
 interface MobileLayoutProps {
@@ -26,8 +26,8 @@ export default function MobileLayout({ children, user, userRole = 'buyer' }: Mob
   // No need to check again here - just render the mobile layout
   return (
     <div className="mobile-layout min-h-screen bg-afrikoni-offwhite">
-      {/* Mobile Header - Sticky, 56px height, z-30 */}
-      <MobileHeader user={user} />
+      {/* Mobile Header - Unified, no overlap */}
+      <UnifiedMobileHeader user={user} transparent={false} />
 
       {/* Main Content - Safe padding for header and bottom nav */}
       <main className="mobile-page-content pt-4 pb-24 md:pb-0">

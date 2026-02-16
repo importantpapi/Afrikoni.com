@@ -395,7 +395,7 @@ export default function ProductDetail() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-os-accent" />
       </div>
     );
   }
@@ -426,14 +426,14 @@ export default function ProductDetail() {
       <div className="min-h-screen bg-stone-50">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4 sm:py-6 md:py-8 pb-24 md:pb-8">
           {fromSellerCreate && supplier && user && user.company_id === supplier.id && (
-            <div className="mb-4 rounded-lg border border-afrikoni-gold/30 bg-afrikoni-cream px-4 py-3 text-xs sm:text-sm text-afrikoni-deep flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div className="mb-4 rounded-lg border border-os-accent/30 bg-afrikoni-cream px-4 py-3 text-os-xs sm:text-os-sm text-afrikoni-deep flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
               <span className="font-semibold text-afrikoni-chestnut">
                 You’re viewing your own product as buyers see it.
               </span>
               <button
                 type="button"
                 onClick={() => navigate('/dashboard/products')}
-                className="inline-flex items-center text-xs sm:text-sm font-medium text-afrikoni-gold hover:text-afrikoni-goldDark underline-offset-2 hover:underline"
+                className="inline-flex items-center text-os-xs sm:text-os-sm font-medium text-os-accent hover:text-os-accentDark underline-offset-2 hover:underline"
               >
                 Go to product list in your seller dashboard
               </button>
@@ -449,7 +449,7 @@ export default function ProductDetail() {
 
           <div className="grid md:grid-cols-3 gap-3 sm:gap-4 md:gap-8">
             <div className="md:col-span-2 space-y-3 sm:space-y-4 md:space-y-6">
-              <Card className="border-afrikoni-gold/20 overflow-hidden">
+              <Card className="border-os-accent/20 overflow-hidden">
                 <CardContent className="p-2 sm:p-2 md:p-3">
                   <div className="max-h-[400px] md:max-h-[450px] overflow-hidden">
                     <ProductImageGallery
@@ -461,14 +461,14 @@ export default function ProductDetail() {
               </Card>
 
               {/* Trust & Verification Status - Elevated prominence */}
-              <Card className="border-afrikoni-gold/30 bg-gradient-to-r from-afrikoni-cream/40 to-afrikoni-cream/20">
+              <Card className="border-os-accent/30 bg-gradient-to-r from-afrikoni-cream/40 to-afrikoni-cream/20">
                 <CardContent className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-afrikoni-gold/20 border-2 border-afrikoni-gold/40">
-                      <Shield className="w-5 h-5 text-afrikoni-gold" />
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-os-accent/20 border-2 border-os-accent/40">
+                      <Shield className="w-5 h-5 text-os-accent" />
                     </div>
                     <div>
-                      <p className="text-sm sm:text-base font-bold text-afrikoni-chestnut flex items-center gap-2">
+                      <p className="text-os-sm sm:text-os-base font-bold text-afrikoni-chestnut flex items-center gap-2">
                         {product.is_standardized ? (
                           <>
                             <CheckCircle className="w-4 h-4 text-green-600" />
@@ -481,7 +481,7 @@ export default function ProductDetail() {
                           </>
                         )}
                       </p>
-                      <p className="text-xs sm:text-sm text-afrikoni-deep/80 mt-1">
+                      <p className="text-os-xs sm:text-os-sm text-afrikoni-deep/80 mt-1">
                         {product.is_standardized
                           ? "This listing follows Afrikoni's standardized B2B format. Trade Shield protection applies."
                           : 'Supplier onboarding in progress. Additional details available upon request. Trade Shield protection applies.'}
@@ -498,7 +498,7 @@ export default function ProductDetail() {
 
               {/* Product Variants */}
               {variants.length > 0 && (
-                <Card className="border-afrikoni-gold/20">
+                <Card className="border-os-accent/20">
                   <CardContent className="p-6">
                     <ProductVariants
                       variants={variants}
@@ -514,14 +514,14 @@ export default function ProductDetail() {
                 <BulkPricingTiers product={selectedVariant || product} />
               </div>
 
-              <Card className="border-afrikoni-gold/20">
+              <Card className="border-os-accent/20">
                 <Tabs defaultValue="description">
                   <CardHeader className="border-b">
                     <TabsList className="w-full justify-start overflow-x-auto touch-manipulation">
-                      <TabsTrigger value="description" className="min-h-[44px] md:min-h-0 touch-manipulation active:scale-95 md:active:scale-100 text-xs sm:text-sm">{t('product.description')}</TabsTrigger>
-                      <TabsTrigger value="specifications" className="min-h-[44px] md:min-h-0 touch-manipulation active:scale-95 md:active:scale-100 text-xs sm:text-sm">{t('product.specifications')}</TabsTrigger>
-                      <TabsTrigger value="packaging" className="min-h-[44px] md:min-h-0 touch-manipulation active:scale-95 md:active:scale-100 text-xs sm:text-sm">{t('product.packaging')}</TabsTrigger>
-                      <TabsTrigger value="reviews" className="min-h-[44px] md:min-h-0 touch-manipulation active:scale-95 md:active:scale-100 text-xs sm:text-sm">{t('product.reviews')} ({reviews.length})</TabsTrigger>
+                      <TabsTrigger value="description" className="min-h-[44px] md:min-h-0 touch-manipulation active:scale-95 md:active:scale-100 text-os-xs sm:text-os-sm">{t('product.description')}</TabsTrigger>
+                      <TabsTrigger value="specifications" className="min-h-[44px] md:min-h-0 touch-manipulation active:scale-95 md:active:scale-100 text-os-xs sm:text-os-sm">{t('product.specifications')}</TabsTrigger>
+                      <TabsTrigger value="packaging" className="min-h-[44px] md:min-h-0 touch-manipulation active:scale-95 md:active:scale-100 text-os-xs sm:text-os-sm">{t('product.packaging')}</TabsTrigger>
+                      <TabsTrigger value="reviews" className="min-h-[44px] md:min-h-0 touch-manipulation active:scale-95 md:active:scale-100 text-os-xs sm:text-os-sm">{t('product.reviews')} ({reviews.length})</TabsTrigger>
                     </TabsList>
                   </CardHeader>
                   <CardContent className="p-6">
@@ -534,7 +534,7 @@ export default function ProductDetail() {
                             onClick={handleGenerateAISummary}
                             size="xs"
                             variant="ghost"
-                            className="text-afrikoni-deep/60 text-xs"
+                            className="text-afrikoni-deep/60 text-os-xs"
                           />
                           <AICopilotButton
                             label={t('product.rewriteDescription')}
@@ -542,18 +542,18 @@ export default function ProductDetail() {
                             onClick={handleRewriteDescription}
                             size="xs"
                             variant="ghost"
-                            className="text-afrikoni-deep/60 text-xs"
+                            className="text-afrikoni-deep/60 text-os-xs"
                           />
                         </div>
                         {aiSummary && (
-                          <div className="bg-afrikoni-cream/30 border border-afrikoni-gold/20 rounded-lg p-3">
+                          <div className="bg-afrikoni-cream/30 border border-os-accent/20 rounded-lg p-3">
                             <AISummaryBox title={t('product.aiSummary')}>
                               {aiSummary}
                             </AISummaryBox>
                           </div>
                         )}
                         <div className="prose prose-zinc max-w-none">
-                          <p className="text-afrikoni-deep leading-relaxed text-base md:text-lg whitespace-pre-wrap">
+                          <p className="text-afrikoni-deep leading-relaxed text-os-base md:text-os-lg whitespace-pre-wrap">
                             {aiDescription || product.description || product.short_description || 'No description available.'}
                           </p>
                         </div>
@@ -649,15 +649,15 @@ export default function ProductDetail() {
             </div>
 
             <div className="space-y-3 sm:space-y-4 md:space-y-6">
-              <Card className="border-afrikoni-gold/20 md:sticky md:top-24 bg-[#FFF6E1]">
+              <Card className="border-os-accent/20 md:sticky md:top-24 bg-[#FFF6E1]">
                 <CardContent className="p-4 sm:p-5 md:p-6 space-y-3 sm:space-y-4">
                   <div>
                     <div className="flex items-start justify-between gap-3 mb-3">
                       <div className="space-y-1">
-                        <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-afrikoni-chestnut leading-tight">
+                        <h1 className="text-os-2xl sm:text-3xl md:text-4xl font-bold text-afrikoni-chestnut leading-tight">
                           {product.title}
                         </h1>
-                        <div className="flex flex-wrap gap-2 items-center text-xs sm:text-sm">
+                        <div className="flex flex-wrap gap-2 items-center text-os-xs sm:text-os-sm">
                           {(product.country_of_origin || supplier) && (
                             <div className="flex items-center gap-1 text-afrikoni-deep/80">
                               <MapPin className="w-3 h-3" />
@@ -690,7 +690,7 @@ export default function ProductDetail() {
                             </div>
                           )}
                           {product.categories && (
-                            <Badge variant="outline" className="bg-white/70 border-afrikoni-gold/40">
+                            <Badge variant="outline" className="bg-white/70 border-os-accent/40">
                               {product.categories.name}
                             </Badge>
                           )}
@@ -699,7 +699,7 @@ export default function ProductDetail() {
                             <TrustBadge type="verified-supplier" size="sm" />
                           )}
                           {supplier?.verification_status === 'pending' && (
-                            <Badge className="bg-amber-50 text-amber-700 border-amber-300 text-xs">
+                            <Badge className="bg-amber-50 text-amber-700 border-amber-300 text-os-xs">
                               <Clock className="w-3 h-3 mr-1" /> Verification in Progress
                             </Badge>
                           )}
@@ -776,7 +776,7 @@ export default function ProductDetail() {
                                 amount={selectedVariant.price}
                                 fromCurrency={productCurrency}
                                 unit={product.unit || 'unit'}
-                                className="text-3xl font-bold text-afrikoni-gold mb-1"
+                                className="text-3xl font-bold text-os-accent mb-1"
                                 showUnit={true}
                               />
                             );
@@ -788,9 +788,9 @@ export default function ProductDetail() {
                                   max={product.price_max}
                                   fromCurrency={productCurrency}
                                   unit={product.moq_unit || product.unit || 'unit'}
-                                  className="text-3xl font-bold text-afrikoni-gold mb-1"
+                                  className="text-3xl font-bold text-os-accent mb-1"
                                 />
-                                <div className="text-sm text-afrikoni-deep">Price range per {product.moq_unit || product.unit || 'unit'}</div>
+                                <div className="text-os-sm text-afrikoni-deep">Price range per {product.moq_unit || product.unit || 'unit'}</div>
                               </>
                             );
                           } else if (product.price_min) {
@@ -800,11 +800,11 @@ export default function ProductDetail() {
                                   amount={product.price_min}
                                   fromCurrency={productCurrency}
                                   unit={product.unit || 'unit'}
-                                  className="text-3xl font-bold text-afrikoni-gold mb-1"
+                                  className="text-3xl font-bold text-os-accent mb-1"
                                   suffix="+"
                                   showUnit={true}
                                 />
-                                <div className="text-sm text-afrikoni-deep">Starting from</div>
+                                <div className="text-os-sm text-afrikoni-deep">Starting from</div>
                               </>
                             );
                           } else if (product.price) {
@@ -813,12 +813,12 @@ export default function ProductDetail() {
                                 amount={product.price}
                                 fromCurrency={productCurrency}
                                 unit={product.unit || 'unit'}
-                                className="text-3xl font-bold text-afrikoni-gold mb-1"
+                                className="text-3xl font-bold text-os-accent mb-1"
                                 showUnit={true}
                               />
                             );
                           } else {
-                            return <div className="text-lg font-semibold text-afrikoni-deep">Price on request</div>;
+                            return <div className="text-os-lg font-semibold text-afrikoni-deep">Price on request</div>;
                           }
                         })()}
 
@@ -831,19 +831,19 @@ export default function ProductDetail() {
                                   <Star
                                     key={star}
                                     className={`w-4 h-4 ${star <= Math.round(avgRating)
-                                      ? 'fill-afrikoni-gold text-afrikoni-gold'
+                                      ? 'fill-os-accent text-os-accent'
                                       : 'text-afrikoni-deep/50'
                                       }`}
                                   />
                                 );
                               })}
                             </div>
-                            <span className="text-sm text-afrikoni-deep">({reviews.length} reviews)</span>
+                            <span className="text-os-sm text-afrikoni-deep">({reviews.length} reviews)</span>
                           </div>
                         )}
                       </div>
 
-                      <div className="pt-4 border-t border-afrikoni-gold/20 space-y-3 text-sm">
+                      <div className="pt-4 border-t border-os-accent/20 space-y-3 text-os-sm">
                         {/* MOQ */}
                         {product.min_order_quantity ? (
                           <div className="flex justify-between">
@@ -979,7 +979,7 @@ export default function ProductDetail() {
                     <div className="hidden md:block space-y-3">
                       <Button
                         onClick={handleCreateRFQ}
-                        className="w-full bg-white hover:bg-white/90 text-black border-2 border-afrikoni-gold font-bold shadow-sm hover:shadow-md transition-all touch-manipulation active:scale-95 md:active:scale-100 min-h-[52px] md:min-h-[52px] text-base md:text-lg"
+                        className="w-full bg-white hover:bg-white/90 text-black border-2 border-os-accent font-bold shadow-sm hover:shadow-md transition-all touch-manipulation active:scale-95 md:active:scale-100 min-h-[52px] md:min-h-[52px] text-os-base md:text-os-lg"
                         size="lg"
                       >
                         <FileText className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
@@ -988,14 +988,14 @@ export default function ProductDetail() {
 
                       <Button
                         onClick={handleBuyNow}
-                        className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldLight text-white font-bold shadow-lg hover:shadow-xl transition-all touch-manipulation active:scale-95 md:active:scale-100 min-h-[52px] md:min-h-[52px] text-base md:text-lg"
+                        className="w-full bg-os-accent hover:bg-os-accentLight text-white font-bold shadow-os-md hover:shadow-os-lg transition-all touch-manipulation active:scale-95 md:active:scale-100 min-h-[52px] md:min-h-[52px] text-os-base md:text-os-lg"
                         size="lg"
                       >
                         <Zap className="w-5 h-5 sm:w-6 sm:h-6 mr-2" />
                         <span>{t('product.buyNow') || 'Buy Now'}</span>
                       </Button>
 
-                      <p className="text-xs text-afrikoni-deep/60 text-center -mt-2 mb-1">
+                      <p className="text-os-xs text-afrikoni-deep/60 text-center -mt-2 mb-1">
                         All RFQs are reviewed to ensure supplier fit, trade seriousness, and platform protection.
                       </p>
 
@@ -1004,10 +1004,10 @@ export default function ProductDetail() {
                         <Button
                           onClick={() => setShowQuickQuoteModal(true)}
                           variant="outline"
-                          className="border-afrikoni-gold/40 hover:border-afrikoni-gold hover:bg-afrikoni-gold/5 text-sm"
+                          className="border-os-accent/40 hover:border-os-accent hover:bg-os-accent/5 text-os-sm"
                           size="sm"
                         >
-                          <Zap className="w-4 h-4 mr-1.5 text-afrikoni-gold" />
+                          <Zap className="w-4 h-4 mr-1.5 text-os-accent" />
                           Quick Quote
                         </Button>
                         <SampleOrderButton
@@ -1015,7 +1015,7 @@ export default function ProductDetail() {
                           supplier={supplier}
                           variant="outline"
                           size="sm"
-                          className="border-afrikoni-gold/40 hover:border-afrikoni-gold hover:bg-afrikoni-gold/5 text-sm"
+                          className="border-os-accent/40 hover:border-os-accent hover:bg-os-accent/5 text-os-sm"
                         />
                       </div>
 
@@ -1026,7 +1026,7 @@ export default function ProductDetail() {
                       <Button
                         onClick={handleContactSupplier}
                         variant="outline"
-                        className="w-full border-2 border-afrikoni-gold/40 hover:border-afrikoni-gold hover:bg-afrikoni-gold/5 touch-manipulation active:scale-95 md:active:scale-100 min-h-[44px] md:min-h-0 text-sm md:text-base"
+                        className="w-full border-2 border-os-accent/40 hover:border-os-accent hover:bg-os-accent/5 touch-manipulation active:scale-95 md:active:scale-100 min-h-[44px] md:min-h-0 text-os-sm md:text-os-base"
                         size="lg"
                       >
                         <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
@@ -1037,7 +1037,7 @@ export default function ProductDetail() {
                     {/* Mobile: Show compact info only */}
                     <div className="md:hidden space-y-2">
                       <PaymentProtectionBanner variant="compact" className="mt-2 mb-3" />
-                      <p className="text-xs text-afrikoni-deep/60 text-center">
+                      <p className="text-os-xs text-afrikoni-deep/60 text-center">
                         All RFQs are reviewed to ensure supplier fit, trade seriousness, and platform protection.
                       </p>
                     </div>
@@ -1049,12 +1049,12 @@ export default function ProductDetail() {
                         onClick={handleGenerateRFQWithAI}
                         loading={aiRFQLoading}
                         variant="ghost"
-                        className="w-full text-xs md:text-sm text-afrikoni-deep/70 hover:text-afrikoni-chestnut hover:bg-afrikoni-cream/50"
+                        className="w-full text-os-xs md:text-os-sm text-afrikoni-deep/70 hover:text-afrikoni-chestnut hover:bg-afrikoni-cream/50"
                         size="sm"
                       />
                     </div>
 
-                    <p className="text-xs sm:text-sm text-afrikoni-deep/60 text-center pt-1 italic">
+                    <p className="text-os-xs sm:text-os-sm text-afrikoni-deep/60 text-center pt-1 italic">
                       {t('product.actionsHelp') || 'Request Quote for formal offers. Contact for quick questions.'}
                     </p>
 
@@ -1065,7 +1065,7 @@ export default function ProductDetail() {
 
 
               {/* Shipping Calculator - De-emphasized helper tool */}
-              <div className="bg-afrikoni-cream/20 border border-afrikoni-gold/10 rounded-lg p-3">
+              <div className="bg-afrikoni-cream/20 border border-os-accent/10 rounded-lg p-3">
                 <ShippingCalculator
                   compact={true}
                   defaultOrigin={product.country_of_origin || supplier?.country || ''}
@@ -1074,11 +1074,11 @@ export default function ProductDetail() {
               </div>
 
               {supplier && (
-                <Card className="border-2 border-afrikoni-gold/30 shadow-lg hover:shadow-xl transition-shadow bg-gradient-to-br from-white to-afrikoni-offwhite">
-                  <CardHeader className="border-b border-afrikoni-gold/20 bg-gradient-to-r from-afrikoni-gold/5 to-transparent">
-                    <CardTitle className="text-xl font-bold flex items-center gap-2 text-afrikoni-chestnut">
-                      <div className="w-10 h-10 rounded-lg bg-afrikoni-gold/20 flex items-center justify-center">
-                        <Building className="w-5 h-5 text-afrikoni-gold" />
+                <Card className="border-2 border-os-accent/30 shadow-os-md hover:shadow-os-lg transition-shadow bg-gradient-to-br from-white to-afrikoni-offwhite">
+                  <CardHeader className="border-b border-os-accent/20 bg-gradient-to-r from-os-accent/5 to-transparent">
+                    <CardTitle className="text-os-xl font-bold flex items-center gap-2 text-afrikoni-chestnut">
+                      <div className="w-10 h-10 rounded-lg bg-os-accent/20 flex items-center justify-center">
+                        <Building className="w-5 h-5 text-os-accent" />
                       </div>
                       Supplier Information
                     </CardTitle>
@@ -1086,7 +1086,7 @@ export default function ProductDetail() {
                   <CardContent className="p-6">
                     {/* Supplier Header with Logo */}
                     <div className="flex items-start gap-4 mb-6">
-                      <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-afrikoni-gold/20 to-afrikoni-chestnut/20 border-2 border-afrikoni-gold/30 flex items-center justify-center flex-shrink-0 shadow-md">
+                      <div className="w-16 h-16 rounded-os-sm bg-gradient-to-br from-os-accent/20 to-afrikoni-chestnut/20 border-2 border-os-accent/30 flex items-center justify-center flex-shrink-0 shadow-md">
                         {supplier.logo_url && !logoError ? (
                           <img
                             src={supplier.logo_url}
@@ -1095,17 +1095,17 @@ export default function ProductDetail() {
                             onError={() => setLogoError(true)}
                           />
                         ) : (
-                          <svg className="w-8 h-8 text-afrikoni-gold" fill="currentColor" viewBox="0 0 20 20">
+                          <svg className="w-8 h-8 text-os-accent" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M10.394 2.08a1 1 0 00-.788 0l-7 3a1 1 0 000 1.84L5.25 8.051a.999.999 0 01.356-.257l4-1.714a1 1 0 11.788 1.838L7.667 9.088l1.94.831a1 1 0 00.787 0l7-3a1 1 0 000-1.838l-7-3zM3.31 9.397L5 10.12v4.102a8.969 8.969 0 00-1.05-.174 1 1 0 01-.89-.89 11.115 11.115 0 01.25-3.762zM9.3 16.573A9.026 9.026 0 007 14.935v-3.957l1.818.78a3 3 0 002.364 0l5.508-2.361a11.026 11.026 0 01.25 3.762 1 1 0 01-.89.89 8.968 8.968 0 00-5.35 2.524 1 1 0 01-1.4 0zM6 18a1 1 0 001-1v-2.065a8.935 8.935 0 00-2-.712V17a1 1 0 001 1z" />
                           </svg>
                         )}
                       </div>
                       <div className="flex-1">
-                        <h3 className="text-xl font-bold text-afrikoni-chestnut mb-1 leading-tight">
+                        <h3 className="text-os-xl font-bold text-afrikoni-chestnut mb-1 leading-tight">
                           {supplier.company_name}
                         </h3>
-                        <div className="flex items-center gap-2 text-sm text-afrikoni-deep/80 mb-2">
-                          <MapPin className="w-4 h-4 text-afrikoni-gold flex-shrink-0" />
+                        <div className="flex items-center gap-2 text-os-sm text-afrikoni-deep/80 mb-2">
+                          <MapPin className="w-4 h-4 text-os-accent flex-shrink-0" />
                           <span>{supplier.city ? `${supplier.city}, ` : ''}{supplier.country}</span>
                         </div>
                         {/* Verification Badges */}
@@ -1125,22 +1125,22 @@ export default function ProductDetail() {
 
                     {/* Supplier Quick Info */}
                     {(supplier.year_established || supplier.business_type || supplier.employee_count) && (
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6 p-4 bg-afrikoni-gold/5 rounded-lg border border-afrikoni-gold/20">
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-6 p-4 bg-os-accent/5 rounded-lg border border-os-accent/20">
                         {supplier.year_established && (
                           <div className="text-center">
-                            <p className="text-xs text-afrikoni-deep/60 mb-1">Established</p>
+                            <p className="text-os-xs text-afrikoni-deep/60 mb-1">Established</p>
                             <p className="font-bold text-afrikoni-chestnut">{supplier.year_established}</p>
                           </div>
                         )}
                         {supplier.business_type && (
                           <div className="text-center">
-                            <p className="text-xs text-afrikoni-deep/60 mb-1">Business Type</p>
-                            <p className="font-bold text-afrikoni-chestnut text-sm">{supplier.business_type?.replace(/_/g, ' ')}</p>
+                            <p className="text-os-xs text-afrikoni-deep/60 mb-1">Business Type</p>
+                            <p className="font-bold text-afrikoni-chestnut text-os-sm">{supplier.business_type?.replace(/_/g, ' ')}</p>
                           </div>
                         )}
                         {supplier.employee_count && (
                           <div className="text-center">
-                            <p className="text-xs text-afrikoni-deep/60 mb-1">Team Size</p>
+                            <p className="text-os-xs text-afrikoni-deep/60 mb-1">Team Size</p>
                             <p className="font-bold text-afrikoni-chestnut">{supplier.employee_count}</p>
                           </div>
                         )}
@@ -1151,7 +1151,7 @@ export default function ProductDetail() {
                     <div className="space-y-2">
                       <Link to={`/business/${supplier.id}`} className="block">
                         <Button
-                          className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut font-semibold shadow-md hover:shadow-lg transition-all"
+                          className="w-full bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut font-semibold shadow-md hover:shadow-os-md transition-all"
                           size="lg"
                         >
                           <Building className="w-4 h-4 mr-2" />
@@ -1161,7 +1161,7 @@ export default function ProductDetail() {
                       <Link to={createPageUrl('SupplierProfile') + '?id=' + supplier.id} className="block">
                         <Button
                           variant="ghost"
-                          className="w-full text-afrikoni-deep/60 hover:text-afrikoni-deep hover:bg-afrikoni-gold/10 text-xs"
+                          className="w-full text-afrikoni-deep/60 hover:text-afrikoni-deep hover:bg-os-accent/10 text-os-xs"
                           size="sm"
                         >
                           View Legacy Profile
@@ -1189,19 +1189,19 @@ export default function ProductDetail() {
         {/* Similar Products */}
         {similarProducts.length > 0 && (
           <div className="max-w-7xl mx-auto px-4 py-8">
-            <h2 className="text-2xl font-bold text-afrikoni-chestnut mb-6">{t('product.similarProducts')}</h2>
+            <h2 className="text-os-2xl font-bold text-afrikoni-chestnut mb-6">{t('product.similarProducts')}</h2>
             <div className="grid md:grid-cols-4 gap-6">
               {Array.isArray(similarProducts) && similarProducts.map(product => (
                 product && (
                   <Link key={product.id} to={`/product?id=${product.id}`}>
-                    <Card className="hover:shadow-lg transition-shadow">
+                    <Card className="hover:shadow-os-md transition-shadow">
                       <CardContent className="p-4">
                         <h3 className="font-semibold text-afrikoni-chestnut mb-2 line-clamp-2">{product?.title || 'Product'}</h3>
-                        <div className="text-lg font-bold text-afrikoni-gold">
+                        <div className="text-os-lg font-bold text-os-accent">
                           <Price
                             amount={product?.price_min || product?.price}
                             fromCurrency={product?.currency || 'USD'}
-                            className="text-lg font-bold text-afrikoni-gold"
+                            className="text-os-lg font-bold text-os-accent"
                           />
                         </div>
                       </CardContent>
@@ -1216,19 +1216,19 @@ export default function ProductDetail() {
         {/* Recommended for You (fallback if no AI recommendations) */}
         {recommendedProducts.length > 0 && aiRecommendations.length === 0 && (
           <div className="max-w-7xl mx-auto px-4 py-8">
-            <h2 className="text-2xl font-bold text-afrikoni-chestnut mb-6">Recommended for You</h2>
+            <h2 className="text-os-2xl font-bold text-afrikoni-chestnut mb-6">Recommended for You</h2>
             <div className="grid md:grid-cols-4 gap-6">
               {Array.isArray(recommendedProducts) && recommendedProducts.map(product => (
                 product && (
                   <Link key={product.id} to={`/product?id=${product.id}`}>
-                    <Card className="hover:shadow-lg transition-shadow">
+                    <Card className="hover:shadow-os-md transition-shadow">
                       <CardContent className="p-4">
                         <h3 className="font-semibold text-afrikoni-chestnut mb-2 line-clamp-2">{product?.title || 'Product'}</h3>
-                        <div className="text-lg font-bold text-afrikoni-gold">
+                        <div className="text-os-lg font-bold text-os-accent">
                           <Price
                             amount={product?.price_min || product?.price}
                             fromCurrency={product?.currency || 'USD'}
-                            className="text-lg font-bold text-afrikoni-gold"
+                            className="text-os-lg font-bold text-os-accent"
                           />
                         </div>
                       </CardContent>

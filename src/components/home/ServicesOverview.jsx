@@ -57,9 +57,9 @@ export default function ServicesOverview() {
         'Logistics support'
       ],
       cta: 'Join as Supplier',
-      colorClass: 'bg-afrikoni-gold hover:bg-afrikoni-goldDark',
-      iconBgClass: 'bg-afrikoni-gold/20',
-      iconColorClass: 'text-afrikoni-gold'
+      colorClass: 'bg-os-accent hover:bg-os-accentDark',
+      iconBgClass: 'bg-os-accent/20',
+      iconColorClass: 'text-os-accent'
     },
     {
       id: 'buyers',
@@ -110,7 +110,7 @@ export default function ServicesOverview() {
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-serif text-afrikoni-chestnut mb-4">
             How We Serve You
           </h2>
-          <p className="text-lg md:text-xl text-afrikoni-deep/80 max-w-3xl mx-auto">
+          <p className="text-os-lg md:text-os-xl text-afrikoni-deep/80 max-w-3xl mx-auto">
             Whether you're a supplier, buyer, or logistics partner, Afrikoni has solutions designed for your success.
           </p>
         </motion.div>
@@ -126,15 +126,15 @@ export default function ServicesOverview() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
               >
-                <Card className="h-full border-2 border-afrikoni-gold/20 hover:border-afrikoni-gold transition-all hover:shadow-xl group card-hover-lift">
+                <Card className="h-full border-2 border-os-accent/20 hover:border-os-accent transition-all hover:shadow-os-lg group card-hover-lift">
                   <CardContent className="p-6 md:p-8">
                     {/* Icon */}
-                    <div className={`w-16 h-16 rounded-xl ${service.iconBgClass} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
+                    <div className={`w-16 h-16 rounded-os-sm ${service.iconBgClass} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
                       <Icon className={`w-8 h-8 ${service.iconColorClass}`} />
                     </div>
 
                     {/* Title */}
-                    <h3 className="text-2xl font-bold text-afrikoni-chestnut mb-3">
+                    <h3 className="text-os-2xl font-bold text-afrikoni-chestnut mb-3">
                       {service.title}
                     </h3>
 
@@ -148,7 +148,7 @@ export default function ServicesOverview() {
                       {service.features.map((feature, fIdx) => (
                         <li key={fIdx} className="flex items-start gap-2">
                           <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                          <span className="text-sm text-afrikoni-deep">{feature}</span>
+                          <span className="text-os-sm text-afrikoni-deep">{feature}</span>
                         </li>
                       ))}
                     </ul>
@@ -157,7 +157,7 @@ export default function ServicesOverview() {
                     {service.id === 'logistics' ? (
                       <Button 
                         onClick={handleLogisticsClick}
-                        className={`w-full ${service.colorClass} text-white group-hover:shadow-lg transition-all`}
+                        className={`w-full ${service.colorClass} text-white group-hover:shadow-os-md transition-all`}
                       >
                         {user && isLogistics ? 'Go to Dashboard' : 'Join as Logistics Partner'}
                         <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -165,7 +165,7 @@ export default function ServicesOverview() {
                     ) : (
                       <Link to={service.link}>
                         <Button 
-                          className={`w-full ${service.colorClass} text-white group-hover:shadow-lg transition-all`}
+                          className={`w-full ${service.colorClass} text-white group-hover:shadow-os-md transition-all`}
                         >
                           {service.cta}
                           <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />

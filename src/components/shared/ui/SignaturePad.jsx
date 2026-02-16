@@ -62,7 +62,7 @@ export const SignaturePad = ({ onSign, className }) => {
 
     return (
         <div className={cn("space-y-4", className)}>
-            <div className="relative aspect-[3/1] bg-black/40 border border-afrikoni-gold/20 rounded-2xl overflow-hidden cursor-crosshair">
+            <div className="relative aspect-[3/1] bg-black/40 border border-os-accent/20 rounded-os-md overflow-hidden cursor-crosshair">
                 <canvas
                     ref={canvasRef}
                     width={600}
@@ -81,14 +81,14 @@ export const SignaturePad = ({ onSign, className }) => {
                 <div className="absolute bottom-[30%] left-10 right-10 h-px bg-white/5 pointer-events-none" />
 
                 {!hasSigned && !isDrawing && (
-                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20 capitalize text-[10px] tracking-[0.4em] font-black text-afrikoni-gold">
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20 capitalize text-os-xs tracking-[0.4em] font-black text-os-accent">
                         Sovereign Proof Signature Pad
                     </div>
                 )}
             </div>
 
             <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-os-muted">
+                <div className="flex items-center gap-2 text-os-xs font-bold uppercase tracking-widest text-os-muted">
                     <ShieldCheck className={cn("w-3 h-3", hasSigned ? "text-emerald-500" : "opacity-30")} />
                     <span>{hasSigned ? "Proof Captured" : "Awaiting Signature"}</span>
                 </div>
@@ -97,7 +97,7 @@ export const SignaturePad = ({ onSign, className }) => {
                     variant="ghost"
                     size="xs"
                     onClick={clear}
-                    className="h-8 text-[9px] font-black uppercase text-os-muted hover:text-red-400 group"
+                    className="h-8 text-os-xs font-black uppercase text-os-muted hover:text-red-400 group"
                 >
                     <RotateCcw className="w-3 h-3 mr-1 group-hover:rotate-[-90deg] transition-transform" />
                     Reset

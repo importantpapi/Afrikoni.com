@@ -10,7 +10,7 @@ export default function ProtectionSection() {
       icon: ShoppingCart,
       title: 'Place Order',
       description: 'Order from verified suppliers with Afrikoni protection.',
-      color: 'bg-afrikoni-gold',
+      color: 'bg-os-accent',
       badgeColor: 'bg-green-600'
     },
     {
@@ -18,7 +18,7 @@ export default function ProtectionSection() {
       icon: Lock,
       title: 'Secure Payment',
       description: 'Your payment is held in escrow until delivery confirmation.',
-      color: 'bg-afrikoni-gold',
+      color: 'bg-os-accent',
       badgeColor: 'bg-green-600'
     },
     {
@@ -43,7 +43,7 @@ export default function ProtectionSection() {
     <div className="py-12 md:py-16 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 relative overflow-hidden">
       {/* Decorative background elements */}
       <div className="absolute inset-0 opacity-5">
-        <div className="absolute top-0 left-0 w-96 h-96 bg-afrikoni-gold rounded-full blur-3xl"></div>
+        <div className="absolute top-0 left-0 w-96 h-96 bg-os-accent rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-600 rounded-full blur-3xl"></div>
       </div>
       
@@ -55,9 +55,9 @@ export default function ProtectionSection() {
           transition={{ duration: 0.5 }}
           className="mb-8 md:mb-12 text-center"
         >
-          <span className="text-blue-600 font-semibold text-sm uppercase tracking-wide">Buyer Protection</span>
+          <span className="text-blue-600 font-semibold text-os-sm uppercase tracking-wide">Buyer Protection</span>
           <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mt-2 mb-3 md:mb-4">Trade with Complete Confidence</h2>
-          <p className="text-base md:text-lg text-afrikoni-deep max-w-3xl mx-auto">
+          <p className="text-os-base md:text-os-lg text-afrikoni-deep max-w-3xl mx-auto">
             Afrikoni Buyer Protection ensures your transactions are secure, products meet quality standards, and deliveries arrive on time. Your business is protected every step of the way.
           </p>
         </motion.div>
@@ -80,10 +80,10 @@ export default function ProtectionSection() {
                     whileHover={{ y: -5, scale: 1.03 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <Card className="border-afrikoni-gold/20 bg-afrikoni-offwhite hover:shadow-2xl transition-all rounded-xl">
+                    <Card className="border-os-accent/20 bg-afrikoni-offwhite hover:shadow-2xl transition-all rounded-os-sm">
                       <CardContent className="p-5 md:p-6 text-center">
                         <div className="relative inline-block mb-4">
-                          <div className="w-10 h-10 md:w-12 md:h-12 bg-afrikoni-gold rounded-full flex items-center justify-center text-afrikoni-creamfont-bold text-base md:text-lg absolute -top-2 left-1/2 -translate-x-1/2 z-10 shadow-lg">
+                          <div className="w-10 h-10 md:w-12 md:h-12 bg-os-accent rounded-full flex items-center justify-center text-afrikoni-creamfont-bold text-os-base md:text-os-lg absolute -top-2 left-1/2 -translate-x-1/2 z-10 shadow-os-md">
                             {step.number}
                           </div>
                           <motion.div 
@@ -94,8 +94,8 @@ export default function ProtectionSection() {
                             <Icon className="w-8 h-8 md:w-10 md:h-10 text-afrikoni-cream" />
                           </motion.div>
                         </div>
-                        <h3 className="text-base md:text-lg font-bold text-afrikoni-chestnut mb-2">{step.title}</h3>
-                        <p className="text-xs md:text-sm text-afrikoni-deep">{step.description}</p>
+                        <h3 className="text-os-base md:text-os-lg font-bold text-afrikoni-chestnut mb-2">{step.title}</h3>
+                        <p className="text-os-xs md:text-os-sm text-afrikoni-deep">{step.description}</p>
                       </CardContent>
                     </Card>
                   </motion.div>

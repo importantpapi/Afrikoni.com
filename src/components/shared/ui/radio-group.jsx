@@ -22,11 +22,11 @@ export const RadioGroupItem = ({ value, id, className }) => {
       onClick={() => onValueChange(value)}
       className={cn(
         'w-4 h-4 rounded-full border-2 flex items-center justify-center',
-        isSelected ? 'border-afrikoni-gold' : 'border-afrikoni-gold/30',
+        isSelected ? 'border-os-accent' : 'border-os-accent/30',
         className
       )}
     >
-      {isSelected && <div className="w-2 h-2 rounded-full bg-afrikoni-gold" />}
+      {isSelected && <div className="w-2 h-2 rounded-full bg-os-accent" />}
     </button>
   );
 };

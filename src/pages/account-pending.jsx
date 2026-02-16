@@ -109,7 +109,7 @@ export default function AccountPending() {
   if (!status) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-afrikoni-offwhite">
-        <Loader2 className="w-8 h-8 animate-spin text-afrikoni-gold" />
+        <Loader2 className="w-8 h-8 animate-spin text-os-accent" />
       </div>
     );
   }
@@ -126,25 +126,25 @@ export default function AccountPending() {
         <div className="flex justify-center mb-6">
           <Logo type="full" size="lg" link={true} showTagline={false} />
         </div>
-        <div className="bg-white p-8 rounded-lg shadow-lg border border-afrikoni-gold/20 space-y-4">
+        <div className="bg-white p-8 rounded-lg shadow-os-md border border-os-accent/20 space-y-4">
           <div className="flex justify-center mb-2">
             <div className="relative">
-              <ShieldCheck className="w-14 h-14 text-afrikoni-gold" />
-              <Clock className="w-6 h-6 text-afrikoni-deep absolute -bottom-1 -right-1 bg-white rounded-full border border-afrikoni-gold/40" />
+              <ShieldCheck className="w-14 h-14 text-os-accent" />
+              <Clock className="w-6 h-6 text-afrikoni-deep absolute -bottom-1 -right-1 bg-white rounded-full border border-os-accent/40" />
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-afrikoni-chestnut">Business Account Under Review</h2>
+          <h2 className="text-os-2xl font-bold text-afrikoni-chestnut">Business Account Under Review</h2>
           <p className="text-afrikoni-deep">
             Your {role === 'logistics' ? 'logistics partner' : 'seller'} account for{' '}
             <span className="font-semibold">{companyName}</span> is being reviewed by Afrikoni.
           </p>
-          <p className="text-afrikoni-deep/80 text-sm">
+          <p className="text-afrikoni-deep/80 text-os-sm">
             This verification protects buyers, suppliers, and logistics partners across Afrikoni. Most reviews are
             completed within <span className="font-semibold">24–48 hours</span>.
           </p>
 
           {source === 'business_profiles' && (
-            <div className="bg-afrikoni-cream/60 border border-afrikoni-gold/30 rounded-lg p-4 text-left text-sm text-afrikoni-deep/90">
+            <div className="bg-afrikoni-cream/60 border border-os-accent/30 rounded-lg p-4 text-left text-os-sm text-afrikoni-deep/90">
               <p className="font-semibold text-afrikoni-chestnut mb-1">What we’re reviewing:</p>
               <ul className="list-disc list-inside space-y-1">
                 <li>Company: {companyName}</li>
@@ -154,7 +154,7 @@ export default function AccountPending() {
             </div>
           )}
 
-          <div className="space-y-2 text-left text-sm text-afrikoni-deep/90 mt-4">
+          <div className="space-y-2 text-left text-os-sm text-afrikoni-deep/90 mt-4">
             <p className="font-semibold text-afrikoni-chestnut">What you can do while we review:</p>
             <ul className="list-disc list-inside space-y-1">
               <li>Complete your company profile and upload missing documents.</li>
@@ -164,14 +164,14 @@ export default function AccountPending() {
           </div>
           <div className="pt-4 space-y-3">
             <Button
-              className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut font-bold"
+              className="w-full bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut font-bold"
               onClick={() => navigate('/dashboard/verification-status')}
             >
               View verification status
             </Button>
             <Button
               variant="outline"
-              className="w-full border-afrikoni-gold/30 text-afrikoni-chestnut hover:bg-afrikoni-gold/10"
+              className="w-full border-os-accent/30 text-afrikoni-chestnut hover:bg-os-accent/10"
               onClick={() => navigate('/dashboard')}
             >
               Go to dashboard home

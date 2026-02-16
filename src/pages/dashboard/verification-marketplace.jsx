@@ -239,17 +239,17 @@ function VerificationMarketplaceInner() {
       <div className="space-y-8">
         {/* Header Banner */}
         {/* Header Banner */}
-        <Surface variant="glass" className="bg-gradient-to-r from-afrikoni-gold/10 to-transparent border-afrikoni-gold/20 p-8 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-32 bg-afrikoni-gold/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
+        <Surface variant="glass" className="bg-gradient-to-r from-os-accent/10 to-transparent border-os-accent/20 p-8 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-32 bg-os-accent/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
           <div className="flex items-center gap-6 relative">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-afrikoni-gold to-amber-600 flex items-center justify-center shadow-lg shadow-afrikoni-gold/20">
+            <div className="w-20 h-20 rounded-os-md bg-gradient-to-br from-os-accent to-amber-600 flex items-center justify-center shadow-os-md shadow-os-accent/20">
               <Shield className="w-10 h-10 text-white" />
             </div>
             <div className="flex-1">
               <h1 className="text-3xl md:text-4xl font-bold mb-2 text-[var(--os-text-primary)]">
                 Become a Verified Supplier Today
               </h1>
-              <p className="text-lg text-os-muted">
+              <p className="text-os-lg text-os-muted">
                 Unlock more buyers and build trust with instant verification
               </p>
             </div>
@@ -264,7 +264,7 @@ function VerificationMarketplaceInner() {
                 <CheckCircle className="w-8 h-8" />
               </div>
               <div>
-                <h3 className="text-xl font-bold mb-1 text-[var(--os-text-primary)]">
+                <h3 className="text-os-xl font-bold mb-1 text-[var(--os-text-primary)]">
                   You're Already Verified! ✅
                 </h3>
                 <p className="text-os-muted">
@@ -276,18 +276,18 @@ function VerificationMarketplaceInner() {
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
             {/* Fast-Track Option */}
-            <Surface variant="glass" className="border-afrikoni-gold/40 shadow-gold relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-20 bg-afrikoni-gold/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" />
+            <Surface variant="glass" className="border-os-accent/40 shadow-gold relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-20 bg-os-accent/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" />
 
-              <div className="p-6 border-b border-afrikoni-gold/10">
+              <div className="p-6 border-b border-os-accent/10">
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-2xl font-bold text-[var(--os-text-primary)]">Fast-Track Verification</h3>
-                  <div className="p-2 rounded-lg bg-afrikoni-gold/10 text-afrikoni-gold">
+                  <h3 className="text-os-2xl font-bold text-[var(--os-text-primary)]">Fast-Track Verification</h3>
+                  <div className="p-2 rounded-lg bg-os-accent/10 text-os-accent">
                     <Crown className="w-6 h-6" />
                   </div>
                 </div>
                 <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-bold text-afrikoni-gold">$99</span>
+                  <span className="text-4xl font-bold text-os-accent">$99</span>
                   <span className="text-os-muted">one-time</span>
                 </div>
                 {hasExistingPurchase && (
@@ -299,34 +299,34 @@ function VerificationMarketplaceInner() {
               <div className="p-6 space-y-4">
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
-                    <div className="p-1 rounded-md bg-afrikoni-gold/10 text-afrikoni-gold mt-0.5">
+                    <div className="p-1 rounded-md bg-os-accent/10 text-os-accent mt-0.5">
                       <Sparkles className="w-4 h-4" />
                     </div>
                     <div>
                       <p className="font-semibold text-[var(--os-text-primary)]">Priority Review</p>
-                      <p className="text-sm text-os-muted">
+                      <p className="text-os-sm text-os-muted">
                         Your verification will be reviewed within 24-48 hours
                       </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className="p-1 rounded-md bg-afrikoni-gold/10 text-afrikoni-gold mt-0.5">
+                    <div className="p-1 rounded-md bg-os-accent/10 text-os-accent mt-0.5">
                       <CheckCircle className="w-4 h-4" />
                     </div>
                     <div>
                       <p className="font-semibold text-[var(--os-text-primary)]">Instant Boost</p>
-                      <p className="text-sm text-os-muted">
+                      <p className="text-os-sm text-os-muted">
                         Get featured in search results immediately after verification
                       </p>
                     </div>
                   </div>
                   <div className="flex items-start gap-3">
-                    <div className="p-1 rounded-md bg-afrikoni-gold/10 text-afrikoni-gold mt-0.5">
+                    <div className="p-1 rounded-md bg-os-accent/10 text-os-accent mt-0.5">
                       <Shield className="w-4 h-4" />
                     </div>
                     <div>
                       <p className="font-semibold text-[var(--os-text-primary)]">Trust Badge</p>
-                      <p className="text-sm text-os-muted">
+                      <p className="text-os-sm text-os-muted">
                         Display verified badge on your profile and products
                       </p>
                     </div>
@@ -335,7 +335,7 @@ function VerificationMarketplaceInner() {
                 <Button
                   onClick={handlePurchase}
                   disabled={isProcessing || hasExistingPurchase}
-                  className="w-full bg-[#D4AF37] hover:bg-[#C5A028] text-black font-bold h-12 shadow-lg hover:shadow-xl transition-all"
+                  className="w-full bg-[#D4AF37] hover:bg-[#C5A028] text-black font-bold h-12 shadow-os-md hover:shadow-os-lg transition-all"
                 >
                   {isProcessing ? (
                     'Processing...'
@@ -354,8 +354,8 @@ function VerificationMarketplaceInner() {
             {/* Standard Verification */}
             <Surface variant="panel" className="bg-os-surface-0 border-os-stroke">
               <div className="p-6 border-b border-os-stroke">
-                <h3 className="text-xl font-bold text-[var(--os-text-primary)]">Standard Verification</h3>
-                <p className="text-2xl font-bold text-os-muted mt-2">Free</p>
+                <h3 className="text-os-xl font-bold text-[var(--os-text-primary)]">Standard Verification</h3>
+                <p className="text-os-2xl font-bold text-os-muted mt-2">Free</p>
               </div>
               <div className="p-6 space-y-4">
                 <div className="space-y-3">
@@ -365,7 +365,7 @@ function VerificationMarketplaceInner() {
                     </div>
                     <div>
                       <p className="font-semibold text-[var(--os-text-primary)]">Standard Review</p>
-                      <p className="text-sm text-os-muted">
+                      <p className="text-os-sm text-os-muted">
                         Verification reviewed within 5-7 business days
                       </p>
                     </div>
@@ -376,7 +376,7 @@ function VerificationMarketplaceInner() {
                     </div>
                     <div>
                       <p className="font-semibold text-[var(--os-text-primary)]">Same Benefits</p>
-                      <p className="text-sm text-os-muted">
+                      <p className="text-os-sm text-os-muted">
                         All verification benefits, just takes longer
                       </p>
                     </div>
@@ -397,23 +397,23 @@ function VerificationMarketplaceInner() {
         {/* Benefits Section */}
         {!isVerified && (
           <Surface variant="glass" className="p-8">
-            <h3 className="text-xl font-bold mb-6 text-center text-[var(--os-text-primary)]">Why Get Verified?</h3>
+            <h3 className="text-os-xl font-bold mb-6 text-center text-[var(--os-text-primary)]">Why Get Verified?</h3>
             <div className="grid md:grid-cols-3 gap-8">
               <div className="text-center">
-                <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4 bg-afrikoni-gold/10 text-afrikoni-gold mx-auto">
+                <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4 bg-os-accent/10 text-os-accent mx-auto">
                   <Sparkles className="w-7 h-7" />
                 </div>
                 <h4 className="font-semibold mb-2 text-[var(--os-text-primary)]">Higher Visibility</h4>
-                <p className="text-sm text-os-muted">
+                <p className="text-os-sm text-os-muted">
                   Verified suppliers appear first in search results and get more buyer inquiries
                 </p>
               </div>
               <div className="text-center">
-                <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4 bg-blue-500/10 text-blue-500 mx-auto">
+                <div className="w-14 h-14 rounded-full flex items-center justify-center mb-4 bg-os-blue/10 text-os-blue mx-auto">
                   <Shield className="w-7 h-7" />
                 </div>
                 <h4 className="font-semibold mb-2 text-[var(--os-text-primary)]">Build Trust</h4>
-                <p className="text-sm text-os-muted">
+                <p className="text-os-sm text-os-muted">
                   The verified badge shows buyers you're a legitimate, trusted supplier
                 </p>
               </div>
@@ -422,7 +422,7 @@ function VerificationMarketplaceInner() {
                   <Crown className="w-7 h-7" />
                 </div>
                 <h4 className="font-semibold mb-2 text-[var(--os-text-primary)]">More Deals</h4>
-                <p className="text-sm text-os-muted">
+                <p className="text-os-sm text-os-muted">
                   Verified suppliers close 3x more deals than unverified suppliers
                 </p>
               </div>

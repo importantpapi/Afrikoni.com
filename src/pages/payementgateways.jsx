@@ -298,7 +298,7 @@ export default function PaymentGateway() {
   if (!order) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-os-accent" />
       </div>
     );
   }
@@ -306,22 +306,22 @@ export default function PaymentGateway() {
   return (
     <div className="min-h-screen bg-stone-50 py-12">
       <div className="max-w-2xl mx-auto px-4">
-        <Card className="border-afrikoni-gold/20">
+        <Card className="border-os-accent/20">
           <CardHeader>
-            <CardTitle className="text-2xl">Payment Gateway</CardTitle>
+            <CardTitle className="text-os-2xl">Payment Gateway</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="p-4 bg-amber-50 rounded-lg">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-afrikoni-deep">Order #</span>
+                <span className="text-os-sm text-afrikoni-deep">Order #</span>
                 <span className="font-semibold text-afrikoni-chestnut">{order.id.slice(0, 8)}</span>
               </div>
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-afrikoni-deep">Amount</span>
-                <span className="text-2xl font-bold text-amber-600">${order.total_amount}</span>
+                <span className="text-os-sm text-afrikoni-deep">Amount</span>
+                <span className="text-os-2xl font-bold text-amber-600">${order.total_amount}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm text-afrikoni-deep">Currency</span>
+                <span className="text-os-sm text-afrikoni-deep">Currency</span>
                 <span className="font-semibold text-afrikoni-chestnut">{order.currency}</span>
               </div>
             </div>
@@ -329,7 +329,7 @@ export default function PaymentGateway() {
             <div>
               <Label className="mb-4 block">Select Payment Method</Label>
               <RadioGroup value={selectedMethod} onValueChange={setSelectedMethod}>
-                <div className="flex items-center space-x-2 p-4 border border-afrikoni-gold/20 rounded-lg mb-2">
+                <div className="flex items-center space-x-2 p-4 border border-os-accent/20 rounded-lg mb-2">
                   <RadioGroupItem value="card" id="card" />
                   <Label htmlFor="card" className="flex-1 cursor-pointer">
                     <div className="flex items-center gap-2">
@@ -338,7 +338,7 @@ export default function PaymentGateway() {
                     </div>
                   </Label>
                 </div>
-                <div className="flex items-center space-x-2 p-4 border border-afrikoni-gold/20 rounded-lg mb-2">
+                <div className="flex items-center space-x-2 p-4 border border-os-accent/20 rounded-lg mb-2">
                   <RadioGroupItem value="bank_transfer" id="bank_transfer" />
                   <Label htmlFor="bank_transfer" className="flex-1 cursor-pointer">
                     <div className="flex items-center gap-2">
@@ -347,7 +347,7 @@ export default function PaymentGateway() {
                     </div>
                   </Label>
                 </div>
-                <div className="flex items-center space-x-2 p-4 border border-afrikoni-gold/20 rounded-lg">
+                <div className="flex items-center space-x-2 p-4 border border-os-accent/20 rounded-lg">
                   <RadioGroupItem value="escrow" id="escrow" />
                   <Label htmlFor="escrow" className="flex-1 cursor-pointer">
                     <div className="flex items-center gap-2">
@@ -360,8 +360,8 @@ export default function PaymentGateway() {
             </div>
 
             <div className="p-4 bg-afrikoni-offwhite rounded-lg">
-              <p className="text-sm text-afrikoni-deep mb-2">Payment Terms:</p>
-              <ul className="text-sm text-afrikoni-deep space-y-1 list-disc list-inside">
+              <p className="text-os-sm text-afrikoni-deep mb-2">Payment Terms:</p>
+              <ul className="text-os-sm text-afrikoni-deep space-y-1 list-disc list-inside">
                 <li>Secure payment processing via Flutterwave</li>
                 <li>Money-back guarantee under Afrikoni Trade Shield</li>
                 <li>Protected transactions with dispute resolution</li>
@@ -371,12 +371,12 @@ export default function PaymentGateway() {
             <Button
               onClick={handlePayment}
               disabled={isProcessing}
-              className="w-full bg-afrikoni-gold hover:bg-amber-700 h-12 text-lg"
+              className="w-full bg-os-accent hover:bg-amber-700 h-12 text-os-lg"
             >
               {isProcessing ? 'Processing Payment...' : `Pay $${order.total_amount}`}
             </Button>
 
-            <p className="text-xs text-center text-afrikoni-deep/70">
+            <p className="text-os-xs text-center text-afrikoni-deep/70">
               By proceeding, you agree to our terms and conditions
             </p>
           </CardContent>

@@ -55,7 +55,7 @@ export default function ProductReviewStep({ formData, onGoToStep }) {
     <div className="space-y-6 animate-fade-in">
       <div
         className={cn(
-          'p-4 rounded-xl border',
+          'p-4 rounded-os-sm border',
           allGood && 'bg-white/5 border-white/20',
           hasErrors && 'bg-white/5 border-white/20',
           !allGood && !hasErrors && 'bg-white/5 border-white/20'
@@ -77,7 +77,7 @@ export default function ProductReviewStep({ formData, onGoToStep }) {
                   ? "Some required information is missing"
                   : "Almost there! A few improvements recommended"}
             </p>
-            <p className="text-sm text-[var(--os-text-secondary)]">
+            <p className="text-os-sm text-[var(--os-text-secondary)]">
               {allGood ? "You're ready to publish and attract buyers." : 'Fix the issues below for better visibility.'}
             </p>
           </div>
@@ -85,7 +85,7 @@ export default function ProductReviewStep({ formData, onGoToStep }) {
       </div>
 
       <div className="space-y-2">
-        <p className="text-sm font-medium text-[var(--os-text-primary)]">Quality Checklist</p>
+        <p className="text-os-sm font-medium text-[var(--os-text-primary)]">Quality Checklist</p>
         <div className="space-y-2">
           {qualityChecks.map((check, index) => (
             <button
@@ -108,11 +108,11 @@ export default function ProductReviewStep({ formData, onGoToStep }) {
                 <AlertCircle className="w-5 h-5 text-white flex-shrink-0" />
               )}
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-[var(--os-text-primary)]">{check.label}</p>
-                <p className="text-xs text-[var(--os-text-secondary)]">{check.message}</p>
+                <p className="text-os-sm font-medium text-[var(--os-text-primary)]">{check.label}</p>
+                <p className="text-os-xs text-[var(--os-text-secondary)]">{check.message}</p>
               </div>
               {check.status !== 'good' && (
-                <span className="text-xs text-white font-medium">Fix →</span>
+                <span className="text-os-xs text-white font-medium">Fix →</span>
               )}
             </button>
           ))}
@@ -120,15 +120,15 @@ export default function ProductReviewStep({ formData, onGoToStep }) {
       </div>
 
       <div className="space-y-4 pt-4 border-t border-white/10">
-        <p className="text-sm font-medium text-[var(--os-text-primary)]">Product Summary</p>
+        <p className="text-os-sm font-medium text-[var(--os-text-primary)]">Product Summary</p>
 
         <div className="flex items-start gap-3">
           <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
             <FileText className="w-4 h-4 text-white" />
           </div>
           <div>
-            <p className="text-sm font-medium">{formData.name || 'No name'}</p>
-            <p className="text-xs text-[var(--os-text-secondary)]">
+            <p className="text-os-sm font-medium">{formData.name || 'No name'}</p>
+            <p className="text-os-xs text-[var(--os-text-secondary)]">
               {category?.label || 'No category'}
               {subcategory && ` → ${subcategory.label}`}
             </p>
@@ -140,14 +140,14 @@ export default function ProductReviewStep({ formData, onGoToStep }) {
             <Image className="w-4 h-4 text-white" />
           </div>
           <div>
-            <p className="text-sm font-medium">{formData.imageUrls.length} Photos</p>
+            <p className="text-os-sm font-medium">{formData.imageUrls.length} Photos</p>
             {formData.imageUrls.length > 0 && (
               <div className="flex gap-1 mt-1">
                 {formData.imageUrls.slice(0, 4).map((url, i) => (
                   <img key={i} src={url} alt="" className="w-10 h-10 rounded object-cover" />
                 ))}
                 {formData.imageUrls.length > 4 && (
-                  <div className="w-10 h-10 rounded bg-white/10 flex items-center justify-center text-xs text-[var(--os-text-secondary)]">
+                  <div className="w-10 h-10 rounded bg-white/10 flex items-center justify-center text-os-xs text-[var(--os-text-secondary)]">
                     +{formData.imageUrls.length - 4}
                   </div>
                 )}
@@ -161,10 +161,10 @@ export default function ProductReviewStep({ formData, onGoToStep }) {
             <DollarSign className="w-4 h-4 text-white" />
           </div>
           <div>
-            <p className="text-sm font-medium">
+            <p className="text-os-sm font-medium">
               {formData.price ? `${currency?.symbol}${formData.price} / ${formData.unit}` : 'Price not set'}
             </p>
-            <p className="text-xs text-[var(--os-text-secondary)]">
+            <p className="text-os-xs text-[var(--os-text-secondary)]">
               MOQ: {formData.moq || 'Not specified'}
             </p>
           </div>
@@ -175,12 +175,12 @@ export default function ProductReviewStep({ formData, onGoToStep }) {
             <Truck className="w-4 h-4 text-white" />
           </div>
           <div>
-            <p className="text-sm font-medium">
+            <p className="text-os-sm font-medium">
               {selectedRegions.length > 0
                 ? `Ships to ${selectedRegions.length} region${selectedRegions.length > 1 ? 's' : ''}`
                 : 'No regions selected'}
             </p>
-            <p className="text-xs text-[var(--os-text-secondary)]">
+            <p className="text-os-xs text-[var(--os-text-secondary)]">
               {selectedRegions.slice(0, 3).map(r => r.label).join(', ')}
               {selectedRegions.length > 3 && ` +${selectedRegions.length - 3} more`}
             </p>

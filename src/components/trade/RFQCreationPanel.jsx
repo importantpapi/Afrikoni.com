@@ -49,13 +49,13 @@ export default function RFQCreationPanel({ trade, onNextStep, isTransitioning, c
   }
 
   return (
-    <Card className="border bg-gradient-to-br from-[#0E1016] to-[#141B24] rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+    <Card className="border bg-gradient-to-br from-[#0E1016] to-[#141B24] rounded-os-md shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
       <CardContent className="p-6">
         <div className="mb-6">
-          <h2 className="text-2xl font-semibold">
+          <h2 className="text-os-2xl font-semibold">
             {isPublished ? 'RFQ Published' : 'Create RFQ'}
           </h2>
-          <p className="text-sm mt-1">
+          <p className="text-os-sm mt-1">
             {isPublished
               ? 'Your RFQ is live. Suppliers will send quotes below.'
               : 'Fill in product details and publish to find suppliers.'}
@@ -74,7 +74,7 @@ export default function RFQCreationPanel({ trade, onNextStep, isTransitioning, c
                 placeholder="e.g., Premium Grade A Cocoa Beans"
                 className={`bg-white/5 border-white/10 text-white placeholder:text-white/40 ${errors.title ? 'border-red-500' : ''}`}
               />
-              {errors.title && <p className="text-xs mt-1">{errors.title}</p>}
+              {errors.title && <p className="text-os-xs mt-1">{errors.title}</p>}
             </div>
 
             {/* Description */}
@@ -88,7 +88,7 @@ export default function RFQCreationPanel({ trade, onNextStep, isTransitioning, c
                 rows={4}
                 className={`bg-white/5 border-white/10 text-white placeholder:text-white/40 ${errors.description ? 'border-red-500' : ''}`}
               />
-              {errors.description && <p className="text-xs mt-1">{errors.description}</p>}
+              {errors.description && <p className="text-os-xs mt-1">{errors.description}</p>}
             </div>
 
             {/* Quantity */}
@@ -103,7 +103,7 @@ export default function RFQCreationPanel({ trade, onNextStep, isTransitioning, c
                   placeholder="100"
                   className={`bg-white/5 border-white/10 text-white placeholder:text-white/40 ${errors.quantity ? 'border-red-500' : ''}`}
                 />
-                {errors.quantity && <p className="text-xs mt-1">{errors.quantity}</p>}
+                {errors.quantity && <p className="text-os-xs mt-1">{errors.quantity}</p>}
               </div>
 
               <div>
@@ -137,15 +137,15 @@ export default function RFQCreationPanel({ trade, onNextStep, isTransitioning, c
 
             {/* Publish Button */}
             {!capabilities?.can_buy && (
-              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-3 mt-4">
+              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-os-sm flex items-center gap-3 mt-4">
                 <AlertCircle className="w-4 h-4 text-amber-500" />
-                <p className="text-[10px] text-amber-200">Buyer capabilities required to publish RFQs.</p>
+                <p className="text-os-xs text-amber-200">Buyer capabilities required to publish RFQs.</p>
               </div>
             )}
             <Button
               onClick={handlePublish}
               disabled={isTransitioning || !capabilities?.can_buy}
-              className="w-full hover:bg-afrikoni-gold/90 font-semibold mt-6"
+              className="w-full hover:bg-os-accent/90 font-semibold mt-6"
             >
               {isTransitioning ? (
                 <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Publishing...</>
@@ -156,13 +156,13 @@ export default function RFQCreationPanel({ trade, onNextStep, isTransitioning, c
           </div>
         ) : (
           <div className="text-center py-8">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4 border">
-              <span className="text-2xl">✓</span>
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-os-md mb-4 border">
+              <span className="text-os-2xl">✓</span>
             </div>
             <p className="">
               RFQ published on {new Date(trade?.published_at).toLocaleDateString()}
             </p>
-            <p className="text-xs mt-2">
+            <p className="text-os-xs mt-2">
               Waiting for supplier quotes...
             </p>
           </div>

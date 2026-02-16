@@ -67,17 +67,17 @@ export function RFQQualityHelper({ formData = {}, onTemplateSelect }) {
   ];
 
   return (
-    <Card className="border-afrikoni-gold/30 bg-gradient-to-br from-amber-50 to-white">
+    <Card className="border-os-accent/30 bg-gradient-to-br from-amber-50 to-white">
       <CardContent className="p-4 space-y-4">
         {/* Header */}
         <div className="flex items-start justify-between">
           <div className="flex items-start gap-3">
-            <Lightbulb className="w-5 h-5 text-afrikoni-gold mt-0.5" />
+            <Lightbulb className="w-5 h-5 text-os-accent mt-0.5" />
             <div>
-              <h3 className="font-semibold text-afrikoni-chestnut text-sm">
+              <h3 className="font-semibold text-afrikoni-chestnut text-os-sm">
                 RFQ Quality Score: {qualityScore}%
               </h3>
-              <p className="text-xs text-afrikoni-deep/70 mt-0.5">
+              <p className="text-os-xs text-afrikoni-deep/70 mt-0.5">
                 Complete RFQs get 3x more supplier responses
               </p>
             </div>
@@ -95,9 +95,9 @@ export function RFQQualityHelper({ formData = {}, onTemplateSelect }) {
         {/* Quality Suggestions */}
         {showHelper && suggestions.length > 0 && (
           <div className="space-y-2">
-            <p className="text-xs font-medium text-afrikoni-deep">Suggestions to improve your RFQ:</p>
+            <p className="text-os-xs font-medium text-afrikoni-deep">Suggestions to improve your RFQ:</p>
             {suggestions.map((suggestion, index) => (
-              <div key={index} className="flex items-start gap-2 text-xs">
+              <div key={index} className="flex items-start gap-2 text-os-xs">
                 <AlertCircle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
                 <span className="text-afrikoni-deep/80">{suggestion}</span>
               </div>
@@ -107,7 +107,7 @@ export function RFQQualityHelper({ formData = {}, onTemplateSelect }) {
 
         {/* Good Score Confirmation */}
         {showHelper && qualityScore >= 80 && (
-          <div className="flex items-start gap-2 text-xs bg-green-50 border border-green-200 rounded-lg p-3">
+          <div className="flex items-start gap-2 text-os-xs bg-green-50 border border-green-200 rounded-lg p-3">
             <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-medium text-green-800">Great RFQ!</p>
@@ -125,7 +125,7 @@ export function RFQQualityHelper({ formData = {}, onTemplateSelect }) {
               variant="outline"
               size="sm"
               onClick={() => setShowTemplates(!showTemplates)}
-              className="w-full text-xs h-auto py-2"
+              className="w-full text-os-xs h-auto py-2"
             >
               {showTemplates ? 'Hide' : 'Show'} RFQ Templates
             </Button>
@@ -136,10 +136,10 @@ export function RFQQualityHelper({ formData = {}, onTemplateSelect }) {
                   <button
                     key={template.id}
                     onClick={() => onTemplateSelect && onTemplateSelect(template.example)}
-                    className="w-full text-left px-3 py-2 rounded-lg bg-white border border-afrikoni-gold/20 hover:border-afrikoni-gold hover:bg-afrikoni-gold/5 transition-colors"
+                    className="w-full text-left px-3 py-2 rounded-lg bg-white border border-os-accent/20 hover:border-os-accent hover:bg-os-accent/5 transition-colors"
                   >
-                    <p className="text-xs font-medium text-afrikoni-chestnut">{template.name}</p>
-                    <p className="text-xs text-afrikoni-deep/60 mt-0.5">
+                    <p className="text-os-xs font-medium text-afrikoni-chestnut">{template.name}</p>
+                    <p className="text-os-xs text-afrikoni-deep/60 mt-0.5">
                       Click to use this template
                     </p>
                   </button>

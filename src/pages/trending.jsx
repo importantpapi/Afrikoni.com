@@ -32,11 +32,11 @@ export default function Trending() {
             ].map((name) => (
               <div
                 key={name}
-                className="bg-white rounded-xl border border-afrikoni-gold/20 shadow-sm p-5 flex flex-col justify-between"
+                className="bg-white rounded-os-sm border border-os-accent/20 shadow-sm p-5 flex flex-col justify-between"
               >
                 <div>
-                  <h2 className="text-lg font-semibold text-afrikoni-chestnut mb-2">{name}</h2>
-                  <p className="text-sm text-afrikoni-deep/80">
+                  <h2 className="text-os-lg font-semibold text-afrikoni-chestnut mb-2">{name}</h2>
+                  <p className="text-os-sm text-afrikoni-deep/80">
                     Buyers are actively searching and sending RFQs in this category. Listing now
                     helps you appear in more buyer shortlists.
                   </p>

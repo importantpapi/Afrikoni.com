@@ -95,14 +95,14 @@ function OrdersInner() {
       <div className="max-w-7xl mx-auto px-4">
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-afrikoni-chestnut mb-2">My Orders</h1>
-          <p className="text-lg text-afrikoni-deep">Track and manage your orders</p>
+          <p className="text-os-lg text-afrikoni-deep">Track and manage your orders</p>
         </div>
 
         {orders.length === 0 ? (
-          <Card className="border-afrikoni-gold/20">
+          <Card className="border-os-accent/20">
             <CardContent className="p-12 text-center">
               <ShoppingBag className="w-16 h-16 text-afrikoni-deep/70 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2">No orders yet</h3>
+              <h3 className="text-os-xl font-bold text-afrikoni-chestnut mb-2">No orders yet</h3>
               <p className="text-afrikoni-deep">Your orders will appear here</p>
             </CardContent>
           </Card>
@@ -116,7 +116,7 @@ function OrdersInner() {
 
               return (
                 <Link key={order.id} to={createPageUrl('OrderDetail') + '?id=' + order.id}>
-                  <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold transition">
+                  <Card className="border-os-accent/20 hover:border-os-accent transition">
                     <CardContent className="p-6">
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
@@ -127,7 +127,7 @@ function OrdersInner() {
                               {order.payment_status}
                             </Badge>
                           </div>
-                          <div className="flex items-center gap-6 text-sm text-afrikoni-deep">
+                          <div className="flex items-center gap-6 text-os-sm text-afrikoni-deep">
                             <div className="flex items-center gap-2">
                               <Package className="w-4 h-4" />
                               <span>{order.quantity} units</span>

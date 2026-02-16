@@ -34,25 +34,25 @@ export default function EscrowWidget({ payment }) {
     <Surface variant="glass" className="p-5 border border-white/5">
       <div className="flex items-center justify-between mb-3">
         <div>
-          <p className="text-sm font-semibold text-[var(--os-text-primary)]">Escrow Overview</p>
-          <p className="text-xs text-os-muted">
+          <p className="text-os-sm font-semibold text-[var(--os-text-primary)]">Escrow Overview</p>
+          <p className="text-os-xs text-os-muted">
             Milestone-based release visibility
           </p>
         </div>
-        <span className="text-xs text-os-muted font-mono">
+        <span className="text-os-xs text-os-muted font-mono">
           FX {fxRate.toFixed(2)}
         </span>
       </div>
 
       <div className="space-y-3">
-        <div className="flex items-center justify-between text-sm">
+        <div className="flex items-center justify-between text-os-sm">
           <span className="text-os-muted">Released</span>
           <span className="font-semibold text-[var(--os-text-primary)] tabular-nums">
             ${releasedAmount.toLocaleString()}
           </span>
         </div>
         <Progress value={releasedPercent} className="h-2 bg-white/10" indicatorClassName="bg-[#D4A937]" />
-        <div className="flex items-center justify-between text-xs text-os-muted">
+        <div className="flex items-center justify-between text-os-xs text-os-muted">
           <span>{releasedPercent.toFixed(0)}% released</span>
           <span>${totalAmount.toLocaleString()} total</span>
         </div>
@@ -83,10 +83,10 @@ export default function EscrowWidget({ payment }) {
               <item.icon className={cn("h-4 w-4", item.tone)} />
             </div>
             <div>
-              <p className="text-[10px] text-os-muted uppercase tracking-wide">
+              <p className="text-os-xs text-os-muted uppercase tracking-wide">
                 {item.label}
               </p>
-              <p className="text-sm font-semibold text-[var(--os-text-primary)] tabular-nums">
+              <p className="text-os-sm font-semibold text-[var(--os-text-primary)] tabular-nums">
                 {item.value}
               </p>
             </div>

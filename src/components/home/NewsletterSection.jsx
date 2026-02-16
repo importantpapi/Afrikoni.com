@@ -29,7 +29,7 @@ export default function NewsletterSection() {
   const [emailFocused, setEmailFocused] = useState(false);
 
   return (
-    <div className="bg-gradient-to-br from-afrikoni-gold via-afrikoni-goldDark to-afrikoni-gold py-12 md:py-16 relative overflow-hidden">
+    <div className="bg-gradient-to-br from-os-accent via-os-accentDark to-os-accent py-12 md:py-16 relative overflow-hidden">
       {/* Background Product Images */}
       <div className="absolute inset-0 opacity-10">
         <motion.div
@@ -93,7 +93,7 @@ export default function NewsletterSection() {
           <Mail className="w-16 h-16 md:w-20 md:h-20 text-afrikoni-creammx-auto mb-5 md:mb-6" />
         </motion.div>
         <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-creammb-3 md:mb-4">Get African Wholesale Deals in Your Inbox</h2>
-        <p className="text-base md:text-lg text-afrikoni-cream90 mb-6 md:mb-8 max-w-2xl mx-auto">
+        <p className="text-os-base md:text-os-lg text-afrikoni-cream90 mb-6 md:mb-8 max-w-2xl mx-auto">
           Join 25,000+ businesses getting exclusive access to verified suppliers, market insights, and special deals across Africa.
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto mb-4">
@@ -104,18 +104,18 @@ export default function NewsletterSection() {
             onChange={(e) => setEmail(e.target.value)}
             onFocus={() => setEmailFocused(true)}
             onBlur={() => setEmailFocused(false)}
-            className={`flex-1 bg-afrikoni-offwhite border-2 ${emailFocused ? 'border-afrikoni-cream ring-4 ring-afrikoni-cream/30' : 'border-afrikoni-cream/50'} text-afrikoni-earth placeholder:text-afrikoni-earth/60 transition-all shadow-afrikoni-lg`}
+            className={`flex-1 bg-afrikoni-offwhite border-2 ${emailFocused ? 'border-afrikoni-cream ring-4 ring-afrikoni-cream/30' : 'border-afrikoni-cream/50'} text-afrikoni-earth placeholder:text-afrikoni-earth/60 transition-all shadow-os-gold-lg`}
           />
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Button 
               type="submit" 
-              className="bg-afrikoni-chestnut text-afrikoni-cream hover:bg-afrikoni-deep w-full sm:w-auto shadow-afrikoni-lg hover:shadow-afrikoni-xl transition-shadow"
+              className="bg-afrikoni-chestnut text-afrikoni-cream hover:bg-afrikoni-deep w-full sm:w-auto shadow-os-gold-lg hover:shadow-os-gold-xl transition-shadow"
             >
               Subscribe Free →
             </Button>
           </motion.div>
         </form>
-        <div className="flex items-center justify-center gap-2 text-xs md:text-sm text-afrikoni-cream70 mb-6 md:mb-8">
+        <div className="flex items-center justify-center gap-2 text-os-xs md:text-os-sm text-afrikoni-cream70 mb-6 md:mb-8">
           <Lock className="w-3 h-3 md:w-4 md:h-4" />
           <span>Free forever • Unsubscribe anytime • No spam, just value</span>
         </div>
@@ -138,8 +138,8 @@ export default function NewsletterSection() {
                 className="text-afrikoni-creamtext-center"
               >
                 <Icon className="w-7 h-7 md:w-8 md:h-8 text-afrikoni-creammx-auto mb-2" />
-                <div className="font-semibold mb-1 text-sm md:text-base">{feature.title}</div>
-                <div className="text-xs md:text-sm text-afrikoni-cream80">{feature.desc}</div>
+                <div className="font-semibold mb-1 text-os-sm md:text-os-base">{feature.title}</div>
+                <div className="text-os-xs md:text-os-sm text-afrikoni-cream80">{feature.desc}</div>
               </motion.div>
             );
           })}

@@ -171,11 +171,11 @@ function FulfillmentDashboardInner() {
   const getStatusBadgeStyles = (status) => {
     switch (status) {
       case 'pending': return 'bg-white/5 border-white/10 text-os-muted';
-      case 'picking': return 'bg-afrikoni-gold/10 border-afrikoni-gold/20 text-afrikoni-gold';
-      case 'packed': return 'bg-blue-500/10 border-blue-500/20 text-blue-400';
+      case 'picking': return 'bg-os-accent/10 border-os-accent/20 text-os-accent';
+      case 'packed': return 'bg-os-blue/10 border-os-blue/20 text-blue-400';
       case 'ready_for_dispatch': return 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400';
       case 'handed_to_carrier': return 'bg-emerald-500/20 border-emerald-500/30 text-emerald-500';
-      case 'cancelled': return 'bg-red-500/10 border-red-500/20 text-red-500';
+      case 'cancelled': return 'bg-os-red/10 border-os-red/20 text-os-red';
       default: return 'bg-white/5 border-white/10 text-os-muted';
     }
   };
@@ -202,7 +202,7 @@ function FulfillmentDashboardInner() {
 
   const stats = [
     { label: 'Awaiting', count: (fulfillments || []).filter(f => f.status === 'pending').length, icon: Clock, color: 'text-os-muted' },
-    { label: 'Active Fulfillment', count: (fulfillments || []).filter(f => ['picking', 'packed'].includes(f.status)).length, icon: Box, color: 'text-afrikoni-gold' },
+    { label: 'Active Fulfillment', count: (fulfillments || []).filter(f => ['picking', 'packed'].includes(f.status)).length, icon: Box, color: 'text-os-accent' },
     { label: 'Ready to Ship', count: (fulfillments || []).filter(f => f.status === 'ready_for_dispatch').length, icon: Package, color: 'text-emerald-500' },
     { label: 'In Transit', count: (fulfillments || []).filter(f => f.status === 'handed_to_carrier').length, icon: Truck, color: 'text-emerald-400' },
   ];
@@ -213,22 +213,22 @@ function FulfillmentDashboardInner() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2.5 bg-afrikoni-gold/10 rounded-xl border border-afrikoni-gold/30">
-              <Warehouse className="w-6 h-6 text-afrikoni-gold" />
+            <div className="p-2.5 bg-os-accent/10 rounded-os-sm border border-os-accent/30">
+              <Warehouse className="w-6 h-6 text-os-accent" />
             </div>
             <h1 className="text-4xl font-black tracking-tighter">Global Fulfillment</h1>
           </div>
-          <p className="text-os-muted text-lg max-w-xl">Intelligent warehouse management and logistics orchestration for the Afrikoni ecosystem.</p>
+          <p className="text-os-muted text-os-lg max-w-xl">Intelligent warehouse management and logistics orchestration for the Afrikoni ecosystem.</p>
         </div>
 
         <div className="flex items-center gap-4">
           <Surface variant="panel" className="px-5 py-2.5 flex items-center gap-4 border-white/5 bg-white/[0.02]">
-            <div className="flex items-center gap-2 text-emerald-500 text-xs font-black uppercase tracking-widest">
+            <div className="flex items-center gap-2 text-emerald-500 text-os-xs font-black uppercase tracking-widest">
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               Fleet Status: Active
             </div>
             <div className="w-px h-6 bg-white/10" />
-            <Button variant="ghost" size="sm" onClick={() => { refresh(); loadData(); }} className="h-8 gap-2 text-afrikoni-gold font-bold">
+            <Button variant="ghost" size="sm" onClick={() => { refresh(); loadData(); }} className="h-8 gap-2 text-os-accent font-bold">
               <RefreshCw className="w-3.5 h-3.5" />
               Sync
             </Button>
@@ -239,7 +239,7 @@ function FulfillmentDashboardInner() {
       {/* Modern Stats Matrix */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, i) => (
-          <Surface key={i} variant="panel" className="p-6 group hover:border-afrikoni-gold/20 transition-all">
+          <Surface key={i} variant="panel" className="p-6 group hover:border-os-accent/20 transition-all">
             <div className="flex items-center justify-between mb-4">
               <div className={cn("p-2 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors", stat.color)}>
                 <stat.icon className="w-5 h-5" />
@@ -247,7 +247,7 @@ function FulfillmentDashboardInner() {
             </div>
             <div className="space-y-1">
               <div className="text-3xl font-black">{stat.count}</div>
-              <div className="text-[10px] font-bold uppercase tracking-widest text-os-muted">{stat.label}</div>
+              <div className="text-os-xs font-bold uppercase tracking-widest text-os-muted">{stat.label}</div>
             </div>
           </Surface>
         ))}
@@ -257,7 +257,7 @@ function FulfillmentDashboardInner() {
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-56 h-12 bg-white/[0.03] border-white/10 rounded-xl focus:ring-afrikoni-gold/20">
+            <SelectTrigger className="w-56 h-12 bg-white/[0.03] border-white/10 rounded-os-sm focus:ring-os-accent/20">
               <SelectValue placeholder="Stream: All" />
             </SelectTrigger>
             <SelectContent className="bg-black/90 backdrop-blur-xl border-white/10">
@@ -271,13 +271,13 @@ function FulfillmentDashboardInner() {
           </Select>
         </div>
 
-        <div className="hidden md:flex items-center gap-6 text-[10px] font-bold uppercase tracking-widest text-os-muted">
+        <div className="hidden md:flex items-center gap-6 text-os-xs font-bold uppercase tracking-widest text-os-muted">
           <div className="flex items-center gap-2">
             <Activity className="w-3 h-3 text-emerald-500" />
             Processing Latency: 4ms
           </div>
           <div className="flex items-center gap-2">
-            <Zap className="w-3 h-3 text-afrikoni-gold" />
+            <Zap className="w-3 h-3 text-os-accent" />
             Capacity: 94%
           </div>
         </div>
@@ -287,13 +287,13 @@ function FulfillmentDashboardInner() {
         <div className="lg:col-span-2 space-y-6">
           <Surface variant="glass" className="p-8">
             <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-6">
-              <h2 className="text-xl font-black tracking-tight flex items-center gap-3">
+              <h2 className="text-os-xl font-black tracking-tight flex items-center gap-3">
                 Active Shipments
-                <Badge variant="outline" className="text-[9px] font-black border-white/10 text-os-muted">
+                <Badge variant="outline" className="text-os-xs font-black border-white/10 text-os-muted">
                   {(fulfillments || []).length}
                 </Badge>
               </h2>
-              <Button variant="ghost" size="sm" className="text-os-muted font-bold text-xs gap-2">
+              <Button variant="ghost" size="sm" className="text-os-muted font-bold text-os-xs gap-2">
                 View Manifest <ExternalLink className="w-3 h-3" />
               </Button>
             </div>
@@ -308,23 +308,23 @@ function FulfillmentDashboardInner() {
             ) : (
               <div className="space-y-4">
                 {(fulfillments || []).map((f) => (
-                  <Surface key={f.id} variant="panel" className="p-5 border-white/5 hover:border-afrikoni-gold/30 transition-all group/card">
+                  <Surface key={f.id} variant="panel" className="p-5 border-white/5 hover:border-os-accent/30 transition-all group/card">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                       <div className="flex gap-4">
-                        <div className="p-3 bg-white/5 rounded-2xl border border-white/10 group-hover/card:bg-afrikoni-gold/10 transition-colors">
-                          <Package className="w-6 h-6 text-os-muted group-hover/card:text-afrikoni-gold" />
+                        <div className="p-3 bg-white/5 rounded-os-md border border-white/10 group-hover/card:bg-os-accent/10 transition-colors">
+                          <Package className="w-6 h-6 text-os-muted group-hover/card:text-os-accent" />
                         </div>
                         <div className="space-y-1">
                           <div className="flex items-center gap-3">
-                            <h3 className="font-bold text-lg">Order #{f.order?.order_number || f.order_id?.slice(0, 8)}</h3>
-                            <Badge className={cn("text-[9px] font-black uppercase tracking-widest py-1 px-2.5", getStatusBadgeStyles(f.status))}>
+                            <h3 className="font-bold text-os-lg">Order #{f.order?.order_number || f.order_id?.slice(0, 8)}</h3>
+                            <Badge className={cn("text-os-xs font-black uppercase tracking-widest py-1 px-2.5", getStatusBadgeStyles(f.status))}>
                               <span className="flex items-center gap-1.5">
                                 {getStatusIcon(f.status)}
                                 {f.status.replace('_', ' ')}
                               </span>
                             </Badge>
                           </div>
-                          <div className="flex items-center gap-4 text-xs text-os-muted font-medium">
+                          <div className="flex items-center gap-4 text-os-xs text-os-muted font-medium">
                             <div className="flex items-center gap-1.5"><MapPin className="w-3 h-3" /> {f.order?.buyer_company?.name || 'Institutional Buyer'}</div>
                             <div className="flex items-center gap-1.5"><Calendar className="w-3 h-3" /> {f.created_at ? format(new Date(f.created_at), 'MMM d, HH:mm') : 'Recently'}</div>
                           </div>
@@ -333,7 +333,7 @@ function FulfillmentDashboardInner() {
 
                       <div className="flex items-center gap-3">
                         <Link to={`/dashboard/orders/${f.order_id}`}>
-                          <Button variant="ghost" size="sm" className="font-bold text-xs gap-2 border border-white/10 rounded-xl hover:bg-white/5">
+                          <Button variant="ghost" size="sm" className="font-bold text-os-xs gap-2 border border-white/10 rounded-os-sm hover:bg-white/5">
                             Audit Order <ArrowRight className="w-3 h-3" />
                           </Button>
                         </Link>
@@ -341,7 +341,7 @@ function FulfillmentDashboardInner() {
                         {getNextStatus(f.status) && (
                           <Button
                             size="sm"
-                            className="bg-afrikoni-gold text-black font-black px-6 rounded-xl hover:scale-105 active:scale-95 transition-all text-xs"
+                            className="bg-os-accent text-black font-black px-6 rounded-os-sm hover:scale-105 active:scale-95 transition-all text-os-xs"
                             onClick={() => handleUpdateStatus(f.id, getNextStatus(f.status))}
                           >
                             Advance to {getNextStatus(f.status).replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
@@ -360,11 +360,11 @@ function FulfillmentDashboardInner() {
           {/* Warehouse Locations */}
           <Surface variant="glass" className="p-8">
             <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-4">
-              <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
+              <h3 className="text-os-sm font-black uppercase tracking-widest flex items-center gap-2">
                 <Warehouse className="w-4 h-4 text-os-muted" />
                 Infrastructure
               </h3>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-os-muted hover:text-afrikoni-gold">
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-os-muted hover:text-os-accent">
                 <ArrowUpRight className="w-3.5 h-3.5" />
               </Button>
             </div>
@@ -372,17 +372,17 @@ function FulfillmentDashboardInner() {
             {(warehouses || []).length === 0 ? (
               <div className="py-8 text-center space-y-4">
                 <Boxes className="w-10 h-10 text-white/5 mx-auto" />
-                <p className="text-xs text-os-muted italic">No registered warehouses</p>
+                <p className="text-os-xs text-os-muted italic">No registered warehouses</p>
               </div>
             ) : (
               <div className="space-y-4">
                 {(warehouses || []).map((w) => (
-                  <div key={w.id} className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl hover:border-white/10 transition-colors group cursor-default">
+                  <div key={w.id} className="p-4 bg-white/[0.02] border border-white/5 rounded-os-md hover:border-white/10 transition-colors group cursor-default">
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
-                        <p className="font-bold text-sm group-hover:text-afrikoni-gold transition-colors">{w.name}</p>
-                        <p className="text-[10px] text-os-muted font-medium">{w.address || 'Address Restricted'}</p>
-                        <p className="text-[10px] text-os-muted font-bold uppercase tracking-tighter opacity-70">
+                        <p className="font-bold text-os-sm group-hover:text-os-accent transition-colors">{w.name}</p>
+                        <p className="text-os-xs text-os-muted font-medium">{w.address || 'Address Restricted'}</p>
+                        <p className="text-os-xs text-os-muted font-bold uppercase tracking-tighter opacity-70">
                           {w.city}{w.city && w.country ? ' • ' : ''}{w.country || 'International'}
                         </p>
                       </div>
@@ -395,7 +395,7 @@ function FulfillmentDashboardInner() {
               </div>
             )}
 
-            <Button className="w-full mt-8 bg-white/5 border border-white/10 rounded-2xl py-6 text-[10px] font-black uppercase tracking-widest hover:bg-white/10">
+            <Button className="w-full mt-8 bg-white/5 border border-white/10 rounded-os-md py-6 text-os-xs font-black uppercase tracking-widest hover:bg-white/10">
               Register New Warehouse
             </Button>
           </Surface>
@@ -406,17 +406,17 @@ function FulfillmentDashboardInner() {
               <Truck className="w-32 h-32" />
             </div>
 
-            <h3 className="text-sm font-black uppercase tracking-widest mb-6">Logistics Network</h3>
+            <h3 className="text-os-sm font-black uppercase tracking-widest mb-6">Logistics Network</h3>
             <div className="space-y-5 relative z-10">
               {[
                 { name: 'Pan-African Express', status: 'Optimal', delay: '0ms' },
                 { name: 'AfCFTA Global Log', status: 'High Load', delay: '12ms' },
                 { name: 'West Dock Int.', status: 'Optimal', delay: '2ms' }
               ].map((n, i) => (
-                <div key={i} className="flex items-center justify-between text-xs">
+                <div key={i} className="flex items-center justify-between text-os-xs">
                   <span className="font-bold text-os-muted">{n.name}</span>
                   <div className="flex items-center gap-3">
-                    <span className="text-[10px] font-mono text-os-muted opacity-50">{n.delay}</span>
+                    <span className="text-os-xs font-mono text-os-muted opacity-50">{n.delay}</span>
                     <span className={cn("font-black uppercase tracking-tighter", n.status === 'Optimal' ? 'text-emerald-500' : 'text-amber-500')}>
                       {n.status}
                     </span>

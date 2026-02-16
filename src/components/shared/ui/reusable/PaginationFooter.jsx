@@ -60,7 +60,7 @@ export const PaginationFooter = React.memo(function PaginationFooter({
   return (
     <div className={cn('flex items-center justify-between mt-8', className)}>
       {showInfo && totalCount > 0 && (
-        <div className="text-sm text-afrikoni-deep/70">
+        <div className="text-os-sm text-afrikoni-deep/70">
           Showing {start}-{end} of {totalCount}
         </div>
       )}
@@ -95,7 +95,7 @@ export const PaginationFooter = React.memo(function PaginationFooter({
               onClick={() => onPageChange?.(page)}
               className={cn(
                 'min-w-[2.5rem]',
-                isActive && 'bg-afrikoni-gold text-afrikoni-chestnut'
+                isActive && 'bg-os-accent text-afrikoni-chestnut'
               )}
               aria-label={`Go to page ${page}`}
               aria-current={isActive ? 'page' : undefined}

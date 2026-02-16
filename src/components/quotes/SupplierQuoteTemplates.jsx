@@ -225,10 +225,10 @@ export function SupplierQuoteTemplates({ onTemplateSelect, rfqCategory }) {
           <div className="flex items-start gap-3">
             <FileText className="w-5 h-5 text-amber-600 mt-0.5" />
             <div>
-              <h3 className="font-semibold text-afrikoni-chestnut text-sm">
+              <h3 className="font-semibold text-afrikoni-chestnut text-os-sm">
                 Professional Quote Templates
               </h3>
-              <p className="text-xs text-afrikoni-deep/70 mt-0.5">
+              <p className="text-os-xs text-afrikoni-deep/70 mt-0.5">
                 Use these templates to write complete, professional quotes that win business
               </p>
             </div>
@@ -245,28 +245,28 @@ export function SupplierQuoteTemplates({ onTemplateSelect, rfqCategory }) {
 
         {showTemplates && (
           <div className="space-y-3 mt-3">
-            <p className="text-xs text-afrikoni-deep/60 italic">
+            <p className="text-os-xs text-afrikoni-deep/60 italic">
               💡 Complete quotes get 2x more buyer responses. Include all details below.
             </p>
 
             {relevantTemplates.map((template) => (
               <div
                 key={template.id}
-                className="border border-afrikoni-gold/20 rounded-lg p-3 bg-white hover:border-afrikoni-gold/40 transition-colors"
+                className="border border-os-accent/20 rounded-lg p-3 bg-white hover:border-os-accent/40 transition-colors"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div>
-                    <h4 className="font-medium text-afrikoni-chestnut text-sm">
+                    <h4 className="font-medium text-afrikoni-chestnut text-os-sm">
                       {template.name}
                     </h4>
-                    <p className="text-xs text-afrikoni-deep/60">{template.category}</p>
+                    <p className="text-os-xs text-afrikoni-deep/60">{template.category}</p>
                   </div>
                   <div className="flex gap-1">
                     <Button
                       size="sm"
                       variant="outline"
                       onClick={() => handleCopyTemplate(template.template)}
-                      className="text-xs h-auto py-1 px-2"
+                      className="text-os-xs h-auto py-1 px-2"
                     >
                       {copiedId === template.id ? (
                         <>
@@ -283,28 +283,28 @@ export function SupplierQuoteTemplates({ onTemplateSelect, rfqCategory }) {
                     <Button
                       size="sm"
                       onClick={() => handleUseTemplate(template.template)}
-                      className="text-xs h-auto py-1 px-2 bg-afrikoni-gold hover:bg-afrikoni-gold/90"
+                      className="text-os-xs h-auto py-1 px-2 bg-os-accent hover:bg-os-accent/90"
                     >
                       Use Template
                     </Button>
                   </div>
                 </div>
 
-                <div className="text-xs text-afrikoni-deep/70 bg-gray-50 rounded p-2 max-h-32 overflow-y-auto">
+                <div className="text-os-xs text-afrikoni-deep/70 bg-gray-50 rounded p-2 max-h-32 overflow-y-auto">
                   <pre className="whitespace-pre-wrap font-sans">
                     {template.template.notes.substring(0, 200)}...
                   </pre>
                 </div>
 
                 <div className="mt-2">
-                  <p className="text-xs font-medium text-afrikoni-deep/70 mb-1">
+                  <p className="text-os-xs font-medium text-afrikoni-deep/70 mb-1">
                     Key fields to customize:
                   </p>
                   <div className="flex flex-wrap gap-1">
                     {template.template.fields.map((field) => (
                       <span
                         key={field}
-                        className="text-xs px-2 py-0.5 rounded bg-amber-100 text-amber-700"
+                        className="text-os-xs px-2 py-0.5 rounded bg-amber-100 text-amber-700"
                       >
                         {field.replace('_', ' ')}
                       </span>
@@ -315,10 +315,10 @@ export function SupplierQuoteTemplates({ onTemplateSelect, rfqCategory }) {
             ))}
 
             <div className="mt-3 pt-3 border-t border-amber-200">
-              <h4 className="text-xs font-semibold text-afrikoni-chestnut mb-2">
+              <h4 className="text-os-xs font-semibold text-afrikoni-chestnut mb-2">
                 ✅ Quote Checklist (Include all):
               </h4>
-              <ul className="text-xs text-afrikoni-deep/70 space-y-1">
+              <ul className="text-os-xs text-afrikoni-deep/70 space-y-1">
                 <li>✓ Clear product specifications matching the RFQ</li>
                 <li>✓ Competitive pricing with breakdown</li>
                 <li>✓ Realistic delivery timeline</li>
@@ -339,7 +339,7 @@ export function SupplierQuoteTemplates({ onTemplateSelect, rfqCategory }) {
  */
 export function QuoteWritingTips({ className = '' }) {
   return (
-    <div className={`bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs ${className}`}>
+    <div className={`bg-blue-50 border border-blue-200 rounded-lg p-3 text-os-xs ${className}`}>
       <h4 className="font-semibold text-blue-900 mb-2">💡 Tips for winning quotes:</h4>
       <ul className="space-y-1 text-blue-800">
         <li>• Be specific: Match all RFQ requirements exactly</li>

@@ -21,9 +21,8 @@
 
 import { supabase } from '@/api/supabaseClient';
 
-// ⚠️ VERIFICATION CURRENTLY DISABLED FOR MVP
-// When ready to enable, create a Supabase Edge Function instead of exposing API keys
-const VERIFICATION_ENABLED = false;
+// ✅ VERIFICATION ENABLED - Requires Production Keys / Edge Function
+const VERIFICATION_ENABLED = true;
 
 // Verification Status Enum
 export const VerificationStatus = {
@@ -73,7 +72,7 @@ export async function verifyBusiness({
   // Return mock response for MVP - verification disabled
   if (!VERIFICATION_ENABLED) {
     console.warn('[VerificationService] Verification disabled for MVP. KYC will be added later.');
-    
+
     // Update company status to pending (manual review)
     const { error: updateError } = await supabase
       .from('companies')
@@ -579,20 +578,24 @@ export async function triggerReVerification(companyId) {
       reason: 'Admin triggered re-verification'
     });
 
-    return { success: true };
+    /**
+     * Utility to check if a company is fully verified for trading
+     * @param {string} companyId - Company UUID
+     * @returns {Promise<boolean>}
+     */
+    export async function isCompanyVerified(companyId) {
+      if (!companyId) return false;
+      const { status } = await getVerificationStatus(companyId);
+      return status === VerificationStatus.VERIFIED;
+    }
 
-  } catch (error) {
-    console.error('[VerificationService] triggerReVerification error:', error);
-    throw error;
-  }
-}
-
-export default {
-  verifyBusiness,
-  verifyIdentity,
-  handleVerificationCallback,
-  getVerificationStatus,
-  triggerReVerification,
-  VerificationStatus,
-  VerificationType
-};
+    export default {
+      verifyBusiness,
+      verifyIdentity,
+      handleVerificationCallback,
+      getVerificationStatus,
+      isCompanyVerified,
+      triggerReVerification,
+      VerificationStatus,
+      VerificationType
+    };

@@ -3,23 +3,23 @@ import { cn } from '@/lib/utils';
 
 const Badge = React.forwardRef(({ className, variant = 'default', ...props }, ref) => {
   const variants = {
-    default: 'bg-afrikoni-chestnut text-afrikoni-cream hover:bg-afrikoni-deep',
-    secondary: 'bg-afrikoni-cream text-afrikoni-chestnut hover:bg-afrikoni-offwhite',
-    outline: 'border border-afrikoni-gold/30 bg-afrikoni-offwhite text-afrikoni-chestnut',
-    success: 'bg-green-100 text-green-700 border-green-200',
-    warning: 'bg-yellow-100 text-yellow-700 border-yellow-200',
-    info: 'bg-blue-100 text-blue-700 border-blue-200',
-    neutral: 'bg-afrikoni-cream text-afrikoni-deep border-afrikoni-gold/20',
-    verified: 'bg-green-600 text-afrikoni-cream border-green-700',
-    premium: 'bg-afrikoni-gold text-afrikoni-chestnut border-afrikoni-goldDark',
-    danger: 'bg-red-100 text-red-700 border-red-200'
+    default: 'bg-os-accent/10 text-os-accent border-os-accent/20',
+    secondary: 'bg-white/5 text-os-text-secondary border-white/10',
+    outline: 'border border-os-accent/30 bg-transparent text-os-accent',
+    success: 'bg-os-green/10 text-os-green border-os-green/20 font-bold',
+    warning: 'bg-os-accent/15 text-os-accent border-os-accent/20',
+    info: 'bg-os-blue/10 text-os-blue border-os-blue/20',
+    neutral: 'bg-white/5 text-os-text-secondary border-white/10',
+    verified: 'bg-os-green text-white border-os-green/20 shadow-os-sm',
+    premium: 'bg-os-accent text-white border-os-accent-dark shadow-os-gold',
+    danger: 'bg-os-red/10 text-os-red border-os-red/20'
   };
 
   return (
     <div
       ref={ref}
       className={cn(
-        'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-afrikoni-gold focus:ring-offset-2',
+        'inline-flex items-center rounded-full border px-2.5 py-0.5 text-os-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-os-accent focus:ring-offset-2',
         variants[variant],
         className
       )}

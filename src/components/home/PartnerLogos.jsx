@@ -50,7 +50,7 @@ export default function PartnerLogos() {
   const duplicatedPartners = [...displayPartners, ...displayPartners];
 
   return (
-    <section className="py-8 md:py-12 bg-white border-y border-afrikoni-gold/10 overflow-hidden">
+    <section className="py-8 md:py-12 bg-white border-y border-os-accent/10 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4">
         <motion.div
           initial={{ opacity: 0 }}
@@ -58,7 +58,7 @@ export default function PartnerLogos() {
           viewport={{ once: true }}
           className="text-center mb-8"
         >
-          <p className="text-sm md:text-base text-afrikoni-deep/60 mb-6">
+          <p className="text-os-sm md:text-os-base text-afrikoni-deep/60 mb-6">
             {t('home.trustedByBusinesses')}
           </p>
         </motion.div>
@@ -85,8 +85,8 @@ export default function PartnerLogos() {
                       height="60"
                     />
                   ) : (
-                    <div className="h-12 md:h-16 w-32 md:w-40 bg-gradient-to-br from-afrikoni-gold/10 to-afrikoni-gold/5 rounded-lg flex items-center justify-center border border-afrikoni-gold/20">
-                      <span className="text-xs text-afrikoni-deep/40 font-medium">
+                    <div className="h-12 md:h-16 w-32 md:w-40 bg-gradient-to-br from-os-accent/10 to-os-accent/5 rounded-lg flex items-center justify-center border border-os-accent/20">
+                      <span className="text-os-xs text-afrikoni-deep/40 font-medium">
                         {partner.name || 'Partner'}
                       </span>
                     </div>

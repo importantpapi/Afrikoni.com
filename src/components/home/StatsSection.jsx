@@ -78,9 +78,9 @@ export default function StatsSection() {
       icon: Users,
       value: `${animatedStats.businesses}K+`,
       label: 'Businesses',
-      color: 'text-afrikoni-gold',
-      bgColor: 'bg-afrikoni-gold/20',
-      iconBg: 'bg-afrikoni-gold'
+      color: 'text-os-accent',
+      bgColor: 'bg-os-accent/20',
+      iconBg: 'bg-os-accent'
     },
     {
       icon: Shield,
@@ -96,7 +96,7 @@ export default function StatsSection() {
       label: 'Countries Reached',
       color: 'text-blue-600',
       bgColor: 'bg-blue-50',
-      iconBg: 'bg-afrikoni-gold'
+      iconBg: 'bg-os-accent'
     }
   ];
 
@@ -118,7 +118,7 @@ export default function StatsSection() {
                   whileHover={{ y: -5, scale: 1.02 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Card className="border-0 shadow-lg hover:shadow-2xl transition-shadow">
+                  <Card className="border-0 shadow-os-md hover:shadow-2xl transition-shadow">
                     <CardContent className="p-6 md:p-8 text-center">
                       <div className={`w-14 h-14 md:w-16 md:h-16 ${stat.iconBg} rounded-lg flex items-center justify-center mx-auto mb-4`}>
                         <Icon className="w-7 h-7 md:w-8 md:h-8 text-afrikoni-cream" />
@@ -126,7 +126,7 @@ export default function StatsSection() {
                       <div className={`text-3xl md:text-4xl font-bold ${stat.color} mb-2`}>
                         {stat.value}
                       </div>
-                      <div className="text-afrikoni-deep font-medium text-sm md:text-base">
+                      <div className="text-afrikoni-deep font-medium text-os-sm md:text-os-base">
                         {stat.label}
                       </div>
                     </CardContent>
@@ -147,7 +147,7 @@ export default function StatsSection() {
         >
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Link to={createPageUrl('BuyerCentral')}>
-              <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-creampx-6 md:px-8 py-5 md:py-6 text-base md:text-lg w-full sm:w-auto shadow-lg hover:shadow-xl transition-shadow">
+              <Button className="bg-os-accent hover:bg-os-accentDark text-afrikoni-creampx-6 md:px-8 py-5 md:py-6 text-os-base md:text-os-lg w-full sm:w-auto shadow-os-md hover:shadow-os-lg transition-shadow">
                 <ShoppingBag className="w-5 h-5 mr-2" />
                 Start Buying
               </Button>
@@ -155,7 +155,7 @@ export default function StatsSection() {
           </motion.div>
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
             <Link to={createPageUrl('SellerOnboarding')}>
-              <Button variant="outline" className="border-2 border-afrikoni-gold text-afrikoni-gold hover:bg-afrikoni-gold/20 px-6 md:px-8 py-5 md:py-6 text-base md:text-lg w-full sm:w-auto shadow-md hover:shadow-lg transition-shadow">
+              <Button variant="outline" className="border-2 border-os-accent text-os-accent hover:bg-os-accent/20 px-6 md:px-8 py-5 md:py-6 text-os-base md:text-os-lg w-full sm:w-auto shadow-md hover:shadow-os-md transition-shadow">
                 <TrendingUp className="w-5 h-5 mr-2" />
                 Start Selling
               </Button>

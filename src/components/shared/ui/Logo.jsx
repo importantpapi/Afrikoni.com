@@ -24,26 +24,26 @@ export function Logo({
   const sizeClasses = {
     sm: {
       icon: 'w-8 h-8',
-      text: 'text-lg',
-      tagline: 'text-xs',
+      text: 'text-os-lg',
+      tagline: 'text-os-xs',
       gap: 'gap-2'
     },
     md: {
       icon: 'w-10 h-10',
-      text: 'text-xl',
-      tagline: 'text-sm',
+      text: 'text-os-xl',
+      tagline: 'text-os-sm',
       gap: 'gap-2'
     },
     lg: {
       icon: 'w-12 h-12',
-      text: 'text-2xl',
-      tagline: 'text-base',
+      text: 'text-os-2xl',
+      tagline: 'text-os-base',
       gap: 'gap-3'
     },
     xl: {
       icon: 'w-16 h-16',
       text: 'text-3xl',
-      tagline: 'text-lg',
+      tagline: 'text-os-lg',
       gap: 'gap-4'
     }
   };
@@ -128,15 +128,15 @@ export function Logo({
       {(type === 'full' || type === 'icon') && (
         <div className={cn(
           'flex items-center justify-center',
-          'bg-gradient-to-br from-afrikoni-gold via-afrikoni-goldDark to-afrikoni-gold-900',
+          'bg-gradient-to-br from-os-accent via-os-accentDark to-os-accent-900',
           'rounded-full',
-          'shadow-lg shadow-afrikoni-gold-900/50',
-          'border-2 border-afrikoni-goldLight/60',
+          'shadow-os-md shadow-os-accent-900/50',
+          'border-2 border-os-accentLight/60',
           'p-2',
           'flex-shrink-0',
-          'ring-2 ring-afrikoni-gold/20'
+          'ring-2 ring-os-accent/20'
         )}>
-          <div className="text-afrikoni-gold drop-shadow-lg">
+          <div className="text-os-accent drop-shadow-os-md">
             <LogoIcon />
           </div>
         </div>
@@ -150,7 +150,7 @@ export function Logo({
         )}>
           <span className={cn(
             sizes.text,
-            'font-bold bg-gradient-to-r from-afrikoni-gold via-afrikoni-goldDark to-afrikoni-gold',
+            'font-bold bg-gradient-to-r from-os-accent via-os-accentDark to-os-accent',
             'bg-clip-text text-transparent',
             'tracking-tight',
             'font-serif',
@@ -161,7 +161,7 @@ export function Logo({
           {showTagline && (
             <span className={cn(
               sizes.tagline,
-              'text-afrikoni-goldDark',
+              'text-os-accentDark',
               'font-medium',
               'tracking-wide',
               direction === 'horizontal' ? 'mt-0' : 'mt-0.5'

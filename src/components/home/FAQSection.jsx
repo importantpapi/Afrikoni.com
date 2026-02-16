@@ -53,12 +53,12 @@ export default function FAQSection() {
             <h2 className="text-3xl md:text-4xl font-bold font-serif text-afrikoni-chestnut mb-4">
               {t('faq.title') || 'Frequently Asked Questions'}
             </h2>
-            <p className="text-lg text-afrikoni-deep/80">
+            <p className="text-os-lg text-afrikoni-deep/80">
               {t('faq.subtitle') || 'Find answers to common questions about Afrikoni'}
             </p>
           </div>
           <div className="flex items-center justify-center h-48">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-os-accent" />
           </div>
         </div>
       </section>
@@ -78,12 +78,12 @@ export default function FAQSection() {
             <h2 className="text-3xl md:text-4xl font-bold font-serif text-afrikoni-chestnut mb-4">
               {t('faq.title') || 'Frequently Asked Questions'}
             </h2>
-            <p className="text-lg text-afrikoni-deep/80">
+            <p className="text-os-lg text-afrikoni-deep/80">
               {t('faq.subtitle') || 'Find answers to common questions about Afrikoni'}
             </p>
           </motion.div>
           <div className="text-center text-afrikoni-deep/60 py-12">
-            <HelpCircle className="w-12 h-12 mx-auto mb-4 text-afrikoni-gold/50" />
+            <HelpCircle className="w-12 h-12 mx-auto mb-4 text-os-accent/50" />
             <p>{t('faq.noFaqs') || 'No FAQs available yet. Check back soon!'}</p>
           </div>
         </div>
@@ -109,18 +109,18 @@ export default function FAQSection() {
           className="text-center mb-12"
         >
           <motion.div 
-            className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-afrikoni-gold/20 mb-4"
+            className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-os-accent/20 mb-4"
             initial={{ scale: 0, rotate: -180 }}
             animate={{ scale: 1, rotate: 0 }}
             transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
             whileHover={{ scale: 1.1, rotate: 5 }}
           >
-            <HelpCircle className="w-8 h-8 text-afrikoni-gold" />
+            <HelpCircle className="w-8 h-8 text-os-accent" />
           </motion.div>
           <h2 className="text-3xl md:text-4xl font-bold font-serif text-afrikoni-chestnut mb-4">
             {t('faq.title') || 'Frequently Asked Questions'}
           </h2>
-          <p className="text-lg text-afrikoni-deep max-w-2xl mx-auto">
+          <p className="text-os-lg text-afrikoni-deep max-w-2xl mx-auto">
             {t('faq.subtitle') || 'Find answers to common questions about Afrikoni'}
           </p>
         </motion.div>
@@ -134,22 +134,22 @@ export default function FAQSection() {
               viewport={{ once: true }}
               transition={{ duration: 0.3, delay: idx * 0.05 }}
             >
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold hover:shadow-md transition-all bg-white">
+              <Card className="border-os-accent/20 hover:border-os-accent hover:shadow-md transition-all bg-white">
                 <CardContent className="p-0">
                   <motion.button
                     onClick={() => toggleFAQ(idx)}
-                    className="w-full text-left p-5 md:p-6 flex items-start justify-between gap-4 focus:outline-none focus:ring-2 focus:ring-afrikoni-gold focus:ring-offset-2 rounded-lg transition-colors hover:bg-afrikoni-cream/30"
+                    className="w-full text-left p-5 md:p-6 flex items-start justify-between gap-4 focus:outline-none focus:ring-2 focus:ring-os-accent focus:ring-offset-2 rounded-lg transition-colors hover:bg-afrikoni-cream/30"
                     aria-expanded={openIndex === idx}
                     aria-controls={`faq-answer-${faq.id}`}
                     whileHover={{ x: 4 }}
                     whileTap={{ scale: 0.98 }}
                   >
                     <div className="flex-1">
-                      <h3 className="font-bold text-afrikoni-chestnut text-base md:text-lg mb-1 pr-4">
+                      <h3 className="font-bold text-afrikoni-chestnut text-os-base md:text-os-lg mb-1 pr-4">
                         {faq.question}
                       </h3>
                       {faq.category && (
-                        <span className="inline-block text-xs text-afrikoni-gold bg-afrikoni-gold/10 px-2 py-1 rounded-full mt-1">
+                        <span className="inline-block text-os-xs text-os-accent bg-os-accent/10 px-2 py-1 rounded-full mt-1">
                           {faq.category}
                         </span>
                       )}
@@ -159,7 +159,7 @@ export default function FAQSection() {
                       transition={{ duration: 0.2 }}
                     >
                       <ChevronDown
-                        className="w-5 h-5 text-afrikoni-gold flex-shrink-0 mt-1"
+                        className="w-5 h-5 text-os-accent flex-shrink-0 mt-1"
                         aria-hidden="true"
                       />
                     </motion.div>
@@ -195,13 +195,13 @@ export default function FAQSection() {
             viewport={{ once: true }}
             className="text-center py-12"
           >
-            <HelpCircle className="w-16 h-16 text-afrikoni-gold/50 mx-auto mb-4" />
+            <HelpCircle className="w-16 h-16 text-os-accent/50 mx-auto mb-4" />
             <p className="text-afrikoni-deep/70 mb-6">
               FAQs are being prepared. Check back soon or contact us for immediate assistance.
             </p>
             <a
               href="mailto:hello@afrikoni.com"
-              className="inline-flex items-center gap-2 text-afrikoni-gold hover:text-afrikoni-goldDark font-semibold"
+              className="inline-flex items-center gap-2 text-os-accent hover:text-os-accentDark font-semibold"
             >
               Contact Support
             </a>

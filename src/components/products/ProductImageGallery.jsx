@@ -13,7 +13,7 @@ export default function ProductImageGallery({ images = [], productTitle = 'Produ
 
   if (!images || images.length === 0) {
     return (
-      <div className="aspect-square bg-afrikoni-cream rounded-xl flex items-center justify-center">
+      <div className="aspect-square bg-afrikoni-cream rounded-os-sm flex items-center justify-center">
         <p className="text-afrikoni-deep/70">No images available</p>
       </div>
     );
@@ -54,7 +54,7 @@ export default function ProductImageGallery({ images = [], productTitle = 'Produ
       <div className="space-y-4">
         {/* Main Image */}
         <div
-          className="relative aspect-square bg-afrikoni-cream rounded-xl overflow-hidden group cursor-pointer"
+          className="relative aspect-square bg-afrikoni-cream rounded-os-sm overflow-hidden group cursor-pointer"
           onTouchStart={() => setShowLightbox(true)}
           onClick={() => setShowLightbox(true)}
         >
@@ -67,9 +67,9 @@ export default function ProductImageGallery({ images = [], productTitle = 'Produ
           />
           
           {/* Click to view indicator */}
-          <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1.5 rounded-lg flex items-center gap-2 text-sm">
+          <div className="absolute top-4 right-4 bg-black/50 text-white px-3 py-1.5 rounded-lg flex items-center gap-2 text-os-sm">
             <ZoomIn className="w-4 h-4" />
-            <span className="text-xs md:text-sm">Click to view</span>
+            <span className="text-os-xs md:text-os-sm">Click to view</span>
           </div>
 
           {/* Navigation Arrows - Always visible on mobile, hover on desktop */}
@@ -108,8 +108,8 @@ export default function ProductImageGallery({ images = [], productTitle = 'Produ
                 onClick={() => setSelectedImage(idx)}
                 className={`aspect-square rounded-lg overflow-hidden border-2 transition-all touch-manipulation active:scale-95 min-w-[64px] min-h-[64px] ${
                   selectedImage === idx
-                    ? 'border-afrikoni-gold ring-2 ring-afrikoni-gold/20'
-                    : 'border-afrikoni-gold/20 hover:border-afrikoni-gold/40 active:border-afrikoni-gold/60'
+                    ? 'border-os-accent ring-2 ring-os-accent/20'
+                    : 'border-os-accent/20 hover:border-os-accent/40 active:border-os-accent/60'
                 }`}
                 aria-label={`View image ${idx + 1}`}
               >

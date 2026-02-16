@@ -107,7 +107,7 @@ export default function WhyAfrikoni() {
                   whileHover={{ y: -5, scale: 1.02 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Card className={`border-l-4 ${feature.borderColor} rounded-lg shadow-md hover:shadow-xl transition-all`}>
+                  <Card className={`border-l-4 ${feature.borderColor} rounded-lg shadow-md hover:shadow-os-lg transition-all`}>
                     <CardContent className="p-6">
                       <Icon className={`w-10 h-10 ${feature.color} mb-4`} />
                       <p className="text-meta font-medium text-afrikoni-deep/70 mb-2">{feature.subtitle}</p>

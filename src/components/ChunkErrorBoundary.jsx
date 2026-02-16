@@ -53,7 +53,7 @@ class ChunkErrorBoundary extends React.Component {
                             <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
                                 <RefreshCw className="w-8 h-8 text-amber-500 animate-spin-slow" />
                             </div>
-                            <h2 className="text-xl font-bold mb-2">New Update Available</h2>
+                            <h2 className="text-os-xl font-bold mb-2">New Update Available</h2>
                             <p className="text-os-muted mb-6">
                                 A new version of the Trade OS has been deployed. Please refresh to load the latest features.
                             </p>
@@ -73,8 +73,8 @@ class ChunkErrorBoundary extends React.Component {
             return (
                 <div className="p-6 flex flex-col items-center justify-center min-h-[400px]">
                     <WifiOff className="w-12 h-12 text-os-muted mb-4" />
-                    <h3 className="text-lg font-medium mb-2">Connection Interrupted</h3>
-                    <p className="text-os-muted text-sm mb-6 max-w-xs text-center">
+                    <h3 className="text-os-lg font-medium mb-2">Connection Interrupted</h3>
+                    <p className="text-os-muted text-os-sm mb-6 max-w-xs text-center">
                         The connection to the dashboard interface was lost or interrupted.
                     </p>
                     <Button variant="outline" onClick={() => window.location.reload()}>

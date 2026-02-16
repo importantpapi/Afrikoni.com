@@ -62,17 +62,17 @@ export default function RFQStep3UrgencyBudget({ formData, updateFormData }) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-2">
+        <h1 className="text-os-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-2">
           Urgency & Budget
         </h1>
-        <p className="text-afrikoni-deep/70 text-base">
+        <p className="text-afrikoni-deep/70 text-os-base">
           Help suppliers understand your timeline and budget (optional)
         </p>
       </div>
 
       {/* Urgency Level */}
       <div>
-        <Label className="text-sm font-semibold text-afrikoni-deep mb-3 block flex items-center gap-2">
+        <Label className="text-os-sm font-semibold text-afrikoni-deep mb-3 block flex items-center gap-2">
           <Clock className="w-4 h-4" />
           Urgency Level
         </Label>
@@ -83,20 +83,20 @@ export default function RFQStep3UrgencyBudget({ formData, updateFormData }) {
               onClick={() => handleUrgencyChange(option.value)}
               className={`p-4 rounded-lg border-2 cursor-pointer transition-all min-h-[60px] flex items-center justify-between ${
                 formData.urgency === option.value
-                  ? 'border-afrikoni-gold bg-afrikoni-gold/10'
-                  : 'border-afrikoni-gold/20 hover:border-afrikoni-gold/40'
+                  ? 'border-os-accent bg-os-accent/10'
+                  : 'border-os-accent/20 hover:border-os-accent/40'
               }`}
             >
               <div>
                 <div className="font-semibold text-afrikoni-chestnut">
                   {option.label}
                 </div>
-                <div className="text-sm text-afrikoni-deep/60">
+                <div className="text-os-sm text-afrikoni-deep/60">
                   {option.description}
                 </div>
               </div>
               {formData.urgency === option.value && (
-                <div className="w-5 h-5 rounded-full bg-afrikoni-gold flex items-center justify-center">
+                <div className="w-5 h-5 rounded-full bg-os-accent flex items-center justify-center">
                   <div className="w-2 h-2 rounded-full bg-white" />
                 </div>
               )}
@@ -107,7 +107,7 @@ export default function RFQStep3UrgencyBudget({ formData, updateFormData }) {
 
       {/* Budget Range */}
       <div>
-        <Label className="text-sm font-semibold text-afrikoni-deep mb-3 block flex items-center gap-2">
+        <Label className="text-os-sm font-semibold text-afrikoni-deep mb-3 block flex items-center gap-2">
           <DollarSign className="w-4 h-4" />
           Budget Range (Optional)
         </Label>
@@ -120,8 +120,8 @@ export default function RFQStep3UrgencyBudget({ formData, updateFormData }) {
                 !showCustomBudget && formData.target_price && 
                 parseFloat(formData.target_price) >= (range.min || 0) &&
                 (!range.max || parseFloat(formData.target_price) <= range.max)
-                  ? 'bg-afrikoni-gold text-afrikoni-chestnut'
-                  : 'border-afrikoni-gold/40 hover:bg-afrikoni-gold/10'
+                  ? 'bg-os-accent text-afrikoni-chestnut'
+                  : 'border-os-accent/40 hover:bg-os-accent/10'
               }`}
               onClick={() => handleBudgetRangeSelect(range)}
             >
@@ -137,21 +137,21 @@ export default function RFQStep3UrgencyBudget({ formData, updateFormData }) {
             value={customBudget}
             onChange={handleCustomBudgetChange}
             placeholder="Enter amount (e.g., 5000)"
-            className="text-base min-h-[52px] px-4"
+            className="text-os-base min-h-[52px] px-4"
           />
         )}
       </div>
 
       {/* Delivery Deadline (Optional) */}
       <div>
-        <Label className="text-sm font-semibold text-afrikoni-deep mb-2 block">
+        <Label className="text-os-sm font-semibold text-afrikoni-deep mb-2 block">
           Delivery Deadline (Optional)
         </Label>
         <Popover>
           <PopoverTrigger asChild>
             <Button
               variant="outline"
-              className="w-full min-h-[52px] justify-start text-left font-normal border-afrikoni-gold/40"
+              className="w-full min-h-[52px] justify-start text-left font-normal border-os-accent/40"
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               {formData.delivery_deadline ? (

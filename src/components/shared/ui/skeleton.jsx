@@ -12,7 +12,7 @@ export function Skeleton({ className, ...props }) {
 
 export function CardSkeleton() {
   return (
-    <div className="rounded-xl border border-afrikoni-gold/20 bg-afrikoni-offwhite p-6 shadow-md">
+    <div className="rounded-os-sm border border-os-accent/20 bg-afrikoni-offwhite p-6 shadow-md">
       <Skeleton className="h-4 w-3/4 mb-4" />
       <Skeleton className="h-4 w-1/2 mb-2" />
       <Skeleton className="h-4 w-2/3" />

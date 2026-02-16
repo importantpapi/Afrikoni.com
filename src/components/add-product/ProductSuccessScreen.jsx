@@ -57,18 +57,18 @@ export default function ProductSuccessScreen({ formData, onAddAnother, onViewPro
         <div className="w-24 h-24 rounded-full bg-white/10 flex items-center justify-center animate-scale-in">
           <CheckCircle2 className="w-12 h-12 text-white" />
         </div>
-        <div className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-white flex items-center justify-center text-black text-lg animate-bounce">
+        <div className="absolute -top-1 -right-1 w-8 h-8 rounded-full bg-white flex items-center justify-center text-black text-os-lg animate-bounce">
           🎉
         </div>
       </div>
 
-      <h1 className="text-2xl font-bold text-[var(--os-text-primary)] mb-2">Product Published!</h1>
+      <h1 className="text-os-2xl font-bold text-[var(--os-text-primary)] mb-2">Product Published!</h1>
       <p className="text-[var(--os-text-secondary)] max-w-md mb-2">
         Your product "{formData.name}" is now live on Afrikoni and visible to international buyers.
       </p>
 
       <div className="bg-white/5 rounded-lg px-4 py-3 mb-8 max-w-md border border-white/10">
-        <p className="text-sm text-[var(--os-text-primary)]">
+        <p className="text-os-sm text-[var(--os-text-primary)]">
           ✨ <strong>Pro tip:</strong> Listings with complete profiles get 5x more inquiries.
         </p>
       </div>
@@ -79,9 +79,9 @@ export default function ProductSuccessScreen({ formData, onAddAnother, onViewPro
             <img
               src={formData.imageUrls[0]}
               alt={formData.name}
-              className="w-32 h-32 rounded-xl object-cover shadow-[0_20px_40px_rgba(0,0,0,0.35)]"
+              className="w-32 h-32 rounded-os-sm object-cover shadow-[0_20px_40px_rgba(0,0,0,0.35)]"
             />
-            <div className="absolute -bottom-2 -right-2 bg-white text-black text-xs px-2 py-1 rounded-full font-medium flex items-center gap-1">
+            <div className="absolute -bottom-2 -right-2 bg-white text-black text-os-xs px-2 py-1 rounded-full font-medium flex items-center gap-1">
               <CheckCircle2 className="w-3 h-3" />
               Live
             </div>
@@ -90,7 +90,7 @@ export default function ProductSuccessScreen({ formData, onAddAnother, onViewPro
       )}
 
       <div className="w-full max-w-sm space-y-3 mb-8">
-        <p className="text-sm font-medium text-[var(--os-text-secondary)]">What's next?</p>
+        <p className="text-os-sm font-medium text-[var(--os-text-secondary)]">What's next?</p>
 
         <div className="space-y-2">
           <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 text-left border border-white/10">
@@ -98,8 +98,8 @@ export default function ProductSuccessScreen({ formData, onAddAnother, onViewPro
               <Eye className="w-4 h-4 text-white" />
             </div>
             <div>
-              <p className="text-sm font-medium text-[var(--os-text-primary)]">Buyers can now find you</p>
-              <p className="text-xs text-[var(--os-text-secondary)]">Your product appears in search results</p>
+              <p className="text-os-sm font-medium text-[var(--os-text-primary)]">Buyers can now find you</p>
+              <p className="text-os-xs text-[var(--os-text-secondary)]">Your product appears in search results</p>
             </div>
           </div>
 
@@ -108,8 +108,8 @@ export default function ProductSuccessScreen({ formData, onAddAnother, onViewPro
               <Share2 className="w-4 h-4 text-white" />
             </div>
             <div>
-              <p className="text-sm font-medium text-[var(--os-text-primary)]">Share your listing</p>
-              <p className="text-xs text-[var(--os-text-secondary)]">Send to potential buyers directly</p>
+              <p className="text-os-sm font-medium text-[var(--os-text-primary)]">Share your listing</p>
+              <p className="text-os-xs text-[var(--os-text-secondary)]">Send to potential buyers directly</p>
             </div>
           </div>
         </div>

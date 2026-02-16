@@ -107,17 +107,17 @@ export default function BusinessModel() {
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-serif text-afrikoni-chestnut mb-4">
             AFRIKONI: A LONG-TERM INFRASTRUCTURE PLAY
           </h2>
-          <p className="text-lg md:text-xl text-afrikoni-deep/80 max-w-3xl mx-auto mb-6">
+          <p className="text-os-lg md:text-os-xl text-afrikoni-deep/80 max-w-3xl mx-auto mb-6">
             Afrikoni is not a shortcut or a hype-driven marketplace. It is a long-term effort to build the structure African trade has historically lacked.
           </p>
-          <div className="inline-flex items-center gap-2 bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-full px-6 py-3">
-            <CheckCircle className="w-5 h-5 text-afrikoni-gold" aria-hidden="true" />
+          <div className="inline-flex items-center gap-2 bg-os-accent/10 border border-os-accent/30 rounded-full px-6 py-3">
+            <CheckCircle className="w-5 h-5 text-os-accent" aria-hidden="true" />
             <span className="text-afrikoni-chestnut font-semibold">We believe this can work if built patiently, ethically, and in collaboration with real businesses on the ground.</span>
           </div>
         </motion.div>
         
         {/* Sticky Tabs */}
-        <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-afrikoni-gold/20 mb-8 -mx-4 px-4">
+        <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-os-accent/20 mb-8 -mx-4 px-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
             <TabsList className="grid w-full grid-cols-4 bg-afrikoni-offwhite/50">
               <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -158,7 +158,7 @@ export default function BusinessModel() {
                           >
                             <Icon className="w-5 h-5 text-green-700 flex-shrink-0 mt-0.5" aria-hidden="true" />
                           </motion.div>
-                          <span className="text-afrikoni-deep text-sm">{factor.text}</span>
+                          <span className="text-afrikoni-deep text-os-sm">{factor.text}</span>
                         </motion.li>
                       );
                     })}
@@ -195,7 +195,7 @@ export default function BusinessModel() {
                           >
                             <Icon className="w-5 h-5 text-red-700 flex-shrink-0 mt-0.5" aria-hidden="true" />
                           </motion.div>
-                          <span className="text-afrikoni-deep text-sm">{factor.text}</span>
+                          <span className="text-afrikoni-deep text-os-sm">{factor.text}</span>
                         </motion.li>
                       );
                     })}
@@ -205,12 +205,12 @@ export default function BusinessModel() {
             </div>
 
             {/* Key Insight */}
-            <Card className="border-afrikoni-gold/30 bg-gradient-to-br from-afrikoni-gold/10 to-afrikoni-chestnut/10">
+            <Card className="border-os-accent/30 bg-gradient-to-br from-os-accent/10 to-afrikoni-chestnut/10">
               <CardContent className="p-8">
                 <div className="flex items-start gap-4">
-                  <Lightbulb className="w-8 h-8 text-afrikoni-gold flex-shrink-0" />
+                  <Lightbulb className="w-8 h-8 text-os-accent flex-shrink-0" />
                   <div>
-                    <h3 className="text-xl font-bold text-afrikoni-chestnut mb-3">
+                    <h3 className="text-os-xl font-bold text-afrikoni-chestnut mb-3">
                       The Honest Truth
                     </h3>
                     <p className="text-afrikoni-deep leading-relaxed mb-4">
@@ -238,13 +238,13 @@ export default function BusinessModel() {
                     viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
               >
-                    <Card className="h-full border-afrikoni-gold/20">
+                    <Card className="h-full border-os-accent/20">
                       <CardHeader>
                         <div className="flex items-center gap-3 mb-2">
-                          <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-lg flex items-center justify-center">
-                            <Icon className="w-6 h-6 text-afrikoni-gold" />
+                          <div className="w-12 h-12 bg-os-accent/20 rounded-lg flex items-center justify-center">
+                            <Icon className="w-6 h-6 text-os-accent" />
                           </div>
-                          <CardTitle className="text-xl">{challenge.title}</CardTitle>
+                          <CardTitle className="text-os-xl">{challenge.title}</CardTitle>
                         </div>
                       </CardHeader>
                       <CardContent>
@@ -254,7 +254,7 @@ export default function BusinessModel() {
                           </p>
                         </div>
                         <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                          <p className="text-sm text-afrikoni-deep">
+                          <p className="text-os-sm text-afrikoni-deep">
                             <strong className="text-green-800">Solution:</strong> {challenge.solution}
                           </p>
                         </div>
@@ -279,19 +279,19 @@ export default function BusinessModel() {
                       viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: idx * 0.1 }}
                   >
-                    <Card className="h-full border-afrikoni-gold/20 hover:border-afrikoni-gold transition-all">
+                    <Card className="h-full border-os-accent/20 hover:border-os-accent transition-all">
                       <CardHeader>
                         <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-lg flex items-center justify-center">
-                            <Icon className="w-6 h-6 text-afrikoni-gold" />
+                          <div className="w-12 h-12 bg-os-accent/20 rounded-lg flex items-center justify-center">
+                            <Icon className="w-6 h-6 text-os-accent" />
                       </div>
                           <CardTitle>{stream.title}</CardTitle>
                       </div>
                     </CardHeader>
                     <CardContent>
                         <p className="text-afrikoni-deep mb-4">{stream.description}</p>
-                        <div className="bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg p-3">
-                          <p className="text-sm font-semibold text-afrikoni-chestnut">
+                        <div className="bg-os-accent/10 border border-os-accent/30 rounded-lg p-3">
+                          <p className="text-os-sm font-semibold text-afrikoni-chestnut">
                             Revenue Potential: {stream.potential}
                           </p>
                         </div>
@@ -303,30 +303,30 @@ export default function BusinessModel() {
         </div>
 
             {/* Disclaimer */}
-            <div className="bg-afrikoni-offwhite border-l-4 border-afrikoni-gold/50 p-4 rounded-r-lg mb-6">
-              <p className="text-sm text-afrikoni-deep/70 italic">
+            <div className="bg-afrikoni-offwhite border-l-4 border-os-accent/50 p-4 rounded-r-lg mb-6">
+              <p className="text-os-sm text-afrikoni-deep/70 italic">
                 Illustrative projections based on modeled assumptions, not current performance.
               </p>
             </div>
 
             {/* Total Revenue Projection */}
-            <Card className="border-afrikoni-gold bg-gradient-to-br from-afrikoni-gold/20 to-afrikoni-chestnut/20">
+            <Card className="border-os-accent bg-gradient-to-br from-os-accent/20 to-afrikoni-chestnut/20">
               <CardContent className="p-8">
                 <div className="text-center">
-                  <h3 className="text-2xl font-bold text-afrikoni-chestnut mb-4">
+                  <h3 className="text-os-2xl font-bold text-afrikoni-chestnut mb-4">
                     Year 2-3 Revenue Projection
                   </h3>
                   <div className="grid md:grid-cols-2 gap-6 mb-6">
                     <div>
                       <p className="text-afrikoni-deep mb-2">Total Revenue</p>
-                      <p className="text-4xl font-bold text-afrikoni-gold">$4.9M</p>
+                      <p className="text-4xl font-bold text-os-accent">$4.9M</p>
                     </div>
                     <div>
                       <p className="text-afrikoni-deep mb-2">Profit Margin</p>
                       <p className="text-4xl font-bold text-green-700">41%</p>
                     </div>
                   </div>
-                  <p className="text-afrikoni-deep/80 text-sm">
+                  <p className="text-afrikoni-deep/80 text-os-sm">
                     Based on 1,000 sellers, 5,000 buyers, $10M GMV
                   </p>
                 </div>
@@ -336,13 +336,13 @@ export default function BusinessModel() {
 
           {/* Pricing Tab */}
           <TabsContent value="pricing" className="space-y-6">
-            <Card className="border-afrikoni-gold/30">
+            <Card className="border-os-accent/30">
               <CardContent className="p-8">
                 <div className="text-center mb-8">
-                  <h3 className="text-2xl font-bold text-afrikoni-chestnut mb-4">
+                  <h3 className="text-os-2xl font-bold text-afrikoni-chestnut mb-4">
                     Our Pricing Philosophy
                   </h3>
-                  <p className="text-lg text-afrikoni-deep max-w-3xl mx-auto">
+                  <p className="text-os-lg text-afrikoni-deep max-w-3xl mx-auto">
                     "We only make money when you succeed. Our fees are designed to be fair, transparent, and aligned with the value we provide."
                   </p>
                 </div>
@@ -351,14 +351,14 @@ export default function BusinessModel() {
                   {[
                     { tier: 'Bronze', fee: '3%', price: 'Free', color: 'from-amber-600 to-amber-700' },
                     { tier: 'Silver', fee: '2%', price: '$49/mo', color: 'from-gray-400 to-gray-500' },
-                    { tier: 'Gold', fee: '1%', price: '$199/mo', color: 'from-afrikoni-gold to-afrikoni-goldDark' },
+                    { tier: 'Gold', fee: '1%', price: '$199/mo', color: 'from-os-accent to-os-accentDark' },
                     { tier: 'Enterprise', fee: 'Custom', price: 'Custom', color: 'from-purple-600 to-purple-700' }
                   ].map((tier, idx) => (
                     <Card key={idx} className={`bg-gradient-to-br ${tier.color} text-white border-0`}>
                       <CardContent className="p-6 text-center">
-                        <h4 className="text-xl font-bold mb-2">{tier.tier}</h4>
-                        <p className="text-2xl font-bold mb-1">{tier.fee}</p>
-                        <p className="text-sm opacity-90">{tier.price}</p>
+                        <h4 className="text-os-xl font-bold mb-2">{tier.tier}</h4>
+                        <p className="text-os-2xl font-bold mb-1">{tier.fee}</p>
+                        <p className="text-os-sm opacity-90">{tier.price}</p>
                       </CardContent>
                     </Card>
                   ))}
@@ -370,12 +370,12 @@ export default function BusinessModel() {
                     Cost Calculator Example
                   </h4>
                   <p className="text-afrikoni-deep mb-2">
-                    For a <strong>$10,000 order</strong>, you'll pay <strong className="text-afrikoni-gold">$300 (3%)</strong>
+                    For a <strong>$10,000 order</strong>, you'll pay <strong className="text-os-accent">$300 (3%)</strong>
                   </p>
-                  <p className="text-sm text-afrikoni-deep/80">
+                  <p className="text-os-sm text-afrikoni-deep/80">
                     This includes: Escrow protection, fraud prevention, dispute resolution, payment processing, customer support, and platform maintenance.
                   </p>
-                  <p className="text-sm text-afrikoni-deep/80 mt-2">
+                  <p className="text-os-sm text-afrikoni-deep/80 mt-2">
                     Equivalent services separately would cost $500-800.
                   </p>
                 </div>
@@ -383,14 +383,14 @@ export default function BusinessModel() {
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <Button
                     onClick={() => navigate('/pricing')}
-                    className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut"
+                    className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut"
                   >
                     View Full Pricing Details
                   </Button>
                   <Button
                     variant="outline"
                     onClick={() => navigate('/contact')}
-                    className="border-afrikoni-gold text-afrikoni-chestnut"
+                    className="border-os-accent text-afrikoni-chestnut"
                   >
                     Contact Sales
                   </Button>
@@ -409,10 +409,10 @@ export default function BusinessModel() {
           transition={{ duration: 0.6, delay: 0.3 }}
           className="mt-12 text-center"
         >
-          <Card className="border-2 border-afrikoni-gold bg-gradient-to-br from-afrikoni-chestnut/10 to-afrikoni-deep/10">
+          <Card className="border-2 border-os-accent bg-gradient-to-br from-afrikoni-chestnut/10 to-afrikoni-deep/10">
             <CardContent className="p-8">
-              <Heart className="w-12 h-12 text-afrikoni-gold mx-auto mb-4" />
-              <h3 className="text-2xl font-bold text-afrikoni-chestnut mb-4">
+              <Heart className="w-12 h-12 text-os-accent mx-auto mb-4" />
+              <h3 className="text-os-2xl font-bold text-afrikoni-chestnut mb-4">
                 Ready to Build Something Meaningful?
               </h3>
               <p className="text-afrikoni-deep mb-6 max-w-2xl mx-auto">
@@ -420,7 +420,7 @@ export default function BusinessModel() {
               </p>
               <Button
                 onClick={() => navigate('/signup')}
-                className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut px-8 py-3"
+                className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut px-8 py-3"
               >
                 Get Started
               </Button>

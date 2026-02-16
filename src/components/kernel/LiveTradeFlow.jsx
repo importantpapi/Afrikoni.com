@@ -43,11 +43,11 @@ export function LiveTradeFlow() {
         <div>
           <div className="flex items-center gap-2">
             <Activity className="w-4 h-4 text-[#D4A937]" />
-            <span className="text-sm font-bold tracking-wide uppercase text-gray-900 dark:text-gray-100">Live Trade Flow</span>
+            <span className="text-os-sm font-bold tracking-wide uppercase text-gray-900 dark:text-gray-100">Live Trade Flow</span>
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Real-time kernel process stream</p>
+          <p className="text-os-xs text-gray-500 dark:text-gray-400 mt-0.5">Real-time kernel process stream</p>
         </div>
-        <Badge variant="outline" className="text-[10px] uppercase font-mono border-gray-200 dark:border-gray-800 text-gray-500">
+        <Badge variant="outline" className="text-os-xs uppercase font-mono border-gray-200 dark:border-gray-800 text-gray-500">
           {trades.length} Active
         </Badge>
       </div>
@@ -56,8 +56,8 @@ export function LiveTradeFlow() {
         {trades.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-40 text-center p-4">
             <Package className="w-8 h-8 text-gray-300 dark:text-gray-700 mb-2" />
-            <p className="text-sm text-gray-500">No active trades</p>
-            <p className="text-xs text-gray-400 dark:text-gray-600 mt-1">Start a new trade to see activity here</p>
+            <p className="text-os-sm text-gray-500">No active trades</p>
+            <p className="text-os-xs text-gray-400 dark:text-gray-600 mt-1">Start a new trade to see activity here</p>
           </div>
         ) : (
           trades.map((t) => {
@@ -69,7 +69,7 @@ export function LiveTradeFlow() {
               <div
                 key={t.id}
                 onClick={() => navigate(`/dashboard/trade/${t.id}`)}
-                className="group relative flex flex-col gap-2 p-3 rounded-xl hover:bg-gray-100/50 dark:hover:bg-white/5 border border-transparent hover:border-gray-200 dark:hover:border-white/10 transition-all cursor-pointer"
+                className="group relative flex flex-col gap-2 p-3 rounded-os-sm hover:bg-gray-100/50 dark:hover:bg-white/5 border border-transparent hover:border-gray-200 dark:hover:border-white/10 transition-all cursor-pointer"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
@@ -81,11 +81,11 @@ export function LiveTradeFlow() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-sm text-gray-900 dark:text-gray-200 group-hover:text-[#D4A937] transition-colors line-clamp-1">
+                        <span className="font-semibold text-os-sm text-gray-900 dark:text-gray-200 group-hover:text-[#D4A937] transition-colors line-clamp-1">
                           {t.productName}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-[11px] text-gray-500 dark:text-gray-400 mt-0.5 font-mono">
+                      <div className="flex items-center gap-1.5 text-os-xs text-gray-500 dark:text-gray-400 mt-0.5 font-mono">
                         <span>{t.corridor.originCountry}</span>
                         <ArrowRight className="w-3 h-3 text-gray-300 dark:text-gray-700" />
                         <span>{t.corridor.destinationCountry}</span>
@@ -95,7 +95,7 @@ export function LiveTradeFlow() {
                     </div>
                   </div>
                   <div className="flex flex-col items-end">
-                    <span className={`text-[10px] font-bold uppercase px-1.5 py-0.5 rounded border ${isStalled ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-900/30 text-red-600 dark:text-red-400' :
+                    <span className={`text-os-xs font-bold uppercase px-1.5 py-0.5 rounded border ${isStalled ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-900/30 text-red-600 dark:text-red-400' :
                         'bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400'
                       }`}>
                       {t.status}

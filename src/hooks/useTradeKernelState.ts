@@ -102,7 +102,7 @@ export function useTradeKernelState(): TradeKernelState {
               id: trade.id,
               productName: (trade.product_id && productsMap[trade.product_id])
                 ? productsMap[trade.product_id]
-                : trade.product_name || 'Unknown Product',
+                : trade.product_name || 'Pending Verification',
               status: trade.status,
               corridor: {
                 originCountry: trade.origin_country || 'Unknown',

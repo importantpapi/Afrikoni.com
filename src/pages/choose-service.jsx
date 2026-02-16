@@ -143,19 +143,19 @@ export default function ChooseService() {
                 transition={{ delay: index * 0.08 }}
               >
                 <Card
-                  className="cursor-pointer border-afrikoni-gold/30 hover:border-afrikoni-gold bg-afrikoni-offwhite shadow-lg transition-all"
+                  className="cursor-pointer border-os-accent/30 hover:border-os-accent bg-afrikoni-offwhite shadow-os-md transition-all"
                   onClick={() => handleSelectService(service.id)}
                 >
                   <CardHeader>
                     <CardTitle className="flex items-center gap-3">
-                      <Icon className="w-6 h-6 text-afrikoni-gold" />
+                      <Icon className="w-6 h-6 text-os-accent" />
                       {service.title}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm mb-4">{service.description}</p>
+                    <p className="text-os-sm mb-4">{service.description}</p>
                     <Button
-                      className="w-full bg-afrikoni-gold text-afrikoni-chestnut"
+                      className="w-full bg-os-accent text-afrikoni-chestnut"
                       disabled={saving}
                     >
                       {saving ? (
@@ -174,7 +174,7 @@ export default function ChooseService() {
           })}
         </div>
 
-        <p className="text-center text-sm text-afrikoni-deep/70 mt-8">
+        <p className="text-center text-os-sm text-afrikoni-deep/70 mt-8">
           You can change this later in your account settings.
         </p>
       </div>

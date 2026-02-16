@@ -35,7 +35,7 @@ export function SystemStateBar() {
   return (
     <Surface variant="glass" className="p-4 flex flex-wrap gap-3 items-center justify-between">
       <div className="flex items-center gap-2">
-        <div className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Kernel State</div>
+        <div className="text-os-xs uppercase tracking-[0.2em] text-muted-foreground">Kernel State</div>
         <StatusBadge label={data?.riskSurface?.toUpperCase?.() || "SCANNING"} tone="neutral" />
       </div>
       <div className="flex flex-wrap gap-3">
@@ -48,8 +48,8 @@ export function SystemStateBar() {
               >
                 <item.icon className="h-4 w-4 text-primary" />
                 <div>
-                  <div className="text-[10px] uppercase text-muted-foreground">{item.label}</div>
-                  <div className="text-sm font-semibold text-foreground">{item.value}</div>
+                  <div className="text-os-xs uppercase text-muted-foreground">{item.label}</div>
+                  <div className="text-os-sm font-semibold text-foreground">{item.value}</div>
                 </div>
               </div>
             ))}

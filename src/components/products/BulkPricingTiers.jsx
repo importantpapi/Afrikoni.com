@@ -43,10 +43,10 @@ export default function BulkPricingTiers({ product }) {
   }
 
   return (
-    <Card className="border-afrikoni-gold/20">
-      <CardHeader className="border-b border-afrikoni-gold/10">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <TrendingDown className="w-5 h-5 text-afrikoni-gold" />
+    <Card className="border-os-accent/20">
+      <CardHeader className="border-b border-os-accent/10">
+        <CardTitle className="text-os-lg flex items-center gap-2">
+          <TrendingDown className="w-5 h-5 text-os-accent" />
           Bulk Pricing Tiers
         </CardTitle>
       </CardHeader>
@@ -55,11 +55,11 @@ export default function BulkPricingTiers({ product }) {
           {pricingTiers.map((tier, idx) => (
             <div
               key={idx}
-              className="flex items-center justify-between p-4 bg-afrikoni-offwhite rounded-lg border border-afrikoni-gold/10"
+              className="flex items-center justify-between p-4 bg-afrikoni-offwhite rounded-lg border border-os-accent/10"
             >
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
-                  <Package className="w-5 h-5 text-afrikoni-gold" />
+                <div className="w-10 h-10 bg-os-accent/20 rounded-full flex items-center justify-center">
+                  <Package className="w-5 h-5 text-os-accent" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
@@ -70,18 +70,18 @@ export default function BulkPricingTiers({ product }) {
                       </Badge>
                     )}
                   </div>
-                  <p className="text-sm text-afrikoni-deep/70">
+                  <p className="text-os-sm text-afrikoni-deep/70">
                     {tier.minQty.toLocaleString()}
                     {tier.maxQty ? ` - ${tier.maxQty.toLocaleString()}` : '+'} units
                   </p>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-xl font-bold text-afrikoni-gold">
+                <div className="text-os-xl font-bold text-os-accent">
                   {formatPrice(tier.price, tier.productCurrency, true)}
                 </div>
                 {tier.savings > 0 && (
-                  <p className="text-xs text-green-600">
+                  <p className="text-os-xs text-green-600">
                     Save {formatPrice(tier.savings, tier.productCurrency, true)}/unit
                   </p>
                 )}
@@ -89,7 +89,7 @@ export default function BulkPricingTiers({ product }) {
             </div>
           ))}
         </div>
-        <p className="text-xs text-afrikoni-deep/70 mt-4 text-center">
+        <p className="text-os-xs text-afrikoni-deep/70 mt-4 text-center">
           * Pricing tiers are estimates. Contact supplier for exact pricing based on your order quantity.
         </p>
       </CardContent>

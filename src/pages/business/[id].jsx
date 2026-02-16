@@ -251,7 +251,7 @@ export default function BusinessProfile() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-afrikoni-offwhite flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-os-accent" />
       </div>
     );
   }
@@ -272,7 +272,7 @@ export default function BusinessProfile() {
           <Button
             variant="ghost"
             onClick={() => navigate(-1)}
-            className="mb-4 text-afrikoni-deep hover:text-afrikoni-gold"
+            className="mb-4 text-afrikoni-deep hover:text-os-accent"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back
@@ -284,9 +284,9 @@ export default function BusinessProfile() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <Card className="border-2 border-afrikoni-gold/30 shadow-2xl mb-8 overflow-hidden bg-gradient-to-br from-white via-afrikoni-offwhite to-white">
+            <Card className="border-2 border-os-accent/30 shadow-2xl mb-8 overflow-hidden bg-gradient-to-br from-white via-afrikoni-offwhite to-white">
               {/* Decorative top border */}
-              <div className="h-2 bg-gradient-to-r from-afrikoni-gold via-afrikoni-gold/80 to-afrikoni-gold" />
+              <div className="h-2 bg-gradient-to-r from-os-accent via-os-accent/80 to-os-accent" />
               
               <CardContent className="p-6 md:p-10">
                 <div className="flex flex-col md:flex-row gap-6 md:gap-8">
@@ -296,7 +296,7 @@ export default function BusinessProfile() {
                     whileHover={{ scale: 1.05 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <div className="w-32 h-32 md:w-44 md:h-44 bg-gradient-to-br from-afrikoni-gold/20 via-afrikoni-purple/15 to-afrikoni-gold/10 rounded-3xl border-4 border-afrikoni-gold/40 shadow-2xl flex items-center justify-center flex-shrink-0 overflow-hidden relative">
+                    <div className="w-32 h-32 md:w-44 md:h-44 bg-gradient-to-br from-os-accent/20 via-afrikoni-purple/15 to-os-accent/10 rounded-os-lg border-4 border-os-accent/40 shadow-2xl flex items-center justify-center flex-shrink-0 overflow-hidden relative">
                       {/* Shine effect */}
                       <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent" />
                       
@@ -310,17 +310,17 @@ export default function BusinessProfile() {
                           quality={95}
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-afrikoni-gold/30 to-afrikoni-purple/30">
-                          <Building className="w-20 h-20 md:w-24 md:h-24 text-afrikoni-gold drop-shadow-lg" />
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-os-accent/30 to-afrikoni-purple/30">
+                          <Building className="w-20 h-20 md:w-24 md:h-24 text-os-accent drop-shadow-os-md" />
                         </div>
                       )}
                     </div>
                     {isOwner && !business.logo_url && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-3xl opacity-0 group-hover:opacity-100 transition-all duration-300">
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-os-lg opacity-0 group-hover:opacity-100 transition-all duration-300">
                         <Button
                           size="sm"
                           onClick={() => navigate(`/dashboard/company-info`)}
-                          className="bg-white/95 hover:bg-white text-afrikoni-chestnut shadow-lg"
+                          className="bg-white/95 hover:bg-white text-afrikoni-chestnut shadow-os-md"
                         >
                           <Camera className="w-4 h-4 mr-2" />
                           Add Logo
@@ -347,9 +347,9 @@ export default function BusinessProfile() {
                             whileHover={{ scale: 1.05 }}
                             transition={{ duration: 0.2 }}
                           >
-                            <Badge className="bg-gradient-to-r from-afrikoni-gold via-afrikoni-gold/90 to-afrikoni-gold text-white flex items-center gap-2 px-4 py-2 shadow-lg border-2 border-afrikoni-gold/20">
+                            <Badge className="bg-gradient-to-r from-os-accent via-os-accent/90 to-os-accent text-white flex items-center gap-2 px-4 py-2 shadow-os-md border-2 border-os-accent/20">
                               <CheckCircle className="w-5 h-5" />
-                              <span className="font-bold text-base">Verified Supplier</span>
+                              <span className="font-bold text-os-base">Verified Supplier</span>
                             </Badge>
                           </motion.div>
                         )}
@@ -358,7 +358,7 @@ export default function BusinessProfile() {
                             variant="outline"
                             size="sm"
                             onClick={() => navigate(`/dashboard/company-info`)}
-                            className="border-2 border-afrikoni-gold/40 hover:bg-afrikoni-gold/10 text-afrikoni-chestnut font-semibold"
+                            className="border-2 border-os-accent/40 hover:bg-os-accent/10 text-afrikoni-chestnut font-semibold"
                           >
                             <Edit className="w-4 h-4 mr-2" />
                             Edit Profile
@@ -367,25 +367,25 @@ export default function BusinessProfile() {
                       </motion.div>
                       
                       <motion.div 
-                        className="flex flex-wrap items-center gap-3 md:gap-4 text-sm md:text-base text-afrikoni-deep/80 mb-5"
+                        className="flex flex-wrap items-center gap-3 md:gap-4 text-os-sm md:text-os-base text-afrikoni-deep/80 mb-5"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.5, delay: 0.3 }}
                       >
                         {business.country && (
-                          <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-afrikoni-gold/15 to-afrikoni-gold/5 rounded-xl border-2 border-afrikoni-gold/30 shadow-sm hover:shadow-md transition-shadow">
-                            <MapPin className="w-5 h-5 text-afrikoni-gold" />
+                          <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-os-accent/15 to-os-accent/5 rounded-os-sm border-2 border-os-accent/30 shadow-sm hover:shadow-md transition-shadow">
+                            <MapPin className="w-5 h-5 text-os-accent" />
                             <span className="font-semibold text-afrikoni-chestnut">{business.country}{business.city && `, ${business.city}`}</span>
                           </div>
                         )}
                         {business.year_established && (
-                          <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-afrikoni-purple/15 to-afrikoni-purple/5 rounded-xl border-2 border-afrikoni-purple/30 shadow-sm hover:shadow-md transition-shadow">
+                          <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-afrikoni-purple/15 to-afrikoni-purple/5 rounded-os-sm border-2 border-afrikoni-purple/30 shadow-sm hover:shadow-md transition-shadow">
                             <Calendar className="w-5 h-5 text-afrikoni-purple" />
                             <span className="font-semibold text-afrikoni-chestnut">Est. {business.year_established}</span>
                           </div>
                         )}
                         {business.employee_count && (
-                          <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-50 to-green-50/5 rounded-xl border-2 border-green-200 shadow-sm hover:shadow-md transition-shadow">
+                          <div className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-50 to-green-50/5 rounded-os-sm border-2 border-green-200 shadow-sm hover:shadow-md transition-shadow">
                             <Users className="w-5 h-5 text-green-600" />
                             <span className="font-semibold text-afrikoni-chestnut">{business.employee_count}</span>
                           </div>
@@ -394,7 +394,7 @@ export default function BusinessProfile() {
 
                       {/* Short Description */}
                       {business.description && (
-                        <p className="text-base text-afrikoni-deep/80 mb-4 line-clamp-2 leading-relaxed">
+                        <p className="text-os-base text-afrikoni-deep/80 mb-4 line-clamp-2 leading-relaxed">
                           {business.description}
                         </p>
                       )}
@@ -402,31 +402,31 @@ export default function BusinessProfile() {
                     
                     {/* Enhanced Ratings & Reliability */}
                     <motion.div 
-                      className="text-center bg-gradient-to-br from-afrikoni-gold/20 via-afrikoni-purple/10 to-afrikoni-gold/10 rounded-2xl p-6 border-2 border-afrikoni-gold/30 shadow-lg min-w-[180px]"
+                      className="text-center bg-gradient-to-br from-os-accent/20 via-afrikoni-purple/10 to-os-accent/10 rounded-os-md p-6 border-2 border-os-accent/30 shadow-os-md min-w-[180px]"
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.5, delay: 0.4 }}
                       whileHover={{ scale: 1.02 }}
                     >
                       <div className="flex flex-col items-center gap-2 mb-3">
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-afrikoni-gold to-afrikoni-gold/80 flex items-center justify-center shadow-lg">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-os-accent to-os-accent/80 flex items-center justify-center shadow-os-md">
                           <Star className="w-9 h-9 text-white fill-white" />
                         </div>
                         <span className="text-4xl font-black text-afrikoni-chestnut tracking-tight">
                           {ratings.average || '0.0'}
                         </span>
                       </div>
-                      <div className="text-sm font-medium text-afrikoni-deep/70 mb-4 pb-4 border-b border-afrikoni-gold/20">
+                      <div className="text-os-sm font-medium text-afrikoni-deep/70 mb-4 pb-4 border-b border-os-accent/20">
                         {ratings.total} {ratings.total === 1 ? 'review' : 'reviews'}
                       </div>
                       <div className="flex flex-col items-center gap-2 pt-1">
-                        <div className="flex items-center gap-2 px-4 py-2 bg-white/60 rounded-lg border border-afrikoni-gold/20">
-                          <Shield className="w-5 h-5 text-afrikoni-gold" />
-                          <span className="text-sm font-bold text-afrikoni-chestnut">
+                        <div className="flex items-center gap-2 px-4 py-2 bg-white/60 rounded-lg border border-os-accent/20">
+                          <Shield className="w-5 h-5 text-os-accent" />
+                          <span className="text-os-sm font-bold text-afrikoni-chestnut">
                             {reliabilityScore}%
                           </span>
                         </div>
-                        <span className="text-xs text-afrikoni-deep/60 font-medium">Reliability</span>
+                        <span className="text-os-xs text-afrikoni-deep/60 font-medium">Reliability</span>
                       </div>
                     </motion.div>
                   </div>
@@ -441,7 +441,7 @@ export default function BusinessProfile() {
                     <div className="flex flex-wrap gap-3">
                       <Button
                         onClick={() => setShowMessageDialog(true)}
-                        className="bg-gradient-to-r from-afrikoni-gold to-afrikoni-gold/90 hover:from-afrikoni-goldDark hover:to-afrikoni-gold text-white font-bold shadow-lg hover:shadow-xl transition-all px-8 py-6 text-base"
+                        className="bg-gradient-to-r from-os-accent to-os-accent/90 hover:from-os-accentDark hover:to-os-accent text-white font-bold shadow-os-md hover:shadow-os-lg transition-all px-8 py-6 text-os-base"
                         size="lg"
                       >
                         <MessageSquare className="w-5 h-5 mr-2" />
@@ -451,7 +451,7 @@ export default function BusinessProfile() {
                         <Button
                           variant="outline"
                           asChild
-                          className="border-2 border-afrikoni-gold/40 hover:bg-afrikoni-gold/10 font-semibold px-6 py-6 text-base"
+                          className="border-2 border-os-accent/40 hover:bg-os-accent/10 font-semibold px-6 py-6 text-os-base"
                           size="lg"
                         >
                           <a href={business.website} target="_blank" rel="noopener noreferrer">
@@ -472,24 +472,24 @@ export default function BusinessProfile() {
 
           {/* Tabs */}
           <Tabs defaultValue="products" className="space-y-8">
-            <TabsList className="bg-gradient-to-r from-white via-afrikoni-offwhite to-white border-2 border-afrikoni-gold/30 shadow-lg p-1.5 rounded-xl">
+            <TabsList className="bg-gradient-to-r from-white via-afrikoni-offwhite to-white border-2 border-os-accent/30 shadow-os-md p-1.5 rounded-os-sm">
               <TabsTrigger 
                 value="products" 
-                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-afrikoni-gold data-[state=active]:to-afrikoni-gold/90 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:font-bold rounded-lg px-6 py-3 transition-all duration-200"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-os-accent data-[state=active]:to-os-accent/90 data-[state=active]:text-white data-[state=active]:shadow-os-md data-[state=active]:font-bold rounded-lg px-6 py-3 transition-all duration-200"
               >
                 <Package className="w-4 h-4 mr-2" />
                 Products ({products.length})
               </TabsTrigger>
               <TabsTrigger 
                 value="about"
-                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-afrikoni-gold data-[state=active]:to-afrikoni-gold/90 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:font-bold rounded-lg px-6 py-3 transition-all duration-200"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-os-accent data-[state=active]:to-os-accent/90 data-[state=active]:text-white data-[state=active]:shadow-os-md data-[state=active]:font-bold rounded-lg px-6 py-3 transition-all duration-200"
               >
                 <Building className="w-4 h-4 mr-2" />
                 About
               </TabsTrigger>
               <TabsTrigger 
                 value="reviews"
-                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-afrikoni-gold data-[state=active]:to-afrikoni-gold/90 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:font-bold rounded-lg px-6 py-3 transition-all duration-200"
+                className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-os-accent data-[state=active]:to-os-accent/90 data-[state=active]:text-white data-[state=active]:shadow-os-md data-[state=active]:font-bold rounded-lg px-6 py-3 transition-all duration-200"
               >
                 <Star className="w-4 h-4 mr-2" />
                 Reviews ({ratings.total})
@@ -507,7 +507,7 @@ export default function BusinessProfile() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full"
+                      <Card className="hover:shadow-os-md transition-shadow cursor-pointer h-full"
                         onClick={() => navigate(`/product?id=${product.id}`)}
                       >
                         <div className="aspect-square bg-afrikoni-offwhite rounded-t-lg overflow-hidden">
@@ -535,17 +535,17 @@ export default function BusinessProfile() {
                             {product.title}
                           </h3>
                           <div className="flex items-center justify-between">
-                            <span className="text-lg font-bold text-afrikoni-gold">
+                            <span className="text-os-lg font-bold text-os-accent">
                               {product.currency || 'USD'} {product.price}
                             </span>
                             {product.categories?.name && (
-                              <Badge variant="outline" className="text-xs">
+                              <Badge variant="outline" className="text-os-xs">
                                 {product.categories.name}
                               </Badge>
                             )}
                           </div>
                           {product.moq && (
-                            <p className="text-xs text-afrikoni-deep/70 mt-1">
+                            <p className="text-os-xs text-afrikoni-deep/70 mt-1">
                               MOQ: {product.moq} {product.unit || 'pieces'}
                             </p>
                           )}
@@ -600,7 +600,7 @@ export default function BusinessProfile() {
                       className="relative group cursor-pointer"
                       onClick={() => setSelectedGalleryImage(imageUrl)}
                     >
-                      <div className="aspect-square rounded-xl overflow-hidden border-2 border-afrikoni-gold/20 hover:border-afrikoni-gold/40 transition-all shadow-md hover:shadow-xl">
+                      <div className="aspect-square rounded-os-sm overflow-hidden border-2 border-os-accent/20 hover:border-os-accent/40 transition-all shadow-md hover:shadow-os-lg">
                         <OptimizedImage
                           src={imageUrl}
                           alt={`${business.company_name} gallery image ${index + 1}`}
@@ -610,7 +610,7 @@ export default function BusinessProfile() {
                           quality={85}
                         />
                       </div>
-                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded-xl flex items-center justify-center">
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors rounded-os-sm flex items-center justify-center">
                         <Camera className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
                       </div>
                     </motion.div>
@@ -625,7 +625,7 @@ export default function BusinessProfile() {
                       <Button
                         variant="outline"
                         onClick={() => navigate(`/dashboard/company-info`)}
-                        className="border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10"
+                        className="border-os-accent text-afrikoni-chestnut hover:bg-os-accent/10"
                       >
                         <Camera className="w-4 h-4 mr-2" />
                         Add Gallery Images
@@ -639,34 +639,34 @@ export default function BusinessProfile() {
             {/* Enhanced About Tab */}
             <TabsContent value="about">
               <div className="grid md:grid-cols-2 gap-6">
-                <Card className="border-2 border-afrikoni-gold/20 shadow-lg">
-                  <CardHeader className="bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-purple/10 border-b border-afrikoni-gold/20">
+                <Card className="border-2 border-os-accent/20 shadow-os-md">
+                  <CardHeader className="bg-gradient-to-r from-os-accent/10 to-afrikoni-purple/10 border-b border-os-accent/20">
                     <CardTitle className="flex items-center gap-2 text-afrikoni-chestnut">
-                      <Factory className="w-5 h-5 text-afrikoni-gold" />
+                      <Factory className="w-5 h-5 text-os-accent" />
                       Company Information
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-6 space-y-6">
                     {business.description && (
                       <div>
-                        <h4 className="font-bold text-lg text-afrikoni-chestnut mb-3 flex items-center gap-2">
-                          <Heart className="w-5 h-5 text-afrikoni-gold" />
+                        <h4 className="font-bold text-os-lg text-afrikoni-chestnut mb-3 flex items-center gap-2">
+                          <Heart className="w-5 h-5 text-os-accent" />
                           Our Story
                         </h4>
-                        <p className="text-afrikoni-deep/80 leading-relaxed text-base">{business.description}</p>
+                        <p className="text-afrikoni-deep/80 leading-relaxed text-os-base">{business.description}</p>
                       </div>
                     )}
                     
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-afrikoni-gold/20">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-os-accent/20">
                       {business.business_type && (
-                        <div className="p-4 bg-afrikoni-gold/5 rounded-xl border border-afrikoni-gold/20">
-                          <p className="text-sm text-afrikoni-deep/60 mb-1 font-medium">Business Type</p>
+                        <div className="p-4 bg-os-accent/5 rounded-os-sm border border-os-accent/20">
+                          <p className="text-os-sm text-afrikoni-deep/60 mb-1 font-medium">Business Type</p>
                           <p className="font-bold text-afrikoni-chestnut">{business.business_type}</p>
                         </div>
                       )}
                       {business.employee_count && (
-                        <div className="p-4 bg-afrikoni-purple/5 rounded-xl border border-afrikoni-purple/20">
-                          <p className="text-sm text-afrikoni-deep/60 mb-1 font-medium">Company Size</p>
+                        <div className="p-4 bg-afrikoni-purple/5 rounded-os-sm border border-afrikoni-purple/20">
+                          <p className="text-os-sm text-afrikoni-deep/60 mb-1 font-medium">Company Size</p>
                           <p className="font-bold text-afrikoni-chestnut">{business.employee_count}</p>
                         </div>
                       )}
@@ -674,8 +674,8 @@ export default function BusinessProfile() {
                       {(isOwner || hasCompletedTransaction) ? (
                         <>
                           {business.phone && (
-                            <div className="p-4 bg-afrikoni-green/5 rounded-xl border border-afrikoni-green/20">
-                              <p className="text-sm text-afrikoni-deep/60 mb-1 font-medium flex items-center gap-1">
+                            <div className="p-4 bg-afrikoni-green/5 rounded-os-sm border border-afrikoni-green/20">
+                              <p className="text-os-sm text-afrikoni-deep/60 mb-1 font-medium flex items-center gap-1">
                                 <Phone className="w-3 h-3" />
                                 Phone
                               </p>
@@ -683,8 +683,8 @@ export default function BusinessProfile() {
                             </div>
                           )}
                           {business.email && (
-                            <div className="p-4 bg-afrikoni-gold/5 rounded-xl border border-afrikoni-gold/20">
-                              <p className="text-sm text-afrikoni-deep/60 mb-1 font-medium flex items-center gap-1">
+                            <div className="p-4 bg-os-accent/5 rounded-os-sm border border-os-accent/20">
+                              <p className="text-os-sm text-afrikoni-deep/60 mb-1 font-medium flex items-center gap-1">
                                 <Mail className="w-3 h-3" />
                                 Email
                               </p>
@@ -693,14 +693,14 @@ export default function BusinessProfile() {
                           )}
                         </>
                       ) : (business.phone || business.email) && (
-                        <div className="col-span-2 p-5 bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-purple/10 rounded-xl border-2 border-afrikoni-gold/30">
+                        <div className="col-span-2 p-5 bg-gradient-to-r from-os-accent/10 to-afrikoni-purple/10 rounded-os-sm border-2 border-os-accent/30">
                           <div className="flex items-start gap-3">
-                            <div className="w-10 h-10 rounded-full bg-afrikoni-gold/20 flex items-center justify-center flex-shrink-0">
-                              <Shield className="w-5 h-5 text-afrikoni-gold" />
+                            <div className="w-10 h-10 rounded-full bg-os-accent/20 flex items-center justify-center flex-shrink-0">
+                              <Shield className="w-5 h-5 text-os-accent" />
                             </div>
                             <div>
                               <h4 className="font-bold text-afrikoni-chestnut mb-1">Contact Info Protected</h4>
-                              <p className="text-sm text-afrikoni-deep/70 mb-3">
+                              <p className="text-os-sm text-afrikoni-deep/70 mb-3">
                                 Complete your first transaction with this supplier to unlock direct contact details.
                                 This protects both buyers and suppliers from spam and fraud.
                               </p>
@@ -708,7 +708,7 @@ export default function BusinessProfile() {
                                 <Button
                                   size="sm"
                                   onClick={() => setShowMessageDialog(true)}
-                                  className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white"
+                                  className="bg-os-accent hover:bg-os-accentDark text-white"
                                 >
                                   <MessageSquare className="w-4 h-4 mr-1" />
                                   Send Message First
@@ -717,7 +717,7 @@ export default function BusinessProfile() {
                                   size="sm"
                                   variant="outline"
                                   onClick={() => navigate('/dashboard/rfqs/new')}
-                                  className="border-afrikoni-gold/40 hover:bg-afrikoni-gold/10"
+                                  className="border-os-accent/40 hover:bg-os-accent/10"
                                 >
                                   Create RFQ
                                 </Button>
@@ -730,8 +730,8 @@ export default function BusinessProfile() {
                   </CardContent>
                 </Card>
 
-                <Card className="border-2 border-afrikoni-gold/20 shadow-lg">
-                  <CardHeader className="bg-gradient-to-r from-afrikoni-purple/10 to-afrikoni-gold/10 border-b border-afrikoni-gold/20">
+                <Card className="border-2 border-os-accent/20 shadow-os-md">
+                  <CardHeader className="bg-gradient-to-r from-afrikoni-purple/10 to-os-accent/10 border-b border-os-accent/20">
                     <CardTitle className="flex items-center gap-2 text-afrikoni-chestnut">
                       <Award className="w-5 h-5 text-afrikoni-purple" />
                       Certifications & Trust
@@ -741,37 +741,37 @@ export default function BusinessProfile() {
                     {business.certifications && business.certifications.length > 0 ? (
                       <div className="space-y-3 mb-6">
                         {(Array.isArray(business?.certifications) ? business.certifications : []).map((cert, idx) => (
-                          <Badge key={idx} variant="outline" className="mr-2 mb-2 px-4 py-2 text-sm bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-purple/10 border-afrikoni-gold/30">
-                            <Award className="w-4 h-4 mr-2 text-afrikoni-gold" />
+                          <Badge key={idx} variant="outline" className="mr-2 mb-2 px-4 py-2 text-os-sm bg-gradient-to-r from-os-accent/10 to-afrikoni-purple/10 border-os-accent/30">
+                            <Award className="w-4 h-4 mr-2 text-os-accent" />
                             <span className="font-semibold">{cert}</span>
                           </Badge>
                         ))}
                       </div>
                     ) : (
-                      <p className="text-afrikoni-deep/70 text-sm mb-6">No certifications listed</p>
+                      <p className="text-afrikoni-deep/70 text-os-sm mb-6">No certifications listed</p>
                     )}
                     
-                    <div className="space-y-4 pt-4 border-t border-afrikoni-gold/20">
-                      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-gold/5 rounded-xl border border-afrikoni-gold/20">
+                    <div className="space-y-4 pt-4 border-t border-os-accent/20">
+                      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-os-accent/10 to-os-accent/5 rounded-os-sm border border-os-accent/20">
                         <div className="flex items-center gap-2">
-                          <TrendingUp className="w-5 h-5 text-afrikoni-gold" />
-                          <span className="text-sm font-medium text-afrikoni-deep/80">Reliability Score</span>
+                          <TrendingUp className="w-5 h-5 text-os-accent" />
+                          <span className="text-os-sm font-medium text-afrikoni-deep/80">Reliability Score</span>
                         </div>
-                        <span className="text-2xl font-bold text-afrikoni-gold">{reliabilityScore}%</span>
+                        <span className="text-os-2xl font-bold text-os-accent">{reliabilityScore}%</span>
                       </div>
-                      <div className="flex items-center justify-between p-4 bg-afrikoni-purple/5 rounded-xl border border-afrikoni-purple/20">
+                      <div className="flex items-center justify-between p-4 bg-afrikoni-purple/5 rounded-os-sm border border-afrikoni-purple/20">
                         <div className="flex items-center gap-2">
                           <MessageSquare className="w-5 h-5 text-afrikoni-purple" />
-                          <span className="text-sm font-medium text-afrikoni-deep/80">Response Rate</span>
+                          <span className="text-os-sm font-medium text-afrikoni-deep/80">Response Rate</span>
                         </div>
-                        <span className="text-xl font-bold text-afrikoni-purple">{business.response_rate || 0}%</span>
+                        <span className="text-os-xl font-bold text-afrikoni-purple">{business.response_rate || 0}%</span>
                       </div>
-                      <div className="flex items-center justify-between p-4 bg-afrikoni-green/5 rounded-xl border border-afrikoni-green/20">
+                      <div className="flex items-center justify-between p-4 bg-afrikoni-green/5 rounded-os-sm border border-afrikoni-green/20">
                         <div className="flex items-center gap-2">
                           <Package className="w-5 h-5 text-afrikoni-green" />
-                          <span className="text-sm font-medium text-afrikoni-deep/80">Total Orders</span>
+                          <span className="text-os-sm font-medium text-afrikoni-deep/80">Total Orders</span>
                         </div>
-                        <span className="text-xl font-bold text-afrikoni-green">{business.total_orders || 0}</span>
+                        <span className="text-os-xl font-bold text-afrikoni-green">{business.total_orders || 0}</span>
                       </div>
                     </div>
                   </CardContent>
@@ -782,10 +782,10 @@ export default function BusinessProfile() {
             {/* Reviews Tab */}
             <TabsContent value="reviews" className="space-y-6">
               {/* Reviews Summary */}
-              <Card className="border-2 border-afrikoni-gold/20 shadow-lg bg-gradient-to-br from-white via-afrikoni-offwhite to-white">
-                <CardHeader className="bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-purple/10 border-b border-afrikoni-gold/20">
+              <Card className="border-2 border-os-accent/20 shadow-os-md bg-gradient-to-br from-white via-afrikoni-offwhite to-white">
+                <CardHeader className="bg-gradient-to-r from-os-accent/10 to-afrikoni-purple/10 border-b border-os-accent/20">
                   <CardTitle className="flex items-center gap-2 text-afrikoni-chestnut">
-                    <Star className="w-5 h-5 text-afrikoni-gold" />
+                    <Star className="w-5 h-5 text-os-accent" />
                     Customer Reviews
                   </CardTitle>
                 </CardHeader>
@@ -802,13 +802,13 @@ export default function BusinessProfile() {
                                 key={i}
                                 className={`w-5 h-5 ${
                                   i < Math.round(parseFloat(ratings.average))
-                                    ? 'text-afrikoni-gold fill-afrikoni-gold'
+                                    ? 'text-os-accent fill-os-accent'
                                     : 'text-afrikoni-deep/20'
                                 }`}
                               />
                             ))}
                           </div>
-                          <p className="text-sm text-afrikoni-deep/70">{ratings.total} {ratings.total === 1 ? 'review' : 'reviews'}</p>
+                          <p className="text-os-sm text-afrikoni-deep/70">{ratings.total} {ratings.total === 1 ? 'review' : 'reviews'}</p>
                         </div>
                       </div>
                     </div>
@@ -820,14 +820,14 @@ export default function BusinessProfile() {
                         const percentage = ratings.total > 0 ? (count / ratings.total) * 100 : 0;
                         return (
                           <div key={star} className="flex items-center gap-3">
-                            <span className="text-sm font-medium text-afrikoni-deep/70 w-8">{star} <Star className="w-3 h-3 inline text-afrikoni-gold fill-afrikoni-gold" /></span>
+                            <span className="text-os-sm font-medium text-afrikoni-deep/70 w-8">{star} <Star className="w-3 h-3 inline text-os-accent fill-os-accent" /></span>
                             <div className="flex-1 h-2 bg-afrikoni-offwhite rounded-full overflow-hidden">
                               <div 
-                                className="h-full bg-gradient-to-r from-afrikoni-gold to-afrikoni-gold/80"
+                                className="h-full bg-gradient-to-r from-os-accent to-os-accent/80"
                                 style={{ width: `${percentage}%` }}
                               />
                             </div>
-                            <span className="text-sm text-afrikoni-deep/70 w-12 text-right">{count}</span>
+                            <span className="text-os-sm text-afrikoni-deep/70 w-12 text-right">{count}</span>
                           </div>
                         );
                       })}
@@ -846,7 +846,7 @@ export default function BusinessProfile() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <Card className="border border-afrikoni-gold/20 hover:shadow-lg transition-shadow">
+                      <Card className="border border-os-accent/20 hover:shadow-os-md transition-shadow">
                         <CardContent className="p-6">
                           <div className="flex items-start justify-between mb-3">
                             <div className="flex flex-wrap items-center gap-2">
@@ -855,7 +855,7 @@ export default function BusinessProfile() {
                                   key={i}
                                   className={`w-5 h-5 ${
                                     i < (review.rating || 0)
-                                      ? 'text-afrikoni-gold fill-afrikoni-gold'
+                                      ? 'text-os-accent fill-os-accent'
                                       : 'text-afrikoni-deep/20'
                                   }`}
                                 />
@@ -864,14 +864,14 @@ export default function BusinessProfile() {
                                 <CheckCircle className="w-3 h-3 mr-1" />
                                 Verified Order
                               </Badge>
-                              <Badge variant="outline" className="text-xs bg-white">
+                              <Badge variant="outline" className="text-os-xs bg-white">
                                 {new Date(review.created_at).toLocaleDateString('en-US', {
                                   month: 'short',
                                   year: 'numeric'
                                 })}
                               </Badge>
                             </div>
-                            <span className="text-sm text-afrikoni-deep/60">
+                            <span className="text-os-sm text-afrikoni-deep/60">
                               {new Date(review.created_at).toLocaleDateString('en-US', { 
                                 year: 'numeric', 
                                 month: 'long', 
@@ -888,12 +888,12 @@ export default function BusinessProfile() {
                   ))}
                 </div>
               ) : (
-                <Card className="border-2 border-afrikoni-gold/20">
+                <Card className="border-2 border-os-accent/20">
                   <CardContent className="p-12 text-center">
-                    <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-afrikoni-gold/20 to-afrikoni-purple/20 rounded-full flex items-center justify-center">
-                      <Star className="w-10 h-10 text-afrikoni-gold" />
+                    <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br from-os-accent/20 to-afrikoni-purple/20 rounded-full flex items-center justify-center">
+                      <Star className="w-10 h-10 text-os-accent" />
                     </div>
-                    <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2">No reviews yet</h3>
+                    <h3 className="text-os-xl font-bold text-afrikoni-chestnut mb-2">No reviews yet</h3>
                     <p className="text-afrikoni-deep/70">Be the first to review this supplier!</p>
                   </CardContent>
                 </Card>

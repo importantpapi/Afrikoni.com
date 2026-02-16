@@ -53,15 +53,15 @@ export default function MobileSearchBar({
         bg-white/95
         rounded-full
         shadow-md
-        border border-afrikoni-gold/20
+        border border-os-accent/20
         px-3 py-2.5
         h-12
         transition-all duration-200
-        focus-within:ring-1 focus-within:ring-afrikoni-gold/30 focus-within:shadow-lg
-        ${isFocused ? 'shadow-lg border-afrikoni-gold/30' : ''}
+        focus-within:ring-1 focus-within:ring-os-accent/30 focus-within:shadow-os-md
+        ${isFocused ? 'shadow-os-md border-os-accent/30' : ''}
       `}>
         <Search 
-          className="w-5 h-5 text-afrikoni-gold/70 flex-shrink-0" 
+          className="w-5 h-5 text-os-accent/70 flex-shrink-0" 
           aria-hidden="true"
         />
         <Input
@@ -71,7 +71,7 @@ export default function MobileSearchBar({
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
           placeholder={searchPlaceholder}
-          className="flex-1 bg-transparent border-0 focus:outline-none focus:ring-0 text-sm text-afrikoni-deep placeholder:text-afrikoni-deep/50 h-auto py-0"
+          className="flex-1 bg-transparent border-0 focus:outline-none focus:ring-0 text-os-sm text-afrikoni-deep placeholder:text-afrikoni-deep/50 h-auto py-0"
         />
       </div>
     </form>

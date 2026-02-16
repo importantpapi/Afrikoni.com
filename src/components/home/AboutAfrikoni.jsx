@@ -42,7 +42,7 @@ export default function AboutAfrikoni() {
           <h2 className="text-3xl md:text-4xl font-bold font-serif text-afrikoni-chestnut mb-4">
             What Afrikoni Offers
           </h2>
-          <p className="text-lg text-afrikoni-deep max-w-2xl mx-auto">
+          <p className="text-os-lg text-afrikoni-deep max-w-2xl mx-auto">
             A digital B2B trade platform building trust and structure in African trade
           </p>
         </motion.div>
@@ -58,15 +58,15 @@ export default function AboutAfrikoni() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.6, delay: idx * 0.1 }}
               >
-                <Card className="h-full hover:shadow-lg transition-shadow">
+                <Card className="h-full hover:shadow-os-md transition-shadow">
                   <CardContent className="p-6">
-                    <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-lg flex items-center justify-center mb-4">
-                      <Icon className="w-6 h-6 text-afrikoni-gold" />
+                    <div className="w-12 h-12 bg-os-accent/20 rounded-lg flex items-center justify-center mb-4">
+                      <Icon className="w-6 h-6 text-os-accent" />
                     </div>
-                    <h3 className="text-lg font-bold text-afrikoni-chestnut mb-2">
+                    <h3 className="text-os-lg font-bold text-afrikoni-chestnut mb-2">
                       {feature.title}
                     </h3>
-                    <p className="text-afrikoni-deep text-sm">
+                    <p className="text-afrikoni-deep text-os-sm">
                       {feature.description}
                     </p>
                   </CardContent>
@@ -81,17 +81,17 @@ export default function AboutAfrikoni() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="bg-gradient-to-br from-afrikoni-earth via-afrikoni-deep to-afrikoni-chestnut rounded-2xl p-8 md:p-12 text-center text-afrikoni-cream"
+          className="bg-gradient-to-br from-afrikoni-earth via-afrikoni-deep to-afrikoni-chestnut rounded-os-md p-8 md:p-12 text-center text-afrikoni-cream"
         >
-          <h3 className="text-2xl md:text-3xl font-bold font-serif mb-4">
+          <h3 className="text-os-2xl md:text-3xl font-bold font-serif mb-4">
             Join Afrikoni's B2B Trade Platform
           </h3>
-          <p className="text-lg text-afrikoni-cream mb-6 max-w-2xl mx-auto">
+          <p className="text-os-lg text-afrikoni-cream mb-6 max-w-2xl mx-auto">
             Connect with verified suppliers, source products, and grow your business with structured B2B trade across African markets
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link to="/signup">
-              <Button size="lg" className="bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight">
+              <Button size="lg" className="bg-os-accent text-afrikoni-chestnut hover:bg-os-accentLight">
                 Get Started Free
               </Button>
             </Link>

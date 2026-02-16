@@ -40,7 +40,7 @@ export function NBA({
                 >
                     <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-os-accent/10 border border-os-accent/20 text-os-accent">
                         <Icon className="w-3 h-3" />
-                        <span className="text-[10px] font-bold uppercase tracking-widest">{status}</span>
+                        <span className="text-os-xs font-bold uppercase tracking-widest">{status}</span>
                     </div>
                 </motion.div>
 
@@ -57,7 +57,7 @@ export function NBA({
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="text-lg md:text-xl text-os-text-secondary mb-8 leading-relaxed max-w-xl"
+                    className="text-os-lg md:text-os-xl text-os-text-secondary mb-8 leading-relaxed max-w-xl"
                 >
                     {description}
                 </motion.p>
@@ -70,9 +70,9 @@ export function NBA({
                     <Button
                         size="lg"
                         onClick={onAction}
-                        className="h-14 px-8 rounded-full bg-os-accent text-white hover:bg-os-accent/90 shadow-premium group/btn"
+                        className="h-14 px-8 rounded-full bg-os-accent text-white hover:bg-os-accent/90 shadow-os-md group/btn"
                     >
-                        <span className="text-sm font-bold tracking-tight">{actionLabel}</span>
+                        <span className="text-os-sm font-bold tracking-tight">{actionLabel}</span>
                         <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover/btn:translate-x-1" />
                     </Button>
                 </motion.div>

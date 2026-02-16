@@ -16,14 +16,14 @@ export default function KoniAIActionButton({
   icon: Icon = Sparkles
 }) {
   const variantClasses = {
-    primary: 'bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white border-afrikoni-gold',
-    ghost: 'bg-transparent hover:bg-afrikoni-gold/10 text-afrikoni-gold border border-afrikoni-gold/30'
+    primary: 'bg-os-accent hover:bg-os-accentDark text-white border-os-accent',
+    ghost: 'bg-transparent hover:bg-os-accent/10 text-os-accent border border-os-accent/30'
   };
 
   const sizeClasses = {
-    sm: 'h-8 px-3 text-xs',
-    default: 'h-10 px-4 text-sm',
-    lg: 'h-12 px-6 text-base'
+    sm: 'h-8 px-3 text-os-xs',
+    default: 'h-10 px-4 text-os-sm',
+    lg: 'h-12 px-6 text-os-base'
   };
 
   return (

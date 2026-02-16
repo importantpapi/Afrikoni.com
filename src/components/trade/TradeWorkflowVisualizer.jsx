@@ -230,10 +230,10 @@ export default function TradeWorkflowVisualizer({
     return (
       <div className="w-full">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium">
+          <span className="text-os-sm font-medium">
             {isCompleted ? 'Order Complete' : activeSteps[currentStepIndex]?.label || 'Processing'}
           </span>
-          <span className="text-sm">{progressPercent}%</span>
+          <span className="text-os-sm">{progressPercent}%</span>
         </div>
         <div className="h-2 rounded-full overflow-hidden">
           <motion.div
@@ -245,7 +245,7 @@ export default function TradeWorkflowVisualizer({
                 ? 'bg-green-500'
                 : isCancelled
                   ? 'bg-red-500'
-                  : 'bg-afrikoni-gold'
+                  : 'bg-os-accent'
             }`}
           />
         </div>
@@ -256,12 +256,12 @@ export default function TradeWorkflowVisualizer({
   // Render compact variant (horizontal stepper)
   if (variant === 'compact') {
     return (
-      <div className="w-full p-4 rounded-xl border">
+      <div className="w-full p-4 rounded-os-sm border">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-semibold">Order Progress</h3>
           <button
             onClick={() => setIsExpanded(!isExpanded)}
-            className="text-sm hover:underline flex items-center gap-1"
+            className="text-os-sm hover:underline flex items-center gap-1"
           >
             {isExpanded ? 'Hide details' : 'Show details'}
             {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -299,7 +299,7 @@ export default function TradeWorkflowVisualizer({
                       status === 'completed'
                         ? 'bg-green-500 text-white'
                         : status === 'current'
-                          ? 'bg-afrikoni-gold text-white ring-4 ring-afrikoni-gold/20'
+                          ? 'bg-os-accent text-white ring-4 ring-os-accent/20'
                           : 'bg-stone-200 text-stone-400'
                     }`}
                   >
@@ -309,9 +309,9 @@ export default function TradeWorkflowVisualizer({
                       <Icon className="w-4 h-4" />
                     )}
                   </div>
-                  <span className={`mt-2 text-xs text-center ${
+                  <span className={`mt-2 text-os-xs text-center ${
                     status === 'current'
-                      ? 'font-semibold text-afrikoni-gold'
+                      ? 'font-semibold text-os-accent'
                       : status === 'completed'
                         ? 'text-green-600'
                         : 'text-stone-400'
@@ -338,18 +338,18 @@ export default function TradeWorkflowVisualizer({
                   <div className="flex items-start gap-3 p-3 rounded-lg">
                     <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
                       {React.createElement(activeSteps[currentStepIndex].icon, {
-                        className: 'w-5 h-5 text-afrikoni-gold'
+                        className: 'w-5 h-5 text-os-accent'
                       })}
                     </div>
                     <div>
                       <p className="font-medium">
                         {activeSteps[currentStepIndex].label}
                       </p>
-                      <p className="text-sm">
+                      <p className="text-os-sm">
                         {activeSteps[currentStepIndex].description}
                       </p>
                       {activeSteps[currentStepIndex].estimatedTime && (
-                        <p className="text-xs mt-1 flex items-center gap-1">
+                        <p className="text-os-xs mt-1 flex items-center gap-1">
                           <Clock className="w-3 h-3" />
                           Est. {activeSteps[currentStepIndex].estimatedTime}
                         </p>
@@ -359,7 +359,7 @@ export default function TradeWorkflowVisualizer({
                 )}
 
                 {estimatedDelivery && (
-                  <div className="flex items-center gap-2 text-sm">
+                  <div className="flex items-center gap-2 text-os-sm">
                     <MapPin className="w-4 h-4" />
                     <span>
                       Estimated delivery: {new Date(estimatedDelivery).toLocaleDateString()}
@@ -376,19 +376,19 @@ export default function TradeWorkflowVisualizer({
 
   // Full variant (vertical timeline)
   return (
-    <div className="w-full rounded-xl border overflow-hidden">
+    <div className="w-full rounded-os-sm border overflow-hidden">
       {/* Header */}
       <div className="px-6 py-4 border-b bg-gradient-to-r to-transparent">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="font-semibold">Trade Workflow</h3>
-            <p className="text-sm mt-0.5">
+            <p className="text-os-sm mt-0.5">
               Track your order progress from quote to delivery
             </p>
           </div>
           <div className="text-right">
-            <div className="text-2xl font-bold">{progressPercent}%</div>
-            <p className="text-xs">Complete</p>
+            <div className="text-os-2xl font-bold">{progressPercent}%</div>
+            <p className="text-os-xs">Complete</p>
           </div>
         </div>
 
@@ -403,7 +403,7 @@ export default function TradeWorkflowVisualizer({
                 ? 'bg-gradient-to-r from-green-500 to-green-400'
                 : isCancelled
                   ? 'bg-red-500'
-                  : 'bg-gradient-to-r from-afrikoni-gold to-amber-500'
+                  : 'bg-gradient-to-r from-os-accent to-amber-500'
             }`}
           />
         </div>
@@ -419,7 +419,7 @@ export default function TradeWorkflowVisualizer({
             <p className="font-medium">
               {isCancelled ? 'Order Cancelled' : 'Order Under Dispute'}
             </p>
-            <p className="text-sm opacity-80">
+            <p className="text-os-sm opacity-80">
               {isCancelled
                 ? 'This order has been cancelled. Payment will be refunded if applicable.'
                 : 'A dispute has been raised. Our team is reviewing the case.'}
@@ -455,7 +455,7 @@ export default function TradeWorkflowVisualizer({
                       stepStatus === 'completed'
                         ? 'bg-green-500 text-white'
                         : stepStatus === 'current'
-                          ? 'bg-afrikoni-gold text-white ring-4 ring-afrikoni-gold/20 shadow-lg'
+                          ? 'bg-os-accent text-white ring-4 ring-os-accent/20 shadow-os-md'
                           : 'bg-stone-100 text-stone-400 border-2 border-stone-200'
                     }`}
                   >
@@ -486,7 +486,7 @@ export default function TradeWorkflowVisualizer({
                   {/* Step content */}
                   <div className={`${
                     stepStatus === 'current'
-                      ? 'bg-afrikoni-gold/5 -mx-3 px-3 py-2 rounded-lg'
+                      ? 'bg-os-accent/5 -mx-3 px-3 py-2 rounded-lg'
                       : ''
                   }`}>
                     <div className="flex items-start justify-between">
@@ -495,17 +495,17 @@ export default function TradeWorkflowVisualizer({
                           stepStatus === 'completed'
                             ? 'text-green-600'
                             : stepStatus === 'current'
-                              ? 'text-afrikoni-gold'
+                              ? 'text-os-accent'
                               : 'text-stone-400'
                         }`}>
                           {step.label}
                           {step.optional && (
-                            <span className="ml-2 text-xs font-normal">
+                            <span className="ml-2 text-os-xs font-normal">
                               (Optional)
                             </span>
                           )}
                         </h4>
-                        <p className={`text-sm mt-0.5 ${
+                        <p className={`text-os-sm mt-0.5 ${
                           stepStatus === 'upcoming' ? 'text-stone-300' : 'text-stone-500'
                         }`}>
                           {step.description}
@@ -513,7 +513,7 @@ export default function TradeWorkflowVisualizer({
                       </div>
 
                       {step.estimatedTime && stepStatus === 'current' && (
-                        <div className="flex items-center gap-1 text-xs px-2 py-1 rounded-full">
+                        <div className="flex items-center gap-1 text-os-xs px-2 py-1 rounded-full">
                           <Clock className="w-3 h-3" />
                           {step.estimatedTime}
                         </div>
@@ -524,7 +524,7 @@ export default function TradeWorkflowVisualizer({
                     {events
                       .filter(e => e.step === step.id)
                       .map((event, i) => (
-                        <div key={i} className="mt-2 text-xs flex items-center gap-2">
+                        <div key={i} className="mt-2 text-os-xs flex items-center gap-2">
                           <Clock className="w-3 h-3" />
                           {new Date(event.timestamp).toLocaleString()}
                           {event.note && <span>- {event.note}</span>}
@@ -546,8 +546,8 @@ export default function TradeWorkflowVisualizer({
               <MapPin className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-sm font-medium">Estimated Delivery</p>
-              <p className="text-sm">
+              <p className="text-os-sm font-medium">Estimated Delivery</p>
+              <p className="text-os-sm">
                 {new Date(estimatedDelivery).toLocaleDateString('en-US', {
                   weekday: 'long',
                   year: 'numeric',
@@ -564,7 +564,7 @@ export default function TradeWorkflowVisualizer({
       {paymentStatus === 'paid' && !isCompleted && (
         <div className="px-6 py-3 border-t flex items-center gap-3">
           <Shield className="w-5 h-5 flex-shrink-0" />
-          <div className="text-sm">
+          <div className="text-os-sm">
             <span className="font-medium">Protected by Afrikoni Escrow</span>
             <span className="ml-1">- Payment held securely until delivery confirmed</span>
           </div>

@@ -69,7 +69,7 @@ export default function GlobalPaymentRisk({ transactions = [] }) {
             <div className="flex items-center justify-between mb-4 relative z-10">
                 <div className="flex items-center gap-2">
                     <Icon className={`w-5 h-5 ${getRiskColor(riskAnalysis.level)}`} />
-                    <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--os-text-primary)]">
+                    <h3 className="text-os-sm font-semibold uppercase tracking-wider text-[var(--os-text-primary)]">
                         Risk Exposure
                     </h3>
                 </div>
@@ -80,15 +80,15 @@ export default function GlobalPaymentRisk({ transactions = [] }) {
 
             <div className="flex items-end gap-2 mb-6 relative z-10">
                 <div className="text-4xl font-bold font-mono text-white">
-                    {riskAnalysis.score}<span className="text-lg text-os-muted">%</span>
+                    {riskAnalysis.score}<span className="text-os-lg text-os-muted">%</span>
                 </div>
-                <div className="text-sm text-os-muted mb-1.5 pb-0.5">Health Score</div>
+                <div className="text-os-sm text-os-muted mb-1.5 pb-0.5">Health Score</div>
             </div>
 
             {/* Risk Factors List */}
             <div className="space-y-3 relative z-10">
                 {riskAnalysis.factors.map((factor, index) => (
-                    <div key={index} className="flex justify-between items-center text-sm p-2 bg-white/5 rounded border border-white/5">
+                    <div key={index} className="flex justify-between items-center text-os-sm p-2 bg-white/5 rounded border border-white/5">
                         <span className="text-os-muted">{factor.label}</span>
                         <span className={`font-mono font-medium ${factor.severity === 'high' ? 'text-red-400' :
                                 factor.severity === 'medium' ? 'text-amber-400' : 'text-blue-400'
@@ -98,13 +98,13 @@ export default function GlobalPaymentRisk({ transactions = [] }) {
                     </div>
                 ))}
                 {riskAnalysis.factors.length === 0 && (
-                    <div className="text-center text-sm text-emerald-400 py-2 bg-emerald-500/10 rounded border border-emerald-500/20">
+                    <div className="text-center text-os-sm text-emerald-400 py-2 bg-emerald-500/10 rounded border border-emerald-500/20">
                         No active risk factors detected.
                     </div>
                 )}
             </div>
 
-            <div className="mt-4 pt-4 border-t border-white/5 text-[10px] text-os-muted">
+            <div className="mt-4 pt-4 border-t border-white/5 text-os-xs text-os-muted">
                 AI-driven analysis based on active escrow corridors and counterparty trust scores.
             </div>
         </Surface>

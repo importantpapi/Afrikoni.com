@@ -128,13 +128,13 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
                     <h1 className="os-title-large">
                         {viewMode === 'sell' ? 'Sales Ledger' : 'Active Orders'}
                     </h1>
-                    <p className="text-os-text-secondary text-lg">
+                    <p className="text-os-text-secondary text-os-lg">
                         You have {trades.length} active trade flows synchronized.
                     </p>
                 </div>
                 {viewMode === 'buy' && (
                     <Button
-                        className="bg-os-text-primary text-os-bg rounded-full px-8 py-6 h-auto font-semibold shadow-premium hover:opacity-90 transition-all"
+                        className="bg-os-text-primary text-os-bg rounded-full px-8 py-6 h-auto font-semibold shadow-os-md hover:opacity-90 transition-all"
                         onClick={() => navigate('/dashboard/rfqs/new')}
                     >
                         New Order
@@ -147,8 +147,8 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
                     <div key={stat.label} className="glass-surface p-6 flex flex-col gap-2">
                         <stat.icon className={cn("h-5 w-5 opacity-60", stat.color)} />
                         <div>
-                            <div className="text-xs font-semibold text-os-text-secondary uppercase tracking-widest">{stat.label}</div>
-                            <div className="text-2xl font-bold tracking-tight">{stat.value}</div>
+                            <div className="text-os-xs font-semibold text-os-text-secondary uppercase tracking-widest">{stat.label}</div>
+                            <div className="text-os-2xl font-bold tracking-tight">{stat.value}</div>
                         </div>
                     </div>
                 ))}
@@ -169,10 +169,10 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
                         placeholder="Find an order or product..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-11 h-12 bg-white/5 border-os-stroke rounded-2xl focus:bg-white/10 transition-all text-base"
+                        className="pl-11 h-12 bg-white/5 border-os-stroke rounded-os-md focus:bg-white/10 transition-all text-os-base"
                     />
                 </div>
-                <Button variant="ghost" className="h-12 px-6 rounded-2xl border border-os-stroke text-os-text-secondary hover:text-os-text-primary gap-2">
+                <Button variant="ghost" className="h-12 px-6 rounded-os-md border border-os-stroke text-os-text-secondary hover:text-os-text-primary gap-2">
                     <Filter className="h-4 w-4" /> Filter
                 </Button>
             </div>
@@ -202,24 +202,24 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
                                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
                                     <div>
                                         <div className="flex items-center gap-3 mb-1">
-                                            <h3 className="text-base font-semibold text-[var(--os-text-primary)]">{displayTitle}</h3>
+                                            <h3 className="text-os-base font-semibold text-[var(--os-text-primary)]">{displayTitle}</h3>
                                             <StatusBadge label={status.label} tone={status.tone} />
                                             {order.corridor?.risk && order.corridor.risk !== 'low' && (
-                                                <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-500/10 text-amber-500 uppercase">
+                                                <span className="px-1.5 py-0.5 rounded text-os-xs font-medium bg-amber-500/10 text-amber-500 uppercase">
                                                     {order.corridor.risk} risk
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="flex items-center gap-2 text-sm text-os-muted">
-                                            {!isSimple && <span className="font-mono text-[10px] opacity-70">ID: {order.id.substring(0, 8)}</span>}
+                                        <div className="flex items-center gap-2 text-os-sm text-os-muted">
+                                            {!isSimple && <span className="font-mono text-os-xs opacity-70">ID: {order.id.substring(0, 8)}</span>}
                                             <span className={cn(isSimple ? "" : "hidden sm:inline")}>{isSimple ? "" : "· "}{format(new Date(order.created_at), 'MMM d, yyyy')}</span>
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-xl font-bold text-[var(--os-text-primary)] tabular-nums">
+                                        <p className="text-os-xl font-bold text-[var(--os-text-primary)] tabular-nums">
                                             ${(order.total_value || order.total_amount || 0).toLocaleString()}
                                         </p>
-                                        <p className="text-[10px] text-os-muted uppercase">
+                                        <p className="text-os-xs text-os-muted uppercase">
                                             {(order.quantity || 0).toLocaleString()} {order.quantity_unit || 'units'}
                                         </p>
                                     </div>
@@ -228,8 +228,8 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
                                 {milestones.length > 0 && (
                                     <div className="mb-3">
                                         <div className="flex items-center justify-between mb-1.5">
-                                            <span className="text-[10px] uppercase text-os-muted">Chain Progress</span>
-                                            <span className="text-xs font-medium text-os-gold tabular-nums">{progress.toFixed(0)}%</span>
+                                            <span className="text-os-xs uppercase text-os-muted">Chain Progress</span>
+                                            <span className="text-os-xs font-medium text-os-gold tabular-nums">{progress.toFixed(0)}%</span>
                                         </div>
                                         <Progress value={progress} className="h-1.5" />
                                     </div>
@@ -238,9 +238,9 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
                                 <div className="flex flex-wrap gap-1.5">
                                     {milestones.slice(0, 4).map((m, idx) => (
                                         <span key={idx} className={cn(
-                                            "px-2 py-0.5 rounded-full text-[10px] font-medium border transition-colors",
+                                            "px-2 py-0.5 rounded-full text-os-xs font-medium border transition-colors",
                                             m.status === 'completed' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" :
-                                                m.status === 'in_progress' ? "bg-blue-500/10 text-blue-500 border-blue-500/20" :
+                                                m.status === 'in_progress' ? "bg-os-blue/10 text-os-blue border-os-blue/20" :
                                                     "bg-os-surface-0 text-os-muted border-os-stroke"
                                         )}>
                                             {m.name || 'Step'}

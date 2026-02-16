@@ -224,24 +224,24 @@ function ReturnsDashboardInner() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Surface className="p-4">
-          <p className="text-sm text-[var(--os-text-secondary)] mb-1">Total Returns</p>
-          <p className="text-2xl font-semibold text-[var(--os-text-primary)]">{(returns || []).length}</p>
+          <p className="text-os-sm text-[var(--os-text-secondary)] mb-1">Total Returns</p>
+          <p className="text-os-2xl font-semibold text-[var(--os-text-primary)]">{(returns || []).length}</p>
         </Surface>
         <Surface className="p-4">
-          <p className="text-sm text-[var(--os-text-secondary)] mb-1">Pending</p>
-          <p className="text-2xl font-semibold">
+          <p className="text-os-sm text-[var(--os-text-secondary)] mb-1">Pending</p>
+          <p className="text-os-2xl font-semibold">
             {(returns || []).filter(r => r.status === 'requested' || r.status === 'approved').length}
           </p>
         </Surface>
         <Surface className="p-4">
-          <p className="text-sm text-[var(--os-text-secondary)] mb-1">Refunded</p>
-          <p className="text-2xl font-semibold">
+          <p className="text-os-sm text-[var(--os-text-secondary)] mb-1">Refunded</p>
+          <p className="text-os-2xl font-semibold">
             {(returns || []).filter(r => r.status === 'refunded').length}
           </p>
         </Surface>
         <Surface className="p-4">
-          <p className="text-sm text-[var(--os-text-secondary)] mb-1">Refunded Value</p>
-          <p className="text-xl font-semibold">
+          <p className="text-os-sm text-[var(--os-text-secondary)] mb-1">Refunded Value</p>
+          <p className="text-os-xl font-semibold">
             {totalRefunded.toLocaleString('en-US', {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2,
@@ -270,7 +270,7 @@ function ReturnsDashboardInner() {
 
       {/* Returns List */}
       <Surface className="p-5">
-        <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Return Requests</h2>
+        <h2 className="text-os-lg font-semibold text-[var(--os-text-primary)] mb-4">Return Requests</h2>
         {(returns || []).length === 0 ? (
           <EmptyState
             icon={RotateCcw}
@@ -286,7 +286,7 @@ function ReturnsDashboardInner() {
                 key={returnItem.id}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="border rounded-xl p-4 hover:shadow-md transition-shadow"
+                className="border rounded-os-sm p-4 hover:shadow-md transition-shadow"
               >
                 <div className="flex items-center justify-between mb-3">
                   <div>
@@ -300,22 +300,22 @@ function ReturnsDashboardInner() {
                         <span className="ml-1 capitalize">{returnItem.status}</span>
                       </Badge>
                     </div>
-                    <p className="text-sm">
+                    <p className="text-os-sm">
                       Order: #{returnItem.orders?.order_number || returnItem.order_id?.slice(0, 8)}
                     </p>
-                    <p className="text-sm">
+                    <p className="text-os-sm">
                       Requested: {format(new Date(returnItem.requested_at), 'MMM dd, yyyy')}
                     </p>
                     {returnItem.reason && (
-                      <p className="text-sm mt-2">
+                      <p className="text-os-sm mt-2">
                         Reason: {returnItem.reason}
                       </p>
                     )}
                   </div>
                   {returnItem.refund_amount && (
                     <div className="text-right">
-                      <p className="text-sm">Refund Amount</p>
-                      <p className="text-xl font-bold">
+                      <p className="text-os-sm">Refund Amount</p>
+                      <p className="text-os-xl font-bold">
                         {returnItem.currency} {parseFloat(returnItem.refund_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </p>
                     </div>
@@ -339,7 +339,7 @@ function ReturnsDashboardInner() {
                       </Button>
                       <Button
                         size="sm"
-                        className="hover:bg-afrikoni-gold/90"
+                        className="hover:bg-os-accent/90"
                         onClick={() => handleUpdateStatus(returnItem.id, 'approved')}
                       >
                         Approve

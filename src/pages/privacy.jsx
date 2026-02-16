@@ -14,7 +14,7 @@ export default function Privacy() {
           <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
             Privacy Policy
           </h1>
-          <p className="text-sm text-afrikoni-deep/80">
+          <p className="text-os-sm text-afrikoni-deep/80">
             This page will outline how Afrikoni collects, uses, stores, and protects personal data
             in line with applicable data protection and privacy regulations (such as GDPR and local
             African data protection laws).

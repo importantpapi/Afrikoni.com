@@ -40,7 +40,7 @@ export default function Price({
       {formattedPrice}
       {suffix}
       {showUnit && unit && (
-        <span className="text-sm text-afrikoni-deep/70 ml-1">/ {unit}</span>
+        <span className="text-os-sm text-afrikoni-deep/70 ml-1">/ {unit}</span>
       )}
     </span>
   );
@@ -67,7 +67,7 @@ export function PriceRange({
     return (
       <span className={className}>
         {formatPrice(min, fromCurrency, showSymbol)}
-        {unit && <span className="text-sm text-afrikoni-deep/70 ml-1">/ {unit}</span>}
+        {unit && <span className="text-os-sm text-afrikoni-deep/70 ml-1">/ {unit}</span>}
       </span>
     );
   }
@@ -75,7 +75,7 @@ export function PriceRange({
   return (
     <span className={className}>
       {formatPrice(min, fromCurrency, showSymbol)} – {formatPrice(max, fromCurrency, showSymbol)}
-      {unit && <span className="text-sm text-afrikoni-deep/70 ml-1">/ {unit}</span>}
+      {unit && <span className="text-os-sm text-afrikoni-deep/70 ml-1">/ {unit}</span>}
     </span>
   );
 }

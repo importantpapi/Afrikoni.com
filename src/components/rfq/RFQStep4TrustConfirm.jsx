@@ -17,39 +17,39 @@ export default function RFQStep4TrustConfirm({ formData, updateFormData }) {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-2">
+        <h1 className="text-os-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-2">
           Review & Send
         </h1>
-        <p className="text-afrikoni-deep/70 text-base">
+        <p className="text-afrikoni-deep/70 text-os-base">
           Review your RFQ and send it to verified suppliers
         </p>
       </div>
 
       {/* Trust & Protection Info */}
-      <Card className="border-afrikoni-gold/30 bg-gradient-to-br from-afrikoni-gold/5 to-afrikoni-cream/30">
+      <Card className="border-os-accent/30 bg-gradient-to-br from-os-accent/5 to-afrikoni-cream/30">
         <CardContent className="p-4">
           <div className="flex items-start gap-3 mb-4">
-            <Shield className="w-6 h-6 text-afrikoni-gold flex-shrink-0 mt-1" />
+            <Shield className="w-6 h-6 text-os-accent flex-shrink-0 mt-1" />
             <div>
               <h3 className="font-semibold text-afrikoni-chestnut mb-1">
                 Protected by Afrikoni
               </h3>
-              <p className="text-sm text-afrikoni-deep/70">
+              <p className="text-os-sm text-afrikoni-deep/70">
                 Your RFQ will only be shared with verified suppliers. All communications and deals are protected.
               </p>
             </div>
           </div>
           
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-2 text-os-sm">
               <CheckCircle className="w-4 h-4 text-green-600" />
               <span className="text-afrikoni-deep">Verified suppliers only</span>
             </div>
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-2 text-os-sm">
               <CheckCircle className="w-4 h-4 text-green-600" />
               <span className="text-afrikoni-deep">Secure messaging</span>
             </div>
-            <div className="flex items-center gap-2 text-sm">
+            <div className="flex items-center gap-2 text-os-sm">
               <CheckCircle className="w-4 h-4 text-green-600" />
               <span className="text-afrikoni-deep">Payment protection available</span>
             </div>
@@ -58,20 +58,20 @@ export default function RFQStep4TrustConfirm({ formData, updateFormData }) {
       </Card>
 
       {/* RFQ Summary */}
-      <Card className="border-afrikoni-gold/20">
+      <Card className="border-os-accent/20">
         <CardContent className="p-4 space-y-4">
           <h3 className="font-semibold text-afrikoni-chestnut mb-3">Your RFQ Summary</h3>
           
           {/* Product/Service */}
           <div className="space-y-1">
-            <div className="text-xs font-semibold text-afrikoni-deep/60 uppercase tracking-wide">
+            <div className="text-os-xs font-semibold text-afrikoni-deep/60 uppercase tracking-wide">
               What you need
             </div>
-            <div className="text-base font-medium text-afrikoni-chestnut">
+            <div className="text-os-base font-medium text-afrikoni-chestnut">
               {formData.title || 'Not specified'}
             </div>
             {formData.description && (
-              <div className="text-sm text-afrikoni-deep/70 mt-1">
+              <div className="text-os-sm text-afrikoni-deep/70 mt-1">
                 {formData.description}
               </div>
             )}
@@ -80,11 +80,11 @@ export default function RFQStep4TrustConfirm({ formData, updateFormData }) {
           {/* Quantity & Unit */}
           {(formData.quantity || formData.unit) && (
             <div className="space-y-1">
-              <div className="text-xs font-semibold text-afrikoni-deep/60 uppercase tracking-wide flex items-center gap-1">
+              <div className="text-os-xs font-semibold text-afrikoni-deep/60 uppercase tracking-wide flex items-center gap-1">
                 <Package className="w-3 h-3" />
                 Quantity
               </div>
-              <div className="text-base font-medium text-afrikoni-chestnut">
+              <div className="text-os-base font-medium text-afrikoni-chestnut">
                 {formData.quantity} {formData.unit || 'units'}
               </div>
             </div>
@@ -93,11 +93,11 @@ export default function RFQStep4TrustConfirm({ formData, updateFormData }) {
           {/* Destination */}
           {formData.delivery_location && (
             <div className="space-y-1">
-              <div className="text-xs font-semibold text-afrikoni-deep/60 uppercase tracking-wide flex items-center gap-1">
+              <div className="text-os-xs font-semibold text-afrikoni-deep/60 uppercase tracking-wide flex items-center gap-1">
                 <MapPin className="w-3 h-3" />
                 Destination
               </div>
-              <div className="text-base font-medium text-afrikoni-chestnut">
+              <div className="text-os-base font-medium text-afrikoni-chestnut">
                 {formData.delivery_location}
               </div>
             </div>
@@ -106,11 +106,11 @@ export default function RFQStep4TrustConfirm({ formData, updateFormData }) {
           {/* Urgency */}
           {formData.urgency && (
             <div className="space-y-1">
-              <div className="text-xs font-semibold text-afrikoni-deep/60 uppercase tracking-wide flex items-center gap-1">
+              <div className="text-os-xs font-semibold text-afrikoni-deep/60 uppercase tracking-wide flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 Urgency
               </div>
-              <Badge variant="outline" className="border-afrikoni-gold/40">
+              <Badge variant="outline" className="border-os-accent/40">
                 {formData.urgency === 'flexible' ? 'Flexible' :
                  formData.urgency === 'normal' ? 'Normal' :
                  formData.urgency === 'urgent' ? 'Urgent' :
@@ -122,11 +122,11 @@ export default function RFQStep4TrustConfirm({ formData, updateFormData }) {
           {/* Budget */}
           {formData.target_price && (
             <div className="space-y-1">
-              <div className="text-xs font-semibold text-afrikoni-deep/60 uppercase tracking-wide flex items-center gap-1">
+              <div className="text-os-xs font-semibold text-afrikoni-deep/60 uppercase tracking-wide flex items-center gap-1">
                 <DollarSign className="w-3 h-3" />
                 Budget
               </div>
-              <div className="text-base font-medium text-afrikoni-chestnut">
+              <div className="text-os-base font-medium text-afrikoni-chestnut">
                 ${parseFloat(formData.target_price).toLocaleString()}
               </div>
             </div>
@@ -135,11 +135,11 @@ export default function RFQStep4TrustConfirm({ formData, updateFormData }) {
           {/* Deadline */}
           {formData.delivery_deadline && (
             <div className="space-y-1">
-              <div className="text-xs font-semibold text-afrikoni-deep/60 uppercase tracking-wide flex items-center gap-1">
+              <div className="text-os-xs font-semibold text-afrikoni-deep/60 uppercase tracking-wide flex items-center gap-1">
                 <Clock className="w-3 h-3" />
                 Deadline
               </div>
-              <div className="text-base font-medium text-afrikoni-chestnut">
+              <div className="text-os-base font-medium text-afrikoni-chestnut">
                 {format(formData.delivery_deadline, 'PPP')}
               </div>
             </div>
@@ -148,10 +148,10 @@ export default function RFQStep4TrustConfirm({ formData, updateFormData }) {
           {/* Attachments */}
           {formData.attachments && formData.attachments.length > 0 && (
             <div className="space-y-1">
-              <div className="text-xs font-semibold text-afrikoni-deep/60 uppercase tracking-wide">
+              <div className="text-os-xs font-semibold text-afrikoni-deep/60 uppercase tracking-wide">
                 Photos
               </div>
-              <div className="text-sm text-afrikoni-deep/70">
+              <div className="text-os-sm text-afrikoni-deep/70">
                 {formData.attachments.length} photo(s) attached
               </div>
             </div>
@@ -161,12 +161,12 @@ export default function RFQStep4TrustConfirm({ formData, updateFormData }) {
 
       {/* Settings */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between p-3 bg-afrikoni-gold/5 rounded-lg border border-afrikoni-gold/20">
+        <div className="flex items-center justify-between p-3 bg-os-accent/5 rounded-lg border border-os-accent/20">
           <div>
-            <div className="font-semibold text-afrikoni-chestnut text-sm">
+            <div className="font-semibold text-afrikoni-chestnut text-os-sm">
               Verified Suppliers Only
             </div>
-            <div className="text-xs text-afrikoni-deep/60">
+            <div className="text-os-xs text-afrikoni-deep/60">
               Only show to verified suppliers
             </div>
           </div>
@@ -174,16 +174,16 @@ export default function RFQStep4TrustConfirm({ formData, updateFormData }) {
             type="checkbox"
             checked={formData.verified_only ?? true}
             onChange={(e) => updateFormData({ verified_only: e.target.checked })}
-            className="w-5 h-5 rounded border-afrikoni-gold/40 text-afrikoni-gold focus:ring-afrikoni-gold"
+            className="w-5 h-5 rounded border-os-accent/40 text-os-accent focus:ring-os-accent"
           />
         </div>
 
-        <div className="flex items-center justify-between p-3 bg-afrikoni-gold/5 rounded-lg border border-afrikoni-gold/20">
+        <div className="flex items-center justify-between p-3 bg-os-accent/5 rounded-lg border border-os-accent/20">
           <div>
-            <div className="font-semibold text-afrikoni-chestnut text-sm">
+            <div className="font-semibold text-afrikoni-chestnut text-os-sm">
               Afrikoni Managed
             </div>
-            <div className="text-xs text-afrikoni-deep/60">
+            <div className="text-os-xs text-afrikoni-deep/60">
               Let Afrikoni help match you with suppliers
             </div>
           </div>
@@ -191,7 +191,7 @@ export default function RFQStep4TrustConfirm({ formData, updateFormData }) {
             type="checkbox"
             checked={formData.afrikoni_managed ?? true}
             onChange={(e) => updateFormData({ afrikoni_managed: e.target.checked })}
-            className="w-5 h-5 rounded border-afrikoni-gold/40 text-afrikoni-gold focus:ring-afrikoni-gold"
+            className="w-5 h-5 rounded border-os-accent/40 text-os-accent focus:ring-os-accent"
           />
         </div>
       </div>

@@ -151,20 +151,20 @@ export default function MobileSupplierCards() {
       <section className="md:hidden py-6 bg-afrikoni-offwhite">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-bold text-afrikoni-chestnut flex items-center gap-2">
-              <Shield className="w-5 h-5 text-afrikoni-gold" />
+            <h2 className="text-os-lg font-bold text-afrikoni-chestnut flex items-center gap-2">
+              <Shield className="w-5 h-5 text-os-accent" />
               Verified Suppliers
             </h2>
             <Link
               to="/marketplace?verified=true"
-              className="text-sm text-afrikoni-gold font-medium"
+              className="text-os-sm text-os-accent font-medium"
             >
               View All →
             </Link>
           </div>
           <div className="space-y-3">
             {[...Array(3)].map((_, i) => (
-              <Card key={i} className="border border-afrikoni-gold/10 bg-white animate-pulse">
+              <Card key={i} className="border border-os-accent/10 bg-white animate-pulse">
                 <CardContent className="p-3">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 bg-gray-200 rounded-lg flex-shrink-0" />
@@ -190,13 +190,13 @@ export default function MobileSupplierCards() {
     <section className="md:hidden py-6 bg-afrikoni-offwhite">
       <div className="max-w-[1440px] mx-auto px-4">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-bold text-afrikoni-chestnut flex items-center gap-2">
-            <Shield className="w-5 h-5 text-afrikoni-gold" />
+          <h2 className="text-os-lg font-bold text-afrikoni-chestnut flex items-center gap-2">
+            <Shield className="w-5 h-5 text-os-accent" />
             Verified Suppliers
           </h2>
           <Link
             to="/marketplace?verified=true"
-            className="text-sm text-afrikoni-gold font-medium"
+            className="text-os-sm text-os-accent font-medium"
           >
             View All →
           </Link>
@@ -216,13 +216,13 @@ export default function MobileSupplierCards() {
                 transition={{ delay: index * 0.05 }}
               >
                 <Card 
-                  className="border border-afrikoni-gold/15 hover:border-afrikoni-gold/30 transition-all bg-white overflow-hidden active:scale-[0.98]"
+                  className="border border-os-accent/15 hover:border-os-accent/30 transition-all bg-white overflow-hidden active:scale-[0.98]"
                   onClick={() => navigate(`/business/${supplier.id}`)}
                 >
                   <CardContent className="p-3">
                     <div className="flex items-center gap-3">
                       {/* Left: Small Profile Image */}
-                      <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-afrikoni-cream flex-shrink-0 flex items-center justify-center border border-afrikoni-gold/10">
+                      <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-afrikoni-cream flex-shrink-0 flex items-center justify-center border border-os-accent/10">
                         {logoUrl ? (
                           <OptimizedImage
                             src={logoUrl}
@@ -234,10 +234,10 @@ export default function MobileSupplierCards() {
                             placeholder="/company-placeholder.svg"
                           />
                         ) : (
-                          <Building className="w-6 h-6 text-afrikoni-gold/50" />
+                          <Building className="w-6 h-6 text-os-accent/50" />
                         )}
                         {/* Verification Badge with Online Indicator */}
-                        <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow-sm border border-afrikoni-gold/20 flex items-center gap-0.5">
+                        <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow-sm border border-os-accent/20 flex items-center gap-0.5">
                           {supplier.isOnline && (
                             <motion.div
                               animate={{ opacity: [1, 0.5, 1] }}
@@ -245,33 +245,33 @@ export default function MobileSupplierCards() {
                               className="w-1.5 h-1.5 bg-green-500 rounded-full"
                             />
                           )}
-                          <Shield className="w-3 h-3 text-afrikoni-gold" />
+                          <Shield className="w-3 h-3 text-os-accent" />
                         </div>
                       </div>
 
                       {/* Right: Business Info */}
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2 mb-1">
-                          <h3 className="text-sm font-semibold text-afrikoni-chestnut line-clamp-1 flex-1">
+                          <h3 className="text-os-sm font-semibold text-afrikoni-chestnut line-clamp-1 flex-1">
                             {supplier.company_name}
                           </h3>
                           {/* Verified Badge */}
-                          <div className="flex items-center gap-1 bg-afrikoni-gold/10 px-1.5 py-0.5 rounded-full flex-shrink-0">
-                            <Shield className="w-3 h-3 text-afrikoni-gold" />
-                            <span className="text-[10px] font-semibold text-afrikoni-gold">Verified</span>
+                          <div className="flex items-center gap-1 bg-os-accent/10 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                            <Shield className="w-3 h-3 text-os-accent" />
+                            <span className="text-os-xs font-semibold text-os-accent">Verified</span>
                           </div>
                         </div>
                         
                         {/* Location & Trust Signals */}
                         <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-                          {flag && <span className="text-xs">{flag}</span>}
-                          <span className="text-xs text-afrikoni-deep/70 line-clamp-1">
+                          {flag && <span className="text-os-xs">{flag}</span>}
+                          <span className="text-os-xs text-afrikoni-deep/70 line-clamp-1">
                             {supplier.country || 'N/A'}
                           </span>
                           
                           {/* Years on Platform */}
                           {getYearsOnPlatform(supplier.created_at) && (
-                            <span className="text-[10px] bg-afrikoni-gold/10 text-afrikoni-gold px-1.5 py-0.5 rounded-full font-medium">
+                            <span className="text-os-xs bg-os-accent/10 text-os-accent px-1.5 py-0.5 rounded-full font-medium">
                               {getYearsOnPlatform(supplier.created_at)} on platform
                             </span>
                           )}
@@ -281,7 +281,7 @@ export default function MobileSupplierCards() {
                         {formatResponseRate(supplier.avgResponseHours) && (
                           <div className="flex items-center gap-1 mb-1">
                             <Clock className="w-3 h-3 text-green-600" />
-                            <span className="text-[10px] text-green-700 font-medium">
+                            <span className="text-os-xs text-green-700 font-medium">
                               Responds in {formatResponseRate(supplier.avgResponseHours)}
                             </span>
                           </div>
@@ -289,14 +289,14 @@ export default function MobileSupplierCards() {
 
                         {/* Categories (if available) */}
                         {supplier.main_categories && Array.isArray(supplier.main_categories) && supplier.main_categories.length > 0 && (
-                          <p className="text-[10px] text-afrikoni-deep/60 line-clamp-1">
+                          <p className="text-os-xs text-afrikoni-deep/60 line-clamp-1">
                             {supplier.main_categories.slice(0, 2).join(', ')}
                           </p>
                         )}
                       </div>
 
                       {/* Arrow Icon */}
-                      <ChevronRight className="w-4 h-4 text-afrikoni-gold/40 flex-shrink-0" />
+                      <ChevronRight className="w-4 h-4 text-os-accent/40 flex-shrink-0" />
                     </div>
                   </CardContent>
                 </Card>

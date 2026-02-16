@@ -20,21 +20,21 @@ export default function VerificationUpsell({
 
   if (variant === 'banner') {
     return (
-      <div className="bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-purple/10 border border-afrikoni-gold/30 rounded-lg p-4 mb-6">
+      <div className="bg-gradient-to-r from-os-accent/10 to-afrikoni-purple/10 border border-os-accent/30 rounded-lg p-4 mb-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Shield className="w-6 h-6 text-afrikoni-gold" />
+            <Shield className="w-6 h-6 text-os-accent" />
             <div>
               <h4 className="font-bold text-afrikoni-text-dark">
                 Become a Verified Supplier
               </h4>
-              <p className="text-sm text-afrikoni-text-dark/70">
+              <p className="text-os-sm text-afrikoni-text-dark/70">
                 Get verified and unlock more buyers. Fast-track available for $99.
               </p>
             </div>
           </div>
           <Link to="/dashboard/verification-marketplace">
-            <Button size="sm" className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut">
+            <Button size="sm" className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut">
               Get Verified
             </Button>
           </Link>
@@ -44,34 +44,34 @@ export default function VerificationUpsell({
   }
 
   return (
-    <Card className="border-2 border-afrikoni-gold/30 bg-gradient-to-br from-afrikoni-gold/5 to-white">
+    <Card className="border-2 border-os-accent/30 bg-gradient-to-br from-os-accent/5 to-white">
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Shield className="w-6 h-6 text-afrikoni-gold" />
-            <h3 className="text-lg font-bold text-afrikoni-text-dark">
+            <Shield className="w-6 h-6 text-os-accent" />
+            <h3 className="text-os-lg font-bold text-afrikoni-text-dark">
               Get Verified Today
             </h3>
           </div>
-          <Badge className="bg-afrikoni-gold text-afrikoni-chestnut">
+          <Badge className="bg-os-accent text-afrikoni-chestnut">
             $99 Fast-Track
           </Badge>
         </div>
 
-        <p className="text-sm text-afrikoni-text-dark/70 mb-4">
+        <p className="text-os-sm text-afrikoni-text-dark/70 mb-4">
           Verified suppliers get 3x more buyer inquiries and appear first in search results.
         </p>
 
         <div className="space-y-2 mb-4">
-          <div className="flex items-center gap-2 text-sm text-afrikoni-text-dark/80">
+          <div className="flex items-center gap-2 text-os-sm text-afrikoni-text-dark/80">
             <CheckCircle className="w-4 h-4 text-afrikoni-green" />
             <span>Higher visibility in search</span>
           </div>
-          <div className="flex items-center gap-2 text-sm text-afrikoni-text-dark/80">
+          <div className="flex items-center gap-2 text-os-sm text-afrikoni-text-dark/80">
             <CheckCircle className="w-4 h-4 text-afrikoni-green" />
             <span>Trust badge on profile</span>
           </div>
-          <div className="flex items-center gap-2 text-sm text-afrikoni-text-dark/80">
+          <div className="flex items-center gap-2 text-os-sm text-afrikoni-text-dark/80">
             <CheckCircle className="w-4 h-4 text-afrikoni-green" />
             <span>Priority buyer matching</span>
           </div>
@@ -79,12 +79,12 @@ export default function VerificationUpsell({
 
         <div className="flex gap-2">
           <Link to="/dashboard/verification-marketplace" className="flex-1">
-            <Button className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut">
+            <Button className="w-full bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut">
               Fast-Track ($99)
             </Button>
           </Link>
           <Link to="/dashboard/verification-center" className="flex-1">
-            <Button variant="outline" className="w-full border-afrikoni-gold/30 text-afrikoni-gold">
+            <Button variant="outline" className="w-full border-os-accent/30 text-os-accent">
               Free Option
             </Button>
           </Link>

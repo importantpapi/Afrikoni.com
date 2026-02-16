@@ -21,16 +21,16 @@ export default function LogisticsHeader({
       <div className="flex flex-1 items-center">
         {/* Search Bar */}
         <div className="relative w-full max-w-[520px]">
-          <Search className="w-4 h-4 text-afrikoni-gold absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="w-4 h-4 text-os-accent absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <Input
             placeholder={
               t?.('common.search') ||
               'Search shipments, routes, partners...'
             }
-            className="pl-10 pr-4 h-10 w-full border-afrikoni-gold/30
-                       focus:border-afrikoni-gold focus:ring-2
-                       focus:ring-afrikoni-gold/20 shadow-sm
-                       transition-all text-sm bg-white rounded-lg"
+            className="pl-10 pr-4 h-10 w-full border-os-accent/30
+                       focus:border-os-accent focus:ring-2
+                       focus:ring-os-accent/20 shadow-sm
+                       transition-all text-os-sm bg-white rounded-lg"
             onFocus={() => setSearchOpen?.(true)}
             onBlur={() =>
               setTimeout(() => setSearchOpen?.(false), 200)
@@ -45,11 +45,11 @@ export default function LogisticsHeader({
         {/* Primary Control */}
         <div className="shrink-0">
           <div className="hidden md:flex items-center gap-1.5 px-3 py-2
-                          bg-white border border-afrikoni-gold/20 rounded-lg
-                          hover:border-afrikoni-gold/40 transition-colors h-10
+                          bg-white border border-os-accent/20 rounded-lg
+                          hover:border-os-accent/40 transition-colors h-10
                           whitespace-nowrap">
-            <Calendar className="w-4 h-4 text-afrikoni-gold" />
-            <select className="bg-transparent text-sm font-medium
+            <Calendar className="w-4 h-4 text-os-accent" />
+            <select className="bg-transparent text-os-sm font-medium
                               text-afrikoni-text-dark border-0 focus:outline-none
                               cursor-pointer">
               <option>Today</option>
@@ -71,7 +71,7 @@ export default function LogisticsHeader({
           >
             <MessageSquare className="w-5 h-5 text-afrikoni-text-dark" />
             <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5
-                           bg-afrikoni-gold rounded-full border-2
+                           bg-os-accent rounded-full border-2
                            border-afrikoni-ivory"></span>
           </Link>
 
@@ -84,8 +84,8 @@ export default function LogisticsHeader({
             className="inline-flex items-center justify-center
                        w-10 h-10 rounded-lg
                        text-afrikoni-charcoal
-                       hover:bg-afrikoni-gold/10
-                       focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/30
+                       hover:bg-os-accent/10
+                       focus:outline-none focus:ring-2 focus:ring-os-accent/30
                        transition-colors"
             aria-label="Toggle menu"
           >

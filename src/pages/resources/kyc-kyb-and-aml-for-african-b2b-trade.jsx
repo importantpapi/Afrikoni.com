@@ -13,16 +13,16 @@ export default function KycKybAndAmlForAfricanB2BTrade() {
       <div className="min-h-screen bg-afrikoni-offwhite py-12">
         <div className="max-w-3xl mx-auto px-4 space-y-6">
           <div>
-            <p className="text-xs uppercase tracking-wide text-afrikoni-gold mb-2">
+            <p className="text-os-xs uppercase tracking-wide text-os-accent mb-2">
               Afrikoni Insights · Compliance
             </p>
             <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-3">
               KYC, KYB &amp; AML for African B2B Trade
             </h1>
-            <p className="text-sm text-afrikoni-deep/70">7 min read · Powered by Afrikoni Shield™</p>
+            <p className="text-os-sm text-afrikoni-deep/70">7 min read · Powered by Afrikoni Shield™</p>
           </div>
 
-          <Card className="border-afrikoni-gold/20 bg-white">
+          <Card className="border-os-accent/20 bg-white">
             <CardContent className="p-6 prose prose-sm md:prose-base max-w-none">
               <p>
                 Compliance is not a nice‑to‑have in African B2B trade — it is the foundation for trust with banks,

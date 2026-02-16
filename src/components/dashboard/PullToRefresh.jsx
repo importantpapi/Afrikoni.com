@@ -95,7 +95,7 @@ const PullToRefresh = ({ children, onRefresh, containerRef }) => {
                 }}
                 className="md:hidden flex items-center justify-center pointer-events-none"
             >
-                <div className="w-10 h-10 rounded-full bg-white dark:bg-[#1E1E1E] border border-afrikoni-gold/20 shadow-xl flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-white dark:bg-[#1E1E1E] border border-os-accent/20 shadow-os-lg flex items-center justify-center">
                     <motion.div
                         style={{ rotate }}
                         animate={isRefreshing ? { rotate: 360 } : {}}

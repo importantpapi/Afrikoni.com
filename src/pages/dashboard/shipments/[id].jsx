@@ -104,7 +104,7 @@ export default function ShipmentDetail() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="space-y-2">
             <div className="os-label">Shipment</div>
-            <h1 className="text-2xl font-semibold text-foreground">{trade?.product_name || 'Shipment'}</h1>
+            <h1 className="text-os-2xl font-semibold text-foreground">{trade?.product_name || 'Shipment'}</h1>
             <div className="flex flex-wrap gap-2">
               <StatusBadge
                 label={shipment.status?.replace('_', ' ') || 'In Transit'}
@@ -125,7 +125,7 @@ export default function ShipmentDetail() {
 
         <div className="mt-4">
           <Progress value={progress} className="h-2" />
-          <div className="flex justify-between text-[10px] text-os-muted mt-1">
+          <div className="flex justify-between text-os-xs text-os-muted mt-1">
             <span>Origin</span>
             <span>{Math.round(progress)}%</span>
             <span>Destination</span>
@@ -135,7 +135,7 @@ export default function ShipmentDetail() {
 
       <div className="grid lg:grid-cols-[2fr_1fr] gap-6">
         <Surface variant="panel" className="p-5">
-          <div className="flex items-center gap-2 text-sm text-os-muted mb-3">
+          <div className="flex items-center gap-2 text-os-sm text-os-muted mb-3">
             <Truck className="w-4 h-4" /> Timeline
           </div>
           <div className="space-y-0">
@@ -155,8 +155,8 @@ export default function ShipmentDetail() {
                     {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : idx + 1}
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm font-medium text-foreground">{m.name}</p>
-                    <p className="text-xs text-os-muted">
+                    <p className="text-os-sm font-medium text-foreground">{m.name}</p>
+                    <p className="text-os-xs text-os-muted">
                       {m.completedAt
                         ? formatDate(m.completedAt)
                         : m.estimatedAt
@@ -164,7 +164,7 @@ export default function ShipmentDetail() {
                           : 'Pending'}
                     </p>
                     {m.aiConfidence && (
-                      <span className="inline-flex items-center gap-1 mt-1 text-[10px] text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+                      <span className="inline-flex items-center gap-1 mt-1 text-os-xs text-primary bg-primary/10 px-1.5 py-0.5 rounded">
                         AI confidence {m.aiConfidence}%
                       </span>
                     )}
@@ -176,7 +176,7 @@ export default function ShipmentDetail() {
         </Surface>
 
         <Surface variant="panel" className="p-5 space-y-3">
-          <div className="flex items-center gap-2 text-sm text-os-muted">
+          <div className="flex items-center gap-2 text-os-sm text-os-muted">
             <MapPin className="w-4 h-4" /> Route
           </div>
           <InfoRow label="Origin" value={`${shipment.origin_country || trade.origin_country || ''}`} />
@@ -193,7 +193,7 @@ export default function ShipmentDetail() {
 
 function InfoRow({ label, value }) {
   return (
-    <div className="flex items-center justify-between text-sm">
+    <div className="flex items-center justify-between text-os-sm">
       <span className="text-os-muted">{label}</span>
       <span className="font-semibold text-foreground">{value || '—'}</span>
     </div>
@@ -238,7 +238,7 @@ function buildShipmentMilestones(shipment, events = []) {
 
 function BadgeSoft({ icon: Icon, label }) {
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-muted text-foreground border border-border">
+    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-os-xs bg-muted text-foreground border border-border">
       {Icon ? <Icon className="w-3 h-3" /> : null}
       {label}
     </span>

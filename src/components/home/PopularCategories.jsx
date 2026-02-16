@@ -250,16 +250,16 @@ export default function PopularCategories({ categories = [] }) {
           className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 md:mb-12 gap-4"
         >
           <div>
-            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold font-serif text-afrikoni-chestnut mb-2">
+            <h2 className="text-os-2xl md:text-3xl lg:text-4xl font-bold font-serif text-afrikoni-chestnut mb-2">
               Popular African Categories
             </h2>
-            <p className="text-sm md:text-base text-afrikoni-deep/70">
+            <p className="text-os-sm md:text-os-base text-afrikoni-deep/70">
               Discover products from Africa's most sought-after categories
             </p>
           </div>
           <Link 
             to={createPageUrl('Categories')} 
-            className="text-afrikoni-gold hover:text-afrikoni-goldLight font-semibold flex items-center gap-1 text-sm md:text-base transition-colors whitespace-nowrap"
+            className="text-os-accent hover:text-os-accentLight font-semibold flex items-center gap-1 text-os-sm md:text-os-base transition-colors whitespace-nowrap"
           >
             View All Categories
             <Package className="w-4 h-4" />
@@ -278,7 +278,7 @@ export default function PopularCategories({ categories = [] }) {
                         whileHover={{ y: -8, scale: 1.02 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 transition-all hover:shadow-afrikoni-lg overflow-hidden h-full bg-afrikoni-cream">
+                        <Card className="border-os-accent/20 hover:border-os-accent/40 transition-all hover:shadow-os-gold-lg overflow-hidden h-full bg-afrikoni-cream">
                           <div className="h-48 bg-gradient-to-br from-afrikoni-cream to-afrikoni-offwhite relative overflow-hidden">
                             {category.image && (
                               <img 
@@ -291,21 +291,21 @@ export default function PopularCategories({ categories = [] }) {
                                 }}
                               />
                             )}
-                            <div className="absolute top-4 left-4 w-12 h-12 bg-afrikoni-gold rounded-lg flex items-center justify-center shadow-afrikoni-lg">
+                            <div className="absolute top-4 left-4 w-12 h-12 bg-os-accent rounded-lg flex items-center justify-center shadow-os-gold-lg">
                               <Icon className="w-6 h-6 text-afrikoni-chestnut" />
                             </div>
                           </div>
                           <CardContent className="p-5 md:p-6">
-                            <h3 className="font-bold text-afrikoni-chestnut mb-2 text-base md:text-lg line-clamp-1">
+                            <h3 className="font-bold text-afrikoni-chestnut mb-2 text-os-base md:text-os-lg line-clamp-1">
                               {category.name}
                             </h3>
-                            <p className="text-sm text-afrikoni-deep mb-4 line-clamp-2 min-h-[2.5rem]">
+                            <p className="text-os-sm text-afrikoni-deep mb-4 line-clamp-2 min-h-[2.5rem]">
                               {category.description}
                             </p>
-                            <div className="text-sm font-semibold text-afrikoni-gold mb-2">
+                            <div className="text-os-sm font-semibold text-os-accent mb-2">
                               Products available
                             </div>
-                            <div className="text-xs text-afrikoni-deep/70 line-clamp-2">
+                            <div className="text-os-xs text-afrikoni-deep/70 line-clamp-2">
                               {category.subCategories.slice(0, 2).join(', ')}
                               {category.subCategories.length > 2 && `, ${category.subCategories[2]}`}
                             </div>
@@ -337,7 +337,7 @@ export default function PopularCategories({ categories = [] }) {
                         whileHover={{ y: -8, scale: 1.02 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 transition-all hover:shadow-afrikoni-lg overflow-hidden h-full bg-afrikoni-cream">
+                        <Card className="border-os-accent/20 hover:border-os-accent/40 transition-all hover:shadow-os-gold-lg overflow-hidden h-full bg-afrikoni-cream">
                           <div className="h-40 bg-gradient-to-br from-afrikoni-cream to-afrikoni-offwhite relative overflow-hidden">
                             {category.image && (
                               <img 
@@ -350,21 +350,21 @@ export default function PopularCategories({ categories = [] }) {
                                 }}
                               />
                             )}
-                            <div className="absolute top-3 left-3 w-10 h-10 bg-afrikoni-gold rounded-lg flex items-center justify-center shadow-afrikoni-lg">
+                            <div className="absolute top-3 left-3 w-10 h-10 bg-os-accent rounded-lg flex items-center justify-center shadow-os-gold-lg">
                               <Icon className="w-5 h-5 text-afrikoni-chestnut" />
                             </div>
                           </div>
                           <CardContent className="p-4">
-                            <h3 className="font-bold text-afrikoni-chestnut mb-2 text-base line-clamp-1">
+                            <h3 className="font-bold text-afrikoni-chestnut mb-2 text-os-base line-clamp-1">
                               {category.name}
                             </h3>
-                            <p className="text-sm text-afrikoni-deep mb-3 line-clamp-2 min-h-[2.5rem]">
+                            <p className="text-os-sm text-afrikoni-deep mb-3 line-clamp-2 min-h-[2.5rem]">
                               {category.description}
                             </p>
-                            <div className="text-sm font-semibold text-afrikoni-gold mb-2">
+                            <div className="text-os-sm font-semibold text-os-accent mb-2">
                               Products available
                             </div>
-                            <div className="text-xs text-afrikoni-deep/70 line-clamp-1">
+                            <div className="text-os-xs text-afrikoni-deep/70 line-clamp-1">
                               {category.subCategories[0]}, {category.subCategories[1]}
                             </div>
                           </CardContent>
@@ -381,19 +381,19 @@ export default function PopularCategories({ categories = [] }) {
           {currentIndex > 0 && (
             <motion.button
               onClick={handlePrev}
-              className="absolute left-2 top-1/2 -translate-y-1/2 bg-afrikoni-cream border-2 border-afrikoni-gold/30 rounded-full p-2 shadow-afrikoni-lg hover:bg-afrikoni-offwhite z-10"
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-afrikoni-cream border-2 border-os-accent/30 rounded-full p-2 shadow-os-gold-lg hover:bg-afrikoni-offwhite z-10"
               aria-label="Previous"
             >
-              <ChevronLeft className="w-5 h-5 text-afrikoni-gold" />
+              <ChevronLeft className="w-5 h-5 text-os-accent" />
             </motion.button>
           )}
           {currentIndex < displayCategories.length - 2 && (
             <motion.button
               onClick={handleNext}
-              className="absolute right-2 top-1/2 -translate-y-1/2 bg-afrikoni-cream border-2 border-afrikoni-gold/30 rounded-full p-2 shadow-afrikoni-lg hover:bg-afrikoni-offwhite z-10"
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-afrikoni-cream border-2 border-os-accent/30 rounded-full p-2 shadow-os-gold-lg hover:bg-afrikoni-offwhite z-10"
               aria-label="Next"
             >
-              <ChevronRight className="w-5 h-5 text-afrikoni-gold" />
+              <ChevronRight className="w-5 h-5 text-os-accent" />
             </motion.button>
           )}
 
@@ -405,8 +405,8 @@ export default function PopularCategories({ categories = [] }) {
                 onClick={() => setCurrentIndex(idx * 2)}
                 className={`h-2 rounded-full transition-all ${
                   Math.floor(currentIndex / 2) === idx 
-                    ? 'bg-afrikoni-gold w-6' 
-                    : 'bg-afrikoni-gold/30 w-2'
+                    ? 'bg-os-accent w-6' 
+                    : 'bg-os-accent/30 w-2'
                 }`}
               />
             ))}
@@ -456,7 +456,7 @@ export default function PopularCategories({ categories = [] }) {
                     to={`/marketplace?category=${encodeURIComponent(categoryName.toLowerCase())}`}
                     className="block h-full"
                   >
-                    <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 transition-all hover:shadow-afrikoni-lg overflow-hidden bg-afrikoni-cream h-full flex flex-col">
+                    <Card className="border-os-accent/20 hover:border-os-accent/40 transition-all hover:shadow-os-gold-lg overflow-hidden bg-afrikoni-cream h-full flex flex-col">
                       <div 
                         className="relative overflow-hidden"
                         style={{
@@ -501,7 +501,7 @@ export default function PopularCategories({ categories = [] }) {
                           />
                         )}
                         <div 
-                          className="absolute top-2 left-2 w-8 h-8 bg-afrikoni-gold rounded-lg flex items-center justify-center shadow-afrikoni-lg z-10"
+                          className="absolute top-2 left-2 w-8 h-8 bg-os-accent rounded-lg flex items-center justify-center shadow-os-gold-lg z-10"
                           style={{ zIndex: 10 }}
                         >
                           <Icon className="w-4 h-4 text-afrikoni-chestnut" />
@@ -527,7 +527,7 @@ export default function PopularCategories({ categories = [] }) {
                           {categoryName}
                         </h3>
                         <div 
-                          className="text-afrikoni-gold font-semibold"
+                          className="text-os-accent font-semibold"
                           style={{
                             fontSize: '11px',
                             lineHeight: '1.2'
@@ -553,19 +553,19 @@ export default function PopularCategories({ categories = [] }) {
           {/* Mobile Navigation Arrows - Always visible for infinite loop */}
           <button
             onClick={handlePrev}
-            className="absolute left-2 top-1/2 -translate-y-1/2 bg-afrikoni-cream border-2 border-afrikoni-gold/30 rounded-full p-2 shadow-afrikoni-lg z-20 hover:bg-afrikoni-offwhite transition-colors"
+            className="absolute left-2 top-1/2 -translate-y-1/2 bg-afrikoni-cream border-2 border-os-accent/30 rounded-full p-2 shadow-os-gold-lg z-20 hover:bg-afrikoni-offwhite transition-colors"
             aria-label="Previous"
             style={{ zIndex: 20 }}
           >
-            <ChevronLeft className="w-5 h-5 text-afrikoni-gold" />
+            <ChevronLeft className="w-5 h-5 text-os-accent" />
           </button>
           <button
             onClick={handleNext}
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-afrikoni-cream border-2 border-afrikoni-gold/30 rounded-full p-2 shadow-afrikoni-lg z-20 hover:bg-afrikoni-offwhite transition-colors"
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-afrikoni-cream border-2 border-os-accent/30 rounded-full p-2 shadow-os-gold-lg z-20 hover:bg-afrikoni-offwhite transition-colors"
             aria-label="Next"
             style={{ zIndex: 20 }}
           >
-            <ChevronRight className="w-5 h-5 text-afrikoni-gold" />
+            <ChevronRight className="w-5 h-5 text-os-accent" />
           </button>
           
           {/* Mobile Dots Indicator - Only for REAL categories */}

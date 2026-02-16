@@ -26,24 +26,24 @@ export default function NotFound() {
           transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
           className="mb-8"
         >
-          <h1 className="text-9xl font-bold text-afrikoni-gold mb-4">404</h1>
+          <h1 className="text-9xl font-bold text-os-accent mb-4">404</h1>
           <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
             {t('notFound.title')}
           </h2>
-          <p className="text-lg text-afrikoni-deep mb-8 max-w-md mx-auto">
+          <p className="text-os-lg text-afrikoni-deep mb-8 max-w-md mx-auto">
             {t('notFound.message')}
           </p>
         </motion.div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
           <Link to="/">
-            <Button className="bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight px-6 py-3 rounded-full font-semibold shadow-lg flex items-center gap-2">
+            <Button className="bg-os-accent text-afrikoni-chestnut hover:bg-os-accentLight px-6 py-3 rounded-full font-semibold shadow-os-md flex items-center gap-2">
               <Home className="w-5 h-5" />
               {t('notFound.goHome')}
             </Button>
           </Link>
           <Link to="/marketplace">
-            <Button variant="outline" className="border-afrikoni-gold/70 text-afrikoni-chestnut hover:bg-afrikoni-gold/10 px-6 py-3 rounded-full font-semibold flex items-center gap-2">
+            <Button variant="outline" className="border-os-accent/70 text-afrikoni-chestnut hover:bg-os-accent/10 px-6 py-3 rounded-full font-semibold flex items-center gap-2">
               <Search className="w-5 h-5" />
               {t('notFound.browseMarketplace')}
             </Button>
@@ -51,15 +51,15 @@ export default function NotFound() {
           <Button
             variant="ghost"
             onClick={() => window.history.back()}
-            className="text-afrikoni-deep hover:text-afrikoni-gold px-6 py-3 rounded-full font-semibold flex items-center gap-2"
+            className="text-afrikoni-deep hover:text-os-accent px-6 py-3 rounded-full font-semibold flex items-center gap-2"
           >
             <ArrowLeft className="w-5 h-5" />
             {t('notFound.goBack')}
           </Button>
         </div>
 
-        <div className="mt-12 pt-8 border-t border-afrikoni-gold/20">
-          <p className="text-sm text-afrikoni-deep/70 mb-4">{t('notFound.popularPages')}</p>
+        <div className="mt-12 pt-8 border-t border-os-accent/20">
+          <p className="text-os-sm text-afrikoni-deep/70 mb-4">{t('notFound.popularPages')}</p>
           <div className="flex flex-wrap justify-center gap-3">
             {[
               { to: '/marketplace', label: t('nav.marketplace') },
@@ -70,7 +70,7 @@ export default function NotFound() {
               <Link
                 key={idx}
                 to={link.to}
-                className="text-afrikoni-gold hover:text-afrikoni-goldLight text-sm font-medium transition-colors"
+                className="text-os-accent hover:text-os-accentLight text-os-sm font-medium transition-colors"
               >
                 {link.label}
               </Link>

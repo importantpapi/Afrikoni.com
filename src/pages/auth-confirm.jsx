@@ -1,8 +1,6 @@
 /**
  * Email Confirmation Page
- * 
- * Handles email verification from Supabase confirmation links.
- * This is the MVP-clean, Amazon-simple confirmation flow.
+ * Handles email verification from Supabase confirmation links
  */
 
 import { useEffect, useState } from 'react';
@@ -10,9 +8,8 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
 import { toast } from 'sonner';
 import { Loader2, CheckCircle, XCircle, Mail } from 'lucide-react';
-import { Logo } from '@/components/shared/ui/Logo';
 import { Button } from '@/components/shared/ui/button';
-import { Card, CardContent } from '@/components/shared/ui/card';
+import AuthLayout from '@/components/auth/AuthLayout';
 import { sendWelcomeEmail } from '@/services/emailService';
 import { logAuthEvent } from '@/lib/supabase-auth-helpers';
 
@@ -178,79 +175,82 @@ export default function AuthConfirm() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite flex items-center justify-center py-8 sm:py-12 px-4">
-      <Card className="w-full max-w-md border-afrikoni-gold/20 shadow-2xl bg-afrikoni-offwhite rounded-xl">
-        <CardContent className="p-6 sm:p-8 md:p-10 text-center">
-          <div className="flex justify-center mb-6">
-            <Logo type="full" size="lg" link={true} showTagline={false} />
+  if (status === 'loading') {
+    return (
+      <AuthLayout
+        title="Confirming your email"
+        subtitle="Please wait while we verify your account"
+      >
+        <div className="text-center py-8">
+          <Loader2 className="w-12 h-12 mx-auto mb-6 animate-spin text-[#D4A937]" />
+          <p className="text-[14px] text-gray-600">This will only take a moment...</p>
+        </div>
+      </AuthLayout>
+    );
+  }
+
+  if (status === 'success') {
+    return (
+      <AuthLayout
+        title="Email confirmed"
+        subtitle="Your Afrikoni account is now active"
+      >
+        <div className="text-center py-8 space-y-6">
+          <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto">
+            <CheckCircle className="w-8 h-8 text-green-600" />
+          </div>
+          <p className="text-[14px] text-gray-600">Redirecting you to your dashboard...</p>
+          <Loader2 className="w-6 h-6 animate-spin text-[#D4A937] mx-auto" />
+        </div>
+      </AuthLayout>
+    );
+  }
+
+  if (status === 'error') {
+    return (
+      <AuthLayout
+        title="Confirmation failed"
+        subtitle={errorMessage}
+      >
+        <div className="space-y-6">
+          <div className="text-center">
+            <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <XCircle className="w-8 h-8 text-red-600" />
+            </div>
+            <p className="text-[13px] text-gray-600 leading-relaxed">
+              The confirmation link may have expired or is invalid. Try requesting a new one.
+            </p>
           </div>
 
-          {status === 'loading' && (
-            <>
-              <Loader2 className="w-12 h-12 mx-auto mb-4 animate-spin text-afrikoni-gold" />
-              <h1 className="text-2xl font-bold text-afrikoni-chestnut mb-2">
-                Confirming your email...
-              </h1>
-              <p className="text-afrikoni-deep text-sm sm:text-base">
-                Please wait while we verify your account.
-              </p>
-            </>
-          )}
+          <Button
+            onClick={handleResendConfirmation}
+            disabled={isResending}
+            className="w-full h-[52px] bg-[#D4A937] hover:bg-[#C29931] active:bg-[#B38A2C] text-white font-semibold text-[15px] rounded-[14px] transition-all shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(212,169,55,0.15)] hover:shadow-[0_2px_4px_rgba(0,0,0,0.1),0_6px_16px_rgba(212,169,55,0.2)] active:shadow-[0_1px_2px_rgba(0,0,0,0.12)] disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isResending ? (
+              <>
+                <Loader2 className="w-[18px] h-[18px] mr-2 animate-spin" />
+                Sending...
+              </>
+            ) : (
+              <>
+                <Mail className="w-[18px] h-[18px] mr-2" />
+                Resend confirmation email
+              </>
+            )}
+          </Button>
 
-          {status === 'success' && (
-            <>
-              <CheckCircle className="w-16 h-16 mx-auto mb-4 text-green-600" />
-              <h1 className="text-2xl font-bold text-afrikoni-chestnut mb-2">
-                Email Confirmed! ✅
-              </h1>
-              <p className="text-afrikoni-deep text-sm sm:text-base mb-6">
-                Your Afrikoni account is now active. Redirecting...
-              </p>
-            </>
-          )}
+          <Button
+            onClick={() => navigate('/login')}
+            className="w-full h-[52px] bg-white hover:bg-gray-50 active:bg-gray-100 text-gray-800 border border-gray-300 rounded-[14px] font-medium text-[15px] transition-all shadow-sm hover:shadow-md active:shadow-sm"
+          >
+            Go to login
+          </Button>
+        </div>
+      </AuthLayout>
+    );
+  }
 
-          {status === 'error' && (
-            <>
-              <XCircle className="w-16 h-16 mx-auto mb-4 text-red-600" />
-              <h1 className="text-2xl font-bold text-afrikoni-chestnut mb-2">
-                Confirmation Failed
-              </h1>
-              <p className="text-afrikoni-deep text-sm sm:text-base mb-6">
-                {errorMessage}
-              </p>
-              <div className="space-y-3">
-                <Button
-                  onClick={handleResendConfirmation}
-                  disabled={isResending}
-                  variant="primary"
-                  className="w-full"
-                >
-                  {isResending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    <>
-                      <Mail className="w-4 h-4 mr-2" />
-                      Resend Confirmation Email
-                    </>
-                  )}
-                </Button>
-                <Button
-                  onClick={() => navigate('/login')}
-                  variant="outline"
-                  className="w-full"
-                >
-                  Go to Login
-                </Button>
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
+  return null;
 }
 

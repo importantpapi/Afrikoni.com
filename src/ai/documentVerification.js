@@ -182,7 +182,7 @@ Analyze:
 1. Whether documents are the same or different versions
 2. Key information consistency (company name, registration numbers, dates)
 3. Visual similarity (if images)
-4. Content similarity (if text-based)
+4. Content similarity (if text-os-based)
 
 Respond with JSON:
 {

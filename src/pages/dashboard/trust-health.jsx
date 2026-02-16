@@ -174,7 +174,7 @@ export default function TrustHealthDashboard() {
                                 <div className="text-3xl font-bold mb-1">
                                     {healthMetrics.platformTrustScore}
                                 </div>
-                                <div className="text-sm text-muted-foreground">
+                                <div className="text-os-sm text-muted-foreground">
                                     Platform Trust Score
                                 </div>
                             </CardContent>
@@ -196,7 +196,7 @@ export default function TrustHealthDashboard() {
                                 <div className="text-3xl font-bold mb-1">
                                     {healthMetrics.verifiedCompanies}
                                 </div>
-                                <div className="text-sm text-muted-foreground">
+                                <div className="text-os-sm text-muted-foreground">
                                     Verified Companies
                                 </div>
                             </CardContent>
@@ -220,7 +220,7 @@ export default function TrustHealthDashboard() {
                                 <div className="text-3xl font-bold mb-1">
                                     {healthMetrics.avgCorridorHealth}
                                 </div>
-                                <div className="text-sm text-muted-foreground">
+                                <div className="text-os-sm text-muted-foreground">
                                     Avg Corridor Health
                                 </div>
                             </CardContent>
@@ -244,7 +244,7 @@ export default function TrustHealthDashboard() {
                                 <div className="text-3xl font-bold mb-1">
                                     {healthMetrics.fraudAlertsToday}
                                 </div>
-                                <div className="text-sm text-muted-foreground">
+                                <div className="text-os-sm text-muted-foreground">
                                     Fraud Alerts (24h)
                                 </div>
                             </CardContent>
@@ -264,7 +264,7 @@ export default function TrustHealthDashboard() {
                         </CardHeader>
                         <CardContent>
                             {topTrustedCompanies.length === 0 ? (
-                                <p className="text-sm text-muted-foreground text-center py-8">
+                                <p className="text-os-sm text-muted-foreground text-center py-8">
                                     No trust scores available yet
                                 </p>
                             ) : (
@@ -272,26 +272,26 @@ export default function TrustHealthDashboard() {
                                     {topTrustedCompanies.map((company, index) => (
                                         <div
                                             key={company.company_id}
-                                            className="flex items-center justify-between p-3 rounded-lg border hover:border-afrikoni-gold/40 transition-colors"
+                                            className="flex items-center justify-between p-3 rounded-lg border hover:border-os-accent/40 transition-colors"
                                         >
                                             <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white font-bold text-sm">
+                                                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center text-white font-bold text-os-sm">
                                                     #{index + 1}
                                                 </div>
                                                 <div>
                                                     <div className="font-semibold">
                                                         {company.companies?.company_name || 'Unknown Company'}
                                                     </div>
-                                                    <div className="text-xs text-muted-foreground">
+                                                    <div className="text-os-xs text-muted-foreground">
                                                         Level: {company.level}
                                                     </div>
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <div className="text-2xl font-bold text-emerald-600">
+                                                <div className="text-os-2xl font-bold text-emerald-600">
                                                     {company.total_score}
                                                 </div>
-                                                <div className="text-xs text-muted-foreground">
+                                                <div className="text-os-xs text-muted-foreground">
                                                     Trust Score
                                                 </div>
                                             </div>
@@ -318,7 +318,7 @@ export default function TrustHealthDashboard() {
                         </CardHeader>
                         <CardContent>
                             {corridorHealth.length === 0 ? (
-                                <p className="text-sm text-muted-foreground text-center py-8">
+                                <p className="text-os-sm text-muted-foreground text-center py-8">
                                     No corridor data available yet
                                 </p>
                             ) : (
@@ -326,7 +326,7 @@ export default function TrustHealthDashboard() {
                                     {corridorHealth.map((corridor) => (
                                         <div key={corridor.id} className="space-y-2">
                                             <div className="flex items-center justify-between">
-                                                <div className="font-medium text-sm">
+                                                <div className="font-medium text-os-sm">
                                                     {corridor.origin_country} → {corridor.destination_country}
                                                 </div>
                                                 <Badge variant={corridor.reliability_score >= 80 ? 'success' : 'secondary'}>
@@ -334,7 +334,7 @@ export default function TrustHealthDashboard() {
                                                 </Badge>
                                             </div>
                                             <Progress value={corridor.reliability_score} className="h-2" />
-                                            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                            <div className="flex items-center justify-between text-os-xs text-muted-foreground">
                                                 <span>Avg Transit: {corridor.avg_transit_days || 'N/A'} days</span>
                                                 <span>Delay Risk: {corridor.customs_delay_risk || 'low'}</span>
                                             </div>
@@ -363,7 +363,7 @@ export default function TrustHealthDashboard() {
                             {riskAlerts.length === 0 ? (
                                 <div className="text-center py-8">
                                     <CheckCircle className="w-12 h-12 text-emerald-600 mx-auto mb-3" />
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="text-os-sm text-muted-foreground">
                                         No fraud alerts in the last 24 hours
                                     </p>
                                 </div>
@@ -376,10 +376,10 @@ export default function TrustHealthDashboard() {
                                         >
                                             <AlertTriangle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
                                             <div className="flex-1">
-                                                <div className="font-semibold text-sm mb-1">
+                                                <div className="font-semibold text-os-sm mb-1">
                                                     {alert.action}
                                                 </div>
-                                                <div className="text-xs text-muted-foreground">
+                                                <div className="text-os-xs text-muted-foreground">
                                                     {new Date(alert.created_at).toLocaleString()}
                                                 </div>
                                             </div>

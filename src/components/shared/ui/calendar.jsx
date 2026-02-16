@@ -63,7 +63,7 @@ export const Calendar = ({ mode = 'single', selected, onSelect, initialFocus }) 
       </div>
       <div className="grid grid-cols-7 gap-1">
         {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-          <div key={day} className="text-center text-sm font-medium text-afrikoni-deep/70 p-2">
+          <div key={day} className="text-center text-os-sm font-medium text-afrikoni-deep/70 p-2">
             {day}
           </div>
         ))}
@@ -72,8 +72,8 @@ export const Calendar = ({ mode = 'single', selected, onSelect, initialFocus }) 
             key={idx}
             onClick={() => handleDateClick(day)}
             className={`
-              p-2 text-sm rounded hover:bg-afrikoni-cream
-              ${isSelected(day) ? 'bg-afrikoni-gold text-afrikoni-creamhover:bg-amber-700' : ''}
+              p-2 text-os-sm rounded hover:bg-afrikoni-cream
+              ${isSelected(day) ? 'bg-os-accent text-afrikoni-creamhover:bg-amber-700' : ''}
               ${isToday(day) && !isSelected(day) ? 'bg-afrikoni-cream font-semibold' : ''}
               ${!day ? 'invisible' : ''}
             `}

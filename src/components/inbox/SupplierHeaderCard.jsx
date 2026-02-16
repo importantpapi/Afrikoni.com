@@ -38,18 +38,18 @@ export default function SupplierHeaderCard({ company }) {
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
-          <h2 className="font-semibold text-base truncate">
+          <h2 className="font-semibold text-os-base truncate">
             {company?.company_name || 'Unknown Company'}
           </h2>
           {company?.verification_status === 'verified' && (
-            <Badge className="text-[10px] px-1.5 py-0.5">
+            <Badge className="text-os-xs px-1.5 py-0.5">
               <CheckCircle className="w-3 h-3 mr-0.5" />
               Verified
             </Badge>
           )}
         </div>
         {company?.country && (
-          <div className="flex items-center gap-1 text-xs">
+          <div className="flex items-center gap-1 text-os-xs">
             <MapPin className="w-3 h-3" />
             <span>{company.country}</span>
           </div>

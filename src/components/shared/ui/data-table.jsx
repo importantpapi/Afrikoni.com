@@ -23,7 +23,7 @@ export function DataTable({ columns, data, onRowClick, className }) {
               onRowClick && 'cursor-pointer'
             )}
           >
-            <Card className="border-afrikoni-gold/20 shadow-sm hover:shadow-md transition-shadow active:shadow-lg">
+            <Card className="border-os-accent/20 shadow-sm hover:shadow-md transition-shadow active:shadow-os-md">
               <CardContent className="p-4 md:p-5 space-y-3">
                 {columns.map((column, colIdx) => {
                   // Skip columns that are actions or less important on mobile
@@ -38,10 +38,10 @@ export function DataTable({ columns, data, onRowClick, className }) {
                   
                   return (
                     <div key={colIdx} className="flex flex-col gap-1">
-                      <span className="text-xs font-semibold text-afrikoni-deep/60 uppercase tracking-wide">
+                      <span className="text-os-xs font-semibold text-afrikoni-deep/60 uppercase tracking-wide">
                         {column.header}
                       </span>
-                      <span className="text-sm text-afrikoni-chestnut font-medium">
+                      <span className="text-os-sm text-afrikoni-chestnut font-medium">
                         {value}
                       </span>
                     </div>
@@ -54,22 +54,22 @@ export function DataTable({ columns, data, onRowClick, className }) {
       </div>
 
       {/* Desktop Table View */}
-      <div className={cn('hidden md:block rounded-xl border border-afrikoni-gold/20 bg-afrikoni-offwhite shadow-afrikoni overflow-hidden', className)}>
+      <div className={cn('hidden md:block rounded-os-sm border border-os-accent/20 bg-afrikoni-offwhite shadow-os-gold overflow-hidden', className)}>
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-afrikoni-offwhite border-b border-afrikoni-gold/20">
+            <thead className="bg-afrikoni-offwhite border-b border-os-accent/20">
               <tr>
                 {columns.map((column, idx) => (
                   <th
                     key={idx}
-                    className="px-4 py-3 text-left text-xs font-semibold text-afrikoni-deep uppercase tracking-wider"
+                    className="px-4 py-3 text-left text-os-xs font-semibold text-afrikoni-deep uppercase tracking-wider"
                   >
                     {column.header}
                   </th>
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-afrikoni-gold/20">
+            <tbody className="divide-y divide-os-accent/20">
               {data.map((row, rowIdx) => (
                 <motion.tr
                   key={rowIdx}
@@ -83,7 +83,7 @@ export function DataTable({ columns, data, onRowClick, className }) {
                   )}
                 >
                   {columns.map((column, colIdx) => (
-                    <td key={colIdx} className="px-4 py-3 text-sm text-afrikoni-chestnut">
+                    <td key={colIdx} className="px-4 py-3 text-os-sm text-afrikoni-chestnut">
                       {column.render ? column.render(row[column.accessor], row) : row[column.accessor]}
                     </td>
                   ))}
@@ -103,7 +103,7 @@ export function StatusChip({ status, variant, type = 'order' }) {
   const statusVariant = variant || getStatusVariant(status, type);
 
   return (
-    <Badge variant={statusVariant} className="text-xs">
+    <Badge variant={statusVariant} className="text-os-xs">
       {label}
     </Badge>
   );

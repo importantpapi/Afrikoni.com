@@ -33,13 +33,13 @@ export default function HybridHeader({
       <div className="flex flex-1 items-center">
         {/* Search Bar */}
         <div className="relative w-full max-w-[520px]">
-          <Search className="w-4 h-4 text-afrikoni-gold absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Search className="w-4 h-4 text-os-accent absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
           <Input
             placeholder={t?.('common.search') || 'Search orders, products, suppliers...'}
-            className="pl-10 pr-4 h-10 w-full border-afrikoni-gold/30
-                       focus:border-afrikoni-gold focus:ring-2
-                       focus:ring-afrikoni-gold/20 shadow-sm
-                       transition-all text-sm bg-white rounded-lg"
+            className="pl-10 pr-4 h-10 w-full border-os-accent/30
+                       focus:border-os-accent focus:ring-2
+                       focus:ring-os-accent/20 shadow-sm
+                       transition-all text-os-sm bg-white rounded-lg"
             onFocus={() => setSearchOpen?.(true)}
             onBlur={() => setTimeout(() => setSearchOpen?.(false), 200)}
           />
@@ -56,13 +56,13 @@ export default function HybridHeader({
         {/* Hybrid segmented switcher + Primary Action */}
         <div className="flex items-center gap-3 shrink-0">
           {/* Hybrid view switcher (all/buyer/seller views) */}
-          <div className="hidden lg:flex items-center gap-0.5 bg-afrikoni-sand/40 p-1 rounded-full border border-afrikoni-gold/20 shadow-sm relative">
+          <div className="hidden lg:flex items-center gap-0.5 bg-afrikoni-sand/40 p-1 rounded-full border border-os-accent/20 shadow-sm relative">
           {['all', 'buyer', 'seller'].map(view => (
             <button
               key={view}
               onClick={() => setActiveView(view)}
               className={`
-                relative px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 capitalize z-10 min-w-[60px]
+                relative px-4 py-1.5 rounded-full text-os-xs font-semibold transition-all duration-200 capitalize z-10 min-w-[60px]
                 ${activeView === view
                   ? 'text-afrikoni-charcoal'
                   : 'text-afrikoni-text-dark/70 hover:text-afrikoni-text-dark'
@@ -74,7 +74,7 @@ export default function HybridHeader({
           ))}
           <motion.div
             layoutId="activeHybridHeaderView"
-            className="absolute top-1 bottom-1 rounded-full bg-afrikoni-gold shadow-afrikoni z-0"
+            className="absolute top-1 bottom-1 rounded-full bg-os-accent shadow-os-gold z-0"
             initial={false}
             transition={{ type: 'spring', stiffness: 500, damping: 30 }}
             animate={{
@@ -94,15 +94,15 @@ export default function HybridHeader({
             onClick={() =>
               isBuyerView ? navigate('/dashboard/rfqs/new') : navigate('/dashboard/products/new')
             }
-            className="flex items-center gap-2 bg-afrikoni-gold
-                       hover:bg-afrikoni-gold/90
+            className="flex items-center gap-2 bg-os-accent
+                       hover:bg-os-accent/90
                        text-afrikoni-charcoal font-semibold
                        shadow-md rounded-lg px-6 h-11
-                       transition-all hover:shadow-lg
+                       transition-all hover:shadow-os-md
                        whitespace-nowrap"
           >
             <Plus className="w-4 h-4" />
-            <span className="text-sm">{isBuyerView ? 'Create RFQ' : 'Add Product'}</span>
+            <span className="text-os-sm">{isBuyerView ? 'Create RFQ' : 'Add Product'}</span>
           </Button>
         </div>
 
@@ -117,7 +117,7 @@ export default function HybridHeader({
           >
             <MessageSquare className="w-5 h-5 text-afrikoni-text-dark" />
             <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5
-                           bg-afrikoni-gold rounded-full border-2
+                           bg-os-accent rounded-full border-2
                            border-afrikoni-ivory"></span>
           </Link>
 
@@ -130,8 +130,8 @@ export default function HybridHeader({
             className="inline-flex items-center justify-center
                        w-10 h-10 rounded-lg
                        text-afrikoni-charcoal
-                       hover:bg-afrikoni-gold/10
-                       focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/30
+                       hover:bg-os-accent/10
+                       focus:outline-none focus:ring-2 focus:ring-os-accent/30
                        transition-colors"
             aria-label="Toggle menu"
           >

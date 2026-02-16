@@ -39,10 +39,10 @@ export default function MobileTrustBadge() {
           transition={{ duration: 0.3 }}
           className="fixed bottom-0 left-0 right-0 z-50 md:hidden"
         >
-          <div className="bg-gradient-to-r from-afrikoni-chestnut to-afrikoni-deep text-afrikoni-cream px-4 py-3 shadow-lg border-t-2 border-afrikoni-gold">
+          <div className="bg-gradient-to-r from-afrikoni-chestnut to-afrikoni-deep text-afrikoni-cream px-4 py-3 shadow-os-md border-t-2 border-os-accent">
             <div className="flex items-center justify-center gap-2 max-w-7xl mx-auto">
-              <Shield className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
-              <span className="text-sm font-semibold">
+              <Shield className="w-5 h-5 text-os-accent flex-shrink-0" />
+              <span className="text-os-sm font-semibold">
                 🛡 Afrikoni Trade Shield — Verified Suppliers Only
               </span>
             </div>

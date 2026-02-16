@@ -396,12 +396,12 @@ export default function OrderDetail() {
     return (
       <div className="os-page os-stagger space-y-4">
         <Surface variant="soft" className="p-6 border">
-          <h2 className="text-xl font-semibold text-[var(--os-text-primary)] mb-2">Order Failed to Load</h2>
+          <h2 className="text-os-xl font-semibold text-[var(--os-text-primary)] mb-2">Order Failed to Load</h2>
           <p className="text-[var(--os-text-secondary)] mb-4">
             We couldn't load the order details, but you can still manage it below.
           </p>
           <div className="flex gap-3">
-            <Button onClick={loadOrderData} className="hover:bg-afrikoni-goldDark">
+            <Button onClick={loadOrderData} className="hover:bg-os-accentDark">
               Retry Loading
             </Button>
             <Button variant="outline" onClick={() => navigate('/dashboard/orders')}>
@@ -411,13 +411,13 @@ export default function OrderDetail() {
         </Surface>
         {/* Allow editing even when order fails to load */}
         <Surface className="p-6">
-          <h3 className="text-lg font-semibold text-[var(--os-text-primary)] mb-2">
+          <h3 className="text-os-lg font-semibold text-[var(--os-text-primary)] mb-2">
             Edit Order {id?.slice(0, 8).toUpperCase()}
           </h3>
-          <p className="text-sm text-[var(--os-text-secondary)] mb-4">
+          <p className="text-os-sm text-[var(--os-text-secondary)] mb-4">
             Enter order details manually or retry loading above.
           </p>
-          <Button onClick={loadOrderData} className="hover:bg-afrikoni-goldDark">
+          <Button onClick={loadOrderData} className="hover:bg-os-accentDark">
             Retry Loading Order
           </Button>
         </Surface>
@@ -435,13 +435,13 @@ export default function OrderDetail() {
       {/* Header */}
       <Surface variant="glass" className="p-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
-          <Link to="/dashboard/orders" className="hover:text-afrikoni-goldDark text-sm mb-2 inline-block">
+          <Link to="/dashboard/orders" className="hover:text-os-accentDark text-os-sm mb-2 inline-block">
             ← Back to Orders
           </Link>
-          <h1 className="text-xl md:text-2xl font-semibold text-[var(--os-text-primary)]">
+          <h1 className="text-os-xl md:text-os-2xl font-semibold text-[var(--os-text-primary)]">
             Order #{id.slice(0, 8).toUpperCase()}
           </h1>
-          <p className="text-sm text-[var(--os-text-secondary)]">
+          <p className="text-os-sm text-[var(--os-text-secondary)]">
             Live order dossier with escrow, logistics, and compliance signals.
           </p>
         </div>
@@ -453,10 +453,10 @@ export default function OrderDetail() {
 
       {/* Simple explanation of the protected order journey */}
       <Surface variant="soft" className="p-4 md:p-5 border bg-[linear-gradient(120deg,rgba(190,156,63,0.12),rgba(16,16,16,0.2))]">
-        <p className="text-xs md:text-sm font-semibold text-[var(--os-text-primary)] mb-2 uppercase tracking-wide">
+        <p className="text-os-xs md:text-os-sm font-semibold text-[var(--os-text-primary)] mb-2 uppercase tracking-wide">
           How Afrikoni Shield protects this order
         </p>
-        <div className="grid md:grid-cols-4 gap-3 text-xs md:text-sm text-[var(--os-text-secondary)]">
+        <div className="grid md:grid-cols-4 gap-3 text-os-xs md:text-os-sm text-[var(--os-text-secondary)]">
           <div>
             <p className="font-semibold text-[var(--os-text-primary)] mb-1">1. Agreement</p>
             <p>You and the supplier agreed on price, quantity and delivery terms from an RFQ or product page.</p>
@@ -479,7 +479,7 @@ export default function OrderDetail() {
             <p>
               After you receive the goods, payment is released and you can leave a review. If there is any issue,
               you can raise a dispute instead of releasing funds.
-              <span className="block mt-1 font-semibold text-[11px]">
+              <span className="block mt-1 font-semibold text-os-xs">
                 For your safety, avoid side payments outside Afrikoni.
               </span>
             </p>
@@ -509,7 +509,7 @@ export default function OrderDetail() {
           {/* Order Timeline */}
           <Surface className="p-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-[var(--os-text-primary)]">Order Timeline</h2>
+              <h2 className="text-os-lg font-semibold text-[var(--os-text-primary)]">Order Timeline</h2>
             </div>
             <div className="space-y-4">
               {Array.isArray(timeline) && timeline.length > 0 ? (
@@ -525,7 +525,7 @@ export default function OrderDetail() {
                   />
                 ))
               ) : (
-                <p className="text-sm text-[var(--os-text-secondary)]">No timeline events available</p>
+                <p className="text-os-sm text-[var(--os-text-secondary)]">No timeline events available</p>
               )}
             </div>
           </Surface>
@@ -533,19 +533,19 @@ export default function OrderDetail() {
           {/* Product Details */}
           {product && (
             <Surface className="p-5">
-              <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Product Details</h2>
+              <h2 className="text-os-lg font-semibold text-[var(--os-text-primary)] mb-4">Product Details</h2>
               <div className="flex gap-4">
                 {product.images && product.images[0] && (
                   <img
                     src={product.images[0]}
                     alt={product.name || product.title}
-                    className="w-24 h-24 object-cover rounded-xl border"
+                    className="w-24 h-24 object-cover rounded-os-sm border"
                   />
                 )}
                 <div className="flex-1">
                   <h3 className="font-semibold text-[var(--os-text-primary)]">{product.name || product.title}</h3>
-                  <p className="text-sm text-[var(--os-text-secondary)] mt-1">{product.short_description}</p>
-                  <div className="mt-2 flex items-center gap-4 text-sm text-[var(--os-text-secondary)]">
+                  <p className="text-os-sm text-[var(--os-text-secondary)] mt-1">{product.short_description}</p>
+                  <div className="mt-2 flex items-center gap-4 text-os-sm text-[var(--os-text-secondary)]">
                     <span>Quantity: {order.quantity} {order.products?.unit || 'units'}</span>
                     <span>Unit Price: {order.currency} {parseFloat(order.unit_price).toLocaleString()}</span>
                   </div>
@@ -557,11 +557,11 @@ export default function OrderDetail() {
           {/* Shipment Info */}
           <Surface className="p-5">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-[var(--os-text-primary)]">Shipment Information</h2>
+              <h2 className="text-os-lg font-semibold text-[var(--os-text-primary)]">Shipment Information</h2>
               {canManageShipment && !shipment && (
                 <Button
                   size="sm"
-                  className="hover:bg-afrikoni-goldDark"
+                  className="hover:bg-os-accentDark"
                   onClick={handleCreateShipment}
                   disabled={isUpdating}
                 >
@@ -573,37 +573,37 @@ export default function OrderDetail() {
             {shipment ? (
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-[var(--os-text-secondary)]">Tracking Number</span>
+                  <span className="text-os-sm text-[var(--os-text-secondary)]">Tracking Number</span>
                   <span className="font-mono font-medium text-[var(--os-text-primary)]">
                     {shipment.tracking_number || 'N/A'}
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-[var(--os-text-secondary)]">Status</span>
+                  <span className="text-os-sm text-[var(--os-text-secondary)]">Status</span>
                   <Badge variant="outline" className="capitalize text-[var(--os-text-primary)]">
                     {shipment.status}
                   </Badge>
                 </div>
                 {shipment.origin_address && (
                   <div>
-                    <span className="text-sm text-[var(--os-text-secondary)]">Origin</span>
-                    <p className="text-sm text-[var(--os-text-secondary)]">
+                    <span className="text-os-sm text-[var(--os-text-secondary)]">Origin</span>
+                    <p className="text-os-sm text-[var(--os-text-secondary)]">
                       {shipment.origin_address}
                     </p>
                   </div>
                 )}
                 {shipment.destination_address && (
                   <div>
-                    <span className="text-sm text-[var(--os-text-secondary)]">Destination</span>
-                    <p className="text-sm text-[var(--os-text-secondary)]">
+                    <span className="text-os-sm text-[var(--os-text-secondary)]">Destination</span>
+                    <p className="text-os-sm text-[var(--os-text-secondary)]">
                       {shipment.destination_address}
                     </p>
                   </div>
                 )}
                 {shipment.estimated_delivery && (
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-[var(--os-text-secondary)]">Estimated Delivery</span>
-                    <span className="text-sm text-[var(--os-text-primary)]">
+                    <span className="text-os-sm text-[var(--os-text-secondary)]">Estimated Delivery</span>
+                    <span className="text-os-sm text-[var(--os-text-primary)]">
                       {format(
                         new Date(shipment.estimated_delivery),
                         'MMM d, yyyy'
@@ -614,7 +614,7 @@ export default function OrderDetail() {
 
                 {canManageShipment && (
                   <div className="pt-2">
-                    <span className="text-xs text-[var(--os-text-secondary)] block mb-1">
+                    <span className="text-os-xs text-[var(--os-text-secondary)] block mb-1">
                       Update shipment status
                     </span>
                     <div className="flex flex-wrap gap-2">
@@ -623,8 +623,8 @@ export default function OrderDetail() {
                           key={status}
                           size="xs"
                           variant={shipment.status === status ? 'default' : 'outline'}
-                          className={`text-[11px] capitalize ${shipment.status === status
-                            ? 'bg-afrikoni-gold text-afrikoni-charcoal'
+                          className={`text-os-xs capitalize ${shipment.status === status
+                            ? 'bg-os-accent text-afrikoni-charcoal'
                             : 'border-white/10 text-[var(--os-text-primary)]'
                             }`}
                           onClick={() => handleShipmentStatusUpdate(status)}
@@ -638,7 +638,7 @@ export default function OrderDetail() {
                 )}
               </div>
             ) : (
-              <p className="text-sm text-[var(--os-text-secondary)]">
+              <p className="text-os-sm text-[var(--os-text-secondary)]">
                 No shipment has been created yet for this order.
               </p>
             )}
@@ -660,8 +660,8 @@ export default function OrderDetail() {
           {/* Escrow / Wallet Timeline */}
           {Array.isArray(walletEvents) && walletEvents.length > 0 && (
             <Surface className="p-5">
-              <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Payment &amp; Escrow Events</h2>
-              <div className="space-y-2 text-sm">
+              <h2 className="text-os-lg font-semibold text-[var(--os-text-primary)] mb-4">Payment &amp; Escrow Events</h2>
+              <div className="space-y-2 text-os-sm">
                 {walletEvents.map((evt) => (
                   <div
                     key={evt.id}
@@ -671,15 +671,15 @@ export default function OrderDetail() {
                       <div className="font-medium text-[var(--os-text-primary)]">
                         {evt.type.replace('_', ' ')}
                       </div>
-                      <div className="text-[11px] text-[var(--os-text-secondary)]">
+                      <div className="text-os-xs text-[var(--os-text-secondary)]">
                         {evt.description || 'Wallet transaction'}
                       </div>
                     </div>
-                    <div className="text-right text-xs">
+                    <div className="text-right text-os-xs">
                       <div className="font-semibold text-[var(--os-text-primary)]">
                         {evt.currency || 'USD'} {parseFloat(evt.amount || 0).toLocaleString()}
                       </div>
-                      <div className="text-[11px] text-[var(--os-text-secondary)]">
+                      <div className="text-os-xs text-[var(--os-text-secondary)]">
                         {evt.created_at ? format(new Date(evt.created_at), 'MMM d, HH:mm') : ''}
                       </div>
                     </div>
@@ -737,19 +737,19 @@ export default function OrderDetail() {
 
           {/* Order Summary */}
           <Surface className="p-5">
-            <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Order Summary</h2>
+            <h2 className="text-os-lg font-semibold text-[var(--os-text-primary)] mb-4">Order Summary</h2>
             <div className="space-y-3">
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-os-sm">
                 <span className="text-[var(--os-text-secondary)]">Subtotal</span>
                 <span className="font-medium text-[var(--os-text-primary)]">{order.currency} {parseFloat(order.total_amount).toLocaleString()}</span>
               </div>
               {order.buyer_protection_fee > 0 && (
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-os-sm">
                   <span className="text-[var(--os-text-secondary)]">Trade Inspection</span>
                   <span className="font-medium">{order.currency} {parseFloat(order.buyer_protection_fee).toLocaleString()}</span>
                 </div>
               )}
-              <div className="flex justify-between text-sm">
+              <div className="flex justify-between text-os-sm">
                 <span className="text-[var(--os-text-secondary)]">Shipping</span>
                 <span className="font-medium text-[var(--os-text-primary)]">{order.currency} {parseFloat(order.shipping_cost || 0).toLocaleString()}</span>
               </div>
@@ -762,14 +762,14 @@ export default function OrderDetail() {
 
           {/* Company Info */}
           <Surface className="p-5">
-            <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">
+            <h2 className="text-os-lg font-semibold text-[var(--os-text-primary)] mb-4">
               {currentRole === 'buyer' || currentRole === 'hybrid' ? 'Supplier' : 'Buyer'}
             </h2>
             {currentRole === 'buyer' || currentRole === 'hybrid' ? (
               sellerCompany ? (
                 <div>
                   <h4 className="font-semibold text-[var(--os-text-primary)]">{sellerCompany.company_name}</h4>
-                  <p className="text-sm text-[var(--os-text-secondary)] mt-1">{sellerCompany.country}</p>
+                  <p className="text-os-sm text-[var(--os-text-secondary)] mt-1">{sellerCompany.country}</p>
                   <Link to={`/business/${sellerCompany.id}`}>
                     <Button variant="outline" size="sm" className="w-full mt-3">
                       View Business Profile
@@ -777,16 +777,16 @@ export default function OrderDetail() {
                   </Link>
                 </div>
               ) : (
-                <p className="text-sm text-[var(--os-text-secondary)]">Company information not available</p>
+                <p className="text-os-sm text-[var(--os-text-secondary)]">Company information not available</p>
               )
             ) : (
               buyerCompany ? (
                 <div>
                   <h4 className="font-semibold text-[var(--os-text-primary)]">{buyerCompany.company_name}</h4>
-                  <p className="text-sm text-[var(--os-text-secondary)] mt-1">{buyerCompany.country}</p>
+                  <p className="text-os-sm text-[var(--os-text-secondary)] mt-1">{buyerCompany.country}</p>
                 </div>
               ) : (
-                <p className="text-sm text-[var(--os-text-secondary)]">Company information not available</p>
+                <p className="text-os-sm text-[var(--os-text-secondary)]">Company information not available</p>
               )
             )}
           </Surface>
@@ -794,10 +794,10 @@ export default function OrderDetail() {
           {/* Actions */}
           <Surface className="p-5">
             {/* MULTI-SIG BRIDGE: 3-Key Consensus Visualization */}
-            <div className="mb-6 p-4 bg-black/20 rounded-xl border border-white/5">
+            <div className="mb-6 p-4 bg-black/20 rounded-os-sm border border-white/5">
               <div className="flex items-center gap-2 mb-3">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">Multi-Sig Bridge Active</span>
+                <span className="text-os-xs font-bold uppercase tracking-wider text-emerald-400">Multi-Sig Bridge Active</span>
               </div>
               <div className="flex justify-between items-center gap-2">
                 {/* Key 1: AI Sentinel (Doc Verified) */}
@@ -805,18 +805,18 @@ export default function OrderDetail() {
                   <div className="w-8 h-8 rounded-full flex items-center justify-center bg-amber-500/20 text-amber-500">
                     <ShieldCheck className="w-4 h-4" />
                   </div>
-                  <span className="text-[10px] text-amber-500 font-mono font-bold">AI Sentinel</span>
-                  <span className="text-[9px] text-gray-500">Doc Verified</span>
+                  <span className="text-os-xs text-amber-500 font-mono font-bold">AI Sentinel</span>
+                  <span className="text-os-xs text-gray-500">Doc Verified</span>
                   <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]"></div>
                 </div>
 
                 {/* Key 2: Logistics Oracle (GPS Verified) */}
-                <div className="flex flex-col items-center gap-1.5 flex-1 p-2 bg-blue-500/5 rounded-lg border border-blue-500/20">
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-blue-500/20 text-blue-500">
+                <div className="flex flex-col items-center gap-1.5 flex-1 p-2 bg-blue-500/5 rounded-lg border border-os-blue/20">
+                  <div className="w-8 h-8 rounded-full flex items-center justify-center bg-blue-500/20 text-os-blue">
                     <Truck className="w-4 h-4" />
                   </div>
-                  <span className="text-[10px] text-blue-500 font-mono font-bold">Logistics</span>
-                  <span className="text-[9px] text-gray-500">GPS Verified</span>
+                  <span className="text-os-xs text-os-blue font-mono font-bold">Logistics</span>
+                  <span className="text-os-xs text-gray-500">GPS Verified</span>
                   <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
                 </div>
 
@@ -825,18 +825,18 @@ export default function OrderDetail() {
                   <div className="w-8 h-8 rounded-full flex items-center justify-center bg-emerald-500/20 text-emerald-500">
                     <Lock className="w-4 h-4" />
                   </div>
-                  <span className="text-[10px] text-emerald-500 font-mono font-bold">Buyer Key</span>
-                  <span className="text-[9px] text-gray-500">Final Sig</span>
+                  <span className="text-os-xs text-emerald-500 font-mono font-bold">Buyer Key</span>
+                  <span className="text-os-xs text-gray-500">Final Sig</span>
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
                 </div>
               </div>
-              <div className="mt-3 text-[10px] text-center text-gray-400">
+              <div className="mt-3 text-os-xs text-center text-gray-400">
                 <Lock className="w-3 h-3 inline mr-1 opacity-50" />
                 Funds are cryptographically secured until 3-Key Consensus is reached.
               </div>
             </div>
 
-            <h2 className="text-lg font-semibold text-[var(--os-text-primary)] mb-4">Actions</h2>
+            <h2 className="text-os-lg font-semibold text-[var(--os-text-primary)] mb-4">Actions</h2>
             <div className="space-y-2">
               {currentRole === 'buyer' && (
                 <>
@@ -904,7 +904,7 @@ export default function OrderDetail() {
                             setTemplateName('');
                             setShowTemplateDialog(false);
                           }}
-                          className="w-full hover:bg-afrikoni-goldDark"
+                          className="w-full hover:bg-os-accentDark"
                         >
                           Save Template
                         </Button>
@@ -960,7 +960,7 @@ export default function OrderDetail() {
                 <Button
                   onClick={() => handlePaymentStatusUpdate('paid')}
                   disabled={isUpdating}
-                  className="w-full hover:bg-afrikoni-goldDark"
+                  className="w-full hover:bg-os-accentDark"
                   size="sm"
                 >
                   Mark as Paid
@@ -976,12 +976,12 @@ export default function OrderDetail() {
                       <Star className="w-5 h-5" />
                       <span className="font-semibold">Rate Your Experience</span>
                     </div>
-                    <p className="text-sm mb-3">
+                    <p className="text-os-sm mb-3">
                       Help other buyers by sharing your experience with this supplier
                     </p>
                     <Button
                       onClick={() => setShowReviewForm(true)}
-                      className="w-full hover:bg-afrikoni-gold/90"
+                      className="w-full hover:bg-os-accent/90"
                       size="sm"
                     >
                       Write a Review
@@ -1005,7 +1005,7 @@ export default function OrderDetail() {
                     ))}
                   </div>
                   {existingReview.comment && (
-                    <p className="text-sm">{existingReview.comment}</p>
+                    <p className="text-os-sm">{existingReview.comment}</p>
                   )}
                 </div>
               )}

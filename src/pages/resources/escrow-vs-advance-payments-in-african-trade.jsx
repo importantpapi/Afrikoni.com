@@ -13,16 +13,16 @@ export default function EscrowVsAdvancePaymentsInAfricanTrade() {
       <div className="min-h-screen bg-afrikoni-offwhite py-12">
         <div className="max-w-3xl mx-auto px-4 space-y-6">
           <div>
-            <p className="text-xs uppercase tracking-wide text-afrikoni-gold mb-2">
+            <p className="text-os-xs uppercase tracking-wide text-os-accent mb-2">
               Afrikoni Insights · Payments
             </p>
             <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-3">
               Escrow vs Advance Payments in African Trade
             </h1>
-            <p className="text-sm text-afrikoni-deep/70">5 min read · Powered by Afrikoni Shield™</p>
+            <p className="text-os-sm text-afrikoni-deep/70">5 min read · Powered by Afrikoni Shield™</p>
           </div>
 
-          <Card className="border-afrikoni-gold/20 bg-white">
+          <Card className="border-os-accent/20 bg-white">
             <CardContent className="p-6 prose prose-sm md:prose-base max-w-none">
               <p>
                 Many cross‑border deals in Africa still rely on advance payments or informal agreements. While this can

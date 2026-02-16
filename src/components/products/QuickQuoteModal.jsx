@@ -125,7 +125,7 @@ export default function QuickQuoteModal({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-afrikoni-chestnut">
-            <Zap className="w-5 h-5 text-afrikoni-gold" />
+            <Zap className="w-5 h-5 text-os-accent" />
             Quick Quote Request
           </DialogTitle>
           <DialogDescription>
@@ -135,16 +135,16 @@ export default function QuickQuoteModal({
 
         <form onSubmit={handleSubmit} className="space-y-4 mt-4">
           {/* Product Summary */}
-          <div className="bg-afrikoni-cream/50 rounded-lg p-3 border border-afrikoni-gold/20">
+          <div className="bg-afrikoni-cream/50 rounded-lg p-3 border border-os-accent/20">
             <div className="flex items-start gap-3">
-              <div className="w-12 h-12 rounded-lg bg-afrikoni-gold/20 flex items-center justify-center flex-shrink-0">
-                <Package className="w-6 h-6 text-afrikoni-gold" />
+              <div className="w-12 h-12 rounded-lg bg-os-accent/20 flex items-center justify-center flex-shrink-0">
+                <Package className="w-6 h-6 text-os-accent" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-afrikoni-chestnut text-sm line-clamp-2">
+                <p className="font-semibold text-afrikoni-chestnut text-os-sm line-clamp-2">
                   {product?.title}
                 </p>
-                <p className="text-xs text-afrikoni-deep/70 mt-1">
+                <p className="text-os-xs text-afrikoni-deep/70 mt-1">
                   {supplier?.company_name} • {supplier?.country}
                 </p>
               </div>
@@ -153,7 +153,7 @@ export default function QuickQuoteModal({
 
           {/* Quantity */}
           <div className="space-y-2">
-            <Label htmlFor="quantity" className="text-sm font-medium text-afrikoni-chestnut">
+            <Label htmlFor="quantity" className="text-os-sm font-medium text-afrikoni-chestnut">
               Quantity Needed *
             </Label>
             <div className="flex gap-2">
@@ -176,7 +176,7 @@ export default function QuickQuoteModal({
               />
             </div>
             {product?.min_order_quantity && (
-              <p className="text-xs text-afrikoni-deep/60">
+              <p className="text-os-xs text-afrikoni-deep/60">
                 MOQ: {product.min_order_quantity} {product.moq_unit || product.unit || 'units'}
               </p>
             )}
@@ -184,7 +184,7 @@ export default function QuickQuoteModal({
 
           {/* Destination */}
           <div className="space-y-2">
-            <Label htmlFor="destination" className="text-sm font-medium text-afrikoni-chestnut">
+            <Label htmlFor="destination" className="text-os-sm font-medium text-afrikoni-chestnut">
               Delivery Destination
             </Label>
             <div className="relative">
@@ -202,7 +202,7 @@ export default function QuickQuoteModal({
 
           {/* Message */}
           <div className="space-y-2">
-            <Label htmlFor="message" className="text-sm font-medium text-afrikoni-chestnut">
+            <Label htmlFor="message" className="text-os-sm font-medium text-afrikoni-chestnut">
               Additional Details (Optional)
             </Label>
             <div className="relative">
@@ -212,17 +212,17 @@ export default function QuickQuoteModal({
                 placeholder="Any specific requirements, timeline, or questions..."
                 value={formData.message}
                 onChange={(e) => setFormData(prev => ({ ...prev, message: e.target.value }))}
-                className="w-full min-h-[80px] pl-10 pr-3 py-2 text-sm rounded-md border border-afrikoni-gold/30 bg-afrikoni-offwhite focus:outline-none focus:ring-2 focus:ring-afrikoni-gold resize-none"
+                className="w-full min-h-[80px] pl-10 pr-3 py-2 text-os-sm rounded-md border border-os-accent/30 bg-afrikoni-offwhite focus:outline-none focus:ring-2 focus:ring-os-accent resize-none"
                 maxLength={500}
               />
             </div>
-            <p className="text-xs text-afrikoni-deep/50 text-right">
+            <p className="text-os-xs text-afrikoni-deep/50 text-right">
               {formData.message.length}/500
             </p>
           </div>
 
           {/* Trust Badge */}
-          <div className="flex items-center gap-2 text-xs text-afrikoni-deep/70 bg-green-50 rounded-lg px-3 py-2 border border-green-200">
+          <div className="flex items-center gap-2 text-os-xs text-afrikoni-deep/70 bg-green-50 rounded-lg px-3 py-2 border border-green-200">
             <Shield className="w-4 h-4 text-green-600 flex-shrink-0" />
             <span>Your request is protected by Afrikoni Trade Shield</span>
           </div>
@@ -240,7 +240,7 @@ export default function QuickQuoteModal({
             </Button>
             <Button
               type="submit"
-              className="flex-1 bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white"
+              className="flex-1 bg-os-accent hover:bg-os-accentDark text-white"
               disabled={isSubmitting}
             >
               {isSubmitting ? (

@@ -57,23 +57,23 @@ export default function DeliveryAcceptancePanel({ trade, onNextStep, isTransitio
 
   return (
     <div className="space-y-4">
-      <Card className="border bg-gradient-to-br from-[#0E1016] to-[#141B24] rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+      <Card className="border bg-gradient-to-br from-[#0E1016] to-[#141B24] rounded-os-md shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
         <CardContent className="p-6">
           <div className="mb-6">
-            <h2 className="text-2xl font-semibold">
+            <h2 className="text-os-2xl font-semibold">
               Confirm Delivery
             </h2>
-            <p className="text-sm mt-1">
+            <p className="text-os-sm mt-1">
               Verify goods match the RFQ and accept delivery.
             </p>
           </div>
 
           {/* Delivery Checklist */}
-          <div className="rounded-xl p-4 mb-6 border">
-            <p className="text-sm font-semibold mb-3">
+          <div className="rounded-os-sm p-4 mb-6 border">
+            <p className="text-os-sm font-semibold mb-3">
               Verify Delivery
             </p>
-            <ul className="space-y-2 text-sm">
+            <ul className="space-y-2 text-os-sm">
               <li className="flex items-center gap-3">
                 <input
                   type="checkbox"
@@ -111,14 +111,14 @@ export default function DeliveryAcceptancePanel({ trade, onNextStep, isTransitio
                 checked={hasDefects}
                 onChange={(e) => setHasDefects(e.target.checked)}
               />
-              <span className="text-sm">
+              <span className="text-os-sm">
                 There are issues with this delivery
               </span>
             </label>
 
             {hasDefects && (
-              <div className="border rounded-xl p-4">
-                <p className="text-xs font-semibold mb-2">
+              <div className="border rounded-os-sm p-4">
+                <p className="text-os-xs font-semibold mb-2">
                   Report issues (will open a dispute)
                 </p>
                 <Textarea
@@ -126,7 +126,7 @@ export default function DeliveryAcceptancePanel({ trade, onNextStep, isTransitio
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Describe the issue in detail..."
                   rows={3}
-                  className="text-sm placeholder:text-white/40"
+                  className="text-os-sm placeholder:text-white/40"
                 />
               </div>
             )}
@@ -134,7 +134,7 @@ export default function DeliveryAcceptancePanel({ trade, onNextStep, isTransitio
 
           {/* Rating */}
           <div className="mb-6">
-            <label className="block text-sm font-semibold mb-2">
+            <label className="block text-os-sm font-semibold mb-2">
               Rate this supplier
             </label>
             <div className="flex gap-1">
@@ -152,14 +152,14 @@ export default function DeliveryAcceptancePanel({ trade, onNextStep, isTransitio
           </div>
 
           {/* Acceptance Checkbox */}
-          <div className="border rounded-xl p-4 mb-6">
+          <div className="border rounded-os-sm p-4 mb-6">
             <label className="flex items-start gap-3 cursor-pointer">
               <Checkbox
                 checked={isAccepted}
                 onChange={(e) => setIsAccepted(e.target.checked)}
                 className="mt-1"
               />
-              <span className="text-sm">
+              <span className="text-os-sm">
                 I accept this delivery and authorize payment release to the supplier.
               </span>
             </label>
@@ -167,9 +167,9 @@ export default function DeliveryAcceptancePanel({ trade, onNextStep, isTransitio
 
           {/* Accept Button */}
           {!capabilities?.can_buy && (
-            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-3 mb-4">
+            <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-os-sm flex items-center gap-3 mb-4">
               <AlertCircle className="w-4 h-4 text-amber-500" />
-              <p className="text-[10px] text-amber-200">Buyer capabilities required to accept delivery.</p>
+              <p className="text-os-xs text-amber-200">Buyer capabilities required to accept delivery.</p>
             </div>
           )}
           <Button
@@ -187,12 +187,12 @@ export default function DeliveryAcceptancePanel({ trade, onNextStep, isTransitio
       </Card>
 
       {/* Trust Score Impact */}
-      <Card className="border rounded-2xl">
+      <Card className="border rounded-os-md">
         <CardContent className="p-4">
-          <p className="text-xs font-semibold">
+          <p className="text-os-xs font-semibold">
             💡 Your feedback helps build trust
           </p>
-          <p className="text-xs mt-1">
+          <p className="text-os-xs mt-1">
             Ratings and delivery experience are used to calculate supplier trust scores.
           </p>
         </CardContent>

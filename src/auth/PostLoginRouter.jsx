@@ -21,17 +21,10 @@ export default function PostLoginRouter() {
    * ✅ ALIBABA FLOW: Determine onboarding path based on role
    */
   const getOnboardingPath = (userRole) => {
-    switch (userRole) {
-      case 'seller':
-        return '/onboarding/company'; // Seller onboarding
-      case 'hybrid':
-        return '/onboarding/company'; // Hybrid uses seller flow + buyer preferences
-      case 'services':
-        return '/onboarding/company'; // Services (logistics, finance) onboarding
-      case 'buyer':
-      default:
-        return '/onboarding/company'; // Buyer onboarding (simplest)
-    }
+    // 🚀 MASTER AUDIT FIX: All roles go to dashboard first.
+    // We defer the "Company Wall" until the user needs to perform a meaningful action.
+    // This stops the 25% drop-off at the mandatory company profile form.
+    return '/dashboard';
   };
 
   /**

@@ -78,7 +78,7 @@ export default function MultiSigBridge({ tradeId, status }) {
         <Surface variant="panel" className="mb-6 p-5 border border-white/5 bg-black/40">
             <div className="flex items-center gap-2 mb-4">
                 <ShieldCheck className={`w-4 h-4 ${consensus.consensusReached ? 'text-emerald-400' : 'text-gray-400'}`} />
-                <span className={`text-[10px] font-bold uppercase tracking-[0.2em] ${consensus.consensusReached ? 'text-emerald-400' : 'text-gray-400'}`}>
+                <span className={`text-os-xs font-bold uppercase tracking-[0.2em] ${consensus.consensusReached ? 'text-emerald-400' : 'text-gray-400'}`}>
                     Sovereign Multi-Sig Bridge
                 </span>
             </div>
@@ -87,7 +87,7 @@ export default function MultiSigBridge({ tradeId, status }) {
                 {keys.map((key) => (
                     <div
                         key={key.id}
-                        className={`flex flex-col items-center gap-2 flex-1 p-3 rounded-2xl border transition-all duration-500 group ${key.signed
+                        className={`flex flex-col items-center gap-2 flex-1 p-3 rounded-os-md border transition-all duration-500 group ${key.signed
                             ? `bg-${key.color}-500/10 border-${key.color}-500/30 scale-105`
                             : 'bg-white/5 border-white/5 opacity-50 grayscale'
                             }`}
@@ -97,10 +97,10 @@ export default function MultiSigBridge({ tradeId, status }) {
                             <key.icon className="w-5 h-5" />
                         </div>
                         <div className="text-center">
-                            <p className={`text-[10px] font-bold uppercase tracking-wider ${key.signed ? `text-${key.color}-500` : 'text-gray-400'}`}>
+                            <p className={`text-os-xs font-bold uppercase tracking-wider ${key.signed ? `text-${key.color}-500` : 'text-gray-400'}`}>
                                 {key.label}
                             </p>
-                            <p className="text-[9px] text-gray-500 mt-0.5">{key.status}</p>
+                            <p className="text-os-xs text-gray-500 mt-0.5">{key.status}</p>
                         </div>
                         <div className={`w-2 h-2 rounded-full ${key.signed
                                 ? `bg-${key.color}-500 shadow-[0_0_12px_rgba(var(--${key.color}-500-rgb),0.8)]`
@@ -111,7 +111,7 @@ export default function MultiSigBridge({ tradeId, status }) {
                             <Button
                                 variant="ghost"
                                 size="xs"
-                                className="mt-2 text-[8px] h-5 px-2 border border-white/10 hover:bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="mt-2 text-os-xs h-5 px-2 border border-white/10 hover:bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"
                                 onClick={() => handleSign(key.id.toUpperCase())}
                             >
                                 Request
@@ -122,7 +122,7 @@ export default function MultiSigBridge({ tradeId, status }) {
                             <Button
                                 variant="outline"
                                 size="xs"
-                                className="mt-2 text-[8px] h-5 px-2 border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10"
+                                className="mt-2 text-os-xs h-5 px-2 border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10"
                                 onClick={() => handleSign('BUYER')}
                             >
                                 Sign Now
@@ -133,14 +133,14 @@ export default function MultiSigBridge({ tradeId, status }) {
             </div>
 
             <div className="mt-4 pt-4 border-t border-white/5 text-center">
-                <p className="text-[10px] text-gray-400 leading-relaxed font-mono">
+                <p className="text-os-xs text-gray-400 leading-relaxed font-mono">
                     {consensus.consensusReached
                         ? "Consensus Achieved. Funds unlocked for settlement."
                         : "Cryptographic consensus pending. Smart contract locked."}
                 </p>
                 <div className="flex justify-center gap-1 mt-2">
                     {consensus.signatures.map((sig, i) => (
-                        <div key={i} className="text-[8px] font-mono text-emerald-500/40 bg-emerald-500/5 px-1.5 py-0.5 rounded uppercase">
+                        <div key={i} className="text-os-xs font-mono text-emerald-500/40 bg-emerald-500/5 px-1.5 py-0.5 rounded uppercase">
                             {sig.substring(0, 12)}...
                         </div>
                     ))}

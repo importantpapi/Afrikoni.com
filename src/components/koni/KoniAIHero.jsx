@@ -11,7 +11,7 @@ import { Sparkles, TrendingUp, Globe, Zap } from 'lucide-react';
 
 export default function KoniAIHero() {
   return (
-    <div className="relative w-full overflow-hidden rounded-2xl bg-gradient-to-br from-afrikoni-gold/20 via-afrikoni-goldDark/10 to-afrikoni-chestnut/20">
+    <div className="relative w-full overflow-hidden rounded-os-md bg-gradient-to-br from-os-accent/20 via-os-accentDark/10 to-afrikoni-chestnut/20">
       {/* Background Pattern */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute inset-0" style={{
@@ -36,7 +36,7 @@ export default function KoniAIHero() {
               <h1 className="text-3xl md:text-5xl font-bold text-afrikoni-chestnut mb-3">
                 The Intelligence Behind African Trade
               </h1>
-              <p className="text-lg md:text-xl text-afrikoni-deep/80 leading-relaxed">
+              <p className="text-os-lg md:text-os-xl text-afrikoni-deep/80 leading-relaxed">
                 Ask, connect, and grow faster with KoniAI. Your built-in trade brain that helps buyers and sellers work smarter, not harder.
               </p>
             </div>
@@ -49,29 +49,29 @@ export default function KoniAIHero() {
             transition={{ duration: 0.6, delay: 0.2 }}
             className="flex flex-wrap gap-3"
           >
-            <div className="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-afrikoni-gold/30">
-              <Sparkles className="w-4 h-4 text-afrikoni-gold" />
-              <span className="text-sm font-medium text-afrikoni-chestnut">AI Product Assistant</span>
+            <div className="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-os-accent/30">
+              <Sparkles className="w-4 h-4 text-os-accent" />
+              <span className="text-os-sm font-medium text-afrikoni-chestnut">AI Product Assistant</span>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-afrikoni-gold/30">
-              <Globe className="w-4 h-4 text-afrikoni-gold" />
-              <span className="text-sm font-medium text-afrikoni-chestnut">Smart Supplier Finder</span>
+            <div className="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-os-accent/30">
+              <Globe className="w-4 h-4 text-os-accent" />
+              <span className="text-os-sm font-medium text-afrikoni-chestnut">Smart Supplier Finder</span>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-afrikoni-gold/30">
-              <Zap className="w-4 h-4 text-afrikoni-gold" />
-              <span className="text-sm font-medium text-afrikoni-chestnut">Instant RFQ Replies</span>
+            <div className="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-os-accent/30">
+              <Zap className="w-4 h-4 text-os-accent" />
+              <span className="text-os-sm font-medium text-afrikoni-chestnut">Instant RFQ Replies</span>
             </div>
-            <div className="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-afrikoni-gold/30">
-              <TrendingUp className="w-4 h-4 text-afrikoni-gold" />
-              <span className="text-sm font-medium text-afrikoni-chestnut">Growth Analytics</span>
+            <div className="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full border border-os-accent/30">
+              <TrendingUp className="w-4 h-4 text-os-accent" />
+              <span className="text-os-sm font-medium text-afrikoni-chestnut">Growth Analytics</span>
             </div>
           </motion.div>
         </div>
       </div>
 
       {/* Decorative Elements */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-afrikoni-gold/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
-      <div className="absolute bottom-0 left-0 w-48 h-48 bg-afrikoni-goldDark/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
+      <div className="absolute top-0 right-0 w-64 h-64 bg-os-accent/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
+      <div className="absolute bottom-0 left-0 w-48 h-48 bg-os-accentDark/5 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
     </div>
   );
 }

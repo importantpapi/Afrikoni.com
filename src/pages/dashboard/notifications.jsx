@@ -372,7 +372,7 @@ export default function NotificationsCenter() {
           <div>
             <div className="os-label">Signals Center</div>
             <h1 className="os-title mt-2">Signals Center</h1>
-            <p className="text-sm text-os-muted mt-1">
+            <p className="text-os-sm text-os-muted mt-1">
               {unreadCount > 0 ? `${unreadCount} unread signals` : 'All signals processed.'}
             </p>
           </div>
@@ -421,9 +421,9 @@ export default function NotificationsCenter() {
                 key={tab.id}
                 onClick={() => setFilter(tab.id)}
                 className={`
-                  px-4 py-2 rounded-full text-xs font-bold transition-all whitespace-nowrap border
+                  px-4 py-2 rounded-full text-os-xs font-bold transition-all whitespace-nowrap border
                   ${filter === tab.id
-                    ? 'bg-afrikoni-gold text-black border-afrikoni-gold shadow-lg shadow-afrikoni-gold/20'
+                    ? 'bg-os-accent text-black border-os-accent shadow-os-md shadow-os-accent/20'
                     : 'bg-white/5 text-os-muted border-white/10 hover:bg-white/10 hover:text-white'
                   }
                 `}
@@ -439,7 +439,7 @@ export default function NotificationsCenter() {
               placeholder="Search signals by keyword, trade ID, or counterparty..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 os-input h-11 bg-white/5 border-white/10 focus:border-afrikoni-gold/50"
+              className="pl-10 os-input h-11 bg-white/5 border-white/10 focus:border-os-accent/50"
             />
           </div>
         </div>
@@ -456,7 +456,7 @@ export default function NotificationsCenter() {
         <div className="space-y-6">
           {Object.entries(groupedNotifications).map(([groupKey, groupNotifications]) => (
             <div key={groupKey}>
-              <h3 className="text-sm font-semibold uppercase tracking-wide mb-3 px-2">
+              <h3 className="text-os-sm font-semibold uppercase tracking-wide mb-3 px-2">
                 {groupKey}
               </h3>
               <div className="space-y-3">
@@ -468,7 +468,7 @@ export default function NotificationsCenter() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                     >
-                      <Card className={`os-panel-soft hover:shadow-premium-lg transition-all cursor-pointer ${!notification.read ? 'border border-[rgba(212,169,55,0.3)] bg-[rgba(212,169,55,0.08)]' : 'border border-white/10 bg-white/5'
+                      <Card className={`os-panel-soft hover:shadow-os-md-lg transition-all cursor-pointer ${!notification.read ? 'border border-[rgba(212,169,55,0.3)] bg-[rgba(212,169,55,0.08)]' : 'border border-white/10 bg-white/5'
                         }`}>
                         <CardContent className="p-5 md:p-6">
                           <div className="flex items-start gap-4">
@@ -490,7 +490,7 @@ export default function NotificationsCenter() {
                               className="flex items-start gap-4 flex-1"
                             >
                               <div className={`p-2.5 rounded-lg flex-shrink-0 ${notification.type === 'message' ? 'bg-blue-50 text-blue-600' :
-                                notification.type === 'order' ? 'bg-afrikoni-gold/20 text-afrikoni-gold' :
+                                notification.type === 'order' ? 'bg-os-accent/20 text-os-accent' :
                                   notification.type === 'rfq' || notification.type === 'quote' ? 'bg-purple-50 text-purple-600' :
                                     notification.type === 'payment' ? 'bg-green-50 text-green-600' :
                                       notification.type === 'review' ? 'bg-yellow-50 text-yellow-600' :
@@ -504,7 +504,7 @@ export default function NotificationsCenter() {
                                     <h4 className="font-semibold">{notification.title}</h4>
                                     <Badge
                                       variant="outline"
-                                      className={`text-xs ${notification.type === 'order' ? 'border-afrikoni-gold text-afrikoni-gold' :
+                                      className={`text-os-xs ${notification.type === 'order' ? 'border-os-accent text-os-accent' :
                                         notification.type === 'message' ? 'border-blue-500 text-blue-600' :
                                           notification.type === 'payment' ? 'border-green-500 text-green-600' :
                                             'border-gray-300 text-gray-600'
@@ -514,11 +514,11 @@ export default function NotificationsCenter() {
                                     </Badge>
                                   </div>
                                   {!notification.read && (
-                                    <Badge className="text-xs">New</Badge>
+                                    <Badge className="text-os-xs">New</Badge>
                                   )}
                                 </div>
-                                <p className="text-sm mb-2">{notification.message}</p>
-                                <p className="text-xs">
+                                <p className="text-os-sm mb-2">{notification.message}</p>
+                                <p className="text-os-xs">
                                   {format(new Date(notification.created_at), 'MMM d, yyyy h:mm a')}
                                 </p>
                               </div>
@@ -528,7 +528,7 @@ export default function NotificationsCenter() {
                                   <Button
                                     variant="outline"
                                     size="sm"
-                                    className="h-8 text-xs hover:bg-afrikoni-gold hover:text-white"
+                                    className="h-8 text-os-xs hover:bg-os-accent hover:text-white"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       if (notification.type === 'support' || notification.type === 'support_ticket') {

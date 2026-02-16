@@ -31,14 +31,14 @@ export default function MobileStickyCTA({
   secondaryLabel
 }) {
   return (
-    <div className="md:hidden fixed bottom-0 left-0 right-0 z-[60] bg-white border-t-2 border-afrikoni-gold/30 shadow-[0_-4px_20px_rgba(0,0,0,0.15)] pb-safe">
+    <div className="md:hidden fixed bottom-0 left-0 right-0 z-[60] bg-white border-t-2 border-os-accent/30 shadow-[0_-4px_20px_rgba(0,0,0,0.15)] pb-safe">
       <div className="flex items-center gap-2 px-4 py-3">
         {secondaryAction && (
           <Button
             variant="outline"
             onClick={secondaryAction}
             disabled={disabled}
-            className="flex-1 min-h-[44px] text-base font-semibold border-afrikoni-gold/40 text-afrikoni-deep hover:bg-afrikoni-gold/10 touch-manipulation"
+            className="flex-1 min-h-[44px] text-os-base font-semibold border-os-accent/40 text-afrikoni-deep hover:bg-os-accent/10 touch-manipulation"
           >
             {secondaryLabel}
           </Button>
@@ -48,9 +48,9 @@ export default function MobileStickyCTA({
           onClick={onClick}
           disabled={disabled}
           className={`
-            flex-1 min-h-[44px] text-base font-semibold
+            flex-1 min-h-[44px] text-os-base font-semibold
             ${variant === 'default' 
-              ? 'bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut' 
+              ? 'bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut' 
               : ''
             }
             touch-manipulation active:scale-95

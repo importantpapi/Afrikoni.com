@@ -29,24 +29,24 @@ export default function AfrikoniCode() {
               <Link to="/about">
                 <Button 
                   variant="ghost" 
-                  className="text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 mb-6"
+                  className="text-afrikoni-cream hover:text-os-accent hover:bg-os-accent/10 mb-6"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to About
                 </Button>
               </Link>
               
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-serif text-afrikoni-gold mb-6">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-serif text-os-accent mb-6">
                 The Afrikoni Code
               </h1>
               
               <div className="max-w-3xl mx-auto">
-                <Card className="border-2 border-afrikoni-gold/30 bg-afrikoni-deep/80 backdrop-blur-sm">
+                <Card className="border-2 border-os-accent/30 bg-afrikoni-deep/80 backdrop-blur-sm">
                   <CardContent className="p-6 md:p-8">
-                    <p className="text-lg md:text-xl text-afrikoni-cream leading-relaxed mb-4">
+                    <p className="text-os-lg md:text-os-xl text-afrikoni-cream leading-relaxed mb-4">
                       This code reflects the internal principles guiding how Afrikoni is built and operated.
                     </p>
-                    <p className="text-base md:text-lg text-afrikoni-cream/90 font-semibold">
+                    <p className="text-os-base md:text-os-lg text-afrikoni-cream/90 font-semibold">
                       It is not marketing. It is a commitment.
                     </p>
                   </CardContent>

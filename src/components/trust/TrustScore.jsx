@@ -3,7 +3,7 @@ import { ShieldCheck, Award, Activity } from 'lucide-react';
 
 export default function TrustScore({ score = 85, entityName = "Supplier" }) {
     // Determine color based on score
-    let color = 'text-red-500';
+    let color = 'text-os-red';
     let stroke = '#ef4444';
     let label = 'High Risk';
 
@@ -26,7 +26,7 @@ export default function TrustScore({ score = 85, entityName = "Supplier" }) {
     const offset = circumference - (score / 100) * circumference;
 
     return (
-        <div className="flex items-center gap-6 p-4 rounded-xl border border-white/10 bg-black/40 backdrop-blur-md">
+        <div className="flex items-center gap-6 p-4 rounded-os-sm border border-white/10 bg-black/40 backdrop-blur-md">
             {/* Radial Gauge */}
             <div className="relative w-24 h-24 flex items-center justify-center">
                 <svg className="w-full h-full rotate-[-90deg]">
@@ -45,24 +45,24 @@ export default function TrustScore({ score = 85, entityName = "Supplier" }) {
                     />
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className={`text-2xl font-black ${color}`}>{score}</span>
-                    <span className="text-[8px] font-mono text-white/40 uppercase">Trust Score</span>
+                    <span className={`text-os-2xl font-black ${color}`}>{score}</span>
+                    <span className="text-os-xs font-mono text-white/40 uppercase">Trust Score</span>
                 </div>
             </div>
 
             {/* Metrics */}
             <div className="flex-1 space-y-3">
                 <div>
-                    <h4 className="text-sm font-bold text-white mb-0.5">{entityName}</h4>
-                    <div className={`text-xs font-medium uppercase tracking-wider ${color}`}>{label}</div>
+                    <h4 className="text-os-sm font-bold text-white mb-0.5">{entityName}</h4>
+                    <div className={`text-os-xs font-medium uppercase tracking-wider ${color}`}>{label}</div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
-                    <div className="flex items-center gap-2 text-xs text-white/60 bg-white/5 p-1.5 rounded">
+                    <div className="flex items-center gap-2 text-os-xs text-white/60 bg-white/5 p-1.5 rounded">
                         <ShieldCheck className="w-3 h-3 text-emerald-400" />
                         <span>KYC Verified</span>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-white/60 bg-white/5 p-1.5 rounded">
+                    <div className="flex items-center gap-2 text-os-xs text-white/60 bg-white/5 p-1.5 rounded">
                         <Activity className="w-3 h-3 text-koni-gold" />
                         <span>98% Fulfillment</span>
                     </div>

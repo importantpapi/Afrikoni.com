@@ -10,7 +10,7 @@ import RFQProcessPanel from './RFQProcessPanel';
 export default function RFQCard() {
   const { t } = useTranslation();
   return (
-    <section className="py-8 md:py-16 bg-gradient-to-br from-afrikoni-gold/10 via-afrikoni-goldDark/10 to-afrikoni-chestnut/10">
+    <section className="py-8 md:py-16 bg-gradient-to-br from-os-accent/10 via-os-accentDark/10 to-afrikoni-chestnut/10">
       <div className="max-w-7xl mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -20,20 +20,20 @@ export default function RFQCard() {
           className="space-y-4 md:space-y-6"
         >
           {/* Mobile: Ultra-compact RFQ card */}
-          <Card className="md:hidden border border-afrikoni-gold/30 bg-gradient-to-br from-afrikoni-gold/10 via-white to-afrikoni-cream">
+          <Card className="md:hidden border border-os-accent/30 bg-gradient-to-br from-os-accent/10 via-white to-afrikoni-cream">
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-afrikoni-gold rounded-lg flex items-center justify-center flex-shrink-0">
+                <div className="w-10 h-10 bg-os-accent rounded-lg flex items-center justify-center flex-shrink-0">
                   <FileText className="w-5 h-5 text-afrikoni-chestnut" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-afrikoni-chestnut font-medium mb-2">
+                  <p className="text-os-sm text-afrikoni-chestnut font-medium mb-2">
                     Post an RFQ — suppliers send you quotes
                   </p>
                   <Link to="/rfq/create" className="block">
                     <Button
                       size="sm"
-                      className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut font-semibold text-sm py-2"
+                      className="w-full bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut font-semibold text-os-sm py-2"
                     >
                       Post RFQ
                       <ArrowRight className="w-4 h-4 ml-1" />
@@ -45,18 +45,18 @@ export default function RFQCard() {
           </Card>
 
           {/* Desktop: Full RFQ card */}
-          <Card className="hidden md:block border-2 border-afrikoni-gold/40 bg-gradient-to-br from-afrikoni-gold/20 via-white to-afrikoni-cream shadow-afrikoni-lg">
+          <Card className="hidden md:block border-2 border-os-accent/40 bg-gradient-to-br from-os-accent/20 via-white to-afrikoni-cream shadow-os-gold-lg">
             <CardContent className="p-8 md:p-12">
               <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                 <div className="flex items-start gap-4 flex-1">
-                  <div className="w-16 h-16 bg-afrikoni-gold rounded-xl flex items-center justify-center flex-shrink-0 shadow-afrikoni-lg">
+                  <div className="w-16 h-16 bg-os-accent rounded-os-sm flex items-center justify-center flex-shrink-0 shadow-os-gold-lg">
                     <FileText className="w-8 h-8 text-afrikoni-chestnut" />
                   </div>
                   <div>
-                    <h3 className="text-2xl md:text-3xl lg:text-4xl font-bold text-afrikoni-chestnut mb-3">
+                    <h3 className="text-os-2xl md:text-3xl lg:text-4xl font-bold text-afrikoni-chestnut mb-3">
                       {t('rfq.postTradeRequest')}
                     </h3>
-                    <p className="text-lg md:text-xl text-afrikoni-deep/80 mb-4">
+                    <p className="text-os-lg md:text-os-xl text-afrikoni-deep/80 mb-4">
                       {t('rfq.getMatchedDescription')}
                     </p>
                   </div>
@@ -69,7 +69,7 @@ export default function RFQCard() {
                     >
                       <Button
                         size="lg"
-                        className="w-full md:w-auto bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut font-bold px-8 py-6 text-lg md:text-xl shadow-afrikoni-xl hover:shadow-afrikoni-2xl transition-all"
+                        className="w-full md:w-auto bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut font-bold px-8 py-6 text-os-lg md:text-os-xl shadow-os-gold-xl hover:shadow-os-gold-2xl transition-all"
                       >
                         {t('rfq.postTradeRequest')}
                         <ArrowRight className="w-5 h-5 md:w-6 md:h-6 ml-2" />

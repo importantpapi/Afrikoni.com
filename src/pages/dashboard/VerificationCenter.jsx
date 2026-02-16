@@ -32,7 +32,7 @@ const DNACommitPulse = () => (
                 />
             ))}
         </div>
-        <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500">DNA Committing to Ledger</span>
+        <span className="text-os-xs font-black uppercase tracking-widest text-emerald-500">DNA Committing to Ledger</span>
     </div>
 );
 
@@ -65,22 +65,22 @@ const AuditProphet = ({ score }) => {
     };
 
     return (
-        <Surface variant="glass" className="p-8 border-afrikoni-gold/20 bg-afrikoni-gold/[0.02] flex flex-col justify-between h-full group overflow-hidden">
+        <Surface variant="glass" className="p-8 border-os-accent/20 bg-os-accent/[0.02] flex flex-col justify-between h-full group overflow-hidden">
             <div className="absolute -right-8 -top-8 p-12 opacity-[0.03] rotate-12 group-hover:rotate-0 transition-transform duration-1000">
-                <ShieldCheck className="w-32 h-32 text-afrikoni-gold" />
+                <ShieldCheck className="w-32 h-32 text-os-accent" />
             </div>
             <div className="space-y-6 relative z-10">
                 <div className="flex items-center gap-3">
-                    <div className="p-2 bg-afrikoni-gold/20 rounded-xl">
-                        <Sparkles className="w-5 h-5 text-afrikoni-gold" />
+                    <div className="p-2 bg-os-accent/20 rounded-os-sm">
+                        <Sparkles className="w-5 h-5 text-os-accent" />
                     </div>
-                    <h4 className="text-sm font-black uppercase tracking-[0.3em] text-afrikoni-gold">Audit Prophet AI</h4>
+                    <h4 className="text-os-sm font-black uppercase tracking-[0.3em] text-os-accent">Audit Prophet AI</h4>
                 </div>
-                <p className="text-sm text-os-muted leading-relaxed font-medium italic">
+                <p className="text-os-sm text-os-muted leading-relaxed font-medium italic">
                     "Based on current market volatility and your recent export performance, reaching **Tier 3 (Premier)** would lower your corridor escrow rates by **12.5%**."
                 </p>
-                <div className="pt-4 border-t border-afrikoni-gold/10">
-                    <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-os-muted">
+                <div className="pt-4 border-t border-os-accent/10">
+                    <div className="flex items-center justify-between text-os-xs font-black uppercase tracking-widest text-os-muted">
                         <span>Optimization Probability</span>
                         <span className="text-emerald-500">94.2%</span>
                     </div>
@@ -89,7 +89,7 @@ const AuditProphet = ({ score }) => {
             <Button
                 onClick={handleExport}
                 disabled={isExporting}
-                className="w-full mt-8 bg-afrikoni-gold text-black font-black uppercase tracking-widest py-6 rounded-2xl hover:scale-105 transition-all shadow-xl shadow-afrikoni-gold/10"
+                className="w-full mt-8 bg-os-accent text-black font-black uppercase tracking-widest py-6 rounded-os-md hover:scale-105 transition-all shadow-os-lg shadow-os-accent/10"
             >
                 {isExporting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                 {isExporting ? 'Synthesizing...' : 'Print Bankable Report'}
@@ -191,67 +191,67 @@ export default function ContinentalTrustHub() {
         <div className="os-page os-stagger space-y-12 max-w-[1600px] mx-auto px-4 py-8 pb-32">
             {/* 1. Hub Hero */}
             <Surface variant="glass" className="p-10 md:p-14 relative overflow-hidden group border-white/10 bg-white/[0.02]">
-                <div className="absolute -top-32 -right-32 w-[500px] h-[500px] bg-afrikoni-gold/10 rounded-full blur-[140px] group-hover:bg-afrikoni-gold/15 transition-all duration-1000" />
+                <div className="absolute -top-32 -right-32 w-[500px] h-[500px] bg-os-accent/10 rounded-full blur-[140px] group-hover:bg-os-accent/15 transition-all duration-1000" />
                 <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-emerald-500/5 rounded-full blur-[120px]" />
 
                 <div className="relative z-10 flex flex-col xl:flex-row gap-16">
                     <div className="flex-1 space-y-8">
                         <div className="flex flex-col md:flex-row md:items-center gap-4">
-                            <div className="p-3.5 bg-afrikoni-gold/10 rounded-2xl border border-afrikoni-gold/30 shadow-xl shadow-afrikoni-gold/5">
-                                <Landmark className="w-8 h-8 text-afrikoni-gold" />
+                            <div className="p-3.5 bg-os-accent/10 rounded-os-md border border-os-accent/30 shadow-os-lg shadow-os-accent/5">
+                                <Landmark className="w-8 h-8 text-os-accent" />
                             </div>
                             <div className="space-y-0.5">
                                 <h1 className="text-4xl md:text-6xl font-black tracking-tighter">Continental Trust Hub</h1>
                                 <div className="flex items-center gap-3">
-                                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-os-muted opacity-50">Unified Sovereign Protocol</span>
+                                    <span className="text-os-xs font-black uppercase tracking-[0.4em] text-os-muted opacity-50">Unified Sovereign Protocol</span>
                                     <div className="h-px w-20 bg-white/10" />
-                                    <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/30 text-[9px] font-black uppercase px-2 py-0">v2026.4</Badge>
+                                    <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/30 text-os-xs font-black uppercase px-2 py-0">v2026.4</Badge>
                                 </div>
                             </div>
                         </div>
 
-                        <p className="text-os-muted max-w-3xl text-xl leading-relaxed font-medium">
+                        <p className="text-os-muted max-w-3xl text-os-xl leading-relaxed font-medium">
                             Your digital identity is the primary currency of the AfCFTA era.
-                            Elevate your <span className="text-white font-black underline decoration-afrikoni-gold/40 underline-offset-8 decoration-2">Continental Standing</span> to bypass traditional trade hurdles and unlock global-scale liquidity.
+                            Elevate your <span className="text-white font-black underline decoration-os-accent/40 underline-offset-8 decoration-2">Continental Standing</span> to bypass traditional trade hurdles and unlock global-scale liquidity.
                         </p>
 
                         <div className="flex flex-wrap gap-5 pt-4">
                             <DNACommitPulse />
                             <div className="flex items-center gap-3 px-4 py-2 bg-white/5 rounded-full border border-white/10 backdrop-blur-md">
                                 <Lock className="w-4 h-4 text-emerald-500" />
-                                <span className="text-[10px] font-black uppercase tracking-widest text-os-muted">Ledger Sync: Encrypted</span>
+                                <span className="text-os-xs font-black uppercase tracking-widest text-os-muted">Ledger Sync: Encrypted</span>
                             </div>
                         </div>
                     </div>
 
                     <div className="w-full xl:w-[400px] shrink-0">
-                        <Surface variant="panel" className="p-10 border-afrikoni-gold/20 bg-afrikoni-gold/[0.03] relative overflow-hidden group/score shadow-2xl">
+                        <Surface variant="panel" className="p-10 border-os-accent/20 bg-os-accent/[0.03] relative overflow-hidden group/score shadow-2xl">
                             <div className="absolute top-0 right-0 p-6 opacity-[0.03] group-hover/score:opacity-[0.08] transition-opacity">
-                                <BarChart3 className="w-32 h-32 text-afrikoni-gold" />
+                                <BarChart3 className="w-32 h-32 text-os-accent" />
                             </div>
                             <div className="space-y-8 relative z-10">
                                 <div className="flex justify-between items-start">
                                     <div className="space-y-2">
-                                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-afrikoni-gold">Trust DNA Index</span>
+                                        <span className="text-os-xs font-black uppercase tracking-[0.4em] text-os-accent">Trust DNA Index</span>
                                         <div className="flex items-baseline gap-1.5">
                                             <div className="text-7xl font-black tracking-tighter">
                                                 {loadingCredit ? '...' : (creditData?.score || trustScore)}
                                             </div>
-                                            <div className="text-xl font-bold text-afrikoni-gold/40">{creditData ? 'PTS' : '%'}</div>
+                                            <div className="text-os-xl font-bold text-os-accent/40">{creditData ? 'PTS' : '%'}</div>
                                         </div>
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
-                                        <Badge className="bg-emerald-500 text-black text-[10px] font-black px-3 py-1 rounded-lg">
+                                        <Badge className="bg-emerald-500 text-black text-os-xs font-black px-3 py-1 rounded-lg">
                                             {creditData?.grade || 'INSTITUTIONAL'}
                                         </Badge>
-                                        <div className="flex items-center gap-2 text-emerald-500 text-[10px] font-black uppercase tracking-widest">
+                                        <div className="flex items-center gap-2 text-emerald-500 text-os-xs font-black uppercase tracking-widest">
                                             <TrendingUp className="w-4 h-4" />
                                             Active Growth
                                         </div>
                                     </div>
                                 </div>
                                 <div className="space-y-3">
-                                    <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-os-muted opacity-60">
+                                    <div className="flex justify-between text-os-xs font-black uppercase tracking-widest text-os-muted opacity-60">
                                         <span>Continental Evolution</span>
                                         <span>Tier {isVerified ? '3' : '2'} / 4</span>
                                     </div>
@@ -260,7 +260,7 @@ export default function ContinentalTrustHub() {
                                             initial={{ width: 0 }}
                                             animate={{ width: isVerified ? '75%' : '50%' }}
                                             transition={{ duration: 1.5, ease: "easeOut" }}
-                                            className="h-full bg-gradient-to-r from-afrikoni-gold/20 via-afrikoni-gold to-afrikoni-gold/20 rounded-full shadow-[0_0_15px_rgba(212,169,55,0.5)]"
+                                            className="h-full bg-gradient-to-r from-os-accent/20 via-os-accent to-os-accent/20 rounded-full shadow-[0_0_15px_rgba(212,169,55,0.5)]"
                                         />
                                     </div>
                                 </div>
@@ -274,21 +274,21 @@ export default function ContinentalTrustHub() {
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {trustTiers.map((tier, i) => (
                     <Surface key={i} variant="panel" className={cn(
-                        "p-8 group hover:border-afrikoni-gold/40 transition-all duration-500 relative overflow-hidden bg-white/[0.01]",
+                        "p-8 group hover:border-os-accent/40 transition-all duration-500 relative overflow-hidden bg-white/[0.01]",
                         tier.status === 'locked' && "opacity-40 grayscale"
                     )}>
                         <div className="flex flex-col h-full gap-8">
                             <div className="flex items-start justify-between">
                                 <div className={cn(
-                                    "w-14 h-14 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 group-hover:scale-110",
-                                    tier.status === 'verified' ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500 shadow-xl shadow-emerald-500/10" :
+                                    "w-14 h-14 rounded-os-md flex items-center justify-center border-2 transition-all duration-500 group-hover:scale-110",
+                                    tier.status === 'verified' ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500 shadow-os-lg shadow-emerald-500/10" :
                                         tier.status === 'pending' ? "bg-amber-500/10 border-amber-500/30 text-amber-500 animate-pulse" :
                                             "bg-white/5 border-white/10 text-os-muted"
                                 )}>
                                     <tier.icon className="w-7 h-7" />
                                 </div>
                                 <div className={cn(
-                                    "text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-xl border-2",
+                                    "text-os-xs font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-os-sm border-2",
                                     tier.status === 'verified' ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
                                         tier.status === 'pending' ? "bg-amber-500/10 text-amber-400 border-amber-500/20" :
                                             "bg-white/5 text-os-muted border-white/10"
@@ -298,10 +298,10 @@ export default function ContinentalTrustHub() {
                             </div>
 
                             <div className="space-y-2 flex-1">
-                                <h3 className="font-black text-2xl tracking-tighter">{tier.name} <span className="text-os-muted opacity-20 ml-1">0{tier.level}</span></h3>
-                                <p className="text-xs text-os-muted font-bold uppercase tracking-widest opacity-80 leading-relaxed">{tier.desc}</p>
+                                <h3 className="font-black text-os-2xl tracking-tighter">{tier.name} <span className="text-os-muted opacity-20 ml-1">0{tier.level}</span></h3>
+                                <p className="text-os-xs text-os-muted font-bold uppercase tracking-widest opacity-80 leading-relaxed">{tier.desc}</p>
                                 <div className="pt-4 flex flex-col gap-2">
-                                    <div className="flex items-center gap-2 text-[10px] font-black text-afrikoni-gold/80 uppercase tracking-tighter">
+                                    <div className="flex items-center gap-2 text-os-xs font-black text-os-accent/80 uppercase tracking-tighter">
                                         <Zap className="w-3 h-3" />
                                         Reward: {tier.reward}
                                     </div>
@@ -310,12 +310,12 @@ export default function ContinentalTrustHub() {
 
                             <div className="pt-6 border-t border-white/5">
                                 {tier.status === 'verified' ? (
-                                    <div className="flex items-center gap-2 text-[9px] font-black text-emerald-500 uppercase tracking-[0.3em]">
+                                    <div className="flex items-center gap-2 text-os-xs font-black text-emerald-500 uppercase tracking-[0.3em]">
                                         <CheckCircle className="w-4 h-4" />
                                         Commit Passed
                                     </div>
                                 ) : tier.status === 'pending' ? (
-                                    <div className="flex items-center gap-2 text-[9px] font-black text-amber-500 uppercase tracking-[0.3em]">
+                                    <div className="flex items-center gap-2 text-os-xs font-black text-amber-500 uppercase tracking-[0.3em]">
                                         <Activity className="w-4 h-4 animate-pulse" />
                                         Audit Active
                                     </div>
@@ -323,7 +323,7 @@ export default function ContinentalTrustHub() {
                                     <Button
                                         disabled
                                         variant="outline"
-                                        className="w-full text-[10px] font-black uppercase tracking-widest h-12 bg-white/5 border-white/10 opacity-30 group-hover:opacity-60 transition-opacity"
+                                        className="w-full text-os-xs font-black uppercase tracking-widest h-12 bg-white/5 border-white/10 opacity-30 group-hover:opacity-60 transition-opacity"
                                     >
                                         Unlock at Tier 3
                                     </Button>
@@ -344,12 +344,12 @@ export default function ContinentalTrustHub() {
 
                         <div className="space-y-10 relative z-10">
                             <div className="flex items-center gap-5 border-b border-white/5 pb-8">
-                                <div className="p-3.5 bg-afrikoni-gold/10 rounded-2xl border border-afrikoni-gold/30 shadow-lg shadow-afrikoni-gold/5">
-                                    <Scale className="w-8 h-8 text-afrikoni-gold" />
+                                <div className="p-3.5 bg-os-accent/10 rounded-os-md border border-os-accent/30 shadow-os-md shadow-os-accent/5">
+                                    <Scale className="w-8 h-8 text-os-accent" />
                                 </div>
                                 <div>
                                     <h3 className="text-3xl font-black tracking-tight">Institutional DNA Ledger</h3>
-                                    <p className="text-sm text-os-muted font-medium italic opacity-70">Immutable verification tracking for cross-border settlement.</p>
+                                    <p className="text-os-sm text-os-muted font-medium italic opacity-70">Immutable verification tracking for cross-border settlement.</p>
                                 </div>
                             </div>
 
@@ -359,14 +359,14 @@ export default function ContinentalTrustHub() {
                                     { label: 'Fiscal Compliance Node', ref: 'REG-SN-D93', status: 'Confirmed', date: 'Feb 11' },
                                     { label: 'Anti-Risk Matrix Screening', ref: 'AML-SCAN-48', status: 'Active', date: 'Real-time' }
                                 ].map((row, i) => (
-                                    <div key={i} className="flex items-center justify-between p-5 bg-white/[0.02] border border-white/5 rounded-2xl group/row hover:bg-white/[0.04] transition-all">
+                                    <div key={i} className="flex items-center justify-between p-5 bg-white/[0.02] border border-white/5 rounded-os-md group/row hover:bg-white/[0.04] transition-all">
                                         <div className="flex items-center gap-10">
-                                            <div className="text-[11px] font-black text-os-muted uppercase tracking-[0.3em] w-56">{row.label}</div>
-                                            <div className="hidden md:block font-mono text-[10px] text-white/20 uppercase tracking-widest">{row.ref}</div>
+                                            <div className="text-os-xs font-black text-os-muted uppercase tracking-[0.3em] w-56">{row.label}</div>
+                                            <div className="hidden md:block font-mono text-os-xs text-white/20 uppercase tracking-widest">{row.ref}</div>
                                         </div>
                                         <div className="flex items-center gap-6">
-                                            <div className="text-[10px] font-bold text-os-muted opacity-40 uppercase tracking-widest">{row.date}</div>
-                                            <Badge variant="outline" className="bg-emerald-500/5 text-emerald-500 border-emerald-500/20 text-[9px] font-black uppercase px-2.5 shadow-sm">
+                                            <div className="text-os-xs font-bold text-os-muted opacity-40 uppercase tracking-widest">{row.date}</div>
+                                            <Badge variant="outline" className="bg-emerald-500/5 text-emerald-500 border-emerald-500/20 text-os-xs font-black uppercase px-2.5 shadow-sm">
                                                 {row.status}
                                             </Badge>
                                         </div>
@@ -378,9 +378,9 @@ export default function ContinentalTrustHub() {
                         <div className="mt-12 pt-8 border-t border-white/5 flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <BookOpen className="w-4 h-4 text-os-muted opacity-40" />
-                                <span className="text-[10px] font-bold uppercase tracking-widest text-os-muted opacity-40">AfCFTA Compliance Manual v4.0</span>
+                                <span className="text-os-xs font-bold uppercase tracking-widest text-os-muted opacity-40">AfCFTA Compliance Manual v4.0</span>
                             </div>
-                            <Button variant="ghost" className="text-afrikoni-gold font-black uppercase tracking-widest text-[10px] hover:bg-afrikoni-gold/10">
+                            <Button variant="ghost" className="text-os-accent font-black uppercase tracking-widest text-os-xs hover:bg-os-accent/10">
                                 View Full Intelligence Ledger <ArrowRight className="w-4 h-4 ml-2" />
                             </Button>
                         </div>
@@ -403,18 +403,18 @@ export default function ContinentalTrustHub() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <h4 className="font-black text-2xl tracking-tighter">Continental Badge</h4>
-                                <p className="text-sm text-os-muted font-medium italic">Enabling institutional-scale trade above $10M USD.</p>
+                                <h4 className="font-black text-os-2xl tracking-tighter">Continental Badge</h4>
+                                <p className="text-os-sm text-os-muted font-medium italic">Enabling institutional-scale trade above $10M USD.</p>
                             </div>
 
                             <Button
                                 disabled={isApplying || isVerified || isPending}
                                 onClick={handleApplyForBadge}
                                 className={cn(
-                                    "w-full h-16 rounded-2xl font-black uppercase tracking-widest text-xs transition-all duration-500 active:scale-95 shadow-2xl",
+                                    "w-full h-16 rounded-os-md font-black uppercase tracking-widest text-os-xs transition-all duration-500 active:scale-95 shadow-2xl",
                                     isVerified ? "bg-emerald-500 text-black shadow-emerald-500/20" :
                                         isPending ? "bg-amber-500 text-black shadow-amber-500/20" :
-                                            "bg-afrikoni-gold text-black shadow-afrikoni-gold/20 hover:scale-105"
+                                            "bg-os-accent text-black shadow-os-accent/20 hover:scale-105"
                                 )}
                             >
                                 {isApplying ? (

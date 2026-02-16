@@ -147,12 +147,12 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
                                 <span>Live</span>
                             </div>
                         </div>
-                        <p className="text-os-text-secondary text-lg">
+                        <p className="text-os-text-secondary text-os-lg">
                             {viewMode === 'buyer' ? 'Your active trade flow requests' : 'Intelligent trade matches found'}
                         </p>
                     </div>
                     {viewMode === 'buyer' ? (
-                        <Button className="bg-os-text-primary text-os-bg rounded-full px-8 py-6 h-auto font-semibold shadow-premium hover:opacity-90 transition-all"
+                        <Button className="bg-os-text-primary text-os-bg rounded-full px-8 py-6 h-auto font-semibold shadow-os-md hover:opacity-90 transition-all"
                             onClick={() => { setShowQuickRFQ(!showQuickRFQ); setAiResult(null); }}>
                             <Sparkles className="h-4 w-4 mr-2" /> Quick RFQ
                         </Button>
@@ -160,7 +160,7 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
                         <Button
                             variant="ghost"
                             onClick={() => refetch()}
-                            className={cn("h-12 px-6 rounded-2xl border border-os-stroke text-os-text-secondary hover:text-os-text-primary gap-2 transition-all", isRefetching && "opacity-70")}
+                            className={cn("h-12 px-6 rounded-os-md border border-os-stroke text-os-text-secondary hover:text-os-text-primary gap-2 transition-all", isRefetching && "opacity-70")}
                             disabled={isRefetching}
                         >
                             <RefreshCw className={cn("w-4 h-4", isRefetching && "animate-spin")} />
@@ -177,18 +177,18 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
                             placeholder="Find a request or product..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-11 h-12 bg-white/5 border-os-stroke rounded-2xl focus:bg-white/10 transition-all text-base"
+                            className="pl-11 h-12 bg-white/5 border-os-stroke rounded-os-md focus:bg-white/10 transition-all text-os-base"
                         />
                     </div>
                     {viewMode === 'buyer' && (
-                        <div className="flex bg-os-stroke/10 backdrop-blur-md rounded-2xl p-1 border border-os-stroke">
+                        <div className="flex bg-os-stroke/10 backdrop-blur-md rounded-os-md p-1 border border-os-stroke">
                             {['all', 'sent', 'quoted', 'accepted'].map(key => (
                                 <button
                                     key={key}
                                     onClick={() => setStatusFilter(key)}
                                     className={cn(
-                                        'px-6 py-2 rounded-xl text-sm font-semibold transition-all',
-                                        statusFilter === key ? 'bg-os-surface shadow-premium text-os-text-primary' : 'text-os-text-secondary hover:text-os-text-primary'
+                                        'px-6 py-2 rounded-os-sm text-os-sm font-semibold transition-all',
+                                        statusFilter === key ? 'bg-os-surface shadow-os-md text-os-text-primary' : 'text-os-text-secondary hover:text-os-text-primary'
                                     )}
                                 >
                                     {key.charAt(0).toUpperCase() + key.slice(1)}
@@ -201,15 +201,15 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
 
             {/* QUICK RFQ (Buyer Only) */}
             {viewMode === 'buyer' && showQuickRFQ && (
-                <Surface variant="panel" className="p-6 animate-in slide-in-from-top-4 border-afrikoni-gold/10 overflow-hidden relative">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-afrikoni-gold/5 blur-3xl -z-10" />
+                <Surface variant="panel" className="p-6 animate-in slide-in-from-top-4 border-os-accent/10 overflow-hidden relative">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-os-accent/5 blur-3xl -z-10" />
                     <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-xl bg-afrikoni-gold/10 flex items-center justify-center border border-afrikoni-gold/20">
-                            <Sparkles className="h-5 w-5 text-afrikoni-gold" />
+                        <div className="w-10 h-10 rounded-os-sm bg-os-accent/10 flex items-center justify-center border border-os-accent/20">
+                            <Sparkles className="h-5 w-5 text-os-accent" />
                         </div>
                         <div>
-                            <h3 className="text-base font-semibold text-[var(--os-text-primary)]">AI-Powered Quick RFQ</h3>
-                            <p className="text-xs text-os-muted">Describe what you need in plain language — the kernel structures it.</p>
+                            <h3 className="text-os-base font-semibold text-[var(--os-text-primary)]">AI-Powered Quick RFQ</h3>
+                            <p className="text-os-xs text-os-muted">Describe what you need in plain language — the kernel structures it.</p>
                         </div>
                     </div>
                     <Textarea
@@ -222,14 +222,14 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
                     {aiResult && (
                         <div className="mb-4 p-4 rounded-lg bg-os-surface-1/80 border border-os-stroke animate-in fade-in duration-500">
                             <div className="flex items-center gap-2 mb-3">
-                                <Zap className="h-4 w-4 text-afrikoni-gold fill-afrikoni-gold/20" />
-                                <span className="text-sm font-medium">AI Structured RFQ Preview</span>
+                                <Zap className="h-4 w-4 text-os-accent fill-os-accent/20" />
+                                <span className="text-os-sm font-medium">AI Structured RFQ Preview</span>
                             </div>
-                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                                <div><p className="text-[10px] uppercase text-os-muted font-bold tracking-wider">Product</p>{aiResult.product}</div>
-                                <div><p className="text-[10px] uppercase text-os-muted font-bold tracking-wider">Qty</p>{aiResult.qty}</div>
-                                <div><p className="text-[10px] uppercase text-os-muted font-bold tracking-wider">HS Code</p>{aiResult.hsCode}</div>
-                                <div><p className="text-[10px] uppercase text-os-muted font-bold tracking-wider">Matches</p>{aiResult.suppliers} found</div>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-os-sm">
+                                <div><p className="text-os-xs uppercase text-os-muted font-bold tracking-wider">Product</p>{aiResult.product}</div>
+                                <div><p className="text-os-xs uppercase text-os-muted font-bold tracking-wider">Qty</p>{aiResult.qty}</div>
+                                <div><p className="text-os-xs uppercase text-os-muted font-bold tracking-wider">HS Code</p>{aiResult.hsCode}</div>
+                                <div><p className="text-os-xs uppercase text-os-muted font-bold tracking-wider">Matches</p>{aiResult.suppliers} found</div>
                             </div>
                         </div>
                     )}
@@ -241,7 +241,7 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
                                 {aiProcessing ? "Processing..." : <><Sparkles className="h-3 w-3 mr-2" /> Generate RFQ</>}
                             </Button>
                         ) : (
-                            <Button size="sm" className="gap-2 bg-afrikoni-gold hover:bg-afrikoni-gold/90"><Send className="h-3 w-3" /> Send to {aiResult.suppliers} Suppliers</Button>
+                            <Button size="sm" className="gap-2 bg-os-accent hover:bg-os-accent/90"><Send className="h-3 w-3" /> Send to {aiResult.suppliers} Suppliers</Button>
                         )}
                     </div>
                 </Surface>
@@ -256,41 +256,41 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
                         <>
                             {/* RADAR EFFECT */}
                             <div className="relative mb-10">
-                                <div className="absolute inset-0 bg-afrikoni-gold/20 rounded-full animate-ping opacity-20" />
-                                <div className="absolute inset-0 bg-afrikoni-gold/10 rounded-full animate-pulse opacity-40 scale-150" />
-                                <div className="relative w-24 h-24 rounded-full bg-os-surface-1 border border-afrikoni-gold/30 flex items-center justify-center z-10">
-                                    <div className="absolute inset-0 rounded-full border border-afrikoni-gold/10 animate-[spin_4s_linear_infinite]" />
-                                    <Globe className="w-10 h-10 text-afrikoni-gold" />
+                                <div className="absolute inset-0 bg-os-accent/20 rounded-full animate-ping opacity-20" />
+                                <div className="absolute inset-0 bg-os-accent/10 rounded-full animate-pulse opacity-40 scale-150" />
+                                <div className="relative w-24 h-24 rounded-full bg-os-surface-1 border border-os-accent/30 flex items-center justify-center z-10">
+                                    <div className="absolute inset-0 rounded-full border border-os-accent/10 animate-[spin_4s_linear_infinite]" />
+                                    <Globe className="w-10 h-10 text-os-accent" />
                                 </div>
                             </div>
 
                             <div className="max-w-md mx-auto relative z-10">
-                                <h3 className="text-xl font-bold text-[var(--os-text-primary)] mb-3">Scanning for Opportunities</h3>
+                                <h3 className="text-os-xl font-bold text-[var(--os-text-primary)] mb-3">Scanning for Opportunities</h3>
                                 <p className="text-os-muted mb-8">
                                     The Trade OS kernel is currently indexing global intake signals. We'll notify you as soon as a new RFQ matches your profile.
                                 </p>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
-                                    <div className="p-4 rounded-xl bg-os-surface-1 border border-os-stroke">
+                                    <div className="p-4 rounded-os-sm bg-os-surface-1 border border-os-stroke">
                                         <div className="flex items-center gap-2 mb-2">
                                             <div className="p-1.5 rounded-lg bg-info/10"><Settings className="w-3.5 h-3.5 text-info" /></div>
-                                            <span className="text-xs font-bold uppercase tracking-wider text-os-muted">Pro Tip</span>
+                                            <span className="text-os-xs font-bold uppercase tracking-wider text-os-muted">Pro Tip</span>
                                         </div>
-                                        <p className="text-[11px] text-os-muted leading-relaxed">
+                                        <p className="text-os-xs text-os-muted leading-relaxed">
                                             Verify your <strong>HS Codes</strong> and <strong>Categories</strong> in settings to increase matching accuracy.
                                         </p>
                                     </div>
-                                    <div className="p-4 rounded-xl bg-os-surface-1 border border-os-stroke">
+                                    <div className="p-4 rounded-os-sm bg-os-surface-1 border border-os-stroke">
                                         <div className="flex items-center gap-2 mb-2">
                                             <div className="p-1.5 rounded-lg bg-emerald-500/10"><MapPin className="w-3.5 h-3.5 text-emerald-500" /></div>
-                                            <span className="text-xs font-bold uppercase tracking-wider text-os-muted">Reach</span>
+                                            <span className="text-os-xs font-bold uppercase tracking-wider text-os-muted">Reach</span>
                                         </div>
-                                        <p className="text-[11px] text-os-muted leading-relaxed">
+                                        <p className="text-os-xs text-os-muted leading-relaxed">
                                             Expand your <strong>Serviceable Regions</strong> to capture more diverse trade inquiries.
                                         </p>
                                     </div>
                                 </div>
-                                <Button variant="link" onClick={() => navigate('/dashboard/settings')} className="mt-6 text-afrikoni-gold hover:text-afrikoni-gold/80 font-semibold ">
+                                <Button variant="link" onClick={() => navigate('/dashboard/settings')} className="mt-6 text-os-accent hover:text-os-accent/80 font-semibold ">
                                     Update Supplier Profile <ChevronRight className="w-4 h-4 ml-1" />
                                 </Button>
                             </div>
@@ -323,28 +323,28 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
                                 <div className="flex items-start justify-between gap-4 relative z-10">
                                     <div className="flex-1">
                                         <div className="flex items-center gap-3 mb-2">
-                                            <h3 className="text-base font-semibold text-[var(--os-text-primary)] group-hover:text-afrikoni-gold transition-colors">{rfq.title}</h3>
+                                            <h3 className="text-os-base font-semibold text-[var(--os-text-primary)] group-hover:text-os-accent transition-colors">{rfq.title}</h3>
                                             <StatusBadge label={config.label} tone={config.tone} />
                                             {viewMode === 'supplier' && (
-                                                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-[10px] font-bold text-emerald-500 uppercase">
+                                                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/20 text-os-xs font-bold text-emerald-500 uppercase">
                                                     98% Match
                                                 </div>
                                             )}
                                         </div>
 
-                                        <div className="flex flex-wrap gap-4 text-sm text-os-muted mb-3">
-                                            <span className="font-mono text-[11px] px-1.5 py-0.5 rounded bg-os-surface-1 text-os-muted border border-os-stroke">#{rfq.id.slice(0, 8)}</span>
+                                        <div className="flex flex-wrap gap-4 text-os-sm text-os-muted mb-3">
+                                            <span className="font-mono text-os-xs px-1.5 py-0.5 rounded bg-os-surface-1 text-os-muted border border-os-stroke">#{rfq.id.slice(0, 8)}</span>
                                             <span className="flex items-center gap-1.5"><Package className="h-3.5 h-3.5 opacity-70" /> {rfq.quantity} {rfq.unit}</span>
                                             {rfq.target_price && <span className="flex items-center gap-1.5"><DollarSign className="h-3.5 h-3.5 opacity-70" /> {rfq.target_price}</span>}
                                             {rfq.delivery_location && <span className="flex items-center gap-1.5"><MapPin className="h-3.5 h-3.5 opacity-70" /> {rfq.delivery_location}</span>}
                                         </div>
 
-                                        {rfq.description && <p className="text-xs text-os-muted line-clamp-1 max-w-2xl">{rfq.description}</p>}
+                                        {rfq.description && <p className="text-os-xs text-os-muted line-clamp-1 max-w-2xl">{rfq.description}</p>}
                                     </div>
 
                                     <div className="flex flex-col items-end justify-between self-stretch gap-2">
-                                        <span className="text-xs text-os-muted font-medium bg-os-surface-1 px-2 py-1 rounded-md border border-os-stroke"><Clock className="h-3 w-3 inline mr-1 opacity-70" /> {format(new Date(rfq.created_at), 'MMM d')}</span>
-                                        <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-all translate-x-1 group-hover:translate-x-0 h-8 text-xs font-bold text-afrikoni-gold">
+                                        <span className="text-os-xs text-os-muted font-medium bg-os-surface-1 px-2 py-1 rounded-md border border-os-stroke"><Clock className="h-3 w-3 inline mr-1 opacity-70" /> {format(new Date(rfq.created_at), 'MMM d')}</span>
+                                        <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-all translate-x-1 group-hover:translate-x-0 h-8 text-os-xs font-bold text-os-accent">
                                             {viewMode === 'supplier' ? "Send Quote" : "Open Workspace"} <ChevronRight className="h-3.5 w-3.5 ml-1" />
                                         </Button>
                                     </div>

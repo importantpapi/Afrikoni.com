@@ -67,10 +67,10 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning, c
 
   if (loading) {
     return (
-      <Card className="border rounded-2xl">
+      <Card className="border rounded-os-md">
         <CardContent className="p-6 text-center">
           <Loader2 className="w-6 h-6 animate-spin mx-auto" />
-          <p className="text-sm mt-2">Loading quotes...</p>
+          <p className="text-os-sm mt-2">Loading quotes...</p>
         </CardContent>
       </Card>
     );
@@ -78,11 +78,11 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning, c
 
   if (quotes.length === 0) {
     return (
-      <Card className="border rounded-2xl">
+      <Card className="border rounded-os-md">
         <CardContent className="p-6 text-center">
           <AlertCircle className="w-8 h-8 mx-auto mb-2" />
           <p className="font-semibold">No quotes yet</p>
-          <p className="text-sm mt-1">
+          <p className="text-os-sm mt-1">
             Suppliers are reviewing your RFQ. Check back soon.
           </p>
         </CardContent>
@@ -93,17 +93,17 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning, c
   return (
     <div className="space-y-4">
       {error && (
-        <Card className="border rounded-2xl">
-          <CardContent className="p-4 text-sm">
+        <Card className="border rounded-os-md">
+          <CardContent className="p-4 text-os-sm">
             {error}
           </CardContent>
         </Card>
       )}
       <div className="mb-6">
-        <h2 className="text-2xl font-semibold">
+        <h2 className="text-os-2xl font-semibold">
           Review Quotes
         </h2>
-        <p className="text-sm mt-1">
+        <p className="text-os-sm mt-1">
           {quotes.length} supplier{quotes.length !== 1 ? 's' : ''} responded. Select the best offer.
         </p>
       </div>
@@ -111,9 +111,9 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning, c
       {quotes.map((quote, idx) => (
         <Card
           key={quote.id}
-          className={`border transition-all cursor-pointer rounded-2xl ${selectedQuoteId === quote.id
-            ? 'border-afrikoni-gold/50 bg-afrikoni-gold/10 shadow-[0_20px_60px_rgba(0,0,0,0.35)]'
-            : 'border-white/10 bg-white/5 hover:border-afrikoni-gold/40'
+          className={`border transition-all cursor-pointer rounded-os-md ${selectedQuoteId === quote.id
+            ? 'border-os-accent/50 bg-os-accent/10 shadow-[0_20px_60px_rgba(0,0,0,0.35)]'
+            : 'border-white/10 bg-white/5 hover:border-os-accent/40'
             }`}
           onClick={() => setExpanding(expanding === quote.id ? null : quote.id)}
         >
@@ -143,10 +143,10 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning, c
 
               {/* Price */}
               <div className="text-right">
-                <p className="text-2xl font-bold">
+                <p className="text-os-2xl font-bold">
                   {quote.currency} {quote.price_per_unit}
                 </p>
-                <p className="text-xs mt-1">
+                <p className="text-os-xs mt-1">
                   per {trade.quantity_unit}
                 </p>
               </div>
@@ -155,7 +155,7 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning, c
             {/* Expandable Details */}
             {expanding === quote.id && (
               <div className="mt-4 pt-4 border-t space-y-3">
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="grid grid-cols-2 gap-4 text-os-sm">
                   <div>
                     <p className="">Total Price</p>
                     <p className="font-semibold">
@@ -184,15 +184,15 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning, c
 
                 {/* Select Button */}
                 {!capabilities?.can_buy && (
-                  <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center gap-3 mt-4">
+                  <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-os-sm flex items-center gap-3 mt-4">
                     <AlertCircle className="w-4 h-4 text-amber-500" />
-                    <p className="text-[10px] text-amber-200">Buyer capabilities required to select quotes.</p>
+                    <p className="text-os-xs text-amber-200">Buyer capabilities required to select quotes.</p>
                   </div>
                 )}
                 <Button
                   onClick={() => handleSelectQuote(quote.id)}
                   disabled={isTransitioning || selectedQuoteId === quote.id || !capabilities?.can_buy}
-                  className="w-full hover:bg-afrikoni-gold/90 mt-4"
+                  className="w-full hover:bg-os-accent/90 mt-4"
                 >
                   {selectedQuoteId === quote.id ? (
                     <>
@@ -216,7 +216,7 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning, c
 
       {/* Best Price Indicator */}
       {quotes.length > 1 && (
-        <div className="border rounded-xl p-3 text-sm">
+        <div className="border rounded-os-sm p-3 text-os-sm">
           <p>
             <TrendingDown className="w-4 h-4 inline mr-1" />
             <strong>Best pricing:</strong> The first option is {(

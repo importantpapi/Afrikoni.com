@@ -266,14 +266,14 @@ export default function ConversationView({ conversationId, conversation, current
                 }
               }}
               placeholder="Type a message..."
-              className="min-h-[44px] text-base resize-none"
+              className="min-h-[44px] text-os-base resize-none"
               disabled={isSending}
             />
           </div>
           <Button
             onClick={() => handleSendMessage(newMessage)}
             disabled={!newMessage.trim() || isSending}
-            className="min-h-[44px] min-w-[44px] hover:bg-afrikoni-goldDark"
+            className="min-h-[44px] min-w-[44px] hover:bg-os-accentDark"
             aria-label="Send message"
           >
             <Send className="w-5 h-5" />

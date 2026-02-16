@@ -56,7 +56,7 @@ export async function preloadDashboardData(role = 'buyer') {
         .select('id', { count: 'exact' })
         .or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId}`)
         .limit(1)
-        .catch(err => {
+        .then(res => res, err => {
           if (import.meta.env.DEV) console.debug('[Preload] Orders query failed:', err);
           return { data: null, error: err };
         }),
@@ -67,7 +67,7 @@ export async function preloadDashboardData(role = 'buyer') {
         .select('id', { count: 'exact' })
         .eq('buyer_company_id', companyId)
         .limit(1)
-        .catch(err => {
+        .then(res => res, err => {
           if (import.meta.env.DEV) console.debug('[Preload] RFQs query failed:', err);
           return { data: null, error: err };
         }),
@@ -79,7 +79,7 @@ export async function preloadDashboardData(role = 'buyer') {
         .select('id', { count: 'exact' })
         .eq('company_id', companyId)
         .limit(1)
-        .catch(err => {
+        .then(res => res, err => {
           if (import.meta.env.DEV) console.debug('[Preload] Products query failed:', err);
           return { data: null, error: err };
         }),
@@ -91,7 +91,7 @@ export async function preloadDashboardData(role = 'buyer') {
         .or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId}`)
         .order('created_at', { ascending: false })
         .limit(5)
-        .catch(err => {
+        .then(res => res, err => {
           if (import.meta.env.DEV) console.debug('[Preload] Recent orders query failed:', err);
           return { data: null, error: err };
         }),
@@ -103,7 +103,7 @@ export async function preloadDashboardData(role = 'buyer') {
         .eq('buyer_company_id', companyId)
         .order('created_at', { ascending: false })
         .limit(5)
-        .catch(err => {
+        .then(res => res, err => {
           if (import.meta.env.DEV) console.debug('[Preload] Recent RFQs query failed:', err);
           return { data: null, error: err };
         }),
@@ -116,10 +116,10 @@ export async function preloadDashboardData(role = 'buyer') {
         .eq('read', false)
         .order('created_at', { ascending: false })
         .limit(10)
-        .catch(err => {
+        .then(res => res, err => {
           if (import.meta.env.DEV) console.debug('[Preload] Messages query failed:', err);
           return { data: null, error: err };
-        })
+        }),
     ];
 
     // Use Promise.allSettled to not block on errors
@@ -153,7 +153,7 @@ export async function preloadMarketplaceData() {
         .from('categories')
         .select('id, name, slug')
         .limit(12)
-        .catch(err => {
+        .then(res => res, err => {
           if (import.meta.env.DEV) console.debug('[Preload] Categories query failed:', err);
           return { data: null, error: err };
         }),
@@ -166,10 +166,10 @@ export async function preloadMarketplaceData() {
         .select('id, name, status, created_at')
         .eq('status', 'active')
         .limit(20)
-        .catch(err => {
+        .then(res => res, err => {
           if (import.meta.env.DEV) console.debug('[Preload] Products query failed:', err);
           return { data: null, error: err };
-        })
+        }),
     ];
 
     await Promise.allSettled(preloadPromises);

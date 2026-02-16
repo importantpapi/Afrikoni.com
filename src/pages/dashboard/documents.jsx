@@ -26,7 +26,7 @@ export default function DocumentsPage() {
         setDocData({});
 
         try {
-            toast.info('Engaging Gemini 3 DNA Extractor...', { icon: <Sparkles className="w-4 h-4 text-afrikoni-gold" /> });
+            toast.info('Engaging Gemini 3 DNA Extractor...', { icon: <Sparkles className="w-4 h-4 text-os-accent" /> });
 
             const extracted = await KoniAIService.extractDNA({
                 documentType: activeDoc,
@@ -57,7 +57,7 @@ export default function DocumentsPage() {
                 <div>
                     <div className="os-label">Infrastructure</div>
                     <h1 className="os-title mt-2">Trade Documentation</h1>
-                    <p className="text-sm text-os-muted">Generated, watermarked, & verified trade assets.</p>
+                    <p className="text-os-sm text-os-muted">Generated, watermarked, & verified trade assets.</p>
                 </div>
                 <div className="flex gap-2">
                     <Button variant="outline" size="sm" className="gap-2"><Share2 className="w-4 h-4" /> Share</Button>
@@ -69,14 +69,14 @@ export default function DocumentsPage() {
                 {/* Document Sidebar */}
                 <div className="space-y-4">
                     <Surface variant="glass" className="p-4 space-y-2">
-                        <h3 className="text-xs font-bold text-white uppercase tracking-wider mb-4 opacity-50">Available Templates</h3>
+                        <h3 className="text-os-xs font-bold text-white uppercase tracking-wider mb-4 opacity-50">Available Templates</h3>
                         {['Commercial Invoice', 'Bill of Lading', 'Certificate of Origin', 'Packing List'].map(doc => {
                             // REVENUE ENGINE: Check document access entitlement
                             const access = checkDocumentAccess(doc, false); // Assuming no pack for demo
                             return (
                                 <div
                                     key={doc}
-                                    className={`p-3 rounded-lg text-sm font-medium cursor-pointer transition-colors flex justify-between items-center ${activeDoc === doc
+                                    className={`p-3 rounded-lg text-os-sm font-medium cursor-pointer transition-colors flex justify-between items-center ${activeDoc === doc
                                         ? 'bg-koni-gold text-black'
                                         : 'bg-white/5 text-gray-400 hover:bg-white/10 hover:text-white'
                                         }`}
@@ -98,7 +98,7 @@ export default function DocumentsPage() {
                             </div>
                             <div>
                                 <h4 className="text-white font-bold">Ready for Export</h4>
-                                <p className="text-xs text-os-muted mt-1">Verified by Trade Kernel</p>
+                                <p className="text-os-xs text-os-muted mt-1">Verified by Trade Kernel</p>
                             </div>
                             <Button className="w-full">Download PDF</Button>
                         </Surface>
@@ -117,17 +117,17 @@ export default function DocumentsPage() {
                             />
                         ) : generated && checkDocumentAccess(activeDoc, false).locked ? (
                             <div className="relative">
-                                <div className="absolute inset-0 z-10 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center rounded-xl border border-white/10">
+                                <div className="absolute inset-0 z-10 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center rounded-os-sm border border-white/10">
                                     <Lock className="w-12 h-12 text-amber-400 mb-4" />
-                                    <h3 className="text-2xl font-bold text-white mb-2">Sovereign Validation Required</h3>
+                                    <h3 className="text-os-2xl font-bold text-white mb-2">Sovereign Validation Required</h3>
                                     <p className="text-os-muted mb-6 max-w-md">
                                         This document ({activeDoc}) requires the <strong>AfCFTA One-Flow Pack</strong> to generate a government-recognized certificate.
                                     </p>
-                                    <Button className="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-black font-bold border-none shadow-lg shadow-amber-500/20">
+                                    <Button className="bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-500 hover:to-orange-600 text-black font-bold border-none shadow-os-md shadow-amber-500/20">
                                         <CreditCard className="w-4 h-4 mr-2" />
                                         Purchase One-Flow Pack ($25.00)
                                     </Button>
-                                    <p className="text-xs text-white/30 mt-4">Includes 5 Stamps + Digital Notary</p>
+                                    <p className="text-os-xs text-white/30 mt-4">Includes 5 Stamps + Digital Notary</p>
                                 </div>
                                 <div className="filter blur-sm pointer-events-none opacity-50">
                                     <TradeDocument

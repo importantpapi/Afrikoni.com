@@ -201,53 +201,53 @@ export default function Contact() {
       <div className="min-h-screen bg-stone-50 py-12">
       <div className="max-w-7xl mx-auto px-4">
         {/* Hero Section */}
-        <div className="bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl p-12 text-center text-white mb-12">
+        <div className="bg-gradient-to-r from-blue-600 to-green-600 rounded-os-md p-12 text-center text-white mb-12">
           <div className="w-16 h-16 bg-afrikoni-offwhite/20 rounded-full flex items-center justify-center mx-auto mb-6">
             <MessageCircle className="w-8 h-8" />
           </div>
           <h1 className="text-4xl font-bold mb-4">Contact & Support</h1>
-          <p className="text-lg text-afrikoni-cream90">
+          <p className="text-os-lg text-afrikoni-cream90">
             We're here to help you succeed on Afrikoni. Get in touch with our support team.
           </p>
         </div>
 
         {/* Support Options */}
         <div className="grid md:grid-cols-3 gap-6 mb-12">
-          <Card className="border-afrikoni-gold/20">
+          <Card className="border-os-accent/20">
             <CardContent className="p-6 text-center">
               <Mail className="w-12 h-12 text-blue-600 mx-auto mb-4" />
               <h3 className="font-bold text-afrikoni-chestnut mb-2">Email Support</h3>
-              <p className="text-sm text-afrikoni-deep mb-2">Get detailed help via email</p>
+              <p className="text-os-sm text-afrikoni-deep mb-2">Get detailed help via email</p>
               <a href="mailto:hello@afrikoni.com" className="text-blue-600 hover:underline">
                 hello@afrikoni.com
               </a>
               <div className="mt-4">
-                <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">
+                <span className="text-os-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">
                   Within 24 hours
                 </span>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-afrikoni-gold/20">
+          <Card className="border-os-accent/20">
             <CardContent className="p-6 text-center">
               <MessageCircle className="w-12 h-12 text-green-600 mx-auto mb-4" />
               <h3 className="font-bold text-afrikoni-chestnut mb-2">Live Chat</h3>
-              <p className="text-sm text-afrikoni-deep mb-2">Chat with our support team</p>
-              <p className="text-xs text-afrikoni-deep/70 mb-4">Available on dashboard</p>
+              <p className="text-os-sm text-afrikoni-deep mb-2">Chat with our support team</p>
+              <p className="text-os-xs text-afrikoni-deep/70 mb-4">Available on dashboard</p>
               <div>
-                <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">
+                <span className="text-os-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">
                   Immediate response
                 </span>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="border-afrikoni-gold/20">
+          <Card className="border-os-accent/20">
             <CardContent className="p-6 text-center">
               <Phone className="w-12 h-12 text-blue-600 mx-auto mb-4" />
               <h3 className="font-bold text-afrikoni-chestnut mb-2">Phone Support</h3>
-              <p className="text-sm text-afrikoni-deep mb-2">Speak directly with our team</p>
+              <p className="text-os-sm text-afrikoni-deep mb-2">Speak directly with our team</p>
               <a
                 href="tel:+32456779368"
                 className="text-blue-600 hover:underline font-semibold"
@@ -255,7 +255,7 @@ export default function Contact() {
                 +32 456 77 93 68
               </a>
               <div className="mt-4">
-                <span className="text-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">
+                <span className="text-os-xs bg-green-100 text-green-700 px-3 py-1 rounded-full">
                   Business Hours
                 </span>
               </div>
@@ -265,7 +265,7 @@ export default function Contact() {
 
         <div className="grid md:grid-cols-2 gap-8">
           {/* Contact Form */}
-          <Card className="border-afrikoni-gold/20">
+          <Card className="border-os-accent/20">
             <CardHeader>
               <CardTitle>Send us a Message</CardTitle>
             </CardHeader>
@@ -334,7 +334,7 @@ export default function Contact() {
                     {attachments.length > 0 && (
                       <div className="flex flex-wrap gap-2">
                         {attachments.map((attachment, idx) => (
-                          <div key={idx} className="flex items-center gap-2 p-2 bg-afrikoni-cream rounded-lg border border-afrikoni-gold/20">
+                          <div key={idx} className="flex items-center gap-2 p-2 bg-afrikoni-cream rounded-lg border border-os-accent/20">
                             {attachment.type?.startsWith('image/') ? (
                               <OptimizedImage 
                                 src={attachment.url} 
@@ -342,9 +342,9 @@ export default function Contact() {
                                 className="w-12 h-12 rounded object-cover"
                               />
                             ) : (
-                              <ImageIcon className="w-8 h-8 text-afrikoni-gold" />
+                              <ImageIcon className="w-8 h-8 text-os-accent" />
                             )}
-                            <span className="text-sm text-afrikoni-deep truncate max-w-[150px]">{attachment.name}</span>
+                            <span className="text-os-sm text-afrikoni-deep truncate max-w-[150px]">{attachment.name}</span>
                             <button
                               type="button"
                               onClick={() => removeAttachment(idx)}
@@ -377,7 +377,7 @@ export default function Contact() {
                   </div>
                 </div>
                 
-                <Button type="submit" disabled={isLoading} className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark">
+                <Button type="submit" disabled={isLoading} className="w-full bg-os-accent hover:bg-os-accentDark">
                   {isLoading ? 'Sending...' : 'Send Message'}
                 </Button>
               </form>
@@ -385,7 +385,7 @@ export default function Contact() {
           </Card>
 
           {/* Office Locations */}
-          <Card className="border-afrikoni-gold/20">
+          <Card className="border-os-accent/20">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MapPin className="w-5 h-5" />
@@ -394,9 +394,9 @@ export default function Contact() {
             </CardHeader>
             <CardContent className="space-y-6">
               {offices.map((office, idx) => (
-                <div key={idx} className="border-b border-afrikoni-gold/20 pb-6 last:border-0 last:pb-0">
+                <div key={idx} className="border-b border-os-accent/20 pb-6 last:border-0 last:pb-0">
                   <h3 className="font-bold text-afrikoni-chestnut mb-2">{office.city}</h3>
-                  <div className="space-y-2 text-sm text-afrikoni-deep">
+                  <div className="space-y-2 text-os-sm text-afrikoni-deep">
                     <div className="flex items-center gap-2">
                       <MapPin className="w-4 h-4" />
                       {office.address}
@@ -414,12 +414,12 @@ export default function Contact() {
               ))}
 
               {/* Support Hours */}
-              <div className="pt-6 border-t border-afrikoni-gold/20">
+              <div className="pt-6 border-t border-os-accent/20">
                 <div className="flex items-center gap-2 mb-4">
                   <Clock className="w-5 h-5 text-afrikoni-deep" />
                   <h3 className="font-bold text-afrikoni-chestnut">Support Hours</h3>
                 </div>
-                <div className="space-y-2 text-sm">
+                <div className="space-y-2 text-os-sm">
                   <div className="flex justify-between">
                     <span className="text-afrikoni-deep">Email Support</span>
                     <span className="text-green-600 font-semibold">24/7</span>

@@ -32,8 +32,8 @@ export default function SellerAnalytics({ data, onBack }) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm mb-1">Total Revenue</p>
-                <p className="text-2xl font-bold">${totalRevenue.toFixed(2)}</p>
+                <p className="text-os-sm mb-1">Total Revenue</p>
+                <p className="text-os-2xl font-bold">${totalRevenue.toFixed(2)}</p>
               </div>
               <DollarSign className="w-8 h-8" />
             </div>
@@ -44,8 +44,8 @@ export default function SellerAnalytics({ data, onBack }) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm mb-1">Total Orders</p>
-                <p className="text-2xl font-bold">{(orders || []).length}</p>
+                <p className="text-os-sm mb-1">Total Orders</p>
+                <p className="text-os-2xl font-bold">{(orders || []).length}</p>
               </div>
               <ShoppingBag className="w-8 h-8" />
             </div>
@@ -56,8 +56,8 @@ export default function SellerAnalytics({ data, onBack }) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm mb-1">Product Views</p>
-                <p className="text-2xl font-bold">{totalViews}</p>
+                <p className="text-os-sm mb-1">Product Views</p>
+                <p className="text-os-2xl font-bold">{totalViews}</p>
               </div>
               <TrendingUp className="w-8 h-8" />
             </div>
@@ -68,8 +68,8 @@ export default function SellerAnalytics({ data, onBack }) {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm mb-1">Avg Product Price</p>
-                <p className="text-2xl font-bold">${avgProductPrice.toFixed(2)}</p>
+                <p className="text-os-sm mb-1">Avg Product Price</p>
+                <p className="text-os-2xl font-bold">${avgProductPrice.toFixed(2)}</p>
               </div>
               <Package className="w-8 h-8" />
             </div>
@@ -89,7 +89,7 @@ export default function SellerAnalytics({ data, onBack }) {
               const percentage = currentOrders.length > 0 ? (count / currentOrders.length) * 100 : 0;
               return (
                 <div key={status}>
-                  <div className="flex justify-between text-sm mb-1">
+                  <div className="flex justify-between text-os-sm mb-1">
                     <span className="capitalize">{status}</span>
                     <span>{count} ({percentage.toFixed(1)}%)</span>
                   </div>

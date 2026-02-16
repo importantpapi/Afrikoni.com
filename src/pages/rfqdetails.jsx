@@ -281,7 +281,7 @@ export default function RFQDetail() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-os-accent" />
       </div>
     );
   }
@@ -298,11 +298,11 @@ export default function RFQDetail() {
   return (
     <div className="min-h-screen bg-stone-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
-        <Card className="border-afrikoni-gold/20 mb-6">
+        <Card className="border-os-accent/20 mb-6">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-2xl mb-2">{rfq.title}</CardTitle>
+                <CardTitle className="text-os-2xl mb-2">{rfq.title}</CardTitle>
                 <Badge className={isRfqOpen ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}>
                   {lifecycleStatus}
                 </Badge>
@@ -319,31 +319,31 @@ export default function RFQDetail() {
             </div>
             <div className="grid md:grid-cols-3 gap-4">
               <div>
-                <div className="text-sm text-afrikoni-deep mb-1">Quantity</div>
+                <div className="text-os-sm text-afrikoni-deep mb-1">Quantity</div>
                 <div className="font-semibold text-afrikoni-chestnut">{rfq.quantity} {rfq.unit}</div>
               </div>
               {rfq.target_price && (
                 <div>
-                  <div className="text-sm text-afrikoni-deep mb-1">Target Price</div>
+                  <div className="text-os-sm text-afrikoni-deep mb-1">Target Price</div>
                   <div className="font-semibold text-afrikoni-chestnut">${rfq.target_price} / {rfq.unit}</div>
                 </div>
               )}
               <div>
-                <div className="text-sm text-afrikoni-deep mb-1">Delivery Location</div>
+                <div className="text-os-sm text-afrikoni-deep mb-1">Delivery Location</div>
                 <div className="font-semibold text-afrikoni-chestnut">{rfq.delivery_location}</div>
               </div>
               {rfq.delivery_deadline && (
                 <div>
-                  <div className="text-sm text-afrikoni-deep mb-1">Deadline</div>
+                  <div className="text-os-sm text-afrikoni-deep mb-1">Deadline</div>
                   <div className="font-semibold text-afrikoni-chestnut">{format(new Date(rfq.delivery_deadline), 'PPP')}</div>
                 </div>
               )}
             </div>
             {buyer && (
-              <div className="pt-4 border-t border-afrikoni-gold/20">
+              <div className="pt-4 border-t border-os-accent/20">
                 <div className="flex items-center gap-2">
                   <Building className="w-4 h-4 text-afrikoni-deep/70" />
-                  <span className="text-sm text-afrikoni-deep">Buyer: </span>
+                  <span className="text-os-sm text-afrikoni-deep">Buyer: </span>
                   <span className="font-semibold text-afrikoni-chestnut">{buyer.company_name}</span>
                 </div>
               </div>
@@ -352,7 +352,7 @@ export default function RFQDetail() {
         </Card>
 
         {isSeller && isRfqOpen && !quotes.find(q => q.supplier_company_id === user.company_id) && (
-          <Card className="border-afrikoni-gold/20 mb-6">
+          <Card className="border-os-accent/20 mb-6">
             <CardHeader>
               <CardTitle>Submit a Quote</CardTitle>
             </CardHeader>
@@ -396,14 +396,14 @@ export default function RFQDetail() {
                   rows={3}
                 />
               </div>
-              <Button onClick={handleSubmitQuote} className="bg-afrikoni-gold hover:bg-amber-700">
+              <Button onClick={handleSubmitQuote} className="bg-os-accent hover:bg-amber-700">
                 Submit Quote
               </Button>
             </CardContent>
           </Card>
         )}
 
-        <Card className="border-afrikoni-gold/20">
+        <Card className="border-os-accent/20">
           <CardHeader>
             <CardTitle>Quotes Received ({quotes.length})</CardTitle>
           </CardHeader>
@@ -418,21 +418,21 @@ export default function RFQDetail() {
                 {(Array.isArray(quotes) ? quotes : []).map(quote => {
                   const supplierCompany = buyer; // You'd fetch this from companies table
                   return (
-                    <Card key={quote.id} className="border-afrikoni-gold/20">
+                    <Card key={quote.id} className="border-os-accent/20">
                       <CardContent className="p-6">
                         <div className="flex items-start justify-between mb-4">
                           <div>
                             <div className="font-semibold text-afrikoni-chestnut mb-2">Quote #{quote.id.slice(0, 8)}</div>
-                            <div className="text-2xl font-bold text-amber-600 mb-1">
+                            <div className="text-os-2xl font-bold text-amber-600 mb-1">
                               ${quote.price_per_unit} / {rfq.unit}
                             </div>
-                            <div className="text-sm text-afrikoni-deep">Total: ${quote.total_price}</div>
+                            <div className="text-os-sm text-afrikoni-deep">Total: ${quote.total_price}</div>
                           </div>
                           <Badge className={quote.status === 'accepted' ? 'bg-green-100 text-green-700' : 'bg-afrikoni-cream text-afrikoni-deep'}>
                             {quote.status}
                           </Badge>
                         </div>
-                        <div className="grid md:grid-cols-2 gap-4 mb-4 text-sm">
+                        <div className="grid md:grid-cols-2 gap-4 mb-4 text-os-sm">
                           <div>
                             <div className="text-afrikoni-deep mb-1">Delivery Time</div>
                             <div className="font-semibold text-afrikoni-chestnut">{quote.delivery_time}</div>
@@ -446,14 +446,14 @@ export default function RFQDetail() {
                         </div>
                         {quote.notes && (
                           <div className="mb-4">
-                            <div className="text-sm text-afrikoni-deep mb-1">Notes</div>
-                            <p className="text-sm text-afrikoni-deep">{quote.notes}</p>
+                            <div className="text-os-sm text-afrikoni-deep mb-1">Notes</div>
+                            <p className="text-os-sm text-afrikoni-deep">{quote.notes}</p>
                           </div>
                         )}
                         {isBuyer && isRfqOpen && quote.status === 'pending' && (
                           <Button
                             onClick={() => handleAwardQuote(quote.id, quote.supplier_company_id)}
-                            className="bg-afrikoni-gold hover:bg-amber-700"
+                            className="bg-os-accent hover:bg-amber-700"
                           >
                             Award This Quote
                           </Button>

@@ -49,11 +49,11 @@ export function SmartNotificationCenter({ notifications = [], onNotificationClic
       {/* Bell Icon with Badge */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-md hover:bg-afrikoni-gold/10 transition-colors"
+        className="relative p-2 rounded-md hover:bg-os-accent/10 transition-colors"
       >
-        <Bell className="w-5 h-5 text-afrikoni-cream hover:text-afrikoni-gold transition-colors" />
+        <Bell className="w-5 h-5 text-afrikoni-cream hover:text-os-accent transition-colors" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-afrikoni-gold text-afrikoni-chestnut text-xs rounded-full flex items-center justify-center font-bold">
+          <span className="absolute -top-1 -right-1 w-5 h-5 bg-os-accent text-afrikoni-chestnut text-os-xs rounded-full flex items-center justify-center font-bold">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
@@ -77,10 +77,10 @@ export function SmartNotificationCenter({ notifications = [], onNotificationClic
               initial={{ opacity: 0, y: -10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -10, scale: 0.95 }}
-              className="absolute right-0 mt-2 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-2xl border-2 border-afrikoni-gold/30 z-50 max-h-[80vh] overflow-hidden flex flex-col"
+              className="absolute right-0 mt-2 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-2xl border-2 border-os-accent/30 z-50 max-h-[80vh] overflow-hidden flex flex-col"
             >
               {/* Header */}
-              <div className="p-4 border-b border-afrikoni-gold/20">
+              <div className="p-4 border-b border-os-accent/20">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-bold text-afrikoni-chestnut">Notifications</h3>
                   <button
@@ -97,7 +97,7 @@ export function SmartNotificationCenter({ notifications = [], onNotificationClic
                     size="sm"
                     variant={filter === 'all' ? 'default' : 'outline'}
                     onClick={() => setFilter('all')}
-                    className="text-xs h-auto py-1"
+                    className="text-os-xs h-auto py-1"
                   >
                     All ({notifications.length})
                   </Button>
@@ -105,7 +105,7 @@ export function SmartNotificationCenter({ notifications = [], onNotificationClic
                     size="sm"
                     variant={filter === 'unread' ? 'default' : 'outline'}
                     onClick={() => setFilter('unread')}
-                    className="text-xs h-auto py-1"
+                    className="text-os-xs h-auto py-1"
                   >
                     Unread ({unreadCount})
                   </Button>
@@ -114,7 +114,7 @@ export function SmartNotificationCenter({ notifications = [], onNotificationClic
                       size="sm"
                       variant={filter === 'urgent' ? 'default' : 'outline'}
                       onClick={() => setFilter('urgent')}
-                      className="text-xs h-auto py-1 bg-red-500 hover:bg-red-600 text-white"
+                      className="text-os-xs h-auto py-1 bg-red-500 hover:bg-red-600 text-white"
                     >
                       Urgent ({urgentCount})
                     </Button>
@@ -124,7 +124,7 @@ export function SmartNotificationCenter({ notifications = [], onNotificationClic
                 {unreadCount > 0 && (
                   <button
                     onClick={onMarkAllAsRead}
-                    className="text-xs text-afrikoni-gold hover:underline mt-2"
+                    className="text-os-xs text-os-accent hover:underline mt-2"
                   >
                     Mark all as read
                   </button>
@@ -136,10 +136,10 @@ export function SmartNotificationCenter({ notifications = [], onNotificationClic
                 {filteredGroups.length === 0 ? (
                   <div className="p-8 text-center text-afrikoni-deep/60">
                     <Bell className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                    <p className="text-sm">No notifications</p>
+                    <p className="text-os-sm">No notifications</p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-afrikoni-gold/10">
+                  <div className="divide-y divide-os-accent/10">
                     {filteredGroups.map(group => (
                       <NotificationGroup
                         key={group.id}
@@ -183,7 +183,7 @@ function NotificationGroup({ group, onNotificationClick, onMarkAsRead }) {
 
   return (
     <div className={cn(
-      'p-3 hover:bg-afrikoni-gold/5 transition-colors cursor-pointer',
+      'p-3 hover:bg-os-accent/5 transition-colors cursor-pointer',
       unreadInGroup > 0 && 'bg-blue-50/50'
     )}>
       <div 
@@ -196,25 +196,25 @@ function NotificationGroup({ group, onNotificationClick, onMarkAsRead }) {
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <span className="font-medium text-afrikoni-chestnut text-sm">
+            <span className="font-medium text-afrikoni-chestnut text-os-sm">
               {group.title}
             </span>
             {unreadInGroup > 0 && (
-              <Badge variant="default" className="text-xs bg-afrikoni-gold text-afrikoni-chestnut">
+              <Badge variant="default" className="text-os-xs bg-os-accent text-afrikoni-chestnut">
                 {unreadInGroup} new
               </Badge>
             )}
           </div>
-          <p className="text-xs text-afrikoni-deep/70 mb-2">
+          <p className="text-os-xs text-afrikoni-deep/70 mb-2">
             {group.notifications.length} updates
           </p>
           
           {expanded && (
-            <div className="space-y-2 mt-3 pl-2 border-l-2 border-afrikoni-gold/30">
+            <div className="space-y-2 mt-3 pl-2 border-l-2 border-os-accent/30">
               {group.notifications.map(notification => (
                 <div
                   key={notification.id}
-                  className="text-xs"
+                  className="text-os-xs"
                   onClick={(e) => {
                     e.stopPropagation();
                     onNotificationClick(notification);
@@ -252,7 +252,7 @@ function NotificationItem({ notification, onNotificationClick, onMarkAsRead }) {
   return (
     <div 
       className={cn(
-        'p-3 hover:bg-afrikoni-gold/5 transition-colors cursor-pointer flex items-start gap-3',
+        'p-3 hover:bg-os-accent/5 transition-colors cursor-pointer flex items-start gap-3',
         !notification.read && 'bg-blue-50/50'
       )}
       onClick={() => onNotificationClick(notification)}
@@ -265,7 +265,7 @@ function NotificationItem({ notification, onNotificationClick, onMarkAsRead }) {
         <div className="flex items-center gap-2 mb-1">
           {notification.title && (
             <span className={cn(
-              'font-medium text-sm',
+              'font-medium text-os-sm',
               !notification.read ? 'text-afrikoni-chestnut' : 'text-afrikoni-deep/70'
             )}>
               {notification.title}
@@ -274,19 +274,19 @@ function NotificationItem({ notification, onNotificationClick, onMarkAsRead }) {
           {priority.level <= 2 && (
             <Badge 
               variant="outline" 
-              className={`text-xs bg-${priority.color}-50 text-${priority.color}-700 border-${priority.color}-200`}
+              className={`text-os-xs bg-${priority.color}-50 text-${priority.color}-700 border-${priority.color}-200`}
             >
               {priority.label}
             </Badge>
           )}
         </div>
         <p className={cn(
-          'text-xs mb-1',
+          'text-os-xs mb-1',
           !notification.read ? 'text-afrikoni-deep' : 'text-afrikoni-deep/60'
         )}>
           {notification.message}
         </p>
-        <p className="text-xs text-afrikoni-deep/50">
+        <p className="text-os-xs text-afrikoni-deep/50">
           {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
         </p>
       </div>
@@ -297,7 +297,7 @@ function NotificationItem({ notification, onNotificationClick, onMarkAsRead }) {
             e.stopPropagation();
             onMarkAsRead(notification.id);
           }}
-          className="text-afrikoni-gold hover:text-afrikoni-gold/70 transition-colors flex-shrink-0"
+          className="text-os-accent hover:text-os-accent/70 transition-colors flex-shrink-0"
           title="Mark as read"
         >
           <Check className="w-4 h-4" />

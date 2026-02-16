@@ -15,7 +15,7 @@ export default function TrustBadge({ score, level = 'unrated', size = 'sm', clas
 
     if (size === 'xs') {
         return (
-            <div className={cn("inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border", config.bg, config.text, config.border, className)}>
+            <div className={cn("inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-os-xs font-medium border", config.bg, config.text, config.border, className)}>
                 <Icon className="w-3 h-3" />
                 <span>{score}</span>
             </div>
@@ -25,7 +25,7 @@ export default function TrustBadge({ score, level = 'unrated', size = 'sm', clas
     return (
         <div className={cn(
             "inline-flex items-center gap-1.5 rounded-full border transition-all hover:scale-105 cursor-help",
-            size === 'lg' ? "px-3 py-1 text-sm" : "px-2 py-0.5 text-xs",
+            size === 'lg' ? "px-3 py-1 text-os-sm" : "px-2 py-0.5 text-os-xs",
             config.bg,
             config.border,
             className

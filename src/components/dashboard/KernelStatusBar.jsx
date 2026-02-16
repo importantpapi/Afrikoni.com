@@ -17,8 +17,8 @@ function StatusPill({ icon: Icon, label, value, status = 'normal', className = '
   return (
     <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border ${statusColors[status]} ${className}`}>
       <Icon className="w-3.5 h-3.5 flex-shrink-0" />
-      <span className="text-[10px] font-medium dark:text-gray-500 hidden xl:inline">{label}</span>
-      <span className="text-[11px] font-mono font-bold">{value}</span>
+      <span className="text-os-xs font-medium dark:text-gray-500 hidden xl:inline">{label}</span>
+      <span className="text-os-xs font-mono font-bold">{value}</span>
     </div>
   );
 }
@@ -45,7 +45,7 @@ export default function KernelStatusBar({
         >
           <Cpu className="w-3.5 h-3.5" />
         </motion.div>
-        <span className="text-[10px] font-mono font-bold uppercase tracking-wider">KERNEL</span>
+        <span className="text-os-xs font-mono font-bold uppercase tracking-wider">KERNEL</span>
         <div className="w-1.5 h-1.5 rounded-full" />
       </div>
 

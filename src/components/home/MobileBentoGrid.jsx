@@ -276,8 +276,8 @@ export default function MobileBentoGrid() {
           {/* Search Bar - Pill-shaped with shadow */}
           <div className="flex items-center gap-2">
             <div className="flex-1 relative">
-              <div className="flex items-center gap-2 bg-gray-50 rounded-full shadow-lg px-4 py-3 border border-gray-100">
-                <Search className="w-4 h-4 text-afrikoni-gold/60 flex-shrink-0" />
+              <div className="flex items-center gap-2 bg-gray-50 rounded-full shadow-os-md px-4 py-3 border border-gray-100">
+                <Search className="w-4 h-4 text-os-accent/60 flex-shrink-0" />
                 <input
                   type="text"
                   placeholder={currentPlaceholder}
@@ -288,20 +288,20 @@ export default function MobileBentoGrid() {
                       handleSearch();
                     }
                   }}
-                  className="flex-1 text-sm focus:outline-none placeholder:text-gray-400 text-gray-900 bg-transparent min-h-[44px]"
+                  className="flex-1 text-os-sm focus:outline-none placeholder:text-gray-400 text-gray-900 bg-transparent min-h-[44px]"
                 />
                 <button
                   onClick={handleSearch}
                   className="p-1.5 rounded-full hover:bg-gray-100 transition-colors touch-manipulation"
                   aria-label="Voice Search"
                 >
-                  <Mic className="w-4 h-4 text-afrikoni-gold/60" />
+                  <Mic className="w-4 h-4 text-os-accent/60" />
                 </button>
               </div>
               
               {/* ✅ REAL-TIME SEARCH SUGGESTIONS DROPDOWN */}
               {searchSuggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-lg border border-gray-200 z-50 max-h-64 overflow-y-auto">
+                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-os-sm shadow-os-md border border-gray-200 z-50 max-h-64 overflow-y-auto">
                   {searchSuggestions.map((suggestion, idx) => (
                     <button
                       key={idx}
@@ -309,8 +309,8 @@ export default function MobileBentoGrid() {
                       className="w-full px-4 py-3 text-left hover:bg-gray-50 transition-colors flex items-center gap-2 border-b border-gray-100 last:border-b-0"
                     >
                       <Search className="w-4 h-4 text-gray-400" />
-                      <span className="text-sm text-gray-700">{suggestion.text}</span>
-                      <span className="ml-auto text-xs text-gray-400 capitalize">{suggestion.type}</span>
+                      <span className="text-os-sm text-gray-700">{suggestion.text}</span>
+                      <span className="ml-auto text-os-xs text-gray-400 capitalize">{suggestion.type}</span>
                     </button>
                   ))}
                 </div>
@@ -331,8 +331,8 @@ export default function MobileBentoGrid() {
                     className={`
                       flex items-center gap-1.5 px-3 py-1.5 rounded-full
                       bg-white border border-gray-200
-                      text-xs font-medium text-gray-700
-                      hover:border-afrikoni-gold/40 hover:bg-afrikoni-gold/5
+                      text-os-xs font-medium text-gray-700
+                      hover:border-os-accent/40 hover:bg-os-accent/5
                       transition-all touch-manipulation
                       whitespace-nowrap flex-shrink-0
                     `}
@@ -377,8 +377,8 @@ export default function MobileBentoGrid() {
                         className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"
                       />
                     </div>
-                    <h3 className="text-sm font-bold text-blue-900 mb-1">My RFQs</h3>
-                    <p className="text-2xl font-bold text-blue-700">{activeRfqsCount}</p>
+                    <h3 className="text-os-sm font-bold text-blue-900 mb-1">My RFQs</h3>
+                    <p className="text-os-2xl font-bold text-blue-700">{activeRfqsCount}</p>
                   </CardContent>
                   </Card>
                 </motion.div>
@@ -403,18 +403,18 @@ export default function MobileBentoGrid() {
                     <CardContent className="p-4 flex flex-col h-full min-h-[120px]">
                       <div className="flex items-center gap-2 mb-2">
                         <TrendingUp className="w-6 h-6 text-purple-600" />
-                        <h3 className="text-sm font-bold text-purple-900">Sourcing History</h3>
+                        <h3 className="text-os-sm font-bold text-purple-900">Sourcing History</h3>
                       </div>
                       <div className="space-y-1.5 flex-1">
                         {marketTrends && marketTrends.length > 0 ? (
                           marketTrends.slice(0, 2).map((trend, idx) => (
                             <div key={idx} className="flex items-center justify-between">
-                              <span className="text-xs text-purple-800">{trend?.category || ''}</span>
-                              <span className="text-xs font-bold text-green-600">{trend?.growth || ''}</span>
+                              <span className="text-os-xs text-purple-800">{trend?.category || ''}</span>
+                              <span className="text-os-xs font-bold text-green-600">{trend?.growth || ''}</span>
                             </div>
                           ))
                         ) : (
-                          <div className="text-xs text-purple-600/60 italic">No trend data yet</div>
+                          <div className="text-os-xs text-purple-600/60 italic">No trend data yet</div>
                         )}
                       </div>
                     </CardContent>
@@ -442,8 +442,8 @@ export default function MobileBentoGrid() {
                     >
                       <CardContent className="p-4 flex flex-col items-center justify-center h-full min-h-[120px]">
                         <FileText className="w-8 h-8 text-green-600 mb-2" />
-                        <h3 className="text-sm font-bold text-green-900 mb-1">Active Leads</h3>
-                        <p className="text-2xl font-bold text-green-700">-</p>
+                        <h3 className="text-os-sm font-bold text-green-900 mb-1">Active Leads</h3>
+                        <p className="text-os-2xl font-bold text-green-700">-</p>
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -466,10 +466,10 @@ export default function MobileBentoGrid() {
                       <CardContent className="p-4 flex flex-col h-full min-h-[120px]">
                         <div className="flex items-center gap-2 mb-2">
                           <TrendingUp className="w-6 h-6 text-orange-600" />
-                          <h3 className="text-sm font-bold text-orange-900">Sales Growth</h3>
+                          <h3 className="text-os-sm font-bold text-orange-900">Sales Growth</h3>
                         </div>
                         <div className="space-y-1.5 flex-1">
-                          <div className="text-xs text-orange-600/60 italic">View analytics</div>
+                          <div className="text-os-xs text-orange-600/60 italic">View analytics</div>
                         </div>
                       </CardContent>
                     </Card>
@@ -486,8 +486,8 @@ export default function MobileBentoGrid() {
               className="col-span-2"
             >
               <div className="mb-2 flex items-center justify-between">
-                <h2 className="text-lg font-bold text-afrikoni-chestnut flex items-center gap-2">
-                  <ShieldIcon className="w-5 h-5 text-afrikoni-gold" />
+                <h2 className="text-os-lg font-bold text-afrikoni-chestnut flex items-center gap-2">
+                  <ShieldIcon className="w-5 h-5 text-os-accent" />
                   Verified Suppliers
                 </h2>
                 <button
@@ -495,7 +495,7 @@ export default function MobileBentoGrid() {
                     triggerHapticFeedback();
                     navigate('/marketplace?verified=true');
                   }}
-                  className="text-sm text-afrikoni-gold font-medium"
+                  className="text-os-sm text-os-accent font-medium"
                 >
                   View All →
                 </button>
@@ -519,7 +519,7 @@ export default function MobileBentoGrid() {
                         className="flex-shrink-0 w-[280px]"
                       >
                         <Card 
-                          className="border border-afrikoni-gold/15 hover:border-afrikoni-gold/30 transition-transform bg-white overflow-hidden active:scale-95 touch-manipulation"
+                          className="border border-os-accent/15 hover:border-os-accent/30 transition-transform bg-white overflow-hidden active:scale-95 touch-manipulation"
                           onClick={() => {
                             triggerHapticFeedback();
                             navigate(`/business/${supplier.id}`);
@@ -528,7 +528,7 @@ export default function MobileBentoGrid() {
                           <CardContent className="p-3">
                             <div className="flex items-center gap-3">
                               {/* Logo */}
-                              <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-afrikoni-cream flex items-center justify-center border border-afrikoni-gold/10 flex-shrink-0">
+                              <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-afrikoni-cream flex items-center justify-center border border-os-accent/10 flex-shrink-0">
                                 {logoUrl ? (
                                   <OptimizedImage
                                     src={logoUrl}
@@ -539,7 +539,7 @@ export default function MobileBentoGrid() {
                                     quality={85}
                                   />
                                 ) : (
-                                  <Building className="w-6 h-6 text-afrikoni-gold/50" />
+                                  <Building className="w-6 h-6 text-os-accent/50" />
                                 )}
                                 {/* Online Indicator */}
                                 <motion.div
@@ -552,27 +552,27 @@ export default function MobileBentoGrid() {
                               {/* Info */}
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-start justify-between gap-2 mb-1">
-                                  <h3 className="text-sm font-semibold text-afrikoni-chestnut line-clamp-1">
+                                  <h3 className="text-os-sm font-semibold text-afrikoni-chestnut line-clamp-1">
                                     {supplier?.company_name || 'Unknown Company'}
                                   </h3>
-                                  <div className="flex items-center gap-1 bg-afrikoni-gold/10 px-1.5 py-0.5 rounded-full flex-shrink-0">
-                                    <ShieldIcon className="w-3 h-3 text-afrikoni-gold" />
-                                    <span className="text-[10px] font-semibold text-afrikoni-gold">Verified</span>
+                                  <div className="flex items-center gap-1 bg-os-accent/10 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                                    <ShieldIcon className="w-3 h-3 text-os-accent" />
+                                    <span className="text-os-xs font-semibold text-os-accent">Verified</span>
                                   </div>
                                 </div>
                                 
                                 <div className="flex items-center gap-1.5 mb-1 flex-wrap">
-                                  {flag && <span className="text-xs">{flag}</span>}
-                                  <span className="text-xs text-afrikoni-deep/70">{supplier?.country || 'N/A'}</span>
+                                  {flag && <span className="text-os-xs">{flag}</span>}
+                                  <span className="text-os-xs text-afrikoni-deep/70">{supplier?.country || 'N/A'}</span>
                                   {yearsOnPlatform && (
-                                    <span className="text-[10px] bg-afrikoni-gold/10 text-afrikoni-gold px-1.5 py-0.5 rounded-full font-medium">
+                                    <span className="text-os-xs bg-os-accent/10 text-os-accent px-1.5 py-0.5 rounded-full font-medium">
                                       {yearsOnPlatform} on platform
                                     </span>
                                   )}
                                 </div>
                               </div>
                               
-                              <ChevronRight className="w-4 h-4 text-afrikoni-gold/40 flex-shrink-0" />
+                              <ChevronRight className="w-4 h-4 text-os-accent/40 flex-shrink-0" />
                             </div>
                           </CardContent>
                           </Card>
@@ -591,7 +591,7 @@ export default function MobileBentoGrid() {
               transition={{ duration: 0.4, delay: 0.3 }}
               className="col-span-2"
             >
-              <h2 className="text-lg font-bold text-afrikoni-chestnut mb-3 mt-6">Browse Categories</h2>
+              <h2 className="text-os-lg font-bold text-afrikoni-chestnut mb-3 mt-6">Browse Categories</h2>
               <div className="grid grid-cols-2 gap-3">
                 {(B2B_CATEGORIES || []).map((category, index) => {
                   const Icon = category?.icon;
@@ -609,9 +609,9 @@ export default function MobileBentoGrid() {
                       className={`
                         relative flex flex-col items-center justify-center gap-1
                         p-3 rounded-lg
-                        border border-afrikoni-gold/15
+                        border border-os-accent/15
                         ${category.bgColor}
-                        hover:border-afrikoni-gold/30 hover:shadow-sm
+                        hover:border-os-accent/30 hover:shadow-sm
                         transition-transform duration-200
                         touch-manipulation
                         min-h-[80px]
@@ -621,12 +621,12 @@ export default function MobileBentoGrid() {
                       {trend.growth && (
                         <div className="absolute -top-1 -right-1 bg-green-500 text-white rounded-full px-1.5 py-0.5 flex items-center gap-0.5 shadow-sm z-10">
                           <TrendingUp className="w-2.5 h-2.5" />
-                          <span className="text-[8px] font-bold">{trend.growth}</span>
+                          <span className="text-os-xs font-bold">{trend.growth}</span>
                         </div>
                       )}
                       
                       <Icon className={`w-6 h-6 ${category.color}`} />
-                      <span className="text-xs font-medium text-afrikoni-chestnut text-center leading-tight line-clamp-2">
+                      <span className="text-os-xs font-medium text-afrikoni-chestnut text-center leading-tight line-clamp-2">
                         {category.name.split(' ')[0]}
                       </span>
                     </motion.button>
@@ -639,7 +639,7 @@ export default function MobileBentoGrid() {
       </section>
 
       {/* Floating Action Dock - Thumb-Driven Navigation (Mobile-Only) */}
-      <div className="fixed bottom-0 left-0 right-0 z-[60] bg-white/95 backdrop-blur-md border-t-2 border-afrikoni-gold/30 shadow-[0_-4px_20px_rgba(0,0,0,0.15)] pb-safe lg:hidden">
+      <div className="fixed bottom-0 left-0 right-0 z-[60] bg-white/95 backdrop-blur-md border-t-2 border-os-accent/30 shadow-[0_-4px_20px_rgba(0,0,0,0.15)] pb-safe lg:hidden">
         <div className="max-w-[1440px] mx-auto px-4 py-3">
           <div className="flex items-center justify-around gap-2">
             {/* Explore Tab */}
@@ -653,7 +653,7 @@ export default function MobileBentoGrid() {
               aria-label="Explore Marketplace"
             >
               <Compass className="w-5 h-5" />
-              <span className="text-[10px] font-medium">Explore</span>
+              <span className="text-os-xs font-medium">Explore</span>
             </motion.button>
 
             {/* Center: Post RFQ - Large Gold Gradient Button */}
@@ -668,12 +668,12 @@ export default function MobileBentoGrid() {
                   navigate('/dashboard/rfqs/new');
                 }
               }}
-              className="relative flex flex-col items-center justify-center gap-1 w-16 h-16 rounded-full bg-gradient-to-br from-afrikoni-gold via-afrikoni-gold/90 to-afrikoni-goldDark shadow-lg hover:shadow-xl transition-all touch-manipulation -mt-6"
+              className="relative flex flex-col items-center justify-center gap-1 w-16 h-16 rounded-full bg-gradient-to-br from-os-accent via-os-accent/90 to-os-accentDark shadow-os-md hover:shadow-os-lg transition-all touch-manipulation -mt-6"
               aria-label="Post RFQ"
             >
               <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/20 to-transparent" />
               <FileText className="w-6 h-6 text-white relative z-10" />
-              <span className="text-[9px] font-bold text-white relative z-10">RFQ</span>
+              <span className="text-os-xs font-bold text-white relative z-10">RFQ</span>
             </motion.button>
 
             {/* Dashboard Tab */}
@@ -687,7 +687,7 @@ export default function MobileBentoGrid() {
               aria-label="Dashboard"
             >
               <LayoutDashboard className="w-5 h-5" />
-              <span className="text-[10px] font-medium">Dashboard</span>
+              <span className="text-os-xs font-medium">Dashboard</span>
             </motion.button>
           </div>
         </div>

@@ -65,8 +65,8 @@ export default function PoweringAfricanTrade() {
       icon: Users,
       value: `${animatedStats.businesses.toLocaleString()}+`,
       label: 'Businesses',
-      color: 'text-afrikoni-gold',
-      iconBg: 'bg-afrikoni-gold/20'
+      color: 'text-os-accent',
+      iconBg: 'bg-os-accent/20'
     },
     {
       icon: Globe,
@@ -92,7 +92,7 @@ export default function PoweringAfricanTrade() {
   ];
 
   return (
-    <div ref={sectionRef} className="py-12 md:py-16 bg-gradient-to-br from-afrikoni-gold/20 to-afrikoni-cream-200">
+    <div ref={sectionRef} className="py-12 md:py-16 bg-gradient-to-br from-os-accent/20 to-afrikoni-cream-200">
       <div className="max-w-7xl mx-auto px-4">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -102,7 +102,7 @@ export default function PoweringAfricanTrade() {
           className="text-center mb-10 md:mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-3 md:mb-4">Powering African Trade</h2>
-          <p className="text-base md:text-lg text-afrikoni-deep max-w-3xl mx-auto">
+          <p className="text-os-base md:text-os-lg text-afrikoni-deep max-w-3xl mx-auto">
             Join thousands of successful businesses transforming trade across Africa
           </p>
         </motion.div>
@@ -122,15 +122,15 @@ export default function PoweringAfricanTrade() {
                   whileHover={{ y: -8, scale: 1.03 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Card className="border-0 shadow-lg hover:shadow-2xl transition-all bg-afrikoni-offwhite rounded-xl">
+                  <Card className="border-0 shadow-os-md hover:shadow-2xl transition-all bg-afrikoni-offwhite rounded-os-sm">
                     <CardContent className="p-6 md:p-8 text-center">
-                      <div className={`w-14 h-14 md:w-16 md:h-16 ${stat.iconBg} rounded-xl flex items-center justify-center mx-auto mb-4`}>
+                      <div className={`w-14 h-14 md:w-16 md:h-16 ${stat.iconBg} rounded-os-sm flex items-center justify-center mx-auto mb-4`}>
                         <Icon className={`w-7 h-7 md:w-8 md:h-8 ${stat.color}`} />
                       </div>
                       <div className={`text-3xl md:text-4xl font-bold ${stat.color} mb-2`}>
                         {stat.value}
                       </div>
-                      <div className="text-afrikoni-deep font-medium text-sm md:text-base">
+                      <div className="text-afrikoni-deep font-medium text-os-sm md:text-os-base">
                         {stat.label}
                       </div>
                     </CardContent>

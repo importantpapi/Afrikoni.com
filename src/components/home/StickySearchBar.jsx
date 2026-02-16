@@ -94,10 +94,10 @@ export default function StickySearchBar() {
   return (
     <div
       className={`
-        md:hidden w-full transition-all duration-300 z-50
+        md:hidden w-full transition-all duration-300 z-40
         ${isSticky 
-          ? 'fixed top-0 left-0 right-0 bg-white/80 backdrop-blur-md shadow-lg border-b border-afrikoni-gold/30 py-3 px-4' 
-          : 'relative bg-white/80 backdrop-blur-md border-b border-afrikoni-gold/20 py-3 px-4'
+          ? 'fixed top-[80px] left-0 right-0 bg-white/85 backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.08)] border-b border-os-accent/20 py-3 px-4' 
+          : 'relative bg-white/80 backdrop-blur-md border-b border-os-accent/20 py-3 px-4'
         }
       `}
     >
@@ -107,15 +107,15 @@ export default function StickySearchBar() {
           <div
             className={`
               flex items-center gap-2
-              bg-white rounded-xl
-              shadow-md border-2 border-afrikoni-gold/20
+              bg-white rounded-os-sm
+              shadow-sm border-2
               px-3 md:px-4 py-2.5 md:py-3
-              transition-all duration-200
-              focus-within:shadow-lg focus-within:border-afrikoni-gold/40
-              ${searchFocused ? 'shadow-lg border-afrikoni-gold/40' : ''}
+              transition-all duration-200 ease-out
+              focus-within:shadow-[0_0_0_3px_rgba(217,156,85,0.15)] focus-within:border-os-accent/50 focus-within:scale-[1.01]
+              ${searchFocused ? 'shadow-[0_0_0_3px_rgba(217,156,85,0.15)] border-os-accent/50 scale-[1.01]' : 'border-os-accent/20'}
             `}
           >
-            <Search className="w-4 h-4 md:w-5 md:h-5 text-afrikoni-gold/60 flex-shrink-0" />
+            <Search className="w-4 h-4 md:w-5 md:h-5 text-os-accent/60 flex-shrink-0" />
             
             <input
               type="text"
@@ -139,7 +139,7 @@ export default function StickySearchBar() {
                   setSearchFocused(false);
                 }, 200);
               }}
-              className="flex-1 text-sm md:text-base px-2 py-1 focus:outline-none placeholder:text-afrikoni-deep/50 text-afrikoni-chestnut bg-transparent min-h-[44px]"
+              className="flex-1 text-os-sm md:text-os-base px-2 py-1 focus:outline-none placeholder:text-afrikoni-deep/50 text-afrikoni-chestnut bg-transparent min-h-[44px]"
             />
 
             {/* Clear button */}
@@ -149,7 +149,7 @@ export default function StickySearchBar() {
                   setSearchQuery('');
                   setShowSuggestions(false);
                 }}
-                className="p-1 rounded-full hover:bg-afrikoni-gold/10 text-afrikoni-deep/50 hover:text-afrikoni-chestnut transition-colors"
+                className="p-1 rounded-full hover:bg-os-accent/10 text-afrikoni-deep/50 hover:text-afrikoni-chestnut transition-colors"
                 aria-label="Clear search"
               >
                 <X className="w-4 h-4" />
@@ -159,7 +159,7 @@ export default function StickySearchBar() {
             {/* Search button */}
             <button
               onClick={handleSearch}
-              className="p-2 rounded-full bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/90 active:scale-95 transition-all touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
+              className="p-2 rounded-full bg-os-accent text-afrikoni-chestnut hover:bg-os-accent/90 active:scale-95 transition-all touch-manipulation min-h-[44px] min-w-[44px] flex items-center justify-center"
               aria-label="Search"
             >
               <Search className="w-4 h-4 md:w-5 md:h-5" />
@@ -174,11 +174,11 @@ export default function StickySearchBar() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -10, scale: 0.98 }}
                 transition={{ duration: 0.2 }}
-                className="absolute top-full left-0 right-0 mt-2 z-50 bg-white rounded-xl shadow-lg border border-afrikoni-gold/20 p-3"
+                className="absolute top-full left-0 right-0 mt-2 z-50 bg-white rounded-os-sm shadow-os-md border border-os-accent/20 p-3"
               >
                 <div className="flex items-center gap-2 mb-2">
-                  <Sparkles className="w-4 h-4 text-afrikoni-gold" />
-                  <span className="text-xs font-semibold text-afrikoni-chestnut">AI-Suggested Quick Actions</span>
+                  <Sparkles className="w-4 h-4 text-os-accent" />
+                  <span className="text-os-xs font-semibold text-afrikoni-chestnut">AI-Suggested Quick Actions</span>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {AI_QUICK_ACTIONS.map((action, index) => (
@@ -191,7 +191,7 @@ export default function StickySearchBar() {
                         setSearchQuery(action.search);
                         handleSearch();
                       }}
-                      className="px-3 py-1.5 bg-afrikoni-gold/10 hover:bg-afrikoni-gold/20 border border-afrikoni-gold/30 rounded-lg text-xs font-medium text-afrikoni-chestnut transition-all active:scale-95 touch-manipulation"
+                      className="px-3 py-1.5 bg-os-accent/10 hover:bg-os-accent/20 border border-os-accent/30 rounded-lg text-os-xs font-medium text-afrikoni-chestnut transition-all active:scale-95 touch-manipulation"
                     >
                       {action.label}
                     </motion.button>
@@ -232,12 +232,12 @@ export default function StickySearchBar() {
                     whileTap={{ scale: 0.95 }}
                     onClick={() => handleFilterChipClick(chip)}
                     className={`
-                      px-4 py-2 rounded-full text-sm font-medium
+                      px-4 py-2 rounded-full text-os-sm font-medium
                       transition-all duration-200 touch-manipulation
                       whitespace-nowrap flex-shrink-0
                       ${isSelected 
                         ? 'bg-gradient-to-r from-[#E6B85C] via-[#D4A23A] to-[#B88A2E] text-white shadow-md border-0' 
-                        : 'bg-afrikoni-cream/80 border border-afrikoni-gold/30 text-afrikoni-chestnut hover:bg-afrikoni-gold/10 hover:border-afrikoni-gold/50'
+                        : 'bg-afrikoni-cream/80 border border-os-accent/30 text-afrikoni-chestnut hover:bg-os-accent/10 hover:border-os-accent/50'
                       }
                     `}
                   >

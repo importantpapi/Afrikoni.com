@@ -70,20 +70,20 @@ export default function VerifiedSuppliersSection() {
       <section className="py-8 md:py-12 bg-afrikoni-offwhite">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut flex items-center gap-2">
-              <Shield className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold" />
+            <h2 className="text-os-xl md:text-os-2xl font-bold text-afrikoni-chestnut flex items-center gap-2">
+              <Shield className="w-5 h-5 md:w-6 md:h-6 text-os-accent" />
               Verified African Suppliers
             </h2>
             <Link
               to="/marketplace?verified=true"
-              className="text-sm md:text-base text-afrikoni-gold font-medium hover:underline"
+              className="text-os-sm md:text-os-base text-os-accent font-medium hover:underline"
             >
               View All →
             </Link>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => (
-              <Card key={i} className="border border-afrikoni-gold/10 bg-white animate-pulse">
+              <Card key={i} className="border border-os-accent/10 bg-white animate-pulse">
                 <CardContent className="p-4">
                   <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-3" />
                   <div className="h-4 bg-gray-200 rounded mb-2" />
@@ -105,13 +105,13 @@ export default function VerifiedSuppliersSection() {
     <section className="py-6 md:py-12 bg-afrikoni-offwhite">
       <div className="max-w-[1440px] mx-auto px-4">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut flex items-center gap-2">
-            <Shield className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold" />
+          <h2 className="text-os-xl md:text-os-2xl font-bold text-afrikoni-chestnut flex items-center gap-2">
+            <Shield className="w-5 h-5 md:w-6 md:h-6 text-os-accent" />
             Verified African Suppliers
           </h2>
           <Link
             to="/marketplace?verified=true"
-            className="text-sm md:text-base text-afrikoni-gold font-medium hover:underline"
+            className="text-os-sm md:text-os-base text-os-accent font-medium hover:underline"
           >
             View All →
           </Link>
@@ -129,7 +129,7 @@ export default function VerifiedSuppliersSection() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <Card className="border border-afrikoni-gold/10 hover:border-afrikoni-gold/30 transition-all h-full bg-white overflow-hidden group">
+                <Card className="border border-os-accent/10 hover:border-os-accent/30 transition-all h-full bg-white overflow-hidden group">
                   <CardContent className="p-4 md:p-6 text-center">
                     {/* Company Logo */}
                     <div className="relative w-16 h-16 md:w-20 md:h-20 mx-auto mb-3 rounded-full overflow-hidden bg-afrikoni-cream flex items-center justify-center">
@@ -144,23 +144,23 @@ export default function VerifiedSuppliersSection() {
                           placeholder="/company-placeholder.svg"
                         />
                       ) : (
-                        <Building className="w-8 h-8 md:w-10 md:h-10 text-afrikoni-gold/50" />
+                        <Building className="w-8 h-8 md:w-10 md:h-10 text-os-accent/50" />
                       )}
                       {/* Verification Badge */}
                       <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-1 shadow-sm">
-                        <Shield className="w-4 h-4 text-afrikoni-gold" />
+                        <Shield className="w-4 h-4 text-os-accent" />
                       </div>
                     </div>
 
                     {/* Company Name */}
-                    <h3 className="text-sm md:text-base font-semibold text-afrikoni-chestnut mb-2 line-clamp-2 min-h-[40px]">
+                    <h3 className="text-os-sm md:text-os-base font-semibold text-afrikoni-chestnut mb-2 line-clamp-2 min-h-[40px]">
                       {supplier.company_name}
                     </h3>
 
                     {/* Country */}
                     <div className="flex items-center justify-center gap-1 mb-3">
-                      {flag && <span className="text-sm">{flag}</span>}
-                      <span className="text-xs md:text-sm text-afrikoni-deep/70">
+                      {flag && <span className="text-os-sm">{flag}</span>}
+                      <span className="text-os-xs md:text-os-sm text-afrikoni-deep/70">
                         {supplier.country || 'N/A'}
                       </span>
                     </div>
@@ -168,7 +168,7 @@ export default function VerifiedSuppliersSection() {
                     {/* Main Categories (if available) */}
                     {supplier.main_categories && Array.isArray(supplier.main_categories) && supplier.main_categories.length > 0 && (
                       <div className="mb-3">
-                        <p className="text-[10px] md:text-xs text-afrikoni-deep/60">
+                        <p className="text-os-xs md:text-os-xs text-afrikoni-deep/60">
                           {supplier.main_categories.slice(0, 2).join(', ')}
                         </p>
                       </div>
@@ -178,7 +178,7 @@ export default function VerifiedSuppliersSection() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="w-full text-xs md:text-sm border-afrikoni-gold/30 text-afrikoni-chestnut hover:bg-afrikoni-gold/10 min-h-[36px] md:min-h-[40px]"
+                      className="w-full text-os-xs md:text-os-sm border-os-accent/30 text-afrikoni-chestnut hover:bg-os-accent/10 min-h-[36px] md:min-h-[40px]"
                       onClick={() => navigate(`/business/${supplier.id}`)}
                     >
                       <MessageSquare className="w-3 h-3 md:w-4 md:h-4 mr-1" />

@@ -76,144 +76,60 @@ export default function MobileBottomNav({ user, userRole = 'buyer' }: MobileBott
   ];
 
   return (
-    <nav 
-      className="md:hidden fixed bottom-0 left-0 right-0 h-18 bg-white border-t-2 border-afrikoni-gold/30 shadow-[0_-4px_20px_rgba(0,0,0,0.1)] z-50"
+    <nav
+      className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-50"
       role="navigation"
       aria-label="Main navigation"
-      style={{ height: '72px' }}
+      style={{ height: '64px' }}
     >
       {/* Safe area padding for notched devices */}
-      <div className="flex items-center justify-between px-2 py-2 pb-safe h-full relative">
-        {/* Left side nav items */}
-        <div className="flex items-center justify-start gap-1 flex-1">
-          {navItems.slice(0, 2).map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path || 
-              (item.path === '/' && location.pathname === '/') ||
-              (item.path === '/marketplace' && location.pathname.startsWith('/marketplace'));
-            
-            return (
-              <Link
-                key={item.key}
-                to={item.path}
-                aria-label={item.ariaLabel}
-                className={`
-                  flex flex-col items-center justify-center gap-1 
-                  min-w-[44px] min-h-[44px] px-2 py-2
-                  rounded-lg transition-all duration-200
-                  touch-manipulation active:scale-95
-                  ${isActive 
-                    ? 'text-afrikoni-gold bg-afrikoni-gold/10' 
-                    : 'text-afrikoni-deep/70 active:text-afrikoni-gold'
-                  }
-                `}
+      <div className="flex items-center justify-around px-1 py-2 pb-safe h-full">
+        {navItems.map((item) => {
+          const Icon = item.icon;
+          const isActive =
+            location.pathname === item.path ||
+            (item.path === '/' && location.pathname === '/') ||
+            (item.path === '/marketplace' && location.pathname.startsWith('/marketplace')) ||
+            (item.path === '/rfq/create-mobile' && location.pathname.startsWith('/rfq')) ||
+            (item.path === '/inbox-mobile' && location.pathname.startsWith('/messages')) ||
+            (item.path === '/dashboard' && location.pathname.startsWith('/dashboard'));
+
+          return (
+            <Link
+              key={item.key}
+              to={item.path}
+              aria-label={item.ariaLabel}
+              className="
+                flex flex-col items-center justify-center gap-1
+                min-w-[60px] min-h-[48px] px-2 py-1.5
+                text-gray-400
+                transition-colors duration-150
+                touch-manipulation
+              "
+            >
+              <Icon
+                className={`w-[22px] h-[22px] ${isActive ? 'text-gray-900' : 'text-gray-400'}`}
+                strokeWidth={isActive ? 2 : 1.5}
+                aria-hidden="true"
+              />
+              <span
+                className={`text-[9px] font-normal leading-tight text-center ${
+                  isActive ? 'text-gray-900' : 'text-gray-400'
+                }`}
               >
-                <Icon 
-                  className={`w-6 h-6 ${isActive ? 'text-afrikoni-gold' : 'text-afrikoni-deep/70'}`}
-                  strokeWidth={isActive ? 2.5 : 2}
+                {item.label}
+              </span>
+              {isActive && (
+                <motion.div
+                  layoutId="activeMainNav"
+                  className="absolute -top-[0.5px] left-1/2 -translate-x-1/2 w-10 h-[1.5px] bg-gray-900"
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
                   aria-hidden="true"
                 />
-                <span 
-                  className={`text-[11px] font-medium leading-tight text-center ${
-                    isActive 
-                      ? 'text-afrikoni-gold font-semibold' 
-                      : 'text-afrikoni-deep/70'
-                  }`}
-                >
-                  {item.label}
-                </span>
-                {isActive && (
-                  <motion.div
-                    layoutId="activeMainNav"
-                    className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-1 bg-afrikoni-gold rounded-b-full"
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    aria-hidden="true"
-                  />
-                )}
-              </Link>
-            );
-          })}
-        </div>
-
-        {/* Center: Premium Floating Gold Pill Button - Post RFQ */}
-        <motion.div
-          className="absolute left-1/2 -translate-x-1/2 z-10"
-          whileTap={{ scale: 0.95 }}
-          whileHover={{ filter: 'brightness(1.1)' }}
-        >
-          <Link
-            to={navItems[2].path}
-            aria-label={navItems[2].ariaLabel}
-            className="
-              relative flex items-center justify-center gap-2
-              px-6 py-3 h-[52px]
-              rounded-full
-              bg-gradient-to-r from-[#E6B85C] via-[#D4A23A] to-[#B88A2E]
-              text-white font-semibold text-sm
-              shadow-lg shadow-amber-500/30
-              -translate-y-3
-              hover:brightness-110
-              active:scale-95
-              transition-all duration-200
-              touch-manipulation
-              ring-2 ring-amber-500/20
-            "
-          >
-            <FileText className="w-4 h-4" />
-            <span>Post RFQ</span>
-          </Link>
-        </motion.div>
-
-        {/* Right side nav items */}
-        <div className="flex items-center justify-end gap-1 flex-1">
-          {navItems.slice(3).map((item) => {
-            const Icon = item.icon;
-            const isActive = 
-              (item.path === '/inbox-mobile' && location.pathname.startsWith('/messages')) ||
-              (item.path === '/dashboard' && location.pathname.startsWith('/dashboard'));
-            
-            return (
-              <Link
-                key={item.key}
-                to={item.path}
-                aria-label={item.ariaLabel}
-                className={`
-                  flex flex-col items-center justify-center gap-1 
-                  min-w-[44px] min-h-[44px] px-2 py-2
-                  rounded-lg transition-all duration-200
-                  touch-manipulation active:scale-95
-                  ${isActive 
-                    ? 'text-afrikoni-gold bg-afrikoni-gold/10' 
-                    : 'text-afrikoni-deep/70 active:text-afrikoni-gold'
-                  }
-                `}
-              >
-                <Icon 
-                  className={`w-6 h-6 ${isActive ? 'text-afrikoni-gold' : 'text-afrikoni-deep/70'}`}
-                  strokeWidth={isActive ? 2.5 : 2}
-                  aria-hidden="true"
-                />
-                <span 
-                  className={`text-[11px] font-medium leading-tight text-center ${
-                    isActive 
-                      ? 'text-afrikoni-gold font-semibold' 
-                      : 'text-afrikoni-deep/70'
-                  }`}
-                >
-                  {item.label}
-                </span>
-                {isActive && (
-                  <motion.div
-                    layoutId="activeMainNav"
-                    className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-1 bg-afrikoni-gold rounded-b-full"
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                    aria-hidden="true"
-                  />
-                )}
-              </Link>
-            );
-          })}
-        </div>
+              )}
+            </Link>
+          );
+        })}
       </div>
     </nav>
   );

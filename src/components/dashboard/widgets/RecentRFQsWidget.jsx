@@ -30,7 +30,7 @@ function RecentRFQsWidget() {
                 </div>
                 <div className="space-y-6">
                     {[1, 2, 3].map(i => (
-                        <div key={i} className="h-20 bg-os-stroke rounded-2xl animate-pulse" />
+                        <div key={i} className="h-20 bg-os-stroke rounded-os-md animate-pulse" />
                     ))}
                 </div>
             </Surface>
@@ -45,10 +45,10 @@ function RecentRFQsWidget() {
                         <FileText className="h-5 w-5 text-os-accent" />
                     </div>
                     <div>
-                        <h3 className="text-sm font-bold uppercase tracking-[0.2em] text-os-text-primary">
+                        <h3 className="text-os-sm font-bold uppercase tracking-[0.2em] text-os-text-primary">
                             Corridor Intent
                         </h3>
-                        <p className="text-[10px] font-bold text-os-text-secondary/60 uppercase tracking-widest mt-0.5">Global Market Match</p>
+                        <p className="text-os-xs font-bold text-os-text-secondary/60 uppercase tracking-widest mt-0.5">Global Market Match</p>
                     </div>
                 </div>
                 <Button
@@ -65,10 +65,10 @@ function RecentRFQsWidget() {
             <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
                 {rfqs.length === 0 ? (
                     <div className="py-12 text-center">
-                        <div className="w-16 h-16 rounded-2xl bg-os-bg border border-os-stroke flex items-center justify-center mx-auto mb-4 opacity-50">
+                        <div className="w-16 h-16 rounded-os-md bg-os-bg border border-os-stroke flex items-center justify-center mx-auto mb-4 opacity-50">
                             <FileText className="h-8 w-8 text-os-text-secondary" />
                         </div>
-                        <p className="text-sm text-os-text-secondary font-medium">No active intent detected</p>
+                        <p className="text-os-sm text-os-text-secondary font-medium">No active intent detected</p>
                     </div>
                 ) : (
                     rfqs.map((rfq) => {
@@ -77,19 +77,19 @@ function RecentRFQsWidget() {
                         return (
                             <div
                                 key={rfq.id}
-                                className="group p-4 bg-os-surface-solid/50 hover:bg-os-surface-solid border border-os-stroke hover:border-os-accent/30 rounded-2xl transition-all duration-300 cursor-pointer shadow-subtle hover:shadow-premium flex items-center justify-between"
+                                className="group p-4 bg-os-surface-solid/50 hover:bg-os-surface-solid border border-os-stroke hover:border-os-accent/30 rounded-os-md transition-all duration-300 cursor-pointer shadow-subtle hover:shadow-os-md flex items-center justify-between"
                                 onClick={() => navigate(`/dashboard/rfqs/${rfq.id}`)}
                             >
                                 <div className="min-w-0 flex-1 pr-4">
                                     <div className="flex items-center gap-2 mb-1">
-                                        <h4 className="text-sm font-bold text-os-text-primary truncate transition-colors group-hover:text-os-accent">
+                                        <h4 className="text-os-sm font-bold text-os-text-primary truncate transition-colors group-hover:text-os-accent">
                                             {rfq?.title || 'Untitled Request'}
                                         </h4>
-                                        <Badge variant="outline" className="text-[9px] font-black h-4 px-1.5 bg-os-accent/10 text-os-accent border-os-accent/20">
+                                        <Badge variant="outline" className="text-os-xs font-black h-4 px-1.5 bg-os-accent/10 text-os-accent border-os-accent/20">
                                             LIVE
                                         </Badge>
                                     </div>
-                                    <div className="flex items-center gap-3 text-[10px] font-bold text-os-text-secondary/60 uppercase tracking-widest">
+                                    <div className="flex items-center gap-3 text-os-xs font-bold text-os-text-secondary/60 uppercase tracking-widest">
                                         <span className="flex items-center gap-1">
                                             <Calendar className="h-3 w-3" />
                                             {rfq?.created_at ? new Date(rfq.created_at).toLocaleDateString() : 'Now'}
@@ -114,10 +114,10 @@ function RecentRFQsWidget() {
             <div className="p-4 bg-os-surface-solid/50 border-t border-os-stroke">
                 <Button
                     variant="outline"
-                    className="w-full justify-between border-os-stroke bg-transparent hover:bg-os-accent hover:text-white hover:border-os-accent transition-all duration-300 rounded-xl h-12 px-6 group/btn"
+                    className="w-full justify-between border-os-stroke bg-transparent hover:bg-os-accent hover:text-white hover:border-os-accent transition-all duration-300 rounded-os-sm h-12 px-6 group/btn"
                     onClick={() => navigate('/dashboard/rfqs/new')}
                 >
-                    <span className="text-xs font-bold uppercase tracking-widest">Define New Intent</span>
+                    <span className="text-os-xs font-bold uppercase tracking-widest">Define New Intent</span>
                     <PlusIcon className="h-4 w-4 transition-transform group-hover/btn:rotate-90" />
                 </Button>
             </div>

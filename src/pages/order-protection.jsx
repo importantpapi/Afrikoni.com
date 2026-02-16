@@ -69,7 +69,7 @@ export default function OrderProtection() {
       icon: Users,
       title: 'Verified Suppliers',
       description: 'Only verified and trusted suppliers eligible for Trade Shield',
-      color: 'bg-afrikoni-offwhite text-afrikoni-gold'
+      color: 'bg-afrikoni-offwhite text-os-accent'
     }
   ];
 
@@ -91,9 +91,9 @@ export default function OrderProtection() {
               transition={{ duration: 0.6 }}
               className="text-center"
             >
-              <div className="inline-flex items-center gap-2 bg-afrikoni-gold/20 backdrop-blur-sm px-4 py-2 rounded-full mb-6">
-                <Shield className="w-5 h-5 text-afrikoni-goldLight" />
-                <span className="text-afrikoni-goldLight font-semibold">Afrikoni Trade Shield</span>
+              <div className="inline-flex items-center gap-2 bg-os-accent/20 backdrop-blur-sm px-4 py-2 rounded-full mb-6">
+                <Shield className="w-5 h-5 text-os-accentLight" />
+                <span className="text-os-accentLight font-semibold">Afrikoni Trade Shield</span>
               </div>
               <h1 className="text-h1-mobile md:text-h1 font-bold leading-[1.1] tracking-[-0.02em] text-white mb-6">
                 Trade with Confidence Across Africa
@@ -103,7 +103,7 @@ export default function OrderProtection() {
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Link to="/signup">
-                  <Button size="lg" className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream">
+                  <Button size="lg" className="bg-os-accent hover:bg-os-accentDark text-afrikoni-cream">
                     Start Trading Safely
                   </Button>
                 </Link>
@@ -146,17 +146,17 @@ export default function OrderProtection() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.6, delay: idx * 0.1 }}
                   >
-                    <Card className="h-full hover:shadow-lg transition-shadow">
+                    <Card className="h-full hover:shadow-os-md transition-shadow">
                       <CardHeader>
                         <div className="flex items-center justify-between mb-2">
                           <div className={`w-12 h-12 rounded-full bg-${step.color}-100 flex items-center justify-center`}>
                             <Icon className={`w-6 h-6 text-${step.color}-600`} />
                           </div>
-                          <Badge variant="outline" className="text-afrikoni-gold border-afrikoni-gold">
+                          <Badge variant="outline" className="text-os-accent border-os-accent">
                             Step {step.step}
                           </Badge>
                         </div>
-                        <CardTitle className="text-xl">{step.title}</CardTitle>
+                        <CardTitle className="text-os-xl">{step.title}</CardTitle>
                       </CardHeader>
                       <CardContent>
                         <p className="text-afrikoni-deep">{step.description}</p>
@@ -180,7 +180,7 @@ export default function OrderProtection() {
               <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
                 What's Protected
               </h2>
-              <p className="text-lg text-afrikoni-deep max-w-2xl mx-auto">
+              <p className="text-os-lg text-afrikoni-deep max-w-2xl mx-auto">
                 Comprehensive protection for your B2B transactions
               </p>
             </motion.div>
@@ -196,12 +196,12 @@ export default function OrderProtection() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.6, delay: idx * 0.1 }}
                   >
-                    <Card className="h-full hover:shadow-lg transition-shadow">
+                    <Card className="h-full hover:shadow-os-md transition-shadow">
                       <CardContent className="p-6">
                         <div className={`w-12 h-12 rounded-lg ${feature.color} flex items-center justify-center mb-4`}>
                           <Icon className="w-6 h-6" />
                         </div>
-                        <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2">{feature.title}</h3>
+                        <h3 className="text-os-xl font-bold text-afrikoni-chestnut mb-2">{feature.title}</h3>
                         <p className="text-afrikoni-deep">{feature.description}</p>
                       </CardContent>
                     </Card>
@@ -213,13 +213,13 @@ export default function OrderProtection() {
 
           {/* Dispute Resolution */}
           <section className="mb-16">
-            <Card className="bg-gradient-to-br from-afrikoni-gold/10 to-afrikoni-goldDark/10 border-afrikoni-gold/20">
+            <Card className="bg-gradient-to-br from-os-accent/10 to-os-accentDark/10 border-os-accent/20">
               <CardHeader>
-                <CardTitle className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut flex items-center gap-3">
-                  <AlertCircle className="w-8 h-8 text-afrikoni-gold" />
+                <CardTitle className="text-os-2xl md:text-3xl font-bold text-afrikoni-chestnut flex items-center gap-3">
+                  <AlertCircle className="w-8 h-8 text-os-accent" />
                   Dispute Resolution
                 </CardTitle>
-                <CardDescription className="text-lg">
+                <CardDescription className="text-os-lg">
                   Fair and transparent dispute resolution process
                 </CardDescription>
               </CardHeader>
@@ -260,17 +260,17 @@ export default function OrderProtection() {
               <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
                 Ready to Trade Safely?
               </h2>
-              <p className="text-lg text-afrikoni-deep mb-8 max-w-2xl mx-auto">
+              <p className="text-os-lg text-afrikoni-deep mb-8 max-w-2xl mx-auto">
                 Join thousands of businesses trading securely on Afrikoni
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Link to="/signup">
-                  <Button size="lg" className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream">
+                  <Button size="lg" className="bg-os-accent hover:bg-os-accentDark text-afrikoni-cream">
                     Get Started
                   </Button>
                 </Link>
                 <Link to="/suppliers">
-                  <Button size="lg" variant="outline" className="border-afrikoni-gold text-afrikoni-gold hover:bg-afrikoni-gold/10">
+                  <Button size="lg" variant="outline" className="border-os-accent text-os-accent hover:bg-os-accent/10">
                     Browse Verified Suppliers
                   </Button>
                 </Link>

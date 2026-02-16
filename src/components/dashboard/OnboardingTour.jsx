@@ -78,28 +78,28 @@ export function OnboardingTour({ role = 'buyer', onComplete }) {
                     exit={{ opacity: 0, scale: 0.9, y: 20 }}
                     className="max-w-md w-full"
                 >
-                    <Surface variant="glass" className="p-0 overflow-hidden border-afrikoni-gold/30 shadow-[0_32px_120px_rgba(212,169,55,0.15)]">
+                    <Surface variant="glass" className="p-0 overflow-hidden border-os-accent/30 shadow-[0_32px_120px_rgba(212,169,55,0.15)]">
                         {/* Header */}
-                        <div className="p-6 bg-gradient-to-br from-afrikoni-gold/10 to-transparent border-b border-white/5">
+                        <div className="p-6 bg-gradient-to-br from-os-accent/10 to-transparent border-b border-white/5">
                             <div className="flex items-center justify-between mb-2">
                                 <div className="flex items-center gap-2">
-                                    <Sparkles className="w-4 h-4 text-afrikoni-gold" />
-                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-afrikoni-gold">OS Calibration</span>
+                                    <Sparkles className="w-4 h-4 text-os-accent" />
+                                    <span className="text-os-xs font-bold uppercase tracking-[0.2em] text-os-accent">OS Calibration</span>
                                 </div>
                                 <button onClick={onComplete} className="text-os-muted hover:text-white transition-colors">
                                     <X className="w-4 h-4" />
                                 </button>
                             </div>
-                            <h3 className="text-xl font-semibold text-white">{step.title}</h3>
+                            <h3 className="text-os-xl font-semibold text-white">{step.title}</h3>
                         </div>
 
                         {/* Content */}
                         <div className="p-6">
                             <div className="flex items-start gap-4">
-                                <div className="p-3 rounded-xl bg-afrikoni-gold/10 border border-afrikoni-gold/20 text-afrikoni-gold shrink-0">
+                                <div className="p-3 rounded-os-sm bg-os-accent/10 border border-os-accent/20 text-os-accent shrink-0">
                                     <step.icon className="w-6 h-6" />
                                 </div>
-                                <p className="text-sm text-os-muted leading-relaxed">
+                                <p className="text-os-sm text-os-muted leading-relaxed">
                                     {step.content}
                                 </p>
                             </div>
@@ -109,7 +109,7 @@ export function OnboardingTour({ role = 'buyer', onComplete }) {
                                 {steps.map((_, i) => (
                                     <div
                                         key={i}
-                                        className={`h-1 rounded-full transition-all ${i === currentStep ? 'w-6 bg-afrikoni-gold' : 'w-2 bg-white/10'}`}
+                                        className={`h-1 rounded-full transition-all ${i === currentStep ? 'w-6 bg-os-accent' : 'w-2 bg-white/10'}`}
                                     />
                                 ))}
                             </div>
@@ -122,14 +122,14 @@ export function OnboardingTour({ role = 'buyer', onComplete }) {
                                 size="sm"
                                 onClick={handlePrev}
                                 disabled={currentStep === 0}
-                                className="text-xs text-os-muted hover:text-white"
+                                className="text-os-xs text-os-muted hover:text-white"
                             >
                                 <ChevronLeft className="w-4 h-4 mr-1" /> Back
                             </Button>
                             <Button
                                 size="sm"
                                 onClick={handleNext}
-                                className="bg-afrikoni-gold hover:bg-[#C09830] text-black font-bold text-xs"
+                                className="bg-os-accent hover:bg-[#C09830] text-black font-bold text-os-xs"
                             >
                                 {currentStep === steps.length - 1 ? 'Finish' : 'Next Step'} <ChevronRight className="w-4 h-4 ml-1" />
                             </Button>

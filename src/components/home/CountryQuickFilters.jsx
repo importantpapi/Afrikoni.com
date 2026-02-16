@@ -141,7 +141,7 @@ export default function CountryQuickFilters() {
       {canScrollLeft && (
         <button
           onClick={() => scroll('left')}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/95 backdrop-blur-sm rounded-full p-2 shadow-md border border-afrikoni-gold/20 hover:bg-white transition-colors"
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/95 backdrop-blur-sm rounded-full p-2 shadow-md border border-os-accent/20 hover:bg-white transition-colors"
           aria-label="Scroll left"
         >
           <span className="text-afrikoni-chestnut">‹</span>
@@ -165,8 +165,8 @@ export default function CountryQuickFilters() {
           onClick={() => navigate('/marketplace')}
           className="flex flex-col items-center gap-1 min-w-[100px] px-3 py-2 rounded-lg bg-white/60 border border-afrikoni-chestnut/10 hover:bg-white/80 active:scale-95 transition-all touch-manipulation"
         >
-          <span className="text-2xl">🌍</span>
-          <span className="text-xs font-medium text-afrikoni-chestnut text-center leading-tight">
+          <span className="text-os-2xl">🌍</span>
+          <span className="text-os-xs font-medium text-afrikoni-chestnut text-center leading-tight">
             All Countries
           </span>
         </motion.button>
@@ -182,14 +182,14 @@ export default function CountryQuickFilters() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: index * 0.01 }}
               onClick={() => handleCountryClick(country)}
-              className="flex flex-col items-center gap-1 min-w-[100px] px-3 py-2 rounded-lg bg-white/50 border border-afrikoni-chestnut/10 hover:bg-white/80 hover:border-afrikoni-gold/30 active:scale-95 transition-all touch-manipulation"
+              className="flex flex-col items-center gap-1 min-w-[100px] px-3 py-2 rounded-lg bg-white/50 border border-afrikoni-chestnut/10 hover:bg-white/80 hover:border-os-accent/30 active:scale-95 transition-all touch-manipulation"
             >
-              <span className="text-2xl">{country.flag}</span>
-              <span className="text-xs font-medium text-afrikoni-chestnut text-center leading-tight max-w-[90px] truncate">
+              <span className="text-os-2xl">{country.flag}</span>
+              <span className="text-os-xs font-medium text-afrikoni-chestnut text-center leading-tight max-w-[90px] truncate">
                 {country.name}
               </span>
               {!loading && count > 0 && (
-                <span className="text-[10px] text-afrikoni-deep/60">
+                <span className="text-os-xs text-afrikoni-deep/60">
                   {count} {count === 1 ? 'supplier' : 'suppliers'}
                 </span>
               )}
@@ -202,7 +202,7 @@ export default function CountryQuickFilters() {
       {canScrollRight && (
         <button
           onClick={() => scroll('right')}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/95 backdrop-blur-sm rounded-full p-2 shadow-md border border-afrikoni-gold/20 hover:bg-white transition-colors"
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/95 backdrop-blur-sm rounded-full p-2 shadow-md border border-os-accent/20 hover:bg-white transition-colors"
           aria-label="Scroll right"
         >
           <span className="text-afrikoni-chestnut">›</span>

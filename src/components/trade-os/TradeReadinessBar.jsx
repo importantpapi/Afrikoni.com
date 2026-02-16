@@ -19,15 +19,15 @@ const SystemIndicator = ({ icon: Icon, label, status, value, onClick }) => {
     const statusColors = {
         good: 'text-emerald-600 bg-emerald-50/50 border-emerald-200/50 dark:bg-emerald-500/5 dark:border-emerald-500/20 dark:text-emerald-400',
         warning: 'text-amber-600 bg-amber-50/50 border-amber-200/50 dark:bg-amber-500/5 dark:border-amber-500/20 dark:text-amber-400',
-        error: 'text-red-600 bg-red-50/50 border-red-200/50 dark:bg-red-500/5 dark:border-red-500/20 dark:text-red-400',
+        error: 'text-red-600 bg-red-50/50 border-red-200/50 dark:bg-red-500/5 dark:border-os-red/20 dark:text-red-400',
         compliant: 'text-emerald-600 bg-emerald-50/50 border-emerald-200/50 dark:bg-emerald-500/5 dark:border-emerald-500/20 dark:text-emerald-400',
         pending: 'text-amber-600 bg-amber-50/50 border-amber-200/50 dark:bg-amber-500/5 dark:border-amber-500/20 dark:text-amber-400',
-        at_risk: 'text-red-600 bg-red-50/50 border-red-200/50 dark:bg-red-500/5 dark:border-red-500/20 dark:text-red-400',
+        at_risk: 'text-red-600 bg-red-50/50 border-red-200/50 dark:bg-red-500/5 dark:border-os-red/20 dark:text-red-400',
         funded: 'text-emerald-600 bg-emerald-50/50 border-emerald-200/50 dark:bg-emerald-500/5 dark:border-emerald-500/20 dark:text-emerald-400',
         required: 'text-amber-600 bg-amber-50/50 border-amber-200/50 dark:bg-amber-500/5 dark:border-amber-500/20 dark:text-amber-400',
         low: 'text-emerald-600 bg-emerald-50/50 border-emerald-200/50 dark:bg-emerald-500/5 dark:border-emerald-500/20 dark:text-emerald-400',
         medium: 'text-amber-600 bg-amber-50/50 border-amber-200/50 dark:bg-amber-500/5 dark:border-amber-500/20 dark:text-amber-400',
-        high: 'text-red-600 bg-red-50/50 border-red-200/50 dark:bg-red-500/5 dark:border-red-500/20 dark:text-red-400',
+        high: 'text-red-600 bg-red-50/50 border-red-200/50 dark:bg-red-500/5 dark:border-os-red/20 dark:text-red-400',
     };
 
     return (
@@ -42,10 +42,10 @@ const SystemIndicator = ({ icon: Icon, label, status, value, onClick }) => {
         >
             <Icon className="w-3.5 h-3.5" />
             <div className="text-left">
-                <div className="text-[9px] font-bold uppercase tracking-wider opacity-70">
+                <div className="text-os-xs font-bold uppercase tracking-wider opacity-70">
                     {label}
                 </div>
-                <div className="text-[10px] font-bold">
+                <div className="text-os-xs font-bold">
                     {value}
                 </div>
             </div>
@@ -63,14 +63,14 @@ export const TradeReadinessBar = ({ systemState }) => {
 
     const scoreColor = score >= 80 ? 'text-emerald-500' :
         score >= 60 ? 'text-amber-500' :
-            'text-red-500';
+            'text-os-red';
 
     const statusText = status === 'ready' ? 'All Systems Go' :
         status === 'warning' ? `${blockers.length} Items Need Attention` :
             'Action Required';
 
     return (
-        <div className="w-full h-14 flex items-center px-3 md:px-6 gap-3 md:gap-6 sticky top-0 z-[60] bg-white/80 dark:bg-[#0A0A0A]/80 backdrop-blur-xl border-b border-afrikoni-gold/10">
+        <div className="w-full h-14 flex items-center px-3 md:px-6 gap-3 md:gap-6 sticky top-0 z-[60] bg-white/80 dark:bg-[#0A0A0A]/80 backdrop-blur-xl border-b border-os-accent/10">
             {/* Trade Readiness Score */}
             <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
                 <div className="relative w-8 h-8 md:w-10 md:h-10">
@@ -108,17 +108,17 @@ export const TradeReadinessBar = ({ systemState }) => {
                         />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-[10px] md:text-xs font-bold text-afrikoni-deep">
+                        <span className="text-os-xs md:text-os-xs font-bold text-afrikoni-deep">
                             {score}
                         </span>
                     </div>
                 </div>
 
                 <div className="hidden md:block">
-                    <div className="text-[10px] md:text-xs font-bold text-afrikoni-deep">
+                    <div className="text-os-xs md:text-os-xs font-bold text-afrikoni-deep">
                         Readiness
                     </div>
-                    <div className="text-[8px] md:text-[10px] text-gray-500 whitespace-nowrap">
+                    <div className="text-os-xs md:text-os-xs text-gray-500 whitespace-nowrap">
                         {statusText}
                     </div>
                 </div>
@@ -179,7 +179,7 @@ export const TradeReadinessBar = ({ systemState }) => {
                         onClick={() => navigate('/dashboard/control-plane')}
                         className="flex items-center gap-1 px-2 md:px-4 py-1.5 md:py-2 rounded-full
                          bg-gradient-to-r from-amber-500 to-amber-600 text-white
-                         shadow-lg hover:shadow-xl transition-all text-[9px] md:text-xs font-bold"
+                         shadow-os-md hover:shadow-os-lg transition-all text-os-xs md:text-os-xs font-bold"
                     >
                         <AlertTriangle className="w-3 h-3 md:w-4 md:h-4" />
                         <span className="hidden xs:inline">{blockers.length} {blockers.length > 1 ? 'Blockers' : 'Blocker'}</span>
@@ -193,7 +193,7 @@ export const TradeReadinessBar = ({ systemState }) => {
                         animate={{ scale: 1 }}
                         onClick={() => navigate('/dashboard/ai-copilot')}
                         className={cn(
-                            "flex items-center gap-1 px-2 md:px-4 py-1.5 md:py-2 rounded-full text-white shadow-lg hover:shadow-xl transition-all text-[9px] md:text-xs font-bold",
+                            "flex items-center gap-1 px-2 md:px-4 py-1.5 md:py-2 rounded-full text-white shadow-os-md hover:shadow-os-lg transition-all text-os-xs md:text-os-xs font-bold",
                             "bg-gradient-to-r from-blue-500 to-blue-600"
                         )}
                     >

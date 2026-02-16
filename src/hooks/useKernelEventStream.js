@@ -68,15 +68,11 @@ export function useKernelEventStream({ companyId, limit = 14 } = {}) {
           .from('trade_events')
           .select(`
             id,
+            trade_id,
             event_type,
             metadata,
-            payload,
             created_at,
-            decision,
-            reason_code,
-            required_actions,
-            status_from,
-            status_to,
+            triggered_by,
             trade:trades!inner(buyer_id,seller_id)
           `)
           .order('created_at', { ascending: false })

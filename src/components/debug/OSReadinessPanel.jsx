@@ -37,7 +37,7 @@ export default function OSReadinessPanel() {
         return (
             <button
                 onClick={() => setIsOpen(true)}
-                className="fixed bottom-4 right-4 z-[9999] bg-black/80 text-afrikoni-gold p-2 rounded-full border border-afrikoni-gold/20 hover:bg-black transition-all shadow-2xl"
+                className="fixed bottom-4 right-4 z-[9999] bg-black/80 text-os-accent p-2 rounded-full border border-os-accent/20 hover:bg-black transition-all shadow-2xl"
                 title="Open OS Debug Panel"
             >
                 <Activity className="w-5 h-5" />
@@ -46,7 +46,7 @@ export default function OSReadinessPanel() {
     }
 
     return (
-        <div className="fixed bottom-4 right-4 z-[9999] w-[400px] bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/10 rounded-xl shadow-2xl overflow-hidden font-mono text-[10px] text-zinc-400">
+        <div className="fixed bottom-4 right-4 z-[9999] w-[400px] bg-[#0a0a0a]/95 backdrop-blur-xl border border-white/10 rounded-os-sm shadow-2xl overflow-hidden font-mono text-os-xs text-zinc-400">
             {/* HEADER */}
             <div className="flex items-center justify-between p-3 bg-white/5 border-b border-white/5">
                 <div className="flex items-center gap-2">
@@ -111,8 +111,8 @@ const Row = ({ label, value, good, inverse, warn, plain }) => {
     let color = 'text-zinc-500';
     if (!plain) {
         if (warn && value) color = 'text-amber-500';
-        else if (inverse) color = value ? 'text-red-500' : 'text-emerald-500';
-        else color = value ? 'text-emerald-500' : 'text-red-500';
+        else if (inverse) color = value ? 'text-os-red' : 'text-emerald-500';
+        else color = value ? 'text-emerald-500' : 'text-os-red';
     }
 
     return (

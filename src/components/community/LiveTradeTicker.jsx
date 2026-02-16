@@ -143,7 +143,7 @@ export default function LiveTradeTicker() {
         items.push({
           icon: DollarSign,
           text: `$${(gmv / 1000).toFixed(0)}K in trades completed this month`,
-          color: 'text-afrikoni-gold'
+          color: 'text-os-accent'
         });
       }
       // Only show real data - no fake fallbacks
@@ -166,10 +166,10 @@ export default function LiveTradeTicker() {
   }
 
   return (
-    <div className="bg-afrikoni-gold/10 border-b border-afrikoni-gold/20 py-2 overflow-hidden">
+    <div className="bg-os-accent/10 border-b border-os-accent/20 py-2 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 text-afrikoni-gold font-semibold whitespace-nowrap">
+          <div className="flex items-center gap-2 text-os-accent font-semibold whitespace-nowrap">
             <TrendingUp className="w-4 h-4" />
             <span>Live Activity</span>
           </div>
@@ -185,7 +185,7 @@ export default function LiveTradeTicker() {
                   className="flex items-center gap-2 whitespace-nowrap"
                 >
                   <item.icon className={`w-4 h-4 ${item.color}`} />
-                  <span className="text-sm text-afrikoni-text-dark">{item.text}</span>
+                  <span className="text-os-sm text-afrikoni-text-dark">{item.text}</span>
                 </motion.div>
               ))}
             </AnimatePresence>

@@ -27,7 +27,7 @@ export default function RoleDashboardRoute({ allowedRoles, children }: Props) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-afrikoni-offwhite">
-        <div className="h-10 w-10 rounded-full border-2 border-afrikoni-gold border-t-transparent animate-spin" />
+        <div className="h-10 w-10 rounded-full border-2 border-os-accent border-t-transparent animate-spin" />
       </div>
     );
   }

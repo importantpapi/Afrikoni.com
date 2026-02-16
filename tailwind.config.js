@@ -34,6 +34,15 @@ export default {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
         },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
+        // SEMANTIC STATUS COLORS
         success: {
           DEFAULT: "hsl(var(--success))",
           foreground: "hsl(var(--success-foreground))",
@@ -46,124 +55,70 @@ export default {
           DEFAULT: "hsl(var(--info))",
           foreground: "hsl(var(--info-foreground))",
         },
-        popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+        // 2026 PREMIUM DESIGN SYSTEM: "OS" PALETTE
+        os: {
+          accent: 'hsl(var(--primary))',
+          'accent-light': 'hsl(var(--primary) / 0.8)',
+          'accent-dark': 'hsl(var(--primary) / 0.6)',
+          green: '#2CD178',
+          emerald: '#10B981',
+          amber: '#F59E0B',
+          red: '#FF3B30',
+          blue: '#007AFF',
+          action: '#0055FF', // Deep Action Blue
+          bg: 'var(--os-bg)',
+          card: 'var(--os-surface)',
+          stroke: 'var(--os-stroke)',
+          'text-primary': 'var(--os-text-primary)',
+          'text-secondary': 'var(--os-text-secondary)',
+          muted: '#86868B',
         },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
-        // Premium AFRIKONI OS v2.0 Color System
+        // Legacy Brand support (mapping for gradual migration)
         afrikoni: {
-          // Primary Colors - Maintain brand identity
-          gold: '#D4A937',           // Afrikoni Gold - Primary brand color (for backgrounds, borders)
-          goldText: '#B8941F',       // Darker gold for text on light backgrounds (WCAG AA: 4.5:1)
-          goldDark: '#8B6F0F',       // Darker gold for better contrast on light backgrounds
-          goldLight: '#E4C27F',      // Lighter gold for dark backgrounds
-          charcoal: '#121212',        // Deep Charcoal Black - Sidebar/headers
-          // Secondary Colors
-          sand: '#E8D8B5',            // Warm Sand
-          ivory: '#FDF8F0',           // Ivory - Background
-          clay: '#C9A77B',            // Desert Clay
-          // Accents
-          purple: '#8140FF',          // Royal Purple
-          green: '#3AB795',           // Emerald Green
-          red: '#E84855',             // Red for alerts
-          // Text Colors - WCAG AA Compliant (4.5:1 on white/light backgrounds)
-          'text-dark': '#1A150F',     // Darkened from #2E2A1F for 4.5:1 contrast on white
-          'text-deep': '#2A1F15',     // Darkened from #3A2313 for better contrast (4.5:1)
-          'text-light': '#FDF8F0',    // Light text on dark backgrounds
-          // Legacy support (mapped to new colors)
-          earth: "#4B2C17",
-          deep: "#3A2313",
-          chestnut: "#2A180E",        // Keep original for dark backgrounds
-          chestnutText: "#1A1209",   // Darker variant for text on light (WCAG AA)
-          cream: "#F3E5C7",
-          offwhite: "#FDF8F0",
-          'earth-brown': '#4B2C17',
-          'deep-brown': '#3A2313',
-          'dark-chestnut': '#2A180E',
-          'emboss-gold': '#A17833',
-          'highlight-gold': '#E4C27F',
-          'warm-off-white': '#FDF8F0',
-          'pure-white': '#FFFFFF',
-          'brown-900': '#2A180E',
-          'brown-800': '#3A2313',
-          'brown-700': '#4B2C17',
-          'gold-800': '#D4A937',
-          'gold-700': '#A17833',
-          'gold-600': '#E4C27F',
-          'cream-100': '#F3E5C7',
-          'cream-200': '#FDF8F0',
-        },
-        // Brand color shortcuts
-        brand: {
-          dark: '#121212',
-          gold: '#D4A937',
-          ivory: '#FDF8F0',
-        },
-      },
-      backgroundColor: theme => ({
-        ...theme('colors'),
-        'brand-dark': '#2A180E',
-        'brand-brown': '#4B2C17',
-        'brand-cream': '#FFF9F3',
-        // Semantic status backgrounds with opacity
-        'success-15': 'hsl(var(--success) / 0.15)',
-        'warning-15': 'hsl(var(--warning) / 0.15)',
-        'info-15': 'hsl(var(--info) / 0.15)',
-        'destructive-15': 'hsl(var(--destructive) / 0.15)',
-      }),
-      textColor: {
-        brand: {
-          gold: '#C69A47',
-          cream: '#F3E5C7',
-          brown: '#2A180E',
-        },
-      },
-      borderColor: theme => ({
-        ...theme('colors'),
-        brand: {
-          gold: '#C69A47',
-          goldDark: '#A17833',
-          brown: '#3A2313',
-        },
-        // Semantic status borders with opacity
-        'success-20': 'hsl(var(--success) / 0.20)',
-        'warning-20': 'hsl(var(--warning) / 0.20)',
-        'info-20': 'hsl(var(--info) / 0.20)',
-        'destructive-20': 'hsl(var(--destructive) / 0.20)',
-      }),
-      fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
-        // Remove serif - not used in institutional design
+          earth: 'hsl(var(--afrikoni-earth))',
+          deep: 'hsl(var(--afrikoni-deep))',
+          chestnut: 'hsl(var(--afrikoni-chestnut))',
+          cream: 'hsl(var(--afrikoni-cream))',
+          offwhite: 'hsl(var(--afrikoni-offwhite))',
+          ivory: 'hsl(var(--afrikoni-ivory))',
+          gold: 'hsl(var(--afrikoni-brand-gold))',
+          'gold-shimmer': 'hsl(var(--afrikoni-gold-shimmer))',
+          'gold-deep': 'hsl(var(--afrikoni-gold-deep))',
+          charcoal: '#121212',
+        }
       },
       fontSize: {
-        // H1 - Hero / Page title
-        'h1': ['60px', { lineHeight: '1.1', fontWeight: '700', letterSpacing: '-0.02em' }],
-        'h1-mobile': ['40px', { lineHeight: '1.1', fontWeight: '700', letterSpacing: '-0.02em' }],
-        // H2 - Section titles
-        'h2': ['40px', { lineHeight: '1.2', fontWeight: '600' }],
-        'h2-mobile': ['28px', { lineHeight: '1.2', fontWeight: '600' }],
-        // H3 - Subsections / Card titles
-        'h3': ['22px', { lineHeight: '1.3', fontWeight: '600' }],
-        // Body - Primary text
-        'body': ['18px', { lineHeight: '1.6', fontWeight: '400' }],
-        // Meta / Labels / Badges
-        'meta': ['14px', { lineHeight: '1.5', fontWeight: '500', letterSpacing: '0.02em' }],
+        // 2026 SEMANTIC TYPE SCALE
+        'os-xs': ['12px', { lineHeight: '1.5', fontWeight: '500' }],      // Meta / Labels
+        'os-sm': ['14px', { lineHeight: '1.5', fontWeight: '500' }],      // Body secondary
+        'os-base': ['16px', { lineHeight: '1.6', fontWeight: '400' }],    // Body primary
+        'os-lg': ['18px', { lineHeight: '1.5', fontWeight: '400' }],      // Lead text
+        'os-xl': ['20px', { lineHeight: '1.4', fontWeight: '600' }],      // H4
+        'os-2xl': ['24px', { lineHeight: '1.3', fontWeight: '600' }],     // H3
+        'os-3xl': ['30px', { lineHeight: '1.2', fontWeight: '700' }],     // H2
+        'os-4xl': ['36px', { lineHeight: '1.1', fontWeight: '700' }],     // H1 Mobile
+        'os-5xl': ['48px', { lineHeight: '1.1', fontWeight: '700' }],     // H1 Desktop
+      },
+      spacing: {
+        'os-tight': '1rem',      // 16px
+        'os-normal': '1.5rem',   // 24px
+        'os-loose': '2rem',      // 32px
+        'os-generous': '3rem',   // 48px
       },
       boxShadow: {
-        'afrikoni': '0 2px 10px rgba(212,169,55,0.25)',
-        'afrikoni-lg': '0 4px 20px rgba(212,169,55,0.3)',
-        'afrikoni-xl': '0 8px 30px rgba(212,169,55,0.35)',
-        'afrikoni-gold': '0 0 20px rgba(212,169,55,0.4)',
-        'premium': '0 4px 24px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.05)',
-        'premium-lg': '0 8px 32px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.08)',
+        'os-sm': '0 2px 8px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)',
+        'os-md': '0 4px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04)',
+        'os-lg': '0 8px 32px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06)',
+        'os-gold': '0 4px 20px rgba(212,169,55,0.25)',
+        'premium': '0 4px 24px rgba(0,0,0,0.08)',
       },
       borderRadius: {
-        'afrikoni': '12px',
-        'afrikoni-lg': '16px',
+        'os-sm': '12px',   // Small cards, inputs
+        'os-md': '20px',   // Standard cards
+        'os-lg': '32px',   // Hero sections
+      },
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'sans-serif'],
       },
     },
   },

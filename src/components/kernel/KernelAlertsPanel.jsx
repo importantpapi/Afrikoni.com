@@ -27,7 +27,7 @@ export function KernelAlertsPanel() {
     <Surface variant="panel" className="p-5 h-full">
       <div className="flex items-center justify-between mb-3">
         <div className="os-label">Kernel Alerts</div>
-        <button className="text-[11px] text-muted-foreground hover:text-foreground">View All</button>
+        <button className="text-os-xs text-muted-foreground hover:text-foreground">View All</button>
       </div>
       <div className="space-y-2">
         {alerts.map((a) => (
@@ -39,8 +39,8 @@ export function KernelAlertsPanel() {
               className={`h-4 w-4 ${a.level === "critical" ? "text-destructive" : a.level === "warning" ? "text-warning" : "text-info"}`}
             />
             <div className="flex-1">
-              <p className="text-sm font-medium text-foreground leading-tight">{a.title}</p>
-              <div className="text-[11px] text-muted-foreground flex items-center gap-1 mt-1">
+              <p className="text-os-sm font-medium text-foreground leading-tight">{a.title}</p>
+              <div className="text-os-xs text-muted-foreground flex items-center gap-1 mt-1">
                 <Clock className="h-3 w-3" />
                 {a.eta}
               </div>

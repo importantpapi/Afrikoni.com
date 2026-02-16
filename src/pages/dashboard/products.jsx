@@ -106,7 +106,7 @@ export default function Products() {
           <div>
             <div className="os-label">Trade OS Catalog</div>
             <h1 className="os-title mt-2">Products</h1>
-            <p className="text-sm text-os-muted">
+            <p className="text-os-sm text-os-muted">
               {(products || []).length} products in your catalog
             </p>
           </div>
@@ -180,7 +180,7 @@ export default function Products() {
                     (header) => (
                       <th
                         key={header}
-                        className="px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.25em] text-os-muted"
+                        className="px-4 py-3 text-left text-os-xs font-semibold uppercase tracking-[0.25em] text-os-muted"
                       >
                         {header && (
                           <span className="flex items-center gap-1">
@@ -223,27 +223,27 @@ export default function Products() {
                             )}
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-[var(--os-text-primary)]">
+                            <p className="text-os-sm font-medium text-[var(--os-text-primary)]">
                               {product.name}
                             </p>
-                            <p className="text-xs text-os-muted">
+                            <p className="text-os-xs text-os-muted">
                               {origin} · HS {hsCode}
                             </p>
                           </div>
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="secondary" className="text-os-xs">
                           {category}
                         </Badge>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="text-sm font-semibold tabular-nums">
+                        <span className="text-os-sm font-semibold tabular-nums">
                           ${Number(priceMin).toLocaleString()}{priceMax > priceMin ? ` - $${Number(priceMax).toLocaleString()}` : ''}
                         </span>
-                        <span className="text-xs text-os-muted">/{unit}</span>
+                        <span className="text-os-xs text-os-muted">/{unit}</span>
                       </td>
-                      <td className="px-4 py-3 text-sm text-os-muted tabular-nums">
+                      <td className="px-4 py-3 text-os-sm text-os-muted tabular-nums">
                         {Number(moq).toLocaleString()} {unit}
                       </td>
                       <td className="px-4 py-3">
@@ -253,12 +253,12 @@ export default function Products() {
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="flex items-center gap-1 text-sm text-os-muted tabular-nums">
+                        <span className="flex items-center gap-1 text-os-sm text-os-muted tabular-nums">
                           <Eye className="h-3 w-3" /> {views.toLocaleString()}
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="flex items-center gap-1 text-sm text-os-muted tabular-nums">
+                        <span className="flex items-center gap-1 text-os-sm text-os-muted tabular-nums">
                           <MessageSquare className="h-3 w-3" /> {inquiries}
                         </span>
                       </td>
@@ -291,7 +291,7 @@ export default function Products() {
             return (
               <Surface key={product.id} variant="panel" className="p-4">
                 <div className="flex items-start justify-between">
-                  <div className="w-12 h-12 rounded-xl bg-os-surface-1 flex items-center justify-center overflow-hidden">
+                  <div className="w-12 h-12 rounded-os-sm bg-os-surface-1 flex items-center justify-center overflow-hidden">
                     {product.image_url ? (
                       <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
                     ) : (
@@ -301,22 +301,22 @@ export default function Products() {
                   <StatusBadge label={status.label} tone="neutral" />
                 </div>
                 <div className="mt-4">
-                  <p className="text-sm font-semibold text-[var(--os-text-primary)]">
+                  <p className="text-os-sm font-semibold text-[var(--os-text-primary)]">
                     {product.name}
                   </p>
-                  <p className="text-xs text-os-muted">
+                  <p className="text-os-xs text-os-muted">
                     {origin} · HS {hsCode}
                   </p>
                 </div>
-                <div className="mt-3 flex items-center justify-between text-sm">
+                <div className="mt-3 flex items-center justify-between text-os-sm">
                   <span className="font-semibold tabular-nums">
                     ${Number(priceMin).toLocaleString()}{priceMax > priceMin ? ` - $${Number(priceMax).toLocaleString()}` : ''}/{unit}
                   </span>
-                  <Badge variant="secondary" className="text-xs">
+                  <Badge variant="secondary" className="text-os-xs">
                     {category}
                   </Badge>
                 </div>
-                <div className="mt-4 flex items-center justify-between text-xs text-os-muted">
+                <div className="mt-4 flex items-center justify-between text-os-xs text-os-muted">
                   <span className="flex items-center gap-1">
                     <Eye className="h-3 w-3" /> {views.toLocaleString()}
                   </span>

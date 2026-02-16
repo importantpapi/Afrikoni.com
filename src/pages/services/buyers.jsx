@@ -197,25 +197,25 @@ export default function BuyersService() {
               transition={{ duration: 0.6 }}
               className="text-center max-w-4xl mx-auto"
             >
-              <Badge className="bg-afrikoni-gold/20 text-afrikoni-gold border-afrikoni-gold/30 mb-4">
+              <Badge className="bg-os-accent/20 text-os-accent border-os-accent/30 mb-4">
                 <ShoppingBag className="w-3 h-3 mr-1" />
                 Buyer Onboarding
               </Badge>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-afrikoni-cream mb-6">
                 Source from Verified<br />African Suppliers
               </h1>
-              <p className="text-xl md:text-2xl text-afrikoni-cream/90 mb-8 max-w-3xl mx-auto">
+              <p className="text-os-xl md:text-os-2xl text-afrikoni-cream/90 mb-8 max-w-3xl mx-auto">
                 Join Afrikoni as a buyer and access verified suppliers across 54 African countries. Request quotes, compare offers, and trade with confidence through our protected platform.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
                 <Link to="/signup">
-                  <Button size="lg" className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut px-8 py-6 text-lg font-bold shadow-xl">
+                  <Button size="lg" className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut px-8 py-6 text-os-lg font-bold shadow-os-lg">
                     <Users className="w-5 h-5 mr-2" />
                     Start Free Signup
                   </Button>
                 </Link>
                 <Link to="/marketplace">
-                  <Button size="lg" variant="outline" className="border-2 border-afrikoni-cream/50 text-afrikoni-cream hover:bg-afrikoni-cream/10 px-8 py-6 text-lg">
+                  <Button size="lg" variant="outline" className="border-2 border-afrikoni-cream/50 text-afrikoni-cream hover:bg-afrikoni-cream/10 px-8 py-6 text-os-lg">
                     Browse Products
                   </Button>
                 </Link>
@@ -229,12 +229,12 @@ export default function BuyersService() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.2 + idx * 0.1 }}
-                    className="bg-afrikoni-cream/10 backdrop-blur-sm rounded-lg p-4 border border-afrikoni-gold/20"
+                    className="bg-afrikoni-cream/10 backdrop-blur-sm rounded-lg p-4 border border-os-accent/20"
                   >
-                    <div className="text-2xl md:text-3xl font-bold text-afrikoni-gold mb-1">
+                    <div className="text-os-2xl md:text-3xl font-bold text-os-accent mb-1">
                       {stat.value}
                     </div>
-                    <div className="text-sm text-afrikoni-cream/80">
+                    <div className="text-os-sm text-afrikoni-cream/80">
                       {stat.label}
                     </div>
                   </motion.div>
@@ -257,7 +257,7 @@ export default function BuyersService() {
               <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
                 Why Buy on Afrikoni?
               </h2>
-              <p className="text-lg text-afrikoni-deep/70 max-w-2xl mx-auto">
+              <p className="text-os-lg text-afrikoni-deep/70 max-w-2xl mx-auto">
                 Secure sourcing with verified suppliers, buyer protection, and seamless cross-border trade.
               </p>
             </motion.div>
@@ -273,12 +273,12 @@ export default function BuyersService() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: idx * 0.1 }}
                   >
-                    <Card className={`h-full border-2 ${benefit.borderColor} hover:shadow-xl transition-all`}>
+                    <Card className={`h-full border-2 ${benefit.borderColor} hover:shadow-os-lg transition-all`}>
                       <CardContent className="p-6">
                         <div className={`w-12 h-12 ${benefit.bgColor} rounded-lg flex items-center justify-center mb-4`}>
                           <Icon className={`w-6 h-6 ${benefit.color}`} />
                         </div>
-                        <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2">
+                        <h3 className="text-os-xl font-bold text-afrikoni-chestnut mb-2">
                           {benefit.title}
                         </h3>
                         <p className="text-afrikoni-deep/70">
@@ -304,14 +304,14 @@ export default function BuyersService() {
               <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
                 How It Works
               </h2>
-              <p className="text-lg text-afrikoni-deep/70 max-w-2xl mx-auto">
+              <p className="text-os-lg text-afrikoni-deep/70 max-w-2xl mx-auto">
                 Source with confidence in 4 simple steps. Most buyers complete their first order in under 30 minutes.
               </p>
             </motion.div>
 
             <div className="relative">
               {/* Timeline line */}
-              <div className="hidden md:block absolute left-8 top-0 bottom-0 w-0.5 bg-afrikoni-gold/20" />
+              <div className="hidden md:block absolute left-8 top-0 bottom-0 w-0.5 bg-os-accent/20" />
 
               <div className="space-y-8">
                 {steps.map((step, idx) => {
@@ -326,26 +326,26 @@ export default function BuyersService() {
                       className="relative flex items-start gap-6"
                     >
                       {/* Step number circle */}
-                      <div className="hidden md:flex relative z-10 w-16 h-16 bg-afrikoni-gold rounded-full items-center justify-center flex-shrink-0 shadow-lg">
+                      <div className="hidden md:flex relative z-10 w-16 h-16 bg-os-accent rounded-full items-center justify-center flex-shrink-0 shadow-os-md">
                         <Icon className="w-8 h-8 text-afrikoni-chestnut" />
                       </div>
-                      <div className="md:hidden w-12 h-12 bg-afrikoni-gold rounded-full flex items-center justify-center flex-shrink-0 shadow-lg">
+                      <div className="md:hidden w-12 h-12 bg-os-accent rounded-full flex items-center justify-center flex-shrink-0 shadow-os-md">
                         <Icon className="w-6 h-6 text-afrikoni-chestnut" />
                       </div>
 
                       {/* Content */}
-                      <Card className="flex-1 border-afrikoni-gold/20 hover:border-afrikoni-gold/40 transition-all">
+                      <Card className="flex-1 border-os-accent/20 hover:border-os-accent/40 transition-all">
                         <CardContent className="p-6">
                           <div className="flex items-start justify-between mb-2">
                             <div>
-                              <Badge className="bg-afrikoni-gold/10 text-afrikoni-gold border-afrikoni-gold/30 mb-2">
+                              <Badge className="bg-os-accent/10 text-os-accent border-os-accent/30 mb-2">
                                 {step.number}
                               </Badge>
-                              <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2">
+                              <h3 className="text-os-xl font-bold text-afrikoni-chestnut mb-2">
                                 {step.title}
                               </h3>
                             </div>
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="text-os-xs">
                               <Clock className="w-3 h-3 mr-1" />
                               {step.duration}
                             </Badge>
@@ -364,10 +364,10 @@ export default function BuyersService() {
 
           {/* Buyer Protection Section */}
           <section className="mb-16 md:mb-20">
-            <Card className="border-2 border-afrikoni-gold/30 bg-gradient-to-br from-afrikoni-gold/5 to-white">
+            <Card className="border-2 border-os-accent/30 bg-gradient-to-br from-os-accent/5 to-white">
               <CardHeader>
-                <CardTitle className="flex items-center gap-3 text-2xl">
-                  <Shield className="w-6 h-6 text-afrikoni-gold" />
+                <CardTitle className="flex items-center gap-3 text-os-2xl">
+                  <Shield className="w-6 h-6 text-os-accent" />
                   Buyer Protection & Guarantees
                 </CardTitle>
                 <p className="text-afrikoni-deep/70 mt-2">
@@ -378,7 +378,7 @@ export default function BuyersService() {
                 <div className="grid md:grid-cols-2 gap-4">
                   {buyerProtection.map((protection, idx) => (
                     <div key={idx} className="flex items-start gap-3">
-                      <CheckCircle className="w-5 h-5 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+                      <CheckCircle className="w-5 h-5 text-os-accent flex-shrink-0 mt-0.5" />
                       <span className="text-afrikoni-deep">{protection}</span>
                     </div>
                   ))}
@@ -399,21 +399,21 @@ export default function BuyersService() {
               <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
                 Transparent Pricing
               </h2>
-              <p className="text-lg text-afrikoni-deep/70">
+              <p className="text-os-lg text-afrikoni-deep/70">
                 No hidden fees. Browse and request quotes for free.
               </p>
             </motion.div>
 
             <div className="grid md:grid-cols-3 gap-6">
-              <Card className="border-afrikoni-gold/20">
+              <Card className="border-os-accent/20">
                 <CardHeader>
-                  <CardTitle className="text-xl">Browse & Search</CardTitle>
-                  <div className="text-3xl font-bold text-afrikoni-gold mt-2">
+                  <CardTitle className="text-os-xl">Browse & Search</CardTitle>
+                  <div className="text-3xl font-bold text-os-accent mt-2">
                     Free
                   </div>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-2 text-sm text-afrikoni-deep/70">
+                  <ul className="space-y-2 text-os-sm text-afrikoni-deep/70">
                     <li className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-green-600" />
                       Unlimited product browsing
@@ -430,21 +430,21 @@ export default function BuyersService() {
                 </CardContent>
               </Card>
 
-              <Card className="border-2 border-afrikoni-gold bg-gradient-to-br from-afrikoni-gold/10 to-white">
+              <Card className="border-2 border-os-accent bg-gradient-to-br from-os-accent/10 to-white">
                 <CardHeader>
-                  <Badge className="bg-afrikoni-gold text-afrikoni-chestnut mb-2 w-fit">
+                  <Badge className="bg-os-accent text-afrikoni-chestnut mb-2 w-fit">
                     Most Popular
                   </Badge>
-                  <CardTitle className="text-xl">Post RFQ</CardTitle>
-                  <div className="text-3xl font-bold text-afrikoni-gold mt-2">
+                  <CardTitle className="text-os-xl">Post RFQ</CardTitle>
+                  <div className="text-3xl font-bold text-os-accent mt-2">
                     Free
                   </div>
-                  <p className="text-sm text-afrikoni-deep/70 mt-1">
+                  <p className="text-os-sm text-afrikoni-deep/70 mt-1">
                     Request quotes from suppliers
                   </p>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-2 text-sm text-afrikoni-deep/70">
+                  <ul className="space-y-2 text-os-sm text-afrikoni-deep/70">
                     <li className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-green-600" />
                       Post unlimited RFQs
@@ -461,18 +461,18 @@ export default function BuyersService() {
                 </CardContent>
               </Card>
 
-              <Card className="border-afrikoni-gold/20">
+              <Card className="border-os-accent/20">
                 <CardHeader>
-                  <CardTitle className="text-xl">Transaction Fee</CardTitle>
-                  <div className="text-3xl font-bold text-afrikoni-gold mt-2">
+                  <CardTitle className="text-os-xl">Transaction Fee</CardTitle>
+                  <div className="text-3xl font-bold text-os-accent mt-2">
                     8%
                   </div>
-                  <p className="text-sm text-afrikoni-deep/70 mt-1">
+                  <p className="text-os-sm text-afrikoni-deep/70 mt-1">
                     Only on successful orders
                   </p>
                 </CardHeader>
                 <CardContent>
-                  <ul className="space-y-2 text-sm text-afrikoni-deep/70">
+                  <ul className="space-y-2 text-os-sm text-afrikoni-deep/70">
                     <li className="flex items-center gap-2">
                       <CheckCircle className="w-4 h-4 text-green-600" />
                       Escrow protection included
@@ -492,38 +492,38 @@ export default function BuyersService() {
           </section>
 
           {/* Final CTA Section */}
-          <section className="bg-gradient-to-r from-afrikoni-chestnut via-afrikoni-deep to-afrikoni-chestnut rounded-2xl p-8 md:p-12 text-center">
+          <section className="bg-gradient-to-r from-afrikoni-chestnut via-afrikoni-deep to-afrikoni-chestnut rounded-os-md p-8 md:p-12 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <div className="w-16 h-16 bg-afrikoni-gold rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-16 h-16 bg-os-accent rounded-full flex items-center justify-center mx-auto mb-6">
                 <ShoppingBag className="w-8 h-8 text-afrikoni-chestnut" />
               </div>
               <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-cream mb-4">
                 Ready to Source from Africa?
               </h2>
-              <p className="text-lg text-afrikoni-cream/90 mb-8 max-w-2xl mx-auto">
+              <p className="text-os-lg text-afrikoni-cream/90 mb-8 max-w-2xl mx-auto">
                 Join buyers already sourcing verified products from African suppliers. Start browsing products or post your first RFQ today.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link to="/signup">
-                  <Button size="lg" className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut px-8 py-6 text-lg font-bold shadow-xl">
+                  <Button size="lg" className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut px-8 py-6 text-os-lg font-bold shadow-os-lg">
                     <Users className="w-5 h-5 mr-2" />
                     Join as Buyer
                     <ArrowRight className="w-5 h-5 ml-2" />
                   </Button>
                 </Link>
                 <Link to="/marketplace">
-                  <Button size="lg" variant="outline" className="border-2 border-afrikoni-cream/50 text-afrikoni-cream hover:bg-afrikoni-cream/10 px-8 py-6 text-lg">
+                  <Button size="lg" variant="outline" className="border-2 border-afrikoni-cream/50 text-afrikoni-cream hover:bg-afrikoni-cream/10 px-8 py-6 text-os-lg">
                     <Search className="w-5 h-5 mr-2" />
                     Browse Products
                   </Button>
                 </Link>
               </div>
-              <p className="text-sm text-afrikoni-cream/70 mt-6">
+              <p className="text-os-sm text-afrikoni-cream/70 mt-6">
                 No credit card required • Free to browse • Free RFQ posting
               </p>
             </motion.div>

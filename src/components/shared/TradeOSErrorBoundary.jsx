@@ -31,19 +31,19 @@ class TradeOSErrorBoundary extends React.Component {
         if (this.state.hasError) {
             // Custom fallback UI
             return (
-                <Surface variant="glass" className="p-6 border border-red-500/20 bg-red-500/5 flex flex-col items-center justify-center text-center h-full min-h-[200px]">
+                <Surface variant="glass" className="p-6 border border-os-red/20 bg-red-500/5 flex flex-col items-center justify-center text-center h-full min-h-[200px]">
                     <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center mb-3">
-                        <AlertTriangle className="w-5 h-5 text-red-500" />
+                        <AlertTriangle className="w-5 h-5 text-os-red" />
                     </div>
-                    <h3 className="text-sm font-bold text-red-600 uppercase tracking-wider mb-1">
+                    <h3 className="text-os-sm font-bold text-red-600 uppercase tracking-wider mb-1">
                         System Component Error
                     </h3>
-                    <p className="text-xs text-gray-500 max-w-[250px] mb-4">
+                    <p className="text-os-xs text-gray-500 max-w-[250px] mb-4">
                         {this.state.error?.message || 'A localized module failure occurred.'}
                     </p>
                     <button
                         onClick={this.handleReset}
-                        className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded text-[10px] font-bold uppercase tracking-wide hover:bg-gray-50 transition-colors text-gray-700"
+                        className="flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-200 rounded text-os-xs font-bold uppercase tracking-wide hover:bg-gray-50 transition-colors text-gray-700"
                     >
                         <RefreshCw className="w-3 h-3" />
                         Restart Module

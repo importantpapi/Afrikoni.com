@@ -113,14 +113,14 @@ function RFQManagementInner() {
       );
     } else if (status === 'pending') {
       return (
-        <Badge className="bg-afrikoni-gold/20 text-orange-700 border-afrikoni-gold300">
+        <Badge className="bg-os-accent/20 text-orange-700 border-os-accent300">
           <Clock className="w-3 h-3 mr-1" />
           Pending
         </Badge>
       );
     }
     return (
-      <Badge className="bg-afrikoni-cream text-afrikoni-deep border-afrikoni-gold/30">
+      <Badge className="bg-afrikoni-cream text-afrikoni-deep border-os-accent/30">
         {status}
       </Badge>
     );
@@ -133,10 +133,10 @@ function RFQManagementInner() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-4xl font-bold text-afrikoni-chestnut mb-2">RFQ Management</h1>
-            <p className="text-lg text-afrikoni-deep">Request quotes from suppliers</p>
+            <p className="text-os-lg text-afrikoni-deep">Request quotes from suppliers</p>
           </div>
           <Link to={createPageUrl('CreateRFQ')}>
-            <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream">
+            <Button className="bg-os-accent hover:bg-os-accentDark text-afrikoni-cream">
               + Create RFQ
             </Button>
           </Link>
@@ -156,13 +156,13 @@ function RFQManagementInner() {
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
               </div>
             ) : rfqs.length === 0 ? (
-              <Card className="border-afrikoni-gold/20">
+              <Card className="border-os-accent/20">
                 <CardContent className="p-12 text-center">
                   <FileText className="w-16 h-16 text-afrikoni-deep/70 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-afrikoni-chestnut mb-2">No RFQs found</h3>
+                  <h3 className="text-os-xl font-semibold text-afrikoni-chestnut mb-2">No RFQs found</h3>
                   <p className="text-afrikoni-deep mb-6">Create your first RFQ to get started</p>
                   <Link to={createPageUrl('CreateRFQ')}>
-                    <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream">
+                    <Button className="bg-os-accent hover:bg-os-accentDark text-afrikoni-cream">
                       + Create RFQ
                     </Button>
                   </Link>
@@ -171,34 +171,34 @@ function RFQManagementInner() {
             ) : (
               <div className="space-y-4">
                 {rfqs.map((rfq) => (
-                  <Card key={rfq.id} className="border-afrikoni-gold/20 hover:shadow-lg transition-shadow">
+                  <Card key={rfq.id} className="border-os-accent/20 hover:shadow-os-md transition-shadow">
                     <CardContent className="p-6">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-4 mb-3">
-                            <h3 className="text-xl font-bold text-afrikoni-chestnut">{rfq.title}</h3>
+                            <h3 className="text-os-xl font-bold text-afrikoni-chestnut">{rfq.title}</h3>
                             {getStatusBadge(rfq.status)}
                           </div>
                           <p className="text-afrikoni-deep mb-4">{rfq.description}</p>
                           
                           <div className="grid md:grid-cols-4 gap-4 mb-4">
-                            <div className="flex items-center gap-2 text-sm">
+                            <div className="flex items-center gap-2 text-os-sm">
                               <FileText className="w-4 h-4 text-afrikoni-deep/70" />
                               <span className="text-afrikoni-deep">Quantity: <span className="font-semibold">{rfq.quantity} {rfq.unit}</span></span>
                             </div>
-                            <div className="flex items-center gap-2 text-sm">
+                            <div className="flex items-center gap-2 text-os-sm">
                               <DollarSign className="w-4 h-4 text-afrikoni-deep/70" />
                               <span className="text-afrikoni-deep">Budget: <span className="font-semibold">
                                 {rfq.target_price ? `$${rfq.target_price.toLocaleString()}` : 'Not specified'}
                               </span></span>
                             </div>
-                            <div className="flex items-center gap-2 text-sm">
+                            <div className="flex items-center gap-2 text-os-sm">
                               <Calendar className="w-4 h-4 text-afrikoni-deep/70" />
                               <span className="text-afrikoni-deep">Deadline: <span className="font-semibold">
                                 {rfq.delivery_deadline ? format(new Date(rfq.delivery_deadline), 'yyyy-MM-dd') : 'Not set'}
                               </span></span>
                             </div>
-                            <div className="flex items-center gap-2 text-sm">
+                            <div className="flex items-center gap-2 text-os-sm">
                               <CheckCircle className="w-4 h-4 text-green-600" />
                               <span className="text-afrikoni-deep">Quotes Received: <span className="font-semibold text-green-600">{rfq.quotesCount || 0}</span></span>
                             </div>
@@ -206,16 +206,16 @@ function RFQManagementInner() {
 
                           <div className="flex gap-3">
                             <Link to={`/rfq/detail?id=${rfq.id}`}>
-                              <Button variant="default" className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream">
+                              <Button variant="default" className="bg-os-accent hover:bg-os-accentDark text-afrikoni-cream">
                                 <Eye className="w-4 h-4 mr-2" />
                                 View Quotes
                               </Button>
                             </Link>
-                            <Button variant="outline" className="border-afrikoni-gold/30">
+                            <Button variant="outline" className="border-os-accent/30">
                               <Edit className="w-4 h-4 mr-2" />
                               Edit RFQ
                             </Button>
-                            <Button variant="outline" className="border-afrikoni-gold/30">
+                            <Button variant="outline" className="border-os-accent/30">
                               <Share className="w-4 h-4 mr-2" />
                               Share
                             </Button>

@@ -12,7 +12,7 @@ export default function TrustCounters() {
     {
       icon: Package,
       label: 'Marketplace Active',
-      color: 'text-afrikoni-gold'
+      color: 'text-os-accent'
     },
     {
       icon: Users,
@@ -22,7 +22,7 @@ export default function TrustCounters() {
     {
       icon: Globe,
       label: 'Pan-African Coverage',
-      color: 'text-afrikoni-gold'
+      color: 'text-os-accent'
     },
     {
       icon: Shield,
@@ -32,7 +32,7 @@ export default function TrustCounters() {
   ];
 
   return (
-    <div className="py-3 md:py-4 bg-afrikoni-offwhite/50 border-b border-afrikoni-gold/10">
+    <div className="py-3 md:py-4 bg-afrikoni-offwhite/50 border-b border-os-accent/10">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 lg:gap-8">
           {statusItems.map((item, idx) => {
@@ -47,7 +47,7 @@ export default function TrustCounters() {
                 className="flex items-center gap-2 md:gap-3"
               >
                 <Icon className={`w-4 h-4 md:w-5 md:h-5 ${item.color} flex-shrink-0`} />
-                <span className="text-xs md:text-sm text-afrikoni-deep/70 font-medium whitespace-nowrap">
+                <span className="text-os-xs md:text-os-sm text-afrikoni-deep/70 font-medium whitespace-nowrap">
                   {item.label}
                 </span>
               </motion.div>

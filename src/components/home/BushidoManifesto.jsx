@@ -18,49 +18,49 @@ export default function BushidoManifesto() {
       title: 'HONOR IN TRADE',
       description: 'Every deal is sacred. We trade with integrity and trust.',
       icon: Shield,
-      color: 'text-afrikoni-gold'
+      color: 'text-os-accent'
     },
     {
       number: 2,
       title: 'DISCIPLINE IN ACTION',
       description: 'We move with precision, speed, and respect for excellence.',
       icon: Zap,
-      color: 'text-afrikoni-gold'
+      color: 'text-os-accent'
     },
     {
       number: 3,
       title: 'LOYALTY TO THE VISION',
       description: 'We build Afrikoni as one family, one future.',
       icon: Heart,
-      color: 'text-afrikoni-gold'
+      color: 'text-os-accent'
     },
     {
       number: 4,
       title: 'COURAGE IN INNOVATION',
       description: 'We face Africa\'s challenges with bold ideas and fearless creativity.',
       icon: Lightbulb,
-      color: 'text-afrikoni-gold'
+      color: 'text-os-accent'
     },
     {
       number: 5,
       title: 'RESPECT FOR LEGACY',
       description: 'We honor our ancestors by building something eternal.',
       icon: Award,
-      color: 'text-afrikoni-gold'
+      color: 'text-os-accent'
     },
     {
       number: 6,
       title: 'MASTERY OVER MEDIOCRITY',
       description: 'We refine, perfect, and dominate our craft.',
       icon: Target,
-      color: 'text-afrikoni-gold'
+      color: 'text-os-accent'
     },
     {
       number: 7,
       title: 'UNITY IN DIVERSITY',
       description: 'Every nation, tribe, and language adds power to our empire.',
       icon: Users,
-      color: 'text-afrikoni-gold'
+      color: 'text-os-accent'
     }
   ];
 
@@ -85,22 +85,22 @@ export default function BushidoManifesto() {
         >
           {/* Logo */}
           <div className="flex justify-center mb-6">
-            <Logo type="icon" size="lg" link={false} className="text-afrikoni-gold" />
+            <Logo type="icon" size="lg" link={false} className="text-os-accent" />
           </div>
           
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold font-serif text-afrikoni-gold mb-4">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold font-serif text-os-accent mb-4">
             AFRIKONI
           </h2>
           
-          <p className="text-lg md:text-xl text-afrikoni-gold/90 mb-6 font-semibold tracking-wide">
+          <p className="text-os-lg md:text-os-xl text-os-accent/90 mb-6 font-semibold tracking-wide">
             TRADE. TRUST. THRIVE.
           </p>
           
-          <h3 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold font-serif text-afrikoni-gold mb-6">
+          <h3 className="text-os-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold font-serif text-os-accent mb-6">
             AFRIKONI BUSHIDO MANIFESTO
           </h3>
           
-          <p className="text-base md:text-lg text-afrikoni-cream/80 max-w-3xl mx-auto">
+          <p className="text-os-base md:text-os-lg text-afrikoni-cream/80 max-w-3xl mx-auto">
             Our code of conduct. The principles that define what we're capable of for you.
           </p>
         </motion.div>
@@ -118,23 +118,23 @@ export default function BushidoManifesto() {
                 transition={{ duration: 0.6, delay: idx * 0.1 }}
                 className="relative"
               >
-                <div className="bg-gradient-to-br from-afrikoni-deep/80 to-afrikoni-chestnut/80 backdrop-blur-sm border-2 border-afrikoni-gold/30 rounded-xl p-6 md:p-8 hover:border-afrikoni-gold hover:shadow-afrikoni-lg transition-all h-full">
+                <div className="bg-gradient-to-br from-afrikoni-deep/80 to-afrikoni-chestnut/80 backdrop-blur-sm border-2 border-os-accent/30 rounded-os-sm p-6 md:p-8 hover:border-os-accent hover:shadow-os-gold-lg transition-all h-full">
                   {/* Number Badge */}
-                  <div className="absolute -top-4 -left-4 w-12 h-12 bg-afrikoni-gold rounded-full flex items-center justify-center shadow-lg border-2 border-afrikoni-chestnut">
-                    <span className="text-afrikoni-chestnut font-bold text-lg">
+                  <div className="absolute -top-4 -left-4 w-12 h-12 bg-os-accent rounded-full flex items-center justify-center shadow-os-md border-2 border-afrikoni-chestnut">
+                    <span className="text-afrikoni-chestnut font-bold text-os-lg">
                       {principle.number}
                     </span>
                   </div>
 
                   {/* Icon */}
                   <div className="flex justify-center mb-4 mt-2">
-                    <div className="w-16 h-16 rounded-full bg-afrikoni-gold/20 flex items-center justify-center border border-afrikoni-gold/30">
+                    <div className="w-16 h-16 rounded-full bg-os-accent/20 flex items-center justify-center border border-os-accent/30">
                       <Icon className={`w-8 h-8 ${principle.color}`} />
                     </div>
                   </div>
 
                   {/* Title */}
-                  <h4 className="text-xl md:text-2xl font-bold font-serif text-afrikoni-gold mb-3 text-center">
+                  <h4 className="text-os-xl md:text-os-2xl font-bold font-serif text-os-accent mb-3 text-center">
                     {principle.title}
                   </h4>
 
@@ -156,8 +156,8 @@ export default function BushidoManifesto() {
           transition={{ duration: 0.6, delay: 0.8 }}
           className="text-center mt-12 md:mt-16"
         >
-          <div className="inline-flex items-center gap-2 bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-full px-6 py-3">
-            <CheckCircle className="w-5 h-5 text-afrikoni-gold" />
+          <div className="inline-flex items-center gap-2 bg-os-accent/10 border border-os-accent/30 rounded-full px-6 py-3">
+            <CheckCircle className="w-5 h-5 text-os-accent" />
             <p className="text-afrikoni-cream font-semibold">
               This is our promise. This is what we're capable of for you.
             </p>

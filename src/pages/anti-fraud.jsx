@@ -137,10 +137,10 @@ export default function AntiFraud() {
 
         {/* Important Notice */}
         <SystemPageSection>
-          <div className="bg-afrikoni-cream rounded-xl border-2 border-afrikoni-gold/40 p-8 mb-12">
+          <div className="bg-afrikoni-cream rounded-os-sm border-2 border-os-accent/40 p-8 mb-12">
             <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-afrikoni-gold/20 flex items-center justify-center">
-                <Shield className="w-6 h-6 text-afrikoni-gold" />
+              <div className="flex-shrink-0 w-12 h-12 rounded-full bg-os-accent/20 flex items-center justify-center">
+                <Shield className="w-6 h-6 text-os-accent" />
               </div>
               <div>
                 <h3 className="text-h3 font-semibold leading-[1.3] text-afrikoni-chestnut mb-3">

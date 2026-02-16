@@ -104,7 +104,7 @@ export default function OneFlow() {
         if (result.trustMutation > 0) {
           toast.success('Trust DNA Mutated', {
             description: `Sovereign Reliability increased by ${result.trustMutation}%. Your credit score is growing!`,
-            icon: <Sparkles className="w-4 h-4 text-afrikoni-gold" />
+            icon: <Sparkles className="w-4 h-4 text-os-accent" />
           });
         }
       } else {
@@ -136,7 +136,7 @@ export default function OneFlow() {
   const PanelComponent = FLOW_PANELS[trade.status] || DefaultPanel;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0B0C0F] via-[#0E1218] to-[#10141C]">
+    <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-ivory/30 to-afrikoni-ivory/50">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* COMMAND HEADER */}
         <div className="mb-8 flex flex-col md:flex-row md:items-start justify-between gap-6">
@@ -145,10 +145,10 @@ export default function OneFlow() {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Command Center
             </Button>
-            <h1 className="text-3xl md:text-4xl font-bold mt-2 tracking-tight bg-gradient-to-r from-white via-white/80 to-afrikoni-gold bg-clip-text text-transparent">
+            <h1 className="text-3xl md:text-4xl font-bold mt-2 tracking-tight bg-gradient-to-r from-white via-white/80 to-os-accent bg-clip-text text-transparent">
               {trade.title}
             </h1>
-            <p className="text-xs text-os-muted font-mono mt-1 uppercase tracking-widest">
+            <p className="text-os-xs text-os-muted font-mono mt-1 uppercase tracking-widest">
               {trade.buyer?.company_name} <span className="mx-2 opacity-30">/</span> {trade.seller ? trade.seller.company_name : 'PENDING'}
             </p>
           </div>
@@ -157,11 +157,11 @@ export default function OneFlow() {
             {/* Trust DNA Pulse Index */}
             <TrustDNAIndex mutation={trade.metadata?.trust_mutation || 0} baseScore={profile?.trust_score || 72} />
             <OSStatusBar />
-            <div className="rounded-xl border border-white/10 bg-white/5 backdrop-blur px-4 py-2 text-right">
-              <p className="text-[10px] uppercase tracking-[0.25em] text-os-muted">Kernel State</p>
+            <div className="rounded-os-sm border border-white/10 bg-white/5 backdrop-blur px-4 py-2 text-right">
+              <p className="text-os-xs uppercase tracking-[0.25em] text-os-muted">Kernel State</p>
               <div className="flex items-center justify-end gap-2 mt-0.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-afrikoni-gold animate-pulse shadow-[0_0_8px_rgba(212,169,55,0.5)]" />
-                <p className="text-sm font-semibold text-afrikoni-gold uppercase tracking-tight">
+                <div className="w-1.5 h-1.5 rounded-full bg-os-accent animate-pulse shadow-[0_0_8px_rgba(212,169,55,0.5)]" />
+                <p className="text-os-sm font-semibold text-os-accent uppercase tracking-tight">
                   {TRADE_STATE_LABELS[trade.status] || trade.status}
                 </p>
               </div>
@@ -173,13 +173,13 @@ export default function OneFlow() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* MAIN FLOW PANEL */}
           <div className="lg:col-span-7">
-            <div className="rounded-2xl border p-4 md:p-6 backdrop-blur">
+            <div className="rounded-os-md border p-4 md:p-6 backdrop-blur">
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <p className="text-[10px] uppercase tracking-[0.25em]">One-Flow</p>
-                  <p className="text-sm">Single path. No detours.</p>
+                  <p className="text-os-xs uppercase tracking-[0.25em]">One-Flow</p>
+                  <p className="text-os-sm">Single path. No detours.</p>
                 </div>
-                <div className="text-xs text-os-muted font-mono">ID: {trade.id.substring(0, 8)}</div>
+                <div className="text-os-xs text-os-muted font-mono">ID: {trade.id.substring(0, 8)}</div>
               </div>
 
               <AnimatePresence mode="wait">
@@ -210,7 +210,7 @@ export default function OneFlow() {
 
               {error && (
                 <Card className="mt-4 border-red-500/50 bg-red-500/5">
-                  <CardContent className="p-4 text-sm text-red-500">
+                  <CardContent className="p-4 text-os-sm text-os-red">
                     {error}
                   </CardContent>
                 </Card>
@@ -225,46 +225,46 @@ export default function OneFlow() {
               currentState={trade.status}
             />
 
-            <div className="mt-4 rounded-2xl border p-4 backdrop-blur">
-              <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground">Kernel Console</p>
-              <div className="mt-3 space-y-2 text-sm">
+            <div className="mt-4 rounded-os-md border p-4 backdrop-blur">
+              <p className="text-os-xs uppercase tracking-[0.25em] text-muted-foreground">Kernel Console</p>
+              <div className="mt-3 space-y-2 text-os-sm">
                 {kernelTimeline?.slice(0, 6).map((item) => (
-                  <div key={item.id} className="flex items-center justify-between text-xs">
+                  <div key={item.id} className="flex items-center justify-between text-os-xs">
                     <span>{item.label}</span>
                     <span className="text-muted-foreground font-mono">{item.time}</span>
                   </div>
                 ))}
                 {!kernelTimeline?.length && (
-                  <div className="text-xs text-muted-foreground">No kernel events yet.</div>
+                  <div className="text-os-xs text-muted-foreground">No kernel events yet.</div>
                 )}
               </div>
             </div>
 
             {/* FORENSIC LEDGER DNA RAIL */}
-            <div className="mt-4 rounded-2xl border p-4 backdrop-blur bg-emerald-500/5 border-emerald-500/10">
+            <div className="mt-4 rounded-os-md border p-4 backdrop-blur bg-emerald-500/5 border-emerald-500/10">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-[10px] uppercase tracking-[0.25em] text-emerald-500 font-bold">Forensic Ledger</p>
+                <p className="text-os-xs uppercase tracking-[0.25em] text-emerald-500 font-bold">Forensic Ledger</p>
                 <Fingerprint className="w-3 h-3 text-emerald-500 opacity-50" />
               </div>
 
               {trade.metadata?.trade_dna ? (
                 <div className="space-y-3">
-                  <div className="p-3 bg-black/40 rounded-xl border border-white/5">
-                    <p className="text-[9px] text-gray-500 uppercase font-mono">Current State Hash</p>
-                    <p className="text-[11px] font-mono text-emerald-400 mt-1 break-all">
+                  <div className="p-3 bg-black/40 rounded-os-sm border border-white/5">
+                    <p className="text-os-xs text-gray-500 uppercase font-mono">Current State Hash</p>
+                    <p className="text-os-xs font-mono text-emerald-400 mt-1 break-all">
                       {trade.metadata.trade_dna}
                     </p>
                   </div>
 
                   <div className="space-y-1">
-                    <p className="text-[9px] text-gray-500 uppercase font-mono px-1">Audit Trace</p>
+                    <p className="text-os-xs text-gray-500 uppercase font-mono px-1">Audit Trace</p>
                     {kernelTimeline?.filter(e => e.raw?.metadata?.trade_dna).map((event, idx) => (
                       <div key={idx} className="flex items-center gap-2 p-1.5 hover:bg-white/5 rounded transition-colors group">
                         <div className="w-1 h-1 rounded-full bg-emerald-500/30"></div>
-                        <span className="text-[9px] font-mono text-gray-400 group-hover:text-emerald-300 transition-colors">
+                        <span className="text-os-xs font-mono text-gray-400 group-hover:text-emerald-300 transition-colors">
                           {event.raw.metadata.trade_dna.substring(0, 16)}...
                         </span>
-                        <span className="text-[8px] text-gray-600 ml-auto">
+                        <span className="text-os-xs text-gray-600 ml-auto">
                           {event.raw.metadata.previous_state} → {event.raw.status_to}
                         </span>
                       </div>
@@ -272,15 +272,15 @@ export default function OneFlow() {
                   </div>
                 </div>
               ) : (
-                <div className="p-6 text-center border border-dashed rounded-xl border-white/5">
+                <div className="p-6 text-center border border-dashed rounded-os-sm border-white/5">
                   <Cpu className="w-5 h-5 text-gray-600 mx-auto mb-2 opacity-20" />
-                  <p className="text-[10px] text-gray-500">Forensic DNA trace initialization pending next transition...</p>
+                  <p className="text-os-xs text-gray-500">Forensic DNA trace initialization pending next transition...</p>
                 </div>
               )}
 
               <div className="mt-4 p-2 bg-black/20 rounded-lg flex items-start gap-2 border border-white/5">
                 <ShieldAlert className="w-3 h-3 text-amber-500 mt-0.5" />
-                <p className="text-[9px] text-gray-500 italic">
+                <p className="text-os-xs text-gray-500 italic">
                   Immutable hashes are generated on every transition. Any tampering voids the Sovereign Insurance.
                 </p>
               </div>
@@ -294,10 +294,10 @@ export default function OneFlow() {
 
 function DefaultPanel({ trade }) {
   return (
-    <Card className="border rounded-2xl">
+    <Card className="border rounded-os-md">
       <CardContent className="p-6 text-center">
         <p className="">State: {trade.status}</p>
-        <p className="text-sm mt-2">No action available for this state yet.</p>
+        <p className="text-os-sm mt-2">No action available for this state yet.</p>
       </CardContent>
     </Card>
   );
@@ -329,12 +329,12 @@ function SettlementPanel({ trade, onExportAudit, isTransitioning }) {
   };
 
   return (
-    <Card className="border bg-gradient-to-br from-[#0E1016] to-[#141B24] rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+    <Card className="border bg-gradient-to-br from-[#0E1016] to-[#141B24] rounded-os-md shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
       <CardContent className="p-6 text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4 border border-emerald-500/20 bg-emerald-500/5">
-          <span className="text-2xl">{isCleared ? '✅' : '💰'}</span>
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-os-md mb-4 border border-emerald-500/20 bg-emerald-500/5">
+          <span className="text-os-2xl">{isCleared ? '✅' : '💰'}</span>
         </div>
-        <h2 className="text-xl font-semibold">
+        <h2 className="text-os-xl font-semibold">
           {isCleared ? 'PAPSS Settlement Cleared' : 'Payment Released'}
         </h2>
         <p className="mt-2 text-os-muted">
@@ -342,16 +342,16 @@ function SettlementPanel({ trade, onExportAudit, isTransitioning }) {
             ? 'Funds have been settled in local currency via the Pan-African rail.'
             : 'Escrow funds have been released. Settlement in progress.'}
         </p>
-        <div className="border rounded-xl p-4 mt-4 text-left bg-black/20 border-white/5">
-          <p className="text-sm font-semibold">Order Summary</p>
+        <div className="border rounded-os-sm p-4 mt-4 text-left bg-black/20 border-white/5">
+          <p className="text-os-sm font-semibold">Order Summary</p>
           <div className="grid grid-cols-2 gap-4 mt-3">
             <div>
-              <p className="text-[10px] uppercase text-os-muted">Quantity</p>
-              <p className="text-sm">{trade.quantity} {trade.quantity_unit}</p>
+              <p className="text-os-xs uppercase text-os-muted">Quantity</p>
+              <p className="text-os-sm">{trade.quantity} {trade.quantity_unit}</p>
             </div>
             <div>
-              <p className="text-[10px] uppercase text-os-muted">Value</p>
-              <p className="text-sm">{trade.total_value} {trade.currency}</p>
+              <p className="text-os-xs uppercase text-os-muted">Value</p>
+              <p className="text-os-sm">{trade.total_value} {trade.currency}</p>
             </div>
           </div>
         </div>
@@ -361,7 +361,7 @@ function SettlementPanel({ trade, onExportAudit, isTransitioning }) {
             <Button
               onClick={handlePAPSSClearing}
               disabled={isClearing || isTransitioning}
-              className="w-full h-12 bg-afrikoni-gold text-black font-black uppercase tracking-widest rounded-xl transition-all hover:scale-[1.02]"
+              className="w-full h-12 bg-os-accent text-black font-black uppercase tracking-widest rounded-os-sm transition-all hover:scale-[1.02]"
             >
               {isClearing ? 'Clearing via PAPSS...' : 'Initiate PAPSS Clearing'}
             </Button>
@@ -372,7 +372,7 @@ function SettlementPanel({ trade, onExportAudit, isTransitioning }) {
             isGenerating={isGeneratingExport}
             className="w-full"
           />
-          <p className="text-[10px] text-os-muted italic">
+          <p className="text-os-xs text-os-muted italic">
             Certified by Afrikoni Sovereign Ledger. Use this report for trade finance applications.
           </p>
         </div>
@@ -383,18 +383,18 @@ function SettlementPanel({ trade, onExportAudit, isTransitioning }) {
 
 function DisputedPanel({ trade }) {
   return (
-    <Card className="border border-red-500/20 bg-red-500/5 rounded-2xl">
+    <Card className="border border-os-red/20 bg-red-500/5 rounded-os-md">
       <CardContent className="p-6 text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4 border border-red-500/20 bg-red-500/5">
-          <span className="text-2xl">⚠️</span>
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-os-md mb-4 border border-os-red/20 bg-red-500/5">
+          <span className="text-os-2xl">⚠️</span>
         </div>
-        <h2 className="text-2xl font-semibold text-red-500">
+        <h2 className="text-os-2xl font-semibold text-os-red">
           Trade Disputed
         </h2>
         <p className="mt-2 text-os-muted">
           This trade is under dispute. Escrow is frozen until resolution.
         </p>
-        <p className="text-xs mt-4 font-mono opacity-50">
+        <p className="text-os-xs mt-4 font-mono opacity-50">
           TICKET: {trade.id.substring(0, 8)}
         </p>
       </CardContent>
@@ -409,7 +409,7 @@ function TrustDNAIndex({ mutation, baseScore }) {
     <motion.div
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      className="group relative overflow-hidden flex items-center gap-3 px-4 py-2 rounded-xl bg-gradient-to-r from-afrikoni-gold/10 to-transparent border border-afrikoni-gold/20 backdrop-blur-md"
+      className="group relative overflow-hidden flex items-center gap-3 px-4 py-2 rounded-os-sm bg-gradient-to-r from-os-accent/10 to-transparent border border-os-accent/20 backdrop-blur-md"
     >
       {/* Pulsing Aura for active mutation */}
       {mutation !== 0 && (
@@ -419,38 +419,38 @@ function TrustDNAIndex({ mutation, baseScore }) {
             scale: [1, 1.05, 1]
           }}
           transition={{ duration: 2, repeat: Infinity }}
-          className="absolute inset-0 bg-afrikoni-gold/20"
+          className="absolute inset-0 bg-os-accent/20"
         />
       )}
 
       <div className="relative">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-afrikoni-gold font-bold">Trust DNA Index</p>
+        <p className="text-os-xs uppercase tracking-[0.2em] text-os-accent font-bold">Trust DNA Index</p>
         <div className="flex items-center gap-2">
-          <span className="text-xl font-black text-white">{baseScore}%</span>
+          <span className="text-os-xl font-black text-white">{baseScore}%</span>
           {mutation !== 0 && (
             <motion.span
               initial={{ y: 5, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${isPositive ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-500'}`}
+              className={`text-os-xs font-bold px-1.5 py-0.5 rounded ${isPositive ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-os-red'}`}
             >
               {isPositive ? '+' : ''}{mutation}%
             </motion.span>
           )}
         </div>
       </div>
-      <Cpu className={`w-5 h-5 ${mutation !== 0 ? 'text-afrikoni-gold animate-spin-slow' : 'text-os-muted'}`} />
+      <Cpu className={`w-5 h-5 ${mutation !== 0 ? 'text-os-accent animate-spin-slow' : 'text-os-muted'}`} />
     </motion.div>
   );
 }
 
 function ClosedPanel({ trade }) {
   return (
-    <Card className="border border-white/10 bg-white/5 rounded-2xl">
+    <Card className="border border-white/10 bg-white/5 rounded-os-md">
       <CardContent className="p-6 text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4 border border-emerald-500/20 bg-emerald-500/10">
-          <span className="text-2xl text-emerald-500">✓</span>
+        <div className="inline-flex items-center justify-center w-12 h-12 rounded-os-md mb-4 border border-emerald-500/20 bg-emerald-500/10">
+          <span className="text-os-2xl text-emerald-500">✓</span>
         </div>
-        <h2 className="text-2xl font-semibold">
+        <h2 className="text-os-2xl font-semibold">
           Trade Closed
         </h2>
         <p className="mt-2 text-os-muted">

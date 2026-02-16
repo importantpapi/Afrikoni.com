@@ -44,28 +44,28 @@ export default function ShipmentTrackingPanel({ trade, onNextStep, isTransitioni
     }
   }
 
-  if (loading) return <div className="p-10 text-center text-sm">Loading logistics...</div>;
+  if (loading) return <div className="p-10 text-center text-os-sm">Loading logistics...</div>;
 
   return (
-    <Card className="border bg-gradient-to-br from-[#0E1016] to-[#141B24] rounded-2xl">
+    <Card className="border bg-gradient-to-br from-[#0E1016] to-[#141B24] rounded-os-md">
       <CardContent className="p-6">
-        <h2 className="text-xl font-semibold mb-4 text-white">Logistics Orchestration</h2>
+        <h2 className="text-os-xl font-semibold mb-4 text-white">Logistics Orchestration</h2>
 
         <div className="flex justify-between mb-8">
           {SHIPMENT_MILESTONES.map((m, i) => (
             <div key={m.state} className="flex flex-col items-center flex-1">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${shipment?.status === m.state ? 'bg-afrikoni-gold' : 'bg-white/5'}`}>
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-2 ${shipment?.status === m.state ? 'bg-os-accent' : 'bg-white/5'}`}>
                 <m.icon className="w-5 h-5" />
               </div>
-              <span className="text-[10px] text-white/50">{m.label}</span>
+              <span className="text-os-xs text-white/50">{m.label}</span>
             </div>
           ))}
         </div>
 
         {shipment && (
-          <div className="bg-black/20 p-4 rounded-xl border border-white/5 mb-6">
-            <p className="text-xs text-white/40 uppercase">Tracking Number</p>
-            <p className="text-sm font-mono mt-1 text-afrikoni-gold">{shipment.tracking_number}</p>
+          <div className="bg-black/20 p-4 rounded-os-sm border border-white/5 mb-6">
+            <p className="text-os-xs text-white/40 uppercase">Tracking Number</p>
+            <p className="text-os-sm font-mono mt-1 text-os-accent">{shipment.tracking_number}</p>
           </div>
         )}
 
@@ -83,7 +83,7 @@ export default function ShipmentTrackingPanel({ trade, onNextStep, isTransitioni
               </Button>
             )}
             {trade.status === TRADE_STATE.PICKUP_SCHEDULED && (capabilities?.can_sell || capabilities?.can_logistics) && (
-              <Button onClick={() => onNextStep(TRADE_STATE.IN_TRANSIT)} disabled={isTransitioning} className="w-full bg-afrikoni-gold">
+              <Button onClick={() => onNextStep(TRADE_STATE.IN_TRANSIT)} disabled={isTransitioning} className="w-full bg-os-accent">
                 Mark as Shipped
               </Button>
             )}

@@ -78,7 +78,7 @@ export default function Analytics() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-os-accent" />
       </div>
     );
   }
@@ -95,19 +95,19 @@ export default function Analytics() {
       <div className="max-w-7xl mx-auto px-4">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-afrikoni-chestnut mb-2">Analytics</h1>
-          <p className="text-lg text-afrikoni-deep">Track your business performance</p>
+          <p className="text-os-lg text-afrikoni-deep">Track your business performance</p>
         </div>
 
         <div className="grid md:grid-cols-4 gap-6 mb-8">
           {Array.isArray(statCards) && statCards.map((stat, idx) => {
             const Icon = stat.icon;
             return (
-              <Card key={idx} className="border-afrikoni-gold/20">
+              <Card key={idx} className="border-os-accent/20">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm text-afrikoni-deep mb-1">{stat.label}</p>
-                      <p className="text-2xl font-bold text-afrikoni-chestnut">{stat.value}</p>
+                      <p className="text-os-sm text-afrikoni-deep mb-1">{stat.label}</p>
+                      <p className="text-os-2xl font-bold text-afrikoni-chestnut">{stat.value}</p>
                     </div>
                     <Icon className={`w-8 h-8 ${stat.color}`} />
                   </div>
@@ -117,7 +117,7 @@ export default function Analytics() {
           })}
         </div>
 
-        <Card className="border-afrikoni-gold/20">
+        <Card className="border-os-accent/20">
           <CardHeader>
             <CardTitle>Platform Statistics</CardTitle>
           </CardHeader>

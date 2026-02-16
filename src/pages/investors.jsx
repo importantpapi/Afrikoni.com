@@ -59,7 +59,7 @@ export default function Investors() {
       icon: AlertTriangle,
       title: 'We Are Not a Unicorn (Yet)',
       description: 'We are a Beta marketplace with real demand, real suppliers, and real transactions. We prioritize trust and quality over fake scale. No inflated numbers, no empty listings, no misleading metrics.',
-      color: 'text-afrikoni-gold'
+      color: 'text-os-accent'
     },
     {
       icon: Target,
@@ -120,14 +120,14 @@ export default function Investors() {
               animate={{ opacity: 1, y: 0 }}
               className="text-center max-w-4xl mx-auto"
             >
-              <AlertTriangle className="w-16 h-16 mx-auto mb-6 text-afrikoni-gold" />
+              <AlertTriangle className="w-16 h-16 mx-auto mb-6 text-os-accent" />
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
                 AFRIKONI: BRUTAL REALITY CHECK &<br />SUSTAINABLE BUSINESS MODEL
               </h1>
-              <p className="text-xl md:text-2xl text-afrikoni-cream/90 mb-8">
+              <p className="text-os-xl md:text-os-2xl text-afrikoni-cream/90 mb-8">
                 For Investors Who Value Honesty Over Hype
               </p>
-              <p className="text-lg text-afrikoni-cream/80 max-w-3xl mx-auto">
+              <p className="text-os-lg text-afrikoni-cream/80 max-w-3xl mx-auto">
                 We are a Beta marketplace. We prioritize trust, quality, and sustainable growth over fake scale. 
                 This document is for investors who want the truth, not the pitch.
               </p>
@@ -147,7 +147,7 @@ export default function Investors() {
               <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
                 The Brutal Truth
               </h2>
-              <p className="text-lg text-afrikoni-deep/70 max-w-2xl mx-auto">
+              <p className="text-os-lg text-afrikoni-deep/70 max-w-2xl mx-auto">
                 What you need to know before investing
               </p>
             </motion.div>
@@ -163,14 +163,14 @@ export default function Investors() {
                     viewport={{ once: true }}
                     transition={{ delay: idx * 0.1 }}
                   >
-                    <Card className="border-2 border-afrikoni-gold/30 h-full hover:shadow-xl transition-all">
+                    <Card className="border-2 border-os-accent/30 h-full hover:shadow-os-lg transition-all">
                       <CardContent className="p-6">
                         <div className="flex items-start gap-4">
-                          <div className={`w-12 h-12 bg-afrikoni-gold/20 rounded-lg flex items-center justify-center flex-shrink-0`}>
+                          <div className={`w-12 h-12 bg-os-accent/20 rounded-lg flex items-center justify-center flex-shrink-0`}>
                             <Icon className={`w-6 h-6 ${reality.color}`} />
                           </div>
                           <div className="flex-1">
-                            <h3 className="text-xl font-bold text-afrikoni-chestnut mb-3">
+                            <h3 className="text-os-xl font-bold text-afrikoni-chestnut mb-3">
                               {reality.title}
                             </h3>
                             <p className="text-afrikoni-deep/80 leading-relaxed">
@@ -199,7 +199,7 @@ export default function Investors() {
               <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
                 Sustainable Business Model
               </h2>
-              <p className="text-lg text-afrikoni-deep/70 max-w-2xl mx-auto">
+              <p className="text-os-lg text-afrikoni-deep/70 max-w-2xl mx-auto">
                 How we make money without burning cash
               </p>
             </motion.div>
@@ -213,15 +213,15 @@ export default function Investors() {
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.1 }}
                 >
-                  <Card className="border-afrikoni-gold/20 text-center h-full">
+                  <Card className="border-os-accent/20 text-center h-full">
                     <CardContent className="p-6">
-                      <div className="text-4xl font-bold text-afrikoni-gold mb-2">
+                      <div className="text-4xl font-bold text-os-accent mb-2">
                         {item.value}
                 </div>
-                      <h3 className="text-lg font-bold text-afrikoni-chestnut mb-2">
+                      <h3 className="text-os-lg font-bold text-afrikoni-chestnut mb-2">
                         {item.metric}
                       </h3>
-                      <p className="text-sm text-afrikoni-deep/70">
+                      <p className="text-os-sm text-afrikoni-deep/70">
                         {item.description}
                       </p>
                     </CardContent>
@@ -235,9 +235,9 @@ export default function Investors() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <Card className="border-2 border-afrikoni-gold bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-purple/10">
+              <Card className="border-2 border-os-accent bg-gradient-to-r from-os-accent/10 to-afrikoni-purple/10">
                 <CardContent className="p-8">
-                  <h3 className="text-2xl font-bold text-afrikoni-chestnut mb-4 text-center">
+                  <h3 className="text-os-2xl font-bold text-afrikoni-chestnut mb-4 text-center">
                     Why This Model Works
                   </h3>
                   <div className="grid md:grid-cols-2 gap-6">
@@ -246,7 +246,7 @@ export default function Investors() {
                         <CheckCircle className="w-6 h-6 text-afrikoni-green flex-shrink-0 mt-0.5" />
                         <div>
                           <h4 className="font-bold text-afrikoni-chestnut mb-1">Demand-Driven Growth</h4>
-                          <p className="text-afrikoni-deep/80 text-sm">
+                          <p className="text-afrikoni-deep/80 text-os-sm">
                             RFQ-first approach means we only onboard suppliers when there's real demand. No wasted resources on empty listings.
                           </p>
                         </div>
@@ -255,7 +255,7 @@ export default function Investors() {
                         <CheckCircle className="w-6 h-6 text-afrikoni-green flex-shrink-0 mt-0.5" />
                         <div>
                           <h4 className="font-bold text-afrikoni-chestnut mb-1">Trust as Moat</h4>
-                          <p className="text-afrikoni-deep/80 text-sm">
+                          <p className="text-afrikoni-deep/80 text-os-sm">
                             Our verification, escrow, and compliance infrastructure is expensive to replicate. This is our competitive advantage.
                           </p>
                         </div>
@@ -266,7 +266,7 @@ export default function Investors() {
                         <CheckCircle className="w-6 h-6 text-afrikoni-green flex-shrink-0 mt-0.5" />
                         <div>
                           <h4 className="font-bold text-afrikoni-chestnut mb-1">Multiple Revenue Streams</h4>
-                          <p className="text-afrikoni-deep/80 text-sm">
+                          <p className="text-afrikoni-deep/80 text-os-sm">
                             Subscriptions, transaction fees, and verification services create a diversified, sustainable revenue model.
                           </p>
                         </div>
@@ -275,7 +275,7 @@ export default function Investors() {
                         <CheckCircle className="w-6 h-6 text-afrikoni-green flex-shrink-0 mt-0.5" />
                         <div>
                           <h4 className="font-bold text-afrikoni-chestnut mb-1">Real Unit Economics</h4>
-                          <p className="text-afrikoni-deep/80 text-sm">
+                          <p className="text-afrikoni-deep/80 text-os-sm">
                             Every transaction generates revenue. We don't subsidize losses. We build a business that works from day one.
                           </p>
                         </div>
@@ -309,7 +309,7 @@ export default function Investors() {
                     <XCircle className="w-6 h-6 text-red-600 flex-shrink-0" />
                     <div>
                       <h3 className="font-bold text-afrikoni-chestnut mb-2">We're NOT a Unicorn</h3>
-                      <p className="text-afrikoni-deep/80 text-sm">
+                      <p className="text-afrikoni-deep/80 text-os-sm">
                         We don't have millions of users. We don't have billions in GMV. We have real businesses, real transactions, and real trust. That's enough.
                       </p>
                     </div>
@@ -323,7 +323,7 @@ export default function Investors() {
                     <XCircle className="w-6 h-6 text-red-600 flex-shrink-0" />
                     <div>
                       <h3 className="font-bold text-afrikoni-chestnut mb-2">We're NOT Burning Cash</h3>
-                      <p className="text-afrikoni-deep/80 text-sm">
+                      <p className="text-afrikoni-deep/80 text-os-sm">
                         We don't spend millions on marketing. We don't subsidize transactions. We build trust, one verified supplier at a time.
                       </p>
                     </div>
@@ -337,7 +337,7 @@ export default function Investors() {
                     <XCircle className="w-6 h-6 text-red-600 flex-shrink-0" />
                     <div>
                       <h3 className="font-bold text-afrikoni-chestnut mb-2">We're NOT Product-First</h3>
-                      <p className="text-afrikoni-deep/80 text-sm">
+                      <p className="text-afrikoni-deep/80 text-os-sm">
                         We don't fill the marketplace with fake listings. We start with demand (RFQs), then match suppliers. Quality over quantity.
                       </p>
                     </div>
@@ -351,7 +351,7 @@ export default function Investors() {
                     <XCircle className="w-6 h-6 text-red-600 flex-shrink-0" />
                     <div>
                       <h3 className="font-bold text-afrikoni-chestnut mb-2">We're NOT a Quick Flip</h3>
-                      <p className="text-afrikoni-deep/80 text-sm">
+                      <p className="text-afrikoni-deep/80 text-os-sm">
                         Building trust infrastructure takes time. We're building for the long term. If you want quick returns, look elsewhere.
                       </p>
                     </div>
@@ -370,9 +370,9 @@ export default function Investors() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
             >
-              <Card className="border-2 border-afrikoni-gold">
+              <Card className="border-2 border-os-accent">
                 <CardHeader>
-                  <CardTitle className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut text-center">
+                  <CardTitle className="text-os-2xl md:text-3xl font-bold text-afrikoni-chestnut text-center">
                     Ready to Invest in Real Trust?
                   </CardTitle>
                 </CardHeader>
@@ -380,21 +380,21 @@ export default function Investors() {
                   <div className="grid md:grid-cols-2 gap-8 mb-8">
               <div>
                       <h3 className="font-bold text-afrikoni-chestnut mb-4 flex items-center gap-2">
-                        <Mail className="w-5 h-5 text-afrikoni-gold" />
+                        <Mail className="w-5 h-5 text-os-accent" />
                         Investor Relations
                       </h3>
                 <div className="space-y-3">
-                        <a href="mailto:investors@afrikoni.com" className="text-afrikoni-deep hover:text-afrikoni-gold block">
+                        <a href="mailto:investors@afrikoni.com" className="text-afrikoni-deep hover:text-os-accent block">
                       investors@afrikoni.com
                     </a>
-                        <a href="tel:+32456779368" className="text-afrikoni-deep hover:text-afrikoni-gold block">
+                        <a href="tel:+32456779368" className="text-afrikoni-deep hover:text-os-accent block">
                       +32 456 77 93 68
                     </a>
                   </div>
                 </div>
                     <div>
                       <h3 className="font-bold text-afrikoni-chestnut mb-4 flex items-center gap-2">
-                        <MapPin className="w-5 h-5 text-afrikoni-gold" />
+                        <MapPin className="w-5 h-5 text-os-accent" />
                         Headquarters
                       </h3>
                       <div className="text-afrikoni-deep">
@@ -406,11 +406,11 @@ export default function Investors() {
                   </div>
 
         {/* Investor Updates Subscribe */}
-                  <div className="border-t border-afrikoni-gold/20 pt-8">
-                    <h3 className="text-xl font-bold text-afrikoni-chestnut mb-4 text-center">
+                  <div className="border-t border-os-accent/20 pt-8">
+                    <h3 className="text-os-xl font-bold text-afrikoni-chestnut mb-4 text-center">
                       Receive Investor Updates
               </h3>
-                    <p className="text-sm text-afrikoni-deep/70 mb-6 text-center max-w-2xl mx-auto">
+                    <p className="text-os-sm text-afrikoni-deep/70 mb-6 text-center max-w-2xl mx-auto">
                       Get periodic updates on traction, product roadmap, and fundraising. No spam. Just honest updates.
               </p>
                     <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
@@ -422,7 +422,7 @@ export default function Investors() {
                         className="flex-1"
                         required
               />
-                      <Button type="submit" className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut">
+                      <Button type="submit" className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut">
                 Subscribe
               </Button>
             </form>

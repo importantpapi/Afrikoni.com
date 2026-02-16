@@ -114,7 +114,7 @@ export default function ResourcesIndex() {
                 placeholder="Search resources..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 bg-white border-afrikoni-gold/30 focus:border-afrikoni-gold"
+                className="pl-12 bg-white border-os-accent/30 focus:border-os-accent"
               />
             </div>
             
@@ -128,8 +128,8 @@ export default function ResourcesIndex() {
                     onClick={() => setSelectedCategory(category.id)}
                     className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 text-meta font-medium transition-all ${
                       selectedCategory === category.id
-                        ? 'bg-afrikoni-gold text-white border-afrikoni-gold'
-                        : 'bg-white border-afrikoni-gold/30 text-afrikoni-chestnut hover:bg-afrikoni-gold/5'
+                        ? 'bg-os-accent text-white border-os-accent'
+                        : 'bg-white border-os-accent/30 text-afrikoni-chestnut hover:bg-os-accent/5'
                     }`}
                   >
                     <Icon className="w-4 h-4" />
@@ -157,10 +157,10 @@ export default function ResourcesIndex() {
                   viewport={{ once: true }}
                   transition={{ duration: 0.4, delay: idx * 0.05 }}
                 >
-                  <Card className="h-full border-afrikoni-gold/30 hover:shadow-lg transition-shadow bg-afrikoni-cream">
+                  <Card className="h-full border-os-accent/30 hover:shadow-os-md transition-shadow bg-afrikoni-cream">
                     <CardContent className="p-6 flex flex-col h-full">
                       <div className="mb-3">
-                        <Badge className="bg-afrikoni-gold/20 text-afrikoni-gold border-afrikoni-gold/40 text-[11px] uppercase tracking-wide">
+                        <Badge className="bg-os-accent/20 text-os-accent border-os-accent/40 text-os-xs uppercase tracking-wide">
                           {article.category}
                         </Badge>
                       </div>
@@ -172,7 +172,7 @@ export default function ResourcesIndex() {
                       </p>
                       <div className="flex flex-wrap gap-1 mb-3">
                         {article.tags.map((tag) => (
-                          <Badge key={tag} variant="outline" className="text-[11px] border-afrikoni-gold/30">
+                          <Badge key={tag} variant="outline" className="text-os-xs border-os-accent/30">
                             {tag}
                           </Badge>
                         ))}
@@ -183,7 +183,7 @@ export default function ResourcesIndex() {
                       <Link to={`/resources/${article.slug}`}>
                         <Button
                           variant="outline"
-                          className="w-full border-afrikoni-gold/40 text-afrikoni-gold hover:bg-afrikoni-gold/10"
+                          className="w-full border-os-accent/40 text-os-accent hover:bg-os-accent/10"
                         >
                           Read guide
                         </Button>

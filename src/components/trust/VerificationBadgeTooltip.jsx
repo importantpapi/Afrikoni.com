@@ -47,17 +47,17 @@ export function VerificationBadgeTooltip({
       <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-xs font-medium cursor-help">
+            <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md bg-gray-100 text-gray-600 text-os-xs font-medium cursor-help">
               <Shield className="w-3.5 h-3.5" />
               {showLabel && <span>Verification in Progress</span>}
             </div>
           </TooltipTrigger>
           <TooltipContent side="bottom" className="max-w-xs p-0">
             <div className="p-4">
-              <p className="text-sm text-gray-700 font-medium mb-2">
+              <p className="text-os-sm text-gray-700 font-medium mb-2">
                 Verification Pending
               </p>
-              <p className="text-xs text-gray-600">
+              <p className="text-os-xs text-gray-600">
                 {companyName} is currently undergoing verification. 
                 Afrikoni reviews business credentials before granting verified status.
               </p>
@@ -72,7 +72,7 @@ export function VerificationBadgeTooltip({
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-green-50 border border-green-200 text-green-700 text-xs font-medium cursor-help hover:bg-green-100 transition-colors">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-green-50 border border-green-200 text-green-700 text-os-xs font-medium cursor-help hover:bg-green-100 transition-colors">
             <Shield className="w-3.5 h-3.5 fill-green-600" />
             {showLabel && <span>Verified Supplier</span>}
           </div>
@@ -82,25 +82,25 @@ export function VerificationBadgeTooltip({
             <div className="flex items-start gap-2">
               <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="text-sm text-gray-900 font-semibold mb-1">
+                <p className="text-os-sm text-gray-900 font-semibold mb-1">
                   Afrikoni Verified Supplier
                 </p>
-                <p className="text-xs text-gray-600">
+                <p className="text-os-xs text-gray-600">
                   {companyName} has completed Afrikoni's verification process.
                 </p>
               </div>
             </div>
 
             <div className="border-t pt-3 space-y-2">
-              <p className="text-xs font-medium text-gray-700 mb-2">What was verified:</p>
+              <p className="text-os-xs font-medium text-gray-700 mb-2">What was verified:</p>
               {VERIFICATION_CRITERIA.map((item, index) => {
                 const Icon = item.icon;
                 return (
                   <div key={index} className="flex items-start gap-2">
-                    <Icon className="w-3.5 h-3.5 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+                    <Icon className="w-3.5 h-3.5 text-os-accent flex-shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-xs font-medium text-gray-800">{item.label}</p>
-                      <p className="text-xs text-gray-600">{item.description}</p>
+                      <p className="text-os-xs font-medium text-gray-800">{item.label}</p>
+                      <p className="text-os-xs text-gray-600">{item.description}</p>
                     </div>
                   </div>
                 );
@@ -108,7 +108,7 @@ export function VerificationBadgeTooltip({
             </div>
 
             <div className="border-t pt-3">
-              <p className="text-xs text-gray-500 italic">
+              <p className="text-os-xs text-gray-500 italic">
                 Afrikoni manually reviews all suppliers. Verification is not a guarantee but indicates serious business credentials.
               </p>
             </div>

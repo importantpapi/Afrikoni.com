@@ -18,14 +18,14 @@ export function Avatar({
   };
 
   const sizeClasses = {
-    sm: 'w-8 h-8 text-xs',
-    md: 'w-10 h-10 text-sm',
-    lg: 'w-12 h-12 text-base',
-    xl: 'w-16 h-16 text-lg'
+    sm: 'w-8 h-8 text-os-xs',
+    md: 'w-10 h-10 text-os-sm',
+    lg: 'w-12 h-12 text-os-base',
+    xl: 'w-16 h-16 text-os-lg'
   };
 
   const defaultBgColors = [
-    'bg-afrikoni-gold',
+    'bg-os-accent',
     'bg-blue-500',
     'bg-green-500',
     'bg-purple-500',

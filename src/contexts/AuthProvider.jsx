@@ -49,8 +49,10 @@ export function AuthProvider({ children }) {
   const [role, setRole] = useState(null);
   const [authReady, setAuthReady] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [handshakeData, setHandshakeData] = useState(null);
 
   const hasInitializedRef = useRef(false);
+  const resolvingInProgressRef = useRef(false);
   const schemaValidatedRef = useRef(false);
 
   // ✅ SCHEMA VALIDATION
@@ -71,13 +73,19 @@ export function AuthProvider({ children }) {
   }, []);
 
   const resolveAuth = useCallback(async () => {
-    // ✅ BOOT RESILIENCE: Identity Recovery Timeout
-    // If auth resolution takes > 8s, we force authReady: true to break boot loops
+    // ✅ BOOT RESILIENCE: Identity Recovery Timeout (Extended for slow networks)
+    // If auth resolution takes > 30s, we force authReady: true to break boot loops
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Auth Resolution Timeout')), 8000)
+      setTimeout(() => reject(new Error('Auth Resolution Timeout')), 30000)
     );
 
     try {
+      if (resolvingInProgressRef.current) {
+        if (import.meta.env.DEV) console.log('[Auth] Resolution already in progress, skipping redundant call.');
+        return;
+      }
+
+      resolvingInProgressRef.current = true;
       if (import.meta.env.DEV) console.log('[Auth] Resolving...');
 
       // Race the resolution against the safety timeout
@@ -97,21 +105,40 @@ export function AuthProvider({ children }) {
           return;
         }
 
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
+        // ⚡ PERFORMANCE HARDENING: Zero-Zero Hydra Handshake
+        // We collapse profiles, companies, capabilities, and counts into a single RPC.
+        const { data: handshake, error: handshakeError } = await supabase
+          .rpc('get_institutional_handshake');
 
-        let resolvedProfile = profileData || null;
+        if (handshakeError) {
+          console.error('[Auth] Handshake failed, falling back to legacy hydration:', handshakeError);
+          // Fallback to legacy single-fetch profile
+          const { data: profileData } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
 
-        if (profileError && profileError.code === 'PGRST116') {
-          resolvedProfile = await ensureProfileExists(session.user);
+          let resolvedProfile = profileData;
+          if (!profileData) {
+            resolvedProfile = await ensureProfileExists(session.user);
+          }
+
+          setUser(session.user);
+          setProfile(resolvedProfile);
+          setRole(resolvedProfile?.role || null);
+        } else {
+          if (import.meta.env.DEV) console.log('[Auth] ⚡ Handshake successful:', handshake);
+
+          setUser(session.user);
+          setProfile(handshake.profile);
+          setRole(handshake.profile?.role || null);
+
+          // Store the enriched packet in a ref or state for other hooks to consume without re-fetching
+          // We can expose these through context
+          setHandshakeData(handshake);
         }
 
-        setUser(session.user);
-        setProfile(resolvedProfile);
-        setRole(resolvedProfile?.role || null);
         setAuthReady(true);
         setLoading(false);
         hasInitializedRef.current = true;
@@ -124,6 +151,8 @@ export function AuthProvider({ children }) {
       setAuthReady(true);
       setLoading(false);
       hasInitializedRef.current = true;
+    } finally {
+      resolvingInProgressRef.current = false;
     }
   }, [validateSchema]);
 
@@ -151,6 +180,11 @@ export function AuthProvider({ children }) {
           localStorage.removeItem('afrikoni_last_company_id');
         } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           if (session?.user) {
+            await resolveAuth();
+          }
+        } else if (event === 'INITIAL_SESSION') {
+          // Only resolve if not already initialized or in progress
+          if (!hasInitializedRef.current && !resolvingInProgressRef.current) {
             await resolveAuth();
           }
         }
@@ -196,6 +230,8 @@ export function AuthProvider({ children }) {
       role,
       authReady,
       loading,
+      isRestricted: user ? !user.email_confirmed_at : false,
+      handshakeData,
       refreshProfile,
       refreshAuth: resolveAuth,
       logout

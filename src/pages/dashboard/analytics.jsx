@@ -429,16 +429,16 @@ function DashboardAnalyticsInner() {
         >
           <div>
             <h1 className="text-3xl md:text-4xl font-bold mb-3 leading-tight">Analytics & Insights</h1>
-            <p className="text-sm md:text-base leading-relaxed">Track your performance and insights</p>
+            <p className="text-os-sm md:text-os-base leading-relaxed">Track your performance and insights</p>
           </div>
           {/* v2.5: Premium Segmented Role Switcher */}
           {currentRole === 'hybrid' && (
-            <div className="flex items-center gap-0.5 p-1 rounded-full border shadow-premium relative">
+            <div className="flex items-center gap-0.5 p-1 rounded-full border shadow-os-md relative">
               {['all', 'buyer', 'seller'].map((mode) => (
                 <button
                   key={mode}
                   onClick={() => setViewMode(mode)}
-                  className={`relative px-4 py-1.5 rounded-full text-xs font-semibold transition-all duration-200 capitalize z-10 min-w-[60px] ${viewMode === mode
+                  className={`relative px-4 py-1.5 rounded-full text-os-xs font-semibold transition-all duration-200 capitalize z-10 min-w-[60px] ${viewMode === mode
                     ? 'text-afrikoni-charcoal'
                     : 'text-afrikoni-text-dark/70 hover:text-afrikoni-text-dark'
                     }`}
@@ -448,7 +448,7 @@ function DashboardAnalyticsInner() {
               ))}
               <motion.div
                 layoutId="activeAnalyticsView"
-                className="absolute top-1 bottom-1 rounded-full shadow-afrikoni z-0"
+                className="absolute top-1 bottom-1 rounded-full shadow-os-gold z-0"
                 initial={false}
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 animate={{
@@ -474,7 +474,7 @@ function DashboardAnalyticsInner() {
             {currentRole === 'buyer' && analytics && (
               <>
                 {/* v2.5: Premium Analytics KPI Cards */}
-                <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
+                <Card className="hover:border-os-accent/40 hover:shadow-os-md-lg transition-all rounded-afrikoni-lg">
                   <CardContent className="p-5">
                     <div className="flex items-center justify-between mb-3">
                       <div className="w-12 h-12 rounded-full flex items-center justify-center">
@@ -482,17 +482,17 @@ function DashboardAnalyticsInner() {
                       </div>
                     </div>
                     <div className="text-4xl md:text-5xl font-bold mb-2">{analytics.totalOrders}</div>
-                    <div className="text-xs md:text-sm font-medium uppercase tracking-wide">Total Orders</div>
+                    <div className="text-os-xs md:text-os-sm font-medium uppercase tracking-wide">Total Orders</div>
                   </CardContent>
                 </Card>
                 <Card className="bg-gradient-to-br">
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-semibold">RFQs Submitted</p>
-                        <p className="text-2xl font-bold">{analytics.totalRFQs}</p>
+                        <p className="text-os-sm font-semibold">RFQs Submitted</p>
+                        <p className="text-os-2xl font-bold">{analytics.totalRFQs}</p>
                         {analytics.openRfqs !== undefined && (
-                          <p className="text-xs mt-1">{analytics.openRfqs} active</p>
+                          <p className="text-os-xs mt-1">{analytics.openRfqs} active</p>
                         )}
                       </div>
                       <FileText className="w-8 h-8" />
@@ -504,9 +504,9 @@ function DashboardAnalyticsInner() {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-semibold">Deals in Progress</p>
-                          <p className="text-2xl font-bold">{analytics.negotiatingDeals}</p>
-                          <p className="text-xs mt-1">Negotiating</p>
+                          <p className="text-os-sm font-semibold">Deals in Progress</p>
+                          <p className="text-os-2xl font-bold">{analytics.negotiatingDeals}</p>
+                          <p className="text-os-xs mt-1">Negotiating</p>
                         </div>
                         <Clock className="w-8 h-8" />
                       </div>
@@ -518,9 +518,9 @@ function DashboardAnalyticsInner() {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-semibold">Deals Closed</p>
-                          <p className="text-2xl font-bold">{analytics.closedDeals}</p>
-                          <p className="text-xs mt-1">Completed</p>
+                          <p className="text-os-sm font-semibold">Deals Closed</p>
+                          <p className="text-os-2xl font-bold">{analytics.closedDeals}</p>
+                          <p className="text-os-xs mt-1">Completed</p>
                         </div>
                         <CheckCircle className="w-8 h-8" />
                       </div>
@@ -531,8 +531,8 @@ function DashboardAnalyticsInner() {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm">Total Spent</p>
-                        <p className="text-2xl font-bold">${analytics.totalSpent.toLocaleString()}</p>
+                        <p className="text-os-sm">Total Spent</p>
+                        <p className="text-os-2xl font-bold">${analytics.totalSpent.toLocaleString()}</p>
                       </div>
                       <DollarSign className="w-8 h-8" />
                     </div>
@@ -543,8 +543,8 @@ function DashboardAnalyticsInner() {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm">Quotes Received</p>
-                          <p className="text-2xl font-bold">{analytics.totalQuotes}</p>
+                          <p className="text-os-sm">Quotes Received</p>
+                          <p className="text-os-2xl font-bold">{analytics.totalQuotes}</p>
                         </div>
                         <FileText className="w-8 h-8" />
                       </div>
@@ -560,9 +560,9 @@ function DashboardAnalyticsInner() {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-semibold">Deals Facilitated</p>
-                        <p className="text-2xl font-bold">{analytics.totalSales}</p>
-                        <p className="text-xs mt-1">Successful orders</p>
+                        <p className="text-os-sm font-semibold">Deals Facilitated</p>
+                        <p className="text-os-2xl font-bold">{analytics.totalSales}</p>
+                        <p className="text-os-xs mt-1">Successful orders</p>
                       </div>
                       <ShoppingCart className="w-8 h-8" />
                     </div>
@@ -574,9 +574,9 @@ function DashboardAnalyticsInner() {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-semibold">RFQs Received</p>
-                          <p className="text-2xl font-bold">{analytics.rfqsReceived}</p>
-                          <p className="text-xs mt-1">Active opportunities</p>
+                          <p className="text-os-sm font-semibold">RFQs Received</p>
+                          <p className="text-os-2xl font-bold">{analytics.rfqsReceived}</p>
+                          <p className="text-os-xs mt-1">Active opportunities</p>
                         </div>
                         <FileText className="w-8 h-8" />
                       </div>
@@ -588,9 +588,9 @@ function DashboardAnalyticsInner() {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-sm font-semibold">Quotes Sent</p>
-                          <p className="text-2xl font-bold">{analytics.quotesSent}</p>
-                          <p className="text-xs mt-1">Responses submitted</p>
+                          <p className="text-os-sm font-semibold">Quotes Sent</p>
+                          <p className="text-os-2xl font-bold">{analytics.quotesSent}</p>
+                          <p className="text-os-xs mt-1">Responses submitted</p>
                         </div>
                         <FileText className="w-8 h-8" />
                       </div>
@@ -603,8 +603,8 @@ function DashboardAnalyticsInner() {
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-xs">Total Views</p>
-                          <p className="text-xl font-semibold">{analytics.totalViews}</p>
+                          <p className="text-os-xs">Total Views</p>
+                          <p className="text-os-xl font-semibold">{analytics.totalViews}</p>
                         </div>
                         <TrendingUp className="w-6 h-6" />
                       </div>
@@ -620,8 +620,8 @@ function DashboardAnalyticsInner() {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm">Total Shipments</p>
-                        <p className="text-2xl font-bold">{analytics.totalShipments}</p>
+                        <p className="text-os-sm">Total Shipments</p>
+                        <p className="text-os-2xl font-bold">{analytics.totalShipments}</p>
                       </div>
                       <Package className="w-8 h-8" />
                     </div>
@@ -631,8 +631,8 @@ function DashboardAnalyticsInner() {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm">Success Rate</p>
-                        <p className="text-2xl font-bold">{analytics.successRate}%</p>
+                        <p className="text-os-sm">Success Rate</p>
+                        <p className="text-os-2xl font-bold">{analytics.successRate}%</p>
                       </div>
                       <CheckCircle className="w-8 h-8" />
                     </div>
@@ -642,8 +642,8 @@ function DashboardAnalyticsInner() {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm">Avg Delivery Time</p>
-                        <p className="text-2xl font-bold">{analytics.avgDeliveryTime}d</p>
+                        <p className="text-os-sm">Avg Delivery Time</p>
+                        <p className="text-os-2xl font-bold">{analytics.avgDeliveryTime}d</p>
                       </div>
                       <Clock className="w-8 h-8" />
                     </div>
@@ -653,8 +653,8 @@ function DashboardAnalyticsInner() {
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm">Total Revenue</p>
-                        <p className="text-2xl font-bold">${analytics.totalRevenue.toLocaleString()}</p>
+                        <p className="text-os-sm">Total Revenue</p>
+                        <p className="text-os-2xl font-bold">${analytics.totalRevenue.toLocaleString()}</p>
                       </div>
                       <DollarSign className="w-8 h-8" />
                     </div>
@@ -666,11 +666,11 @@ function DashboardAnalyticsInner() {
         )}
 
         {/* v2.5: Premium Chart Section */}
-        <Card className="rounded-afrikoni-lg shadow-premium">
+        <Card className="rounded-afrikoni-lg shadow-os-md">
           <CardHeader className="border-b pb-4">
             <div className="flex items-center justify-between">
               {/* v2.5: Premium Section Title with Gold Underline */}
-              <CardTitle className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 inline-block flex items-center gap-2">
+              <CardTitle className="text-os-lg md:text-os-xl font-bold uppercase tracking-wider border-b-2 pb-3 inline-block flex items-center gap-2">
                 <BarChart3 className="w-5 h-5" />
                 Performance Overview
               </CardTitle>
@@ -699,7 +699,7 @@ function DashboardAnalyticsInner() {
                 {((currentRole === 'seller' || (currentRole === 'hybrid' && (viewMode === 'all' || viewMode === 'seller'))) && analytics && analytics.totalRevenue !== undefined && chartData.length > 0) && (
                   <>
                     <div className="h-64">
-                      <h3 className="text-sm font-semibold mb-4">Revenue Over Time</h3>
+                      <h3 className="text-os-sm font-semibold mb-4">Revenue Over Time</h3>
                       <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={chartData}>
                           <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -721,7 +721,7 @@ function DashboardAnalyticsInner() {
                     </div>
                     {analytics.topCategories && analytics.topCategories.length > 0 && (
                       <div className="h-64">
-                        <h3 className="text-sm font-semibold mb-4">Top Categories</h3>
+                        <h3 className="text-os-sm font-semibold mb-4">Top Categories</h3>
                         <ResponsiveContainer width="100%" height="100%">
                           <BarChart data={analytics.topCategories.map(([name, count]) => ({ name, count }))}>
                             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -738,7 +738,7 @@ function DashboardAnalyticsInner() {
                     )}
                     {analytics.buyerCountries && analytics.buyerCountries.length > 0 && (
                       <div className="h-64">
-                        <h3 className="text-sm font-semibold mb-4">Buyer Countries</h3>
+                        <h3 className="text-os-sm font-semibold mb-4">Buyer Countries</h3>
                         <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
                             <Pie
@@ -764,7 +764,7 @@ function DashboardAnalyticsInner() {
                 )}
                 {((currentRole === 'buyer' || (currentRole === 'hybrid' && (viewMode === 'all' || viewMode === 'buyer'))) && chartData.length > 0) && (
                   <div className="h-64">
-                    <h3 className="text-sm font-semibold mb-4">Orders Over Time</h3>
+                    <h3 className="text-os-sm font-semibold mb-4">Orders Over Time</h3>
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={chartData}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -781,7 +781,7 @@ function DashboardAnalyticsInner() {
                 )}
                 {currentRole === 'logistics' && analytics && analytics.shipmentsByStatus && analytics.shipmentsByStatus.length > 0 && (
                   <div className="h-64">
-                    <h3 className="text-sm font-semibold mb-4">Shipments by Status</h3>
+                    <h3 className="text-os-sm font-semibold mb-4">Shipments by Status</h3>
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={analytics.shipmentsByStatus.map(([status, count]) => ({ status, count }))}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -809,7 +809,7 @@ function DashboardAnalyticsInner() {
               >
                 <div className="flex items-center gap-2 mb-6">
                   <Shield className="w-5 h-5" />
-                  <h3 className="text-xl font-bold">Trade Performance</h3>
+                  <h3 className="text-os-xl font-bold">Trade Performance</h3>
                 </div>
                 <div className="grid md:grid-cols-2 gap-4">
                   {analytics.winRate !== undefined && (
@@ -820,10 +820,10 @@ function DashboardAnalyticsInner() {
                             <CheckCircle className="w-5 h-5" />
                           </div>
                           <div>
-                            <p className="text-sm font-semibold mb-1">
+                            <p className="text-os-sm font-semibold mb-1">
                               Quote Acceptance Rate
                             </p>
-                            <p className="text-xs">
+                            <p className="text-os-xs">
                               {analytics.winRate}% of your quotes result in deals. This indicates strong supplier reliability.
                             </p>
                           </div>
@@ -839,10 +839,10 @@ function DashboardAnalyticsInner() {
                             <MapPin className="w-5 h-5" />
                           </div>
                           <div>
-                            <p className="text-sm font-semibold mb-1">
+                            <p className="text-os-sm font-semibold mb-1">
                               Geographic Reach
                             </p>
-                            <p className="text-xs">
+                            <p className="text-os-xs">
                               Active in {analytics.countriesReached} countries. Demonstrates cross-border trade capability.
                             </p>
                           </div>

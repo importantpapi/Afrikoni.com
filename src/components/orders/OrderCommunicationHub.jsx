@@ -106,15 +106,15 @@ export function OrderCommunicationHub({
   const groupedMessages = groupMessagesByDate(messages);
 
   return (
-    <Card className={cn('border-afrikoni-gold/30', className)}>
+    <Card className={cn('border-os-accent/30', className)}>
       <CardHeader>
-        <CardTitle className="text-lg text-afrikoni-chestnut flex items-center gap-2">
+        <CardTitle className="text-os-lg text-afrikoni-chestnut flex items-center gap-2">
           Order Communication
-          <Badge variant="outline" className="text-xs font-normal">
+          <Badge variant="outline" className="text-os-xs font-normal">
             Order #{orderNumber}
           </Badge>
         </CardTitle>
-        <p className="text-xs text-afrikoni-deep/60">
+        <p className="text-os-xs text-afrikoni-deep/60">
           All messages are logged and accessible by Afrikoni support if needed
         </p>
       </CardHeader>
@@ -125,9 +125,9 @@ export function OrderCommunicationHub({
             <div key={date} className="space-y-3">
               {/* Date Separator */}
               <div className="flex items-center gap-3">
-                <div className="flex-1 h-px bg-afrikoni-gold/20" />
-                <span className="text-xs text-afrikoni-deep/50 font-medium">{date}</span>
-                <div className="flex-1 h-px bg-afrikoni-gold/20" />
+                <div className="flex-1 h-px bg-os-accent/20" />
+                <span className="text-os-xs text-afrikoni-deep/50 font-medium">{date}</span>
+                <div className="flex-1 h-px bg-os-accent/20" />
               </div>
 
               {/* Messages for this date */}
@@ -194,14 +194,14 @@ export function OrderCommunicationHub({
               size="sm"
               onClick={handleSend}
               disabled={(!messageText.trim() && attachments.length === 0) || isSending}
-              className="bg-afrikoni-gold hover:bg-afrikoni-gold/90"
+              className="bg-os-accent hover:bg-os-accent/90"
             >
               <Send className="w-4 h-4 mr-1" />
               {isSending ? 'Sending...' : 'Send'}
             </Button>
           </div>
 
-          <p className="text-xs text-afrikoni-deep/50 italic">
+          <p className="text-os-xs text-afrikoni-deep/50 italic">
             💡 Keep all order communication here for Trade Shield protection
           </p>
         </div>
@@ -219,8 +219,8 @@ function MessageBubble({ message, isOwn, senderName }) {
       )}>
         {/* Sender Name */}
         <div className={cn(
-          'text-xs font-medium',
-          isOwn ? 'text-afrikoni-gold' : 'text-afrikoni-deep/70'
+          'text-os-xs font-medium',
+          isOwn ? 'text-os-accent' : 'text-afrikoni-deep/70'
         )}>
           {senderName}
         </div>
@@ -229,10 +229,10 @@ function MessageBubble({ message, isOwn, senderName }) {
         <div className={cn(
           'px-4 py-2 rounded-lg',
           isOwn 
-            ? 'bg-afrikoni-gold text-afrikoni-chestnut rounded-br-none' 
-            : 'bg-white border border-afrikoni-gold/20 text-afrikoni-deep rounded-bl-none'
+            ? 'bg-os-accent text-afrikoni-chestnut rounded-br-none' 
+            : 'bg-white border border-os-accent/20 text-afrikoni-deep rounded-bl-none'
         )}>
-          <p className="text-sm whitespace-pre-wrap break-words">{message.message}</p>
+          <p className="text-os-sm whitespace-pre-wrap break-words">{message.message}</p>
 
           {/* Attachments */}
           {message.attachments && message.attachments.length > 0 && (
@@ -246,13 +246,13 @@ function MessageBubble({ message, isOwn, senderName }) {
 
         {/* Timestamp & Status */}
         <div className={cn(
-          'flex items-center gap-1 text-xs',
+          'flex items-center gap-1 text-os-xs',
           isOwn ? 'text-afrikoni-deep/50' : 'text-afrikoni-deep/50'
         )}>
           <Clock className="w-3 h-3" />
           <span>{formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}</span>
           {isOwn && message.read && (
-            <CheckCheck className="w-3 h-3 text-blue-500" />
+            <CheckCheck className="w-3 h-3 text-os-blue" />
           )}
         </div>
       </div>
@@ -265,13 +265,13 @@ function AttachmentPreview({ attachment, onRemove }) {
   const fileSize = (attachment.size / 1024).toFixed(1);
 
   return (
-    <div className="relative inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-afrikoni-gold/30">
+    <div className="relative inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-os-accent/30">
       {isImage ? (
         <ImageIcon className="w-4 h-4 text-blue-600" />
       ) : (
         <File className="w-4 h-4 text-afrikoni-deep/60" />
       )}
-      <div className="text-xs">
+      <div className="text-os-xs">
         <p className="font-medium text-afrikoni-chestnut max-w-[150px] truncate">
           {attachment.name}
         </p>
@@ -295,7 +295,7 @@ function AttachmentLink({ attachment }) {
       href={attachment.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center gap-2 text-xs text-blue-600 hover:underline"
+      className="flex items-center gap-2 text-os-xs text-blue-600 hover:underline"
     >
       {isImage ? (
         <ImageIcon className="w-3 h-3" />

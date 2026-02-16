@@ -140,7 +140,7 @@ export default function Countries() {
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold font-serif text-afrikoni-chestnut mb-4">
             All African Countries
           </h1>
-          <p className="text-lg md:text-xl text-afrikoni-deep max-w-2xl mx-auto mb-6">
+          <p className="text-os-lg md:text-os-xl text-afrikoni-deep max-w-2xl mx-auto mb-6">
             Discover products and suppliers from all 54 African countries
           </p>
 
@@ -153,11 +153,11 @@ export default function Countries() {
                 placeholder="Search countries by name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 pr-4 py-6 text-lg border-2 border-afrikoni-gold/30 focus:border-afrikoni-gold bg-afrikoni-cream"
+                className="pl-12 pr-4 py-6 text-os-lg border-2 border-os-accent/30 focus:border-os-accent bg-afrikoni-cream"
               />
             </div>
             {searchQuery && (
-              <p className="text-sm text-afrikoni-deep/70 mt-3">
+              <p className="text-os-sm text-afrikoni-deep/70 mt-3">
                 {filteredCountries.length} {filteredCountries.length === 1 ? 'country' : 'countries'} found
               </p>
             )}
@@ -167,7 +167,7 @@ export default function Countries() {
         {/* Countries Grid */}
         {isLoading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-os-accent" />
           </div>
         ) : (
           <motion.div
@@ -189,16 +189,16 @@ export default function Countries() {
                   whileHover={{ y: -4, scale: 1.02 }}
                 >
                   <Link to={`/marketplace?country=${country.code}`}>
-                    <Card className="h-full hover:shadow-afrikoni-lg transition-all cursor-pointer border-[1.5px] border-afrikoni-gold/30 bg-afrikoni-cream hover:border-afrikoni-gold">
+                    <Card className="h-full hover:shadow-os-gold-lg transition-all cursor-pointer border-[1.5px] border-os-accent/30 bg-afrikoni-cream hover:border-os-accent">
                       <CardContent className="p-3 md:p-4 text-center">
                         <div className="text-3xl md:text-4xl mb-2">{country.flag}</div>
-                        <h3 className="font-bold text-afrikoni-chestnut mb-1 text-sm md:text-base leading-tight whitespace-normal break-words">
+                        <h3 className="font-bold text-afrikoni-chestnut mb-1 text-os-sm md:text-os-base leading-tight whitespace-normal break-words">
                           {country.name}
                         </h3>
-                        <p className={`text-xs md:text-sm mb-2 ${hasProducts ? 'text-afrikoni-deep' : 'text-afrikoni-deep/60'}`}>
+                        <p className={`text-os-xs md:text-os-sm mb-2 ${hasProducts ? 'text-afrikoni-deep' : 'text-afrikoni-deep/60'}`}>
                           {productCount} {hasProducts ? 'products' : ''}
                         </p>
-                        <div className="flex items-center justify-center gap-1 text-afrikoni-gold text-xs md:text-sm font-medium">
+                        <div className="flex items-center justify-center gap-1 text-os-accent text-os-xs md:text-os-sm font-medium">
                           <span>Explore</span>
                           <ArrowRight className="w-3 h-3 md:w-4 md:h-4" />
                         </div>
@@ -219,7 +219,7 @@ export default function Countries() {
             className="text-center py-20"
           >
             <MapPin className="w-16 h-16 mx-auto mb-4 text-afrikoni-deep/50" />
-            <h3 className="text-xl font-semibold text-afrikoni-chestnut mb-2">No countries found</h3>
+            <h3 className="text-os-xl font-semibold text-afrikoni-chestnut mb-2">No countries found</h3>
             <p className="text-afrikoni-deep/70 mb-4">
               Try a different search term
             </p>
@@ -236,18 +236,18 @@ export default function Countries() {
           transition={{ duration: 0.6, delay: 0.4 }}
           className="mt-12 md:mt-16 text-center"
         >
-          <Card className="bg-gradient-to-br from-afrikoni-gold/10 to-afrikoni-gold/5 border-afrikoni-gold/30">
+          <Card className="bg-gradient-to-br from-os-accent/10 to-os-accent/5 border-os-accent/30">
             <CardContent className="p-6 md:p-8">
-              <h3 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut mb-3">
+              <h3 className="text-os-xl md:text-os-2xl font-bold text-afrikoni-chestnut mb-3">
                 Trade Across All 54 African Countries
               </h3>
               <p className="text-afrikoni-deep max-w-2xl mx-auto mb-4">
                 Afrikoni connects you with verified suppliers and buyers across every African nation. 
                 Whether you're sourcing from North, South, East, West, or Central Africa, we've got you covered.
               </p>
-              <div className="flex flex-wrap justify-center gap-4 text-sm text-afrikoni-deep/70">
+              <div className="flex flex-wrap justify-center gap-4 text-os-sm text-afrikoni-deep/70">
                 <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-afrikoni-gold" />
+                  <MapPin className="w-4 h-4 text-os-accent" />
                   <span>54 Countries</span>
                 </div>
                 <div className="flex items-center gap-2">

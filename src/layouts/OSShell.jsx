@@ -214,17 +214,17 @@ export default function OSShell({
                                     >
                                         <div className="os-ambient-orb" style={{ top: '-40%', left: '60%' }} />
                                         <div className="flex items-center gap-3 z-10">
-                                            <div className="w-11 h-11 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center backdrop-blur-md">
+                                            <div className="w-11 h-11 rounded-os-md bg-primary/10 border border-primary/20 flex items-center justify-center backdrop-blur-md">
                                                 <Smartphone className="w-5 h-5 text-primary" />
                                             </div>
                                             <div>
-                                                <h4 className="font-bold text-sm text-foreground">Install Afrikoni OS</h4>
-                                                <p className="text-[11px] text-muted-foreground font-medium">Dedicated workspace · Offline support</p>
+                                                <h4 className="font-bold text-os-sm text-foreground">Install Afrikoni OS</h4>
+                                                <p className="text-os-xs text-muted-foreground font-medium">Dedicated workspace · Offline support</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2 z-10">
-                                            <button onClick={() => setShowInstallPrompt(false)} className="px-3 py-2 text-[11px] font-semibold text-muted-foreground">Later</button>
-                                            <button onClick={() => { installApp(); setShowInstallPrompt(false); }} className="btn-gold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5"><Download className="w-3.5 h-3.5" />Install</button>
+                                            <button onClick={() => setShowInstallPrompt(false)} className="px-3 py-2 text-os-xs font-semibold text-muted-foreground">Later</button>
+                                            <button onClick={() => { installApp(); setShowInstallPrompt(false); }} className="btn-gold px-4 py-2 rounded-os-sm text-os-xs flex items-center gap-1.5"><Download className="w-3.5 h-3.5" />Install</button>
                                         </div>
                                     </motion.div>
                                 )}
@@ -239,17 +239,17 @@ export default function OSShell({
                                     >
                                         <div className="os-ambient-orb" style={{ top: '-30%', right: '70%', background: 'radial-gradient(circle, hsl(var(--info) / 0.3), transparent 70%)' }} />
                                         <div className="flex items-center gap-3 z-10">
-                                            <div className="w-11 h-11 rounded-2xl bg-info/10 border border-info/20 flex items-center justify-center backdrop-blur-md">
+                                            <div className="w-11 h-11 rounded-os-md bg-info/10 border border-info/20 flex items-center justify-center backdrop-blur-md">
                                                 <BellRing className="w-5 h-5 text-info animate-pulse" />
                                             </div>
                                             <div>
-                                                <h4 className="font-bold text-sm text-foreground">Real-time Trade Signals</h4>
-                                                <p className="text-[11px] text-muted-foreground font-medium">Instant trade alerts</p>
+                                                <h4 className="font-bold text-os-sm text-foreground">Real-time Trade Signals</h4>
+                                                <p className="text-os-xs text-muted-foreground font-medium">Instant trade alerts</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2 z-10">
-                                            <button onClick={() => setShowPushPrompt(false)} className="px-3 py-2 text-[11px] font-semibold text-muted-foreground">Skip</button>
-                                            <button onClick={async () => { await subscribe(); setShowPushPrompt(false); }} className="px-4 py-2 bg-info text-info-foreground rounded-xl text-xs font-bold shadow-lg flex items-center gap-1.5"><Shield className="w-3.5 h-3.5" />Enable</button>
+                                            <button onClick={() => setShowPushPrompt(false)} className="px-3 py-2 text-os-xs font-semibold text-muted-foreground">Skip</button>
+                                            <button onClick={async () => { await subscribe(); setShowPushPrompt(false); }} className="px-4 py-2 bg-info text-info-foreground rounded-os-sm text-os-xs font-bold shadow-os-md flex items-center gap-1.5"><Shield className="w-3.5 h-3.5" />Enable</button>
                                         </div>
                                     </motion.div>
                                 )}
@@ -270,15 +270,16 @@ export default function OSShell({
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
-                                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[1000] md:hidden"
+                                transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+                                className="fixed inset-0 bg-black/15 backdrop-blur-[2px] z-[1000] md:hidden"
                                 onClick={() => setSidebarOpen(false)}
                             />
                             <motion.div
                                 initial={{ x: "-100%" }}
                                 animate={{ x: 0 }}
                                 exit={{ x: "-100%" }}
-                                transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                className="fixed top-0 left-0 bottom-0 w-[280px] bg-os-surface-solid z-[1001] md:hidden"
+                                transition={{ type: "spring", damping: 30, stiffness: 300 }}
+                                className="fixed inset-y-0 left-0 w-full sm:w-[320px] bg-[#FDFBF7] z-[1001] md:hidden shadow-[8px_0_40px_rgba(0,0,0,0.12)]"
                             >
                                 <TradeOSSidebar
                                     capabilities={capabilities}

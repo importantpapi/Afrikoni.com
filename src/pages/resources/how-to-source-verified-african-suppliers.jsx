@@ -15,16 +15,16 @@ export default function HowToSourceVerifiedAfricanSuppliers() {
       <div className="min-h-screen bg-afrikoni-offwhite py-12">
         <div className="max-w-3xl mx-auto px-4 space-y-6">
           <div>
-            <p className="text-xs uppercase tracking-wide text-afrikoni-gold mb-2">
+            <p className="text-os-xs uppercase tracking-wide text-os-accent mb-2">
               Afrikoni Insights · Buyers
             </p>
             <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-3">
               How to Source Verified African Suppliers
             </h1>
-            <p className="text-sm text-afrikoni-deep/70">6 min read · Powered by Afrikoni Shield™</p>
+            <p className="text-os-sm text-afrikoni-deep/70">6 min read · Powered by Afrikoni Shield™</p>
           </div>
 
-          <Card className="border-afrikoni-gold/20 bg-white">
+          <Card className="border-os-accent/20 bg-white">
             <CardContent className="p-6 prose prose-sm md:prose-base max-w-none">
               <p>
                 Sourcing from Africa should feel as safe and professional as buying from any global marketplace.
@@ -35,11 +35,11 @@ export default function HowToSourceVerifiedAfricanSuppliers() {
               <h2>1. Start from the marketplace or Buyer Hub</h2>
               <p>
                 Begin on the{' '}
-                <Link to="/marketplace" className="text-afrikoni-gold underline">
+                <Link to="/marketplace" className="text-os-accent underline">
                   marketplace
                 </Link>{' '}
                 or{' '}
-                <Link to="/buyer-hub" className="text-afrikoni-gold underline">
+                <Link to="/buyer-hub" className="text-os-accent underline">
                   Buyer Hub
                 </Link>
                 . Use category filters, country filters, and search to narrow down the products and suppliers that match
@@ -59,7 +59,7 @@ export default function HowToSourceVerifiedAfricanSuppliers() {
               <h2>3. Use RFQs to get multiple offers</h2>
               <p>
                 Instead of messaging one supplier at a time, post a{' '}
-                <Link to="/rfq/create" className="text-afrikoni-gold underline">
+                <Link to="/rfq/create" className="text-os-accent underline">
                   Request for Quotation (RFQ)
                 </Link>{' '}
                 with your volume, specs, and delivery requirements. Verified suppliers can respond with their offers,
@@ -84,12 +84,12 @@ export default function HowToSourceVerifiedAfricanSuppliers() {
               </p>
               <div className="mt-4 flex flex-wrap gap-3">
                 <Link to="/signup">
-                  <Button className="bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight">
+                  <Button className="bg-os-accent text-afrikoni-chestnut hover:bg-os-accentLight">
                     Create Buyer Account
                   </Button>
                 </Link>
                 <Link to="/marketplace">
-                  <Button variant="outline" className="border-afrikoni-gold text-afrikoni-gold hover:bg-afrikoni-gold/10">
+                  <Button variant="outline" className="border-os-accent text-os-accent hover:bg-os-accent/10">
                     Browse Products
                   </Button>
                 </Link>

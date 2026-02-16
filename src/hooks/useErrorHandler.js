@@ -125,12 +125,12 @@ export function ErrorDisplay({ error, onRetry, className = '' }) {
           </svg>
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-red-800 mb-1">Error</h3>
-          <p className="text-sm text-red-700">{error.message || 'An error occurred'}</p>
+          <h3 className="text-os-sm font-semibold text-red-800 mb-1">Error</h3>
+          <p className="text-os-sm text-red-700">{error.message || 'An error occurred'}</p>
           {onRetry && (
             <button
               onClick={() => onRetry()}
-              className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-red-800 bg-red-100 hover:bg-red-200 rounded-md transition-colors min-h-[44px] min-w-[44px]"
+              className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 text-os-sm font-medium text-red-800 bg-red-100 hover:bg-red-200 rounded-md transition-colors min-h-[44px] min-w-[44px]"
             >
               <RefreshCw className="w-4 h-4" />
               Retry

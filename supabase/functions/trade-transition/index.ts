@@ -224,7 +224,21 @@ function enforceRoleGuard(role: string, next: TradeState): any {
 }
 
 async function validateStateEntryConditions({ supabase, trade, nextState, metadata }: any) {
-  // Simple validation for demo/v1
+  // ✅ HANDSHAKE GATE: Enforce Verification for Contracts
+  if (nextState === "contracted") {
+    const { data: buyer } = await supabase.from("companies").select("verification_status").eq("id", trade.buyer_id).single();
+    const { data: seller } = await supabase.from("companies").select("verification_status").eq("id", trade.seller_id).single();
+
+    if (buyer?.verification_status !== "VERIFIED" || seller?.verification_status !== "VERIFIED") {
+      return {
+        valid: false,
+        reason: "Both parties must be VERIFIED before signing a contract. Please complete your profile verification.",
+        reasonCode: "KYC_REQUIRED"
+      };
+    }
+  }
+
+  // Simple validation for other states
   return { valid: true, reason: null, reasonCode: null };
 }
 
@@ -265,7 +279,7 @@ async function executeStateSideEffects({ supabase, trade, nextState, metadata }:
       });
 
       const dispatchResult = await dispatchResponse.json();
-      
+
       if (!dispatchResult.success) {
         console.error("[Kernel] Dispatch engine failed:", dispatchResult.error);
         // Log failure event but don't block state transition

@@ -1,17 +1,13 @@
 /**
- * Mobile Action Zones Component (Bento Architecture)
- * Distinct colored bento-style blocks for "How It Works" and "Post RFQ"
- * Visual anchors in the middle of the scroll
- * 
- * Adaptive: Shows progress tracker for new users, market insights for established users
+ * Mobile Action Zones Component
+ * Institutional premium design - calm, neutral cards
+ * No colorful gradients or playful blocks
  */
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FileText, ArrowRight, PlayCircle, Sparkles, TrendingUp, CheckCircle2, Search, ShieldCheck } from 'lucide-react';
-import { Card, CardContent } from '@/components/shared/ui/card';
-import { Button } from '@/components/shared/ui/button';
+import { FileText, ArrowRight, PlayCircle, CheckCircle2, ShieldCheck, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthProvider';
 
 // Helper function to trigger haptic feedback
@@ -53,125 +49,60 @@ export default function MobileActionZones() {
   };
 
   return (
-    <section className="block lg:hidden py-6 bg-afrikoni-offwhite">
+    <section className="block lg:hidden py-8 bg-[#FDFBF7]">
       <div className="max-w-[1440px] mx-auto px-4">
-        {/* Side-by-side Bento Blocks */}
-        <div className="grid grid-cols-2 gap-3">
-          {/* Row 1: Two side-by-side cards */}
-          {/* Card 1: Adaptive - Progress Tracker for New Users, How It Works for Established */}
-          {isNewUser && onboardingStep ? (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4 }}
-            >
-              <Link to="/dashboard/onboarding">
-                <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100 shadow-sm hover:shadow-md transition-all active:scale-[0.98] h-full min-h-[100px]">
-                  <CardContent className="p-3">
-                    <div className="flex flex-col items-center gap-2 text-center">
-                      <div className="w-10 h-10 bg-blue-200 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <CheckCircle2 className="w-5 h-5 text-blue-700" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-bold text-blue-900 mb-1">
-                          Step {onboardingStep}: Complete Profile
-                        </h3>
-                        <p className="text-[10px] text-blue-800/80 line-clamp-2">
-                          Finish setup to start trading
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            </motion.div>
-          ) : (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.4 }}
-            >
-              <Link to="/how-it-works">
-                <Card className="border border-afrikoni-gold/20 bg-gradient-to-br from-white to-afrikoni-offwhite shadow-sm hover:shadow-md transition-all active:scale-[0.98] h-full min-h-[100px]">
-                  <CardContent className="p-3">
-                    <div className="flex flex-col items-center gap-2 text-center">
-                      <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <PlayCircle className="w-5 h-5 text-blue-600" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-bold text-afrikoni-chestnut mb-1">
-                          How It Works
-                        </h3>
-                        <p className="text-[10px] text-afrikoni-deep/70 line-clamp-2">
-                          Learn the process
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            </motion.div>
-          )}
-
-          {/* Card 2: Find Verified Suppliers - fills the second column */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: 0.05 }}
-          >
-            <Link to="/suppliers">
-              <Card className="border border-afrikoni-gold/20 bg-gradient-to-br from-white to-afrikoni-offwhite shadow-sm hover:shadow-md transition-all active:scale-[0.98] h-full min-h-[100px]">
-                <CardContent className="p-3">
-                  <div className="flex flex-col items-center gap-2 text-center">
-                    <div className="w-10 h-10 bg-green-50 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <ShieldCheck className="w-5 h-5 text-green-600" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-bold text-afrikoni-chestnut mb-1">
-                        Find Suppliers
-                      </h3>
-                      <p className="text-[10px] text-afrikoni-deep/70 line-clamp-2">
-                        Verified partners
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          </motion.div>
-
-          {/* Row 2: Post RFQ Bento Block - Primary CTA with Gold + Haptic Feedback */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.4, delay: 0.1 }}
-            className="col-span-2"
-          >
-            <div onClick={handlePostRFQClick} className="cursor-pointer">
-              <Card className="border-2 border-afrikoni-gold bg-gradient-to-br from-afrikoni-gold via-afrikoni-gold/90 to-afrikoni-goldDark shadow-xl hover:shadow-2xl transition-all active:scale-[0.98] touch-manipulation">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-center gap-3">
-                    <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0 backdrop-blur-sm">
-                      <FileText className="w-6 h-6 text-white" />
-                    </div>
-                    <div className="flex-1 min-w-0 text-left">
-                      <h3 className="text-base font-bold text-white mb-1">
-                        Post RFQ → Get Quotes
-                      </h3>
-                      <p className="text-xs text-white/90">
-                        Connect with verified suppliers instantly
-                      </p>
-                    </div>
-                    <ArrowRight className="w-5 h-5 text-white flex-shrink-0" />
-                  </div>
-                </CardContent>
-              </Card>
+        {/* PRIMARY ACTION - Heavy, institutional, ONE dominant focus */}
+        <div onClick={handlePostRFQClick} className="cursor-pointer mb-8">
+          <div className="px-5 py-6 bg-gradient-to-b from-[#D4A937] to-[#C29931] rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.08)] active:shadow-[0_1px_4px_rgba(0,0,0,0.12)] active:translate-y-[1px] transition-all touch-manipulation">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-white/15 backdrop-blur-sm rounded-[8px] flex items-center justify-center flex-shrink-0">
+                <FileText className="w-6 h-6 text-white" strokeWidth={2} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-[16px] font-semibold text-white mb-1 tracking-tight">
+                  Post Sourcing Request
+                </h3>
+                <p className="text-[13px] text-white/85 font-normal">
+                  Receive quotes from verified suppliers
+                </p>
+              </div>
             </div>
-          </motion.div>
+          </div>
+        </div>
+
+        {/* Secondary actions - subtle, supporting */}
+        <div className="space-y-2">
+          {/* Onboarding or How It Works */}
+          {isNewUser && onboardingStep ? (
+            <Link to="/dashboard/onboarding">
+              <div className="px-4 py-3.5 bg-white border border-gray-100 rounded-[8px] hover:bg-gray-50 active:bg-gray-100 transition-all">
+                <div className="flex items-center gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <h3 className="text-[13px] font-medium text-gray-900">
+                      Complete Profile - Step {onboardingStep}
+                    </h3>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
+                </div>
+              </div>
+            </Link>
+          ) : null}
+
+          {/* Find Suppliers - always show */}
+          <Link to="/suppliers">
+            <div className="px-4 py-3.5 bg-white border border-gray-100 rounded-[8px] hover:bg-gray-50 active:bg-gray-100 transition-all">
+              <div className="flex items-center gap-3">
+                <ShieldCheck className="w-5 h-5 text-gray-400 flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-[13px] font-medium text-gray-900">
+                    Browse Verified Suppliers
+                  </h3>
+                </div>
+                <ChevronRight className="w-3.5 h-3.5 text-gray-300 flex-shrink-0" />
+              </div>
+            </div>
+          </Link>
         </div>
       </div>
     </section>

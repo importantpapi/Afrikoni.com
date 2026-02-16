@@ -103,17 +103,17 @@ export default function RealTimeTracking({ shipmentId }) {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-afrikoni-gold" />
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-os-accent" />
       </div>
     );
   }
 
   if (trackingEvents.length === 0) {
     return (
-      <Card className="border-afrikoni-gold/20">
+      <Card className="border-os-accent/20">
         <CardContent className="p-6 text-center">
-          <Package className="w-12 h-12 text-afrikoni-gold/50 mx-auto mb-3" />
-          <p className="text-sm text-afrikoni-text-dark/70">
+          <Package className="w-12 h-12 text-os-accent/50 mx-auto mb-3" />
+          <p className="text-os-sm text-afrikoni-text-dark/70">
             No tracking events yet. Updates will appear here in real-time.
           </p>
         </CardContent>
@@ -128,14 +128,14 @@ export default function RealTimeTracking({ shipmentId }) {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-afrikoni-gold/10 border border-afrikoni-gold/30 rounded-lg p-4"
+          className="bg-os-accent/10 border border-os-accent/30 rounded-lg p-4"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
-              <MapPin className="w-5 h-5 text-afrikoni-gold" />
+            <div className="w-10 h-10 bg-os-accent/20 rounded-full flex items-center justify-center">
+              <MapPin className="w-5 h-5 text-os-accent" />
             </div>
             <div>
-              <p className="text-xs text-afrikoni-text-dark/70">Current Location</p>
+              <p className="text-os-xs text-afrikoni-text-dark/70">Current Location</p>
               <p className="font-semibold text-afrikoni-text-dark">{currentLocation}</p>
             </div>
           </div>
@@ -161,11 +161,11 @@ export default function RealTimeTracking({ shipmentId }) {
               >
                 {/* Timeline Line */}
                 {index < trackingEvents.length - 1 && (
-                  <div className="absolute left-5 top-12 bottom-0 w-0.5 bg-afrikoni-gold/20" />
+                  <div className="absolute left-5 top-12 bottom-0 w-0.5 bg-os-accent/20" />
                 )}
 
                 {/* Icon */}
-                <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center ${colorClass} ${isLatest ? 'ring-2 ring-afrikoni-gold' : ''}`}>
+                <div className={`relative z-10 w-10 h-10 rounded-full flex items-center justify-center ${colorClass} ${isLatest ? 'ring-2 ring-os-accent' : ''}`}>
                   <Icon className="w-5 h-5" />
                 </div>
 
@@ -174,26 +174,26 @@ export default function RealTimeTracking({ shipmentId }) {
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <p className="font-semibold text-sm text-afrikoni-text-dark">
+                        <p className="font-semibold text-os-sm text-afrikoni-text-dark">
                           {event.description || event.event_type.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                         </p>
                         {isLatest && (
-                          <Badge className="bg-afrikoni-gold text-afrikoni-chestnut text-xs">
+                          <Badge className="bg-os-accent text-afrikoni-chestnut text-os-xs">
                             Latest
                           </Badge>
                         )}
                       </div>
                       {event.location && (
-                        <p className="text-xs text-afrikoni-text-dark/70 flex items-center gap-1 mb-1">
+                        <p className="text-os-xs text-afrikoni-text-dark/70 flex items-center gap-1 mb-1">
                           <MapPin className="w-3 h-3" />
                           {event.location}
                         </p>
                       )}
-                      <p className="text-xs text-afrikoni-text-dark/60">
+                      <p className="text-os-xs text-afrikoni-text-dark/60">
                         {format(new Date(event.event_timestamp), 'MMM d, yyyy • h:mm a')}
                       </p>
                       {event.notes && (
-                        <p className="text-xs text-afrikoni-text-dark/70 mt-1 italic">
+                        <p className="text-os-xs text-afrikoni-text-dark/70 mt-1 italic">
                           {event.notes}
                         </p>
                       )}

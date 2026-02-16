@@ -106,7 +106,7 @@ export default function EscrowDetail() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="space-y-2">
             <div className="os-label">Escrow</div>
-            <h1 className="text-2xl font-semibold text-foreground">Order {order.id}</h1>
+            <h1 className="text-os-2xl font-semibold text-foreground">Order {order.id}</h1>
             <div className="flex flex-wrap gap-2">
               <StatusBadge label={payment.status?.toUpperCase() || 'LOCKED'} tone="neutral" />
               <BadgeSoft icon={Clock} label={payment.fxRate ? `FX ${payment.fxRate}` : 'FX'} />
@@ -122,11 +122,11 @@ export default function EscrowDetail() {
 
       <div className="grid lg:grid-cols-[2fr_1fr] gap-6">
         <Surface variant="panel" className="p-5 space-y-4">
-          <div className="flex items-center gap-2 text-sm text-os-muted">
+          <div className="flex items-center gap-2 text-os-sm text-os-muted">
             <Wallet className="w-4 h-4" /> Milestones
           </div>
           <Progress value={releasedPercent} className="h-2" />
-          <div className="flex justify-between text-[10px] text-os-muted">
+          <div className="flex justify-between text-os-xs text-os-muted">
             <span>Released</span>
             <span>{Math.round(releasedPercent)}%</span>
             <span>Remaining</span>
@@ -146,7 +146,7 @@ export default function EscrowDetail() {
         </Surface>
 
         <Surface variant="panel" className="p-5 space-y-4">
-          <div className="flex items-center gap-2 text-sm text-os-muted">
+          <div className="flex items-center gap-2 text-os-sm text-os-muted">
             <Lock className="w-4 h-4" /> Quick Actions
           </div>
           <div className="space-y-2">
@@ -157,7 +157,7 @@ export default function EscrowDetail() {
               Request amendment
             </Button>
           </div>
-          <div className="text-xs text-os-muted">
+          <div className="text-os-xs text-os-muted">
             Funds are held in escrow until both sides approve milestones or final settlement is confirmed.
           </div>
         </Surface>
@@ -169,8 +169,8 @@ export default function EscrowDetail() {
 function Metric({ label, value }) {
   return (
     <div className="p-3 rounded-lg bg-muted/60 border border-border/60">
-      <p className="text-[11px] uppercase tracking-wide text-os-muted">{label}</p>
-      <p className="text-lg font-semibold text-foreground">{value}</p>
+      <p className="text-os-xs uppercase tracking-wide text-os-muted">{label}</p>
+      <p className="text-os-lg font-semibold text-foreground">{value}</p>
     </div>
   );
 }
@@ -187,14 +187,14 @@ function Milestone({ label, status, amount }) {
       <div className="flex items-center gap-2">
         <span className={`status-badge ${tone}`}>{label}</span>
       </div>
-      <span className="text-sm font-semibold text-foreground">${amount?.toLocaleString() || '0'}</span>
+      <span className="text-os-sm font-semibold text-foreground">${amount?.toLocaleString() || '0'}</span>
     </div>
   );
 }
 
 function BadgeSoft({ icon: Icon, label }) {
   return (
-    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-muted text-foreground border border-border">
+    <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-os-xs bg-muted text-foreground border border-border">
       {Icon ? <Icon className="w-3 h-3" /> : null}
       {label}
     </span>

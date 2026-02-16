@@ -31,8 +31,8 @@ export default function TrustCenter() {
       icon: CheckCircle,
       title: 'Verified Suppliers',
       description: 'Every supplier undergoes thorough verification including business documents, tax certificates, and identity checks.',
-      color: 'text-afrikoni-gold',
-      bgColor: 'bg-afrikoni-gold/20'
+      color: 'text-os-accent',
+      bgColor: 'bg-os-accent/20'
     },
     {
       icon: Database,
@@ -86,19 +86,19 @@ export default function TrustCenter() {
             className="text-center mb-12 md:mb-16"
           >
             <div className="flex items-center justify-center gap-3 mb-4">
-              <Shield className="w-12 h-12 md:w-16 md:h-16 text-afrikoni-gold" />
+              <Shield className="w-12 h-12 md:w-16 md:h-16 text-os-accent" />
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-serif text-afrikoni-chestnut">
                 Trust Center
               </h1>
             </div>
-            <p className="text-lg md:text-xl text-afrikoni-deep max-w-3xl mx-auto">
+            <p className="text-os-lg md:text-os-xl text-afrikoni-deep max-w-3xl mx-auto">
               Your security and trust are our top priorities. Learn how we protect every transaction on Afrikoni.
             </p>
           </motion.div>
 
           {/* Why Trust Afrikoni */}
           <section className="mb-12 md:mb-16">
-            <h2 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-6 md:mb-8 text-center">
+            <h2 className="text-os-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-6 md:mb-8 text-center">
               Why Trust Afrikoni?
             </h2>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -112,12 +112,12 @@ export default function TrustCenter() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: idx * 0.1 }}
                   >
-                    <Card className="h-full border-afrikoni-gold/20 hover:border-afrikoni-gold transition-all shadow-md hover:shadow-xl">
+                    <Card className="h-full border-os-accent/20 hover:border-os-accent transition-all shadow-md hover:shadow-os-lg">
                       <CardHeader>
                         <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${feature.bgColor} mb-3`}>
                           <Icon className={`w-6 h-6 ${feature.color}`} />
                         </div>
-                        <CardTitle className="text-xl font-bold text-afrikoni-chestnut">
+                        <CardTitle className="text-os-xl font-bold text-afrikoni-chestnut">
                           {feature.title}
                         </CardTitle>
                       </CardHeader>
@@ -135,11 +135,11 @@ export default function TrustCenter() {
 
           {/* Escrow / Buyer Protection */}
           <section className="mb-12 md:mb-16">
-            <Card className="border-afrikoni-gold/20 shadow-lg">
+            <Card className="border-os-accent/20 shadow-os-md">
               <CardHeader>
                 <div className="flex items-center gap-3 mb-2">
-                  <Lock className="w-8 h-8 text-afrikoni-gold" />
-                  <CardTitle className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut">
+                  <Lock className="w-8 h-8 text-os-accent" />
+                  <CardTitle className="text-os-2xl md:text-3xl font-bold text-afrikoni-chestnut">
                     Escrow & Buyer Protection
                   </CardTitle>
                 </div>
@@ -148,32 +148,32 @@ export default function TrustCenter() {
                 <div className="grid md:grid-cols-3 gap-6 mb-6">
                   <div className="text-center">
                     <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-3">
-                      <span className="text-2xl font-bold text-blue-600">1</span>
+                      <span className="text-os-2xl font-bold text-blue-600">1</span>
                     </div>
                     <h3 className="font-semibold text-afrikoni-chestnut mb-2">Payment Secured</h3>
-                    <p className="text-sm text-afrikoni-deep">Buyer pays into escrow account. Funds are held securely.</p>
+                    <p className="text-os-sm text-afrikoni-deep">Buyer pays into escrow account. Funds are held securely.</p>
                   </div>
                   <div className="text-center">
                     <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-3">
-                      <span className="text-2xl font-bold text-green-600">2</span>
+                      <span className="text-os-2xl font-bold text-green-600">2</span>
                     </div>
                     <h3 className="font-semibold text-afrikoni-chestnut mb-2">Delivery Confirmed</h3>
-                    <p className="text-sm text-afrikoni-deep">Supplier ships product. Buyer confirms receipt and quality.</p>
+                    <p className="text-os-sm text-afrikoni-deep">Supplier ships product. Buyer confirms receipt and quality.</p>
                   </div>
                   <div className="text-center">
-                    <div className="w-16 h-16 rounded-full bg-afrikoni-gold/20 flex items-center justify-center mx-auto mb-3">
-                      <span className="text-2xl font-bold text-afrikoni-gold">3</span>
+                    <div className="w-16 h-16 rounded-full bg-os-accent/20 flex items-center justify-center mx-auto mb-3">
+                      <span className="text-os-2xl font-bold text-os-accent">3</span>
                     </div>
                     <h3 className="font-semibold text-afrikoni-chestnut mb-2">Funds Released</h3>
-                    <p className="text-sm text-afrikoni-deep">Payment released to supplier. Transaction complete.</p>
+                    <p className="text-os-sm text-afrikoni-deep">Payment released to supplier. Transaction complete.</p>
                   </div>
                 </div>
-                <div className="bg-afrikoni-gold/10 rounded-lg p-4 border border-afrikoni-gold/20">
+                <div className="bg-os-accent/10 rounded-lg p-4 border border-os-accent/20">
                   <div className="flex items-start gap-3">
-                    <Shield className="w-5 h-5 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+                    <Shield className="w-5 h-5 text-os-accent flex-shrink-0 mt-0.5" />
                     <div>
                       <h4 className="font-semibold text-afrikoni-chestnut mb-1">Full Refund Guarantee</h4>
-                      <p className="text-sm text-afrikoni-deep">
+                      <p className="text-os-sm text-afrikoni-deep">
                         If the product doesn't match the description or is damaged, you get a full refund. No questions asked.
                       </p>
                     </div>
@@ -185,10 +185,10 @@ export default function TrustCenter() {
 
           {/* Supplier Verification Rules */}
           <section className="mb-12 md:mb-16">
-            <h2 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-6 md:mb-8 text-center">
+            <h2 className="text-os-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-6 md:mb-8 text-center">
               Supplier Verification Process
             </h2>
-            <Card className="border-afrikoni-gold/20">
+            <Card className="border-os-accent/20">
               <CardContent className="p-6 md:p-8">
                 <div className="space-y-6">
                   {verificationSteps.map((item, idx) => (
@@ -200,17 +200,17 @@ export default function TrustCenter() {
                       transition={{ duration: 0.4, delay: idx * 0.1 }}
                       className="flex items-start gap-4"
                     >
-                      <div className="w-10 h-10 rounded-full bg-afrikoni-gold/20 flex items-center justify-center flex-shrink-0">
-                        <span className="font-bold text-afrikoni-gold">{item.step}</span>
+                      <div className="w-10 h-10 rounded-full bg-os-accent/20 flex items-center justify-center flex-shrink-0">
+                        <span className="font-bold text-os-accent">{item.step}</span>
                       </div>
                       <div>
                         <h3 className="font-semibold text-afrikoni-chestnut mb-1">{item.title}</h3>
-                        <p className="text-afrikoni-deep text-sm">{item.description}</p>
+                        <p className="text-afrikoni-deep text-os-sm">{item.description}</p>
                       </div>
                     </motion.div>
                   ))}
                 </div>
-                <div className="mt-8 pt-6 border-t border-afrikoni-gold/20">
+                <div className="mt-8 pt-6 border-t border-os-accent/20">
                   <div className="flex items-center gap-3 mb-4">
                     <CheckCircle className="w-6 h-6 text-green-600" />
                     <h3 className="font-semibold text-afrikoni-chestnut">Verified Supplier Badge</h3>
@@ -226,11 +226,11 @@ export default function TrustCenter() {
 
           {/* Data & Privacy Safety */}
           <section className="mb-12 md:mb-16">
-            <Card className="border-afrikoni-gold/20">
+            <Card className="border-os-accent/20">
               <CardHeader>
                 <div className="flex items-center gap-3">
                   <Database className="w-8 h-8 text-purple-600" />
-                  <CardTitle className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut">
+                  <CardTitle className="text-os-2xl md:text-3xl font-bold text-afrikoni-chestnut">
                     Data & Privacy Safety
                   </CardTitle>
                 </div>
@@ -239,10 +239,10 @@ export default function TrustCenter() {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div>
                     <h3 className="font-semibold text-afrikoni-chestnut mb-3 flex items-center gap-2">
-                      <Lock className="w-5 h-5 text-afrikoni-gold" />
+                      <Lock className="w-5 h-5 text-os-accent" />
                       Encryption & Security
                     </h3>
-                    <ul className="space-y-2 text-afrikoni-deep text-sm">
+                    <ul className="space-y-2 text-afrikoni-deep text-os-sm">
                       <li className="flex items-start gap-2">
                         <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
                         <span>256-bit SSL encryption for all data transmission</span>
@@ -259,10 +259,10 @@ export default function TrustCenter() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-afrikoni-chestnut mb-3 flex items-center gap-2">
-                      <Eye className="w-5 h-5 text-afrikoni-gold" />
+                      <Eye className="w-5 h-5 text-os-accent" />
                       Privacy Compliance
                     </h3>
-                    <ul className="space-y-2 text-afrikoni-deep text-sm">
+                    <ul className="space-y-2 text-afrikoni-deep text-os-sm">
                       <li className="flex items-start gap-2">
                         <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
                         <span>GDPR compliant data handling</span>
@@ -284,11 +284,11 @@ export default function TrustCenter() {
 
           {/* Marketplace Rules */}
           <section className="mb-12 md:mb-16">
-            <Card className="border-afrikoni-gold/20">
+            <Card className="border-os-accent/20">
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <FileText className="w-8 h-8 text-afrikoni-gold" />
-                  <CardTitle className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut">
+                  <FileText className="w-8 h-8 text-os-accent" />
+                  <CardTitle className="text-os-2xl md:text-3xl font-bold text-afrikoni-chestnut">
                     Marketplace Rules & Guidelines
                   </CardTitle>
                 </div>
@@ -296,7 +296,7 @@ export default function TrustCenter() {
               <CardContent>
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-xl font-semibold text-afrikoni-chestnut mb-3">General Rules</h3>
+                    <h3 className="text-os-xl font-semibold text-afrikoni-chestnut mb-3">General Rules</h3>
                     <ul className="space-y-2 text-afrikoni-deep">
                       <li className="flex items-start gap-2">
                         <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
@@ -322,29 +322,29 @@ export default function TrustCenter() {
                   </div>
                   
                   <div>
-                    <h3 className="text-xl font-semibold text-afrikoni-chestnut mb-3">Seller Responsibilities</h3>
+                    <h3 className="text-os-xl font-semibold text-afrikoni-chestnut mb-3">Seller Responsibilities</h3>
                     <ul className="space-y-2 text-afrikoni-deep">
                       <li className="flex items-start gap-2">
-                        <CheckCircle className="w-5 h-5 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+                        <CheckCircle className="w-5 h-5 text-os-accent flex-shrink-0 mt-0.5" />
                         <span>Respond to buyer inquiries within 24-48 hours</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <CheckCircle className="w-5 h-5 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+                        <CheckCircle className="w-5 h-5 text-os-accent flex-shrink-0 mt-0.5" />
                         <span>Ship products according to agreed delivery timelines</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <CheckCircle className="w-5 h-5 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+                        <CheckCircle className="w-5 h-5 text-os-accent flex-shrink-0 mt-0.5" />
                         <span>Provide quality products that match product descriptions</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <CheckCircle className="w-5 h-5 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+                        <CheckCircle className="w-5 h-5 text-os-accent flex-shrink-0 mt-0.5" />
                         <span>Maintain accurate inventory and update product availability</span>
                       </li>
                     </ul>
                   </div>
                   
                   <div>
-                    <h3 className="text-xl font-semibold text-afrikoni-chestnut mb-3">Buyer Responsibilities</h3>
+                    <h3 className="text-os-xl font-semibold text-afrikoni-chestnut mb-3">Buyer Responsibilities</h3>
                     <ul className="space-y-2 text-afrikoni-deep">
                       <li className="flex items-start gap-2">
                         <CheckCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
@@ -365,8 +365,8 @@ export default function TrustCenter() {
                     </ul>
                   </div>
                   
-                  <div className="p-4 bg-afrikoni-gold/10 rounded-lg border border-afrikoni-gold/20">
-                    <p className="text-sm text-afrikoni-chestnut">
+                  <div className="p-4 bg-os-accent/10 rounded-lg border border-os-accent/20">
+                    <p className="text-os-sm text-afrikoni-chestnut">
                       <strong>Note:</strong> Violation of marketplace rules may result in account suspension or termination. 
                       For questions about rules or to report violations, contact our support team.
                     </p>
@@ -378,11 +378,11 @@ export default function TrustCenter() {
 
           {/* Complaint & Resolution Channel */}
           <section className="mb-12 md:mb-16">
-            <Card className="border-afrikoni-gold/20 bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-chestnut/10">
+            <Card className="border-os-accent/20 bg-gradient-to-r from-os-accent/10 to-afrikoni-chestnut/10">
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <MessageSquare className="w-8 h-8 text-afrikoni-gold" />
-                  <CardTitle className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut">
+                  <MessageSquare className="w-8 h-8 text-os-accent" />
+                  <CardTitle className="text-os-2xl md:text-3xl font-bold text-afrikoni-chestnut">
                     Complaint & Resolution
                   </CardTitle>
                 </div>
@@ -392,30 +392,30 @@ export default function TrustCenter() {
                   We take every complaint seriously. Our dedicated support team is available 24/7 to help resolve any issues.
                 </p>
                 <div className="grid md:grid-cols-3 gap-4 mb-6">
-                  <div className="bg-white rounded-lg p-4 border border-afrikoni-gold/20">
+                  <div className="bg-white rounded-lg p-4 border border-os-accent/20">
                     <AlertCircle className="w-6 h-6 text-orange-600 mb-2" />
                     <h4 className="font-semibold text-afrikoni-chestnut mb-1">Report Issue</h4>
-                    <p className="text-sm text-afrikoni-deep">Submit a complaint through our support center</p>
+                    <p className="text-os-sm text-afrikoni-deep">Submit a complaint through our support center</p>
                   </div>
-                  <div className="bg-white rounded-lg p-4 border border-afrikoni-gold/20">
+                  <div className="bg-white rounded-lg p-4 border border-os-accent/20">
                     <FileText className="w-6 h-6 text-blue-600 mb-2" />
                     <h4 className="font-semibold text-afrikoni-chestnut mb-1">Investigation</h4>
-                    <p className="text-sm text-afrikoni-deep">Our team reviews your case within 24 hours</p>
+                    <p className="text-os-sm text-afrikoni-deep">Our team reviews your case within 24 hours</p>
                   </div>
-                  <div className="bg-white rounded-lg p-4 border border-afrikoni-gold/20">
+                  <div className="bg-white rounded-lg p-4 border border-os-accent/20">
                     <CheckCircle className="w-6 h-6 text-green-600 mb-2" />
                     <h4 className="font-semibold text-afrikoni-chestnut mb-1">Resolution</h4>
-                    <p className="text-sm text-afrikoni-deep">Fair resolution within 3-5 business days</p>
+                    <p className="text-os-sm text-afrikoni-deep">Fair resolution within 3-5 business days</p>
                   </div>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3">
                   <Link to="/contact">
-                    <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-charcoal w-full sm:w-auto min-h-[44px] touch-manipulation">
+                    <Button className="bg-os-accent hover:bg-os-accentDark text-afrikoni-charcoal w-full sm:w-auto min-h-[44px] touch-manipulation">
                       Contact Support
                     </Button>
                   </Link>
                   <Link to="/disputes">
-                    <Button variant="outline" className="border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-sand/20 w-full sm:w-auto min-h-[44px] touch-manipulation">
+                    <Button variant="outline" className="border-os-accent text-afrikoni-chestnut hover:bg-afrikoni-sand/20 w-full sm:w-auto min-h-[44px] touch-manipulation">
                       File a Dispute
                     </Button>
                   </Link>
@@ -429,9 +429,9 @@ export default function TrustCenter() {
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center bg-gradient-to-r from-afrikoni-gold/20 to-afrikoni-chestnut/20 rounded-2xl p-8 md:p-12"
+            className="text-center bg-gradient-to-r from-os-accent/20 to-afrikoni-chestnut/20 rounded-os-md p-8 md:p-12"
           >
-            <h2 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-4">
+            <h2 className="text-os-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-4">
               Ready to Trade with Confidence?
             </h2>
             <p className="text-afrikoni-deep mb-6 max-w-2xl mx-auto">
@@ -439,12 +439,12 @@ export default function TrustCenter() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link to="/signup">
-                <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-charcoal min-h-[44px] touch-manipulation w-full sm:w-auto">
+                <Button className="bg-os-accent hover:bg-os-accentDark text-afrikoni-charcoal min-h-[44px] touch-manipulation w-full sm:w-auto">
                   Get Started
                 </Button>
               </Link>
               <Link to="/how-payment-works">
-                <Button variant="outline" className="border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-sand/20 min-h-[44px] touch-manipulation w-full sm:w-auto">
+                <Button variant="outline" className="border-os-accent text-afrikoni-chestnut hover:bg-afrikoni-sand/20 min-h-[44px] touch-manipulation w-full sm:w-auto">
                   Learn About Payments
                 </Button>
               </Link>

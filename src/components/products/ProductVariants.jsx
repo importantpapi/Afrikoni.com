@@ -29,7 +29,7 @@ export default function ProductVariants({ variants = [], onVariantSelect, select
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-afrikoni-chestnut flex items-center gap-2">
+      <h3 className="text-os-lg font-semibold text-afrikoni-chestnut flex items-center gap-2">
         <Package className="w-5 h-5" />
         Available Variants
       </h3>
@@ -44,8 +44,8 @@ export default function ProductVariants({ variants = [], onVariantSelect, select
               key={variant.id}
               className={`cursor-pointer transition-all touch-manipulation ${
                 isSelected
-                  ? 'border-afrikoni-gold ring-2 ring-afrikoni-gold/20 bg-afrikoni-gold/5'
-                  : 'border-afrikoni-gold/20 hover:border-afrikoni-gold/40 active:border-afrikoni-gold/60'
+                  ? 'border-os-accent ring-2 ring-os-accent/20 bg-os-accent/5'
+                  : 'border-os-accent/20 hover:border-os-accent/40 active:border-os-accent/60'
               }`}
               onClick={() => handleVariantSelect(variant)}
             >
@@ -57,13 +57,13 @@ export default function ProductVariants({ variants = [], onVariantSelect, select
                         {variant.name || `Variant ${variant.sku || ''}`}
                       </h4>
                       {isSelected && (
-                        <Badge className="bg-afrikoni-gold text-afrikoni-cream">
+                        <Badge className="bg-os-accent text-afrikoni-cream">
                           <CheckCircle className="w-3 h-3 mr-1" />
                           Selected
                         </Badge>
                       )}
                       {variant.sku && (
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-os-xs">
                           SKU: {variant.sku}
                         </Badge>
                       )}
@@ -73,7 +73,7 @@ export default function ProductVariants({ variants = [], onVariantSelect, select
                     {Object.keys(attributes).length > 0 && (
                       <div className="flex flex-wrap gap-2 mb-2">
                         {Object.entries(attributes).map(([key, value]) => (
-                          <Badge key={key} variant="outline" className="text-xs">
+                          <Badge key={key} variant="outline" className="text-os-xs">
                             {key}: {String(value)}
                           </Badge>
                         ))}
@@ -81,11 +81,11 @@ export default function ProductVariants({ variants = [], onVariantSelect, select
                     )}
                     
                     {/* Price and MOQ */}
-                    <div className="flex items-center gap-4 text-sm">
+                    <div className="flex items-center gap-4 text-os-sm">
                       {variant.price && (
                         <div>
                           <span className="text-afrikoni-deep/70">Price: </span>
-                          <span className="font-semibold text-afrikoni-gold">
+                          <span className="font-semibold text-os-accent">
                             ${variant.price}
                           </span>
                         </div>

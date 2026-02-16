@@ -109,13 +109,13 @@ export default function InteractiveAfricaMap() {
             placeholder="Search countries..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-2 border border-afrikoni-gold/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-afrikoni-gold bg-white"
+            className="w-full px-4 py-2 border border-os-accent/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-os-accent bg-white"
           />
         </div>
         <select
           value={selectedRegion}
           onChange={(e) => setSelectedRegion(e.target.value)}
-          className="px-4 py-2 border border-afrikoni-gold/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-afrikoni-gold bg-white"
+          className="px-4 py-2 border border-os-accent/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-os-accent bg-white"
         >
           {regions.map(region => (
             <option key={region} value={region}>{region}</option>
@@ -124,9 +124,9 @@ export default function InteractiveAfricaMap() {
       </div>
 
       {/* Map Visualization */}
-      <Card className="border-afrikoni-gold/20 shadow-lg overflow-hidden">
+      <Card className="border-os-accent/20 shadow-os-md overflow-hidden">
         <CardContent className="p-6">
-          <div className="relative bg-gradient-to-br from-afrikoni-gold/10 via-afrikoni-cream/5 to-afrikoni-chestnut/10 rounded-lg p-8">
+          <div className="relative bg-gradient-to-br from-os-accent/10 via-afrikoni-cream/5 to-afrikoni-chestnut/10 rounded-lg p-8">
             {/* Simplified Africa Continent SVG with better visibility */}
             <div className="aspect-video relative overflow-visible">
               <svg
@@ -236,7 +236,7 @@ export default function InteractiveAfricaMap() {
                             x={cx}
                             y={cy - 20}
                             textAnchor="middle"
-                            className="fill-white font-bold text-xs"
+                            className="fill-white font-bold text-os-xs"
                           >
                             {country.code}
                           </text>
@@ -248,11 +248,11 @@ export default function InteractiveAfricaMap() {
                 
                 {/* Legend */}
                 <g transform="translate(50, 700)">
-                  <text x="0" y="0" className="fill-afrikoni-chestnut font-semibold text-sm">Regions:</text>
+                  <text x="0" y="0" className="fill-afrikoni-chestnut font-semibold text-os-sm">Regions:</text>
                   {Object.entries(REGION_COLORS).map(([region, color], idx) => (
                     <g key={region} transform={`translate(${idx * 120}, 20)`}>
                       <circle cx="0" cy="0" r="6" fill={color} />
-                      <text x="12" y="4" className="fill-afrikoni-deep text-xs">{region}</text>
+                      <text x="12" y="4" className="fill-afrikoni-deep text-os-xs">{region}</text>
                     </g>
                   ))}
                 </g>
@@ -260,8 +260,8 @@ export default function InteractiveAfricaMap() {
             </div>
             
             {/* Info overlay */}
-            <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-afrikoni-gold/20">
-              <div className="text-xs text-afrikoni-deep">
+            <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-3 shadow-os-md border border-os-accent/20">
+              <div className="text-os-xs text-afrikoni-deep">
                 <div className="font-semibold mb-1">Click countries to explore</div>
                 <div className="text-afrikoni-deep/70">
                   {filteredCountries.length} of {AFRICAN_COUNTRIES.length} countries shown
@@ -282,22 +282,22 @@ export default function InteractiveAfricaMap() {
             onClick={() => setSelectedCountry(country)}
             className={`cursor-pointer p-3 rounded-lg border-2 transition-all ${
               selectedCountry?.code === country.code
-                ? 'border-afrikoni-gold bg-afrikoni-gold/10 shadow-lg'
-                : 'border-afrikoni-gold/20 bg-white hover:border-afrikoni-gold/40 hover:bg-afrikoni-gold/5'
+                ? 'border-os-accent bg-os-accent/10 shadow-os-md'
+                : 'border-os-accent/20 bg-white hover:border-os-accent/40 hover:bg-os-accent/5'
             }`}
           >
             <div className="flex items-center gap-2 mb-2">
-              <MapPin className="w-4 h-4 text-afrikoni-gold" />
-              <span className="text-xs font-semibold text-afrikoni-chestnut">
+              <MapPin className="w-4 h-4 text-os-accent" />
+              <span className="text-os-xs font-semibold text-afrikoni-chestnut">
                 {country.code}
               </span>
             </div>
-            <p className="text-sm font-medium text-afrikoni-deep mb-1 line-clamp-2">
+            <p className="text-os-sm font-medium text-afrikoni-deep mb-1 line-clamp-2">
               {country.name}
             </p>
             <Badge 
               variant="outline" 
-              className={`text-xs ${REGIONS[country.region] || 'bg-gray-100 text-gray-800 border-gray-300'}`}
+              className={`text-os-xs ${REGIONS[country.region] || 'bg-gray-100 text-gray-800 border-gray-300'}`}
             >
               {country.region}
             </Badge>
@@ -312,18 +312,18 @@ export default function InteractiveAfricaMap() {
           animate={{ opacity: 1, y: 0 }}
           className="mt-6"
         >
-          <Card className="border-afrikoni-gold/30 bg-gradient-to-br from-afrikoni-gold/5 to-white">
+          <Card className="border-os-accent/30 bg-gradient-to-br from-os-accent/5 to-white">
             <CardContent className="p-6">
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <h3 className="text-2xl font-bold text-afrikoni-chestnut mb-2">
+                  <h3 className="text-os-2xl font-bold text-afrikoni-chestnut mb-2">
                     {selectedCountry.name}
                   </h3>
                   <div className="flex items-center gap-4">
                     <Badge className={REGIONS[selectedCountry.region] || 'bg-gray-100 text-gray-800'}>
                       {selectedCountry.region}
                     </Badge>
-                    <span className="text-sm text-afrikoni-deep/70">
+                    <span className="text-os-sm text-afrikoni-deep/70">
                       Country Code: {selectedCountry.code}
                     </span>
                   </div>
@@ -335,13 +335,13 @@ export default function InteractiveAfricaMap() {
                   ✕
                 </button>
               </div>
-              <div className="space-y-2 text-sm text-afrikoni-deep/80">
+              <div className="space-y-2 text-os-sm text-afrikoni-deep/80">
                 <p className="flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-afrikoni-gold" />
+                  <Globe className="w-4 h-4 text-os-accent" />
                   <span>We provide B2B marketplace services in {selectedCountry.name}</span>
                 </p>
                 <p className="flex items-center gap-2">
-                  <Info className="w-4 h-4 text-afrikoni-gold" />
+                  <Info className="w-4 h-4 text-os-accent" />
                   <span>Connect with verified suppliers and buyers across {selectedCountry.region}</span>
                 </p>
               </div>
@@ -352,36 +352,36 @@ export default function InteractiveAfricaMap() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-        <Card className="border-afrikoni-gold/20">
+        <Card className="border-os-accent/20">
           <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-afrikoni-gold mb-1">
+            <div className="text-3xl font-bold text-os-accent mb-1">
               {AFRICAN_COUNTRIES.length}
             </div>
-            <div className="text-sm text-afrikoni-deep/70">Total Countries</div>
+            <div className="text-os-sm text-afrikoni-deep/70">Total Countries</div>
           </CardContent>
         </Card>
-        <Card className="border-afrikoni-gold/20">
+        <Card className="border-os-accent/20">
           <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-afrikoni-gold mb-1">
+            <div className="text-3xl font-bold text-os-accent mb-1">
               {regions.length - 1}
             </div>
-            <div className="text-sm text-afrikoni-deep/70">Regions</div>
+            <div className="text-os-sm text-afrikoni-deep/70">Regions</div>
           </CardContent>
         </Card>
-        <Card className="border-afrikoni-gold/20">
+        <Card className="border-os-accent/20">
           <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-afrikoni-gold mb-1">
+            <div className="text-3xl font-bold text-os-accent mb-1">
               {filteredCountries.length}
             </div>
-            <div className="text-sm text-afrikoni-deep/70">Showing</div>
+            <div className="text-os-sm text-afrikoni-deep/70">Showing</div>
           </CardContent>
         </Card>
-        <Card className="border-afrikoni-gold/20">
+        <Card className="border-os-accent/20">
           <CardContent className="p-4 text-center">
-            <div className="text-3xl font-bold text-afrikoni-gold mb-1">
+            <div className="text-3xl font-bold text-os-accent mb-1">
               100%
             </div>
-            <div className="text-sm text-afrikoni-deep/70">Coverage</div>
+            <div className="text-os-sm text-afrikoni-deep/70">Coverage</div>
           </CardContent>
         </Card>
       </div>

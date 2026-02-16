@@ -144,7 +144,7 @@ export default function SaveButton({ itemId, itemType, className = '' }) {
       aria-label={isSaved ? `Remove ${itemType} from saved` : `Save ${itemType}`}
     >
       <Heart 
-        className={`w-5 h-5 transition-all ${isSaved ? 'fill-red-500 text-red-500 scale-110' : 'text-gray-700 hover:text-red-500 hover:scale-105'}`} 
+        className={`w-5 h-5 transition-all ${isSaved ? 'fill-red-500 text-os-red scale-110' : 'text-gray-700 hover:text-os-red hover:scale-105'}`} 
         aria-hidden="true"
       />
     </Button>

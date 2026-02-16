@@ -23,10 +23,10 @@ export default function ControlPlanePage() {
     if (error) {
         return (
             <div className="p-6 text-center">
-                <p className="text-red-500 font-medium">{error}</p>
+                <p className="text-os-red font-medium">{error}</p>
                 <button 
                     onClick={refresh}
-                    className="mt-4 px-4 py-2 bg-os-gold text-black rounded-lg text-sm font-semibold"
+                    className="mt-4 px-4 py-2 bg-os-gold text-black rounded-lg text-os-sm font-semibold"
                 >
                     Retry Handshake
                 </button>

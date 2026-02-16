@@ -25,10 +25,10 @@ const STATUS_CONFIG = {
   PENDING: {
     icon: Clock,
     label: 'Pending',
-    color: 'text-afrikoni-gold',
-    bg: 'bg-afrikoni-gold/10',
-    border: 'border-afrikoni-gold/30',
-    dot: 'bg-afrikoni-gold',
+    color: 'text-os-accent',
+    bg: 'bg-os-accent/10',
+    border: 'border-os-accent/30',
+    dot: 'bg-os-accent',
   },
   REJECTED: {
     icon: ShieldAlert,
@@ -49,9 +49,9 @@ const STATUS_CONFIG = {
 };
 
 const SIZES = {
-  xs: { icon: 'w-3 h-3', text: 'text-[10px]', badge: 'px-1.5 py-0.5 gap-1', dot: 'w-1.5 h-1.5' },
-  sm: { icon: 'w-3.5 h-3.5', text: 'text-xs', badge: 'px-2 py-0.5 gap-1', dot: 'w-2 h-2' },
-  md: { icon: 'w-4 h-4', text: 'text-sm', badge: 'px-2.5 py-1 gap-1.5', dot: 'w-2 h-2' },
+  xs: { icon: 'w-3 h-3', text: 'text-os-xs', badge: 'px-1.5 py-0.5 gap-1', dot: 'w-1.5 h-1.5' },
+  sm: { icon: 'w-3.5 h-3.5', text: 'text-os-xs', badge: 'px-2 py-0.5 gap-1', dot: 'w-2 h-2' },
+  md: { icon: 'w-4 h-4', text: 'text-os-sm', badge: 'px-2.5 py-1 gap-1.5', dot: 'w-2 h-2' },
 };
 
 export default function VerificationBadge({
@@ -102,7 +102,7 @@ export function TrustScoreBadge({ score = 0, size = 'sm', className = '' }) {
 
   const levelConfig = {
     high: { color: 'text-afrikoni-green', bg: 'bg-afrikoni-green/10', border: 'border-afrikoni-green/30', label: 'Excellent' },
-    medium: { color: 'text-afrikoni-gold', bg: 'bg-afrikoni-gold/10', border: 'border-afrikoni-gold/30', label: 'Good' },
+    medium: { color: 'text-os-accent', bg: 'bg-os-accent/10', border: 'border-os-accent/30', label: 'Good' },
     low: { color: 'text-gray-400', bg: 'bg-gray-100', border: 'border-gray-200', label: 'New' },
   };
 

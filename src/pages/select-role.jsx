@@ -100,7 +100,7 @@ export default function SelectRole() {
   if (!authReady || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-afrikoni-offwhite">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-os-accent" />
       </div>
     );
   }
@@ -109,7 +109,7 @@ export default function SelectRole() {
   if (!capabilities.ready) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-afrikoni-offwhite">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-os-accent" />
       </div>
     );
   }
@@ -136,25 +136,25 @@ export default function SelectRole() {
 
         <div className="grid md:grid-cols-2 gap-4 mb-6">
           <Card
-            className="border-afrikoni-gold/30 hover:border-afrikoni-gold shadow-afrikoni bg-afrikoni-offwhite cursor-pointer transition-all"
+            className="border-os-accent/30 hover:border-os-accent shadow-os-gold bg-afrikoni-offwhite cursor-pointer transition-all"
             onClick={() => !saving && handleSelect('buyer')}
           >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-3 text-afrikoni-chestnut">
                 <div className="p-3 rounded-lg bg-afrikoni-cream">
-                  <ShoppingCart className="w-6 h-6 text-afrikoni-gold" />
+                  <ShoppingCart className="w-6 h-6 text-os-accent" />
                 </div>
                 Buyer Mode
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-0 text-sm text-afrikoni-deep/80">
+            <CardContent className="pt-0 text-os-sm text-afrikoni-deep/80">
               <ul className="list-disc list-inside space-y-1">
                 <li>Search and compare verified African suppliers.</li>
                 <li>Post RFQs and receive quotes.</li>
                 <li>Place and track orders with Trade Shield protection.</li>
               </ul>
               <Button
-                className="mt-4 w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut font-semibold"
+                className="mt-4 w-full bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut font-semibold"
                 disabled={saving}
               >
                 Continue as Buyer
@@ -163,25 +163,25 @@ export default function SelectRole() {
           </Card>
 
           <Card
-            className="border-afrikoni-gold/30 hover:border-afrikoni-gold shadow-afrikoni bg-afrikoni-offwhite cursor-pointer transition-all"
+            className="border-os-accent/30 hover:border-os-accent shadow-os-gold bg-afrikoni-offwhite cursor-pointer transition-all"
             onClick={() => !saving && handleSelect('seller')}
           >
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-3 text-afrikoni-chestnut">
                 <div className="p-3 rounded-lg bg-afrikoni-cream">
-                  <Package className="w-6 h-6 text-afrikoni-gold" />
+                  <Package className="w-6 h-6 text-os-accent" />
                 </div>
                 Seller Mode
               </CardTitle>
             </CardHeader>
-            <CardContent className="pt-0 text-sm text-afrikoni-deep/80">
+            <CardContent className="pt-0 text-os-sm text-afrikoni-deep/80">
               <ul className="list-disc list-inside space-y-1">
                 <li>Publish and manage your product catalog.</li>
                 <li>Receive and respond to RFQs from buyers.</li>
                 <li>Manage orders, shipping, and payments.</li>
               </ul>
               <Button
-                className="mt-4 w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut font-semibold"
+                className="mt-4 w-full bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut font-semibold"
                 disabled={saving}
               >
                 Continue as Seller
@@ -190,7 +190,7 @@ export default function SelectRole() {
           </Card>
         </div>
 
-        <p className="text-center text-xs text-afrikoni-deep/70">
+        <p className="text-center text-os-xs text-afrikoni-deep/70">
           You can switch context any time from your dashboard navigation.
         </p>
       </div>

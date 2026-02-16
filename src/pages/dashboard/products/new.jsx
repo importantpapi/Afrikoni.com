@@ -356,8 +356,8 @@ export default function AddProduct() {
                 <X className="w-5 h-5" />
               </Button>
               <div>
-                <h1 className="text-lg font-semibold text-[var(--os-text-primary)]">Add New Product</h1>
-                <p className="text-xs text-[var(--os-text-secondary)]">List your product in under 60 seconds</p>
+                <h1 className="text-os-lg font-semibold text-[var(--os-text-primary)]">Add New Product</h1>
+                <p className="text-os-xs text-[var(--os-text-secondary)]">List your product in under 60 seconds</p>
               </div>
             </div>
 
@@ -396,10 +396,10 @@ export default function AddProduct() {
           <div className={cn('lg:col-span-3', showPreview && 'hidden lg:block')}>
             <Surface className="p-6">
               <div className="mb-6">
-                <h2 className="text-xl font-semibold text-[var(--os-text-primary)]">
+                <h2 className="text-os-xl font-semibold text-[var(--os-text-primary)]">
                   {STEPS[currentStep - 1].title}
                 </h2>
-                <p className="text-sm text-[var(--os-text-secondary)] mt-1">
+                <p className="text-os-sm text-[var(--os-text-secondary)] mt-1">
                   {currentStep === 1 && "Tell buyers what you're selling"}
                   {currentStep === 2 && 'Add photos to showcase your product'}
                   {currentStep === 3 && 'Set your pricing and delivery details'}
@@ -458,22 +458,22 @@ export default function AddProduct() {
 
           <div className={cn('lg:col-span-2', !showPreview && 'hidden lg:block')}>
             <div className="sticky top-36">
-              <p className="text-sm font-medium text-[var(--os-text-secondary)] mb-3">Live Preview</p>
+              <p className="text-os-sm font-medium text-[var(--os-text-secondary)] mb-3">Live Preview</p>
               <ProductPreviewCard formData={formData} />
 
               <div className="mt-4 space-y-2">
                 {formData.name && formData.category && (
-                  <div className="text-xs rounded-lg px-3 py-2">
+                  <div className="text-os-xs rounded-lg px-3 py-2">
                     ✨ Nice! Your product is looking professional.
                   </div>
                 )}
                 {formData.imageUrls.length > 0 && formData.imageUrls.length < 3 && (
-                  <div className="text-xs rounded-lg px-3 py-2">
+                  <div className="text-os-xs rounded-lg px-3 py-2">
                     📸 Buyers prefer listings with 3+ photos
                   </div>
                 )}
                 {formData.imageUrls.length >= 3 && (
-                  <div className="text-xs rounded-lg px-3 py-2">
+                  <div className="text-os-xs rounded-lg px-3 py-2">
                     📸 Great photo coverage!
                   </div>
                 )}

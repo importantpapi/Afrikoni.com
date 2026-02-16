@@ -245,7 +245,7 @@ export default function AuditLogs() {
   const getRiskLevelColor = (level) => {
     switch (level) {
       case 'low': return 'bg-afrikoni-green/20 text-afrikoni-green border-afrikoni-green/30';
-      case 'medium': return 'bg-afrikoni-gold/20 text-afrikoni-gold border-afrikoni-gold/30';
+      case 'medium': return 'bg-os-accent/20 text-os-accent border-os-accent/30';
       case 'high': return 'bg-orange-50 text-orange-700 border-orange-200';
       case 'critical': return 'bg-red-50 text-red-700 border-red-200';
       default: return 'bg-gray-100 text-gray-600 border-gray-200';
@@ -334,7 +334,7 @@ export default function AuditLogs() {
           transition={{ duration: 0.3 }}
           className="mb-8"
         >
-          <Link to="/dashboard/risk" className="inline-flex items-center gap-2 hover:text-afrikoni-gold/80 mb-4">
+          <Link to="/dashboard/risk" className="inline-flex items-center gap-2 hover:text-os-accent/80 mb-4">
             <ArrowLeft className="w-4 h-4" />
             Back to Risk Dashboard
           </Link>
@@ -346,7 +346,7 @@ export default function AuditLogs() {
               <h1 className="text-3xl md:text-4xl font-bold mb-2 leading-tight">
                 Audit Log System
               </h1>
-              <p className="text-sm md:text-base leading-relaxed">
+              <p className="text-os-sm md:text-os-base leading-relaxed">
                 Immutable audit trail and comprehensive activity logging for compliance and security
               </p>
             </div>
@@ -359,7 +359,7 @@ export default function AuditLogs() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 mb-6">
+          <h2 className="text-os-lg md:text-os-xl font-bold uppercase tracking-wider border-b-2 pb-3 mb-6">
             Audit Log Overview
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -369,7 +369,7 @@ export default function AuditLogs() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.05 }}
             >
-              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
+              <Card className="hover:border-os-accent/40 hover:shadow-os-md-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
                     <div className="w-12 h-12 rounded-full flex items-center justify-center">
@@ -379,7 +379,7 @@ export default function AuditLogs() {
                   <div className="text-4xl md:text-5xl font-bold mb-2">
                     {auditKPIs.totalEvents30Days.toLocaleString()}
                   </div>
-                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
+                  <div className="text-os-xs md:text-os-sm font-medium uppercase tracking-wide">
                     Total Events (30d)
                   </div>
                 </CardContent>
@@ -392,7 +392,7 @@ export default function AuditLogs() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.1 }}
             >
-              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
+              <Card className="hover:border-os-accent/40 hover:shadow-os-md-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
                     <div className="w-12 h-12 rounded-full flex items-center justify-center">
@@ -402,7 +402,7 @@ export default function AuditLogs() {
                   <div className="text-4xl md:text-5xl font-bold mb-2">
                     {auditKPIs.highRiskEvents}
                   </div>
-                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
+                  <div className="text-os-xs md:text-os-sm font-medium uppercase tracking-wide">
                     High-Risk Events
                   </div>
                 </CardContent>
@@ -415,7 +415,7 @@ export default function AuditLogs() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.15 }}
             >
-              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
+              <Card className="hover:border-os-accent/40 hover:shadow-os-md-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
                     <div className="w-12 h-12 rounded-full flex items-center justify-center">
@@ -425,7 +425,7 @@ export default function AuditLogs() {
                   <div className="text-4xl md:text-5xl font-bold mb-2">
                     {auditKPIs.userActions.toLocaleString()}
                   </div>
-                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
+                  <div className="text-os-xs md:text-os-sm font-medium uppercase tracking-wide">
                     User Actions
                   </div>
                 </CardContent>
@@ -438,7 +438,7 @@ export default function AuditLogs() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.2 }}
             >
-              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
+              <Card className="hover:border-os-accent/40 hover:shadow-os-md-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
                     <div className="w-12 h-12 rounded-full flex items-center justify-center">
@@ -448,7 +448,7 @@ export default function AuditLogs() {
                   <div className="text-4xl md:text-5xl font-bold mb-2">
                     {auditKPIs.systemActions.toLocaleString()}
                   </div>
-                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
+                  <div className="text-os-xs md:text-os-sm font-medium uppercase tracking-wide">
                     System Actions
                   </div>
                 </CardContent>
@@ -461,7 +461,7 @@ export default function AuditLogs() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.25 }}
             >
-              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
+              <Card className="hover:border-os-accent/40 hover:shadow-os-md-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
                     <div className="w-12 h-12 rounded-full flex items-center justify-center">
@@ -471,7 +471,7 @@ export default function AuditLogs() {
                   <div className="text-4xl md:text-5xl font-bold mb-2">
                     {auditKPIs.complianceEvents}
                   </div>
-                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
+                  <div className="text-os-xs md:text-os-sm font-medium uppercase tracking-wide">
                     Compliance Events
                   </div>
                 </CardContent>
@@ -484,7 +484,7 @@ export default function AuditLogs() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.3 }}
             >
-              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
+              <Card className="hover:border-os-accent/40 hover:shadow-os-md-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
                     <div className="w-12 h-12 rounded-full flex items-center justify-center">
@@ -494,7 +494,7 @@ export default function AuditLogs() {
                   <div className="text-4xl md:text-5xl font-bold mb-2">
                     {auditKPIs.failedAttempts}
                   </div>
-                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
+                  <div className="text-os-xs md:text-os-sm font-medium uppercase tracking-wide">
                     Failed Attempts
                   </div>
                 </CardContent>
@@ -509,10 +509,10 @@ export default function AuditLogs() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
         >
-          <Card className="rounded-afrikoni-lg shadow-premium">
+          <Card className="rounded-afrikoni-lg shadow-os-md">
             <CardHeader className="border-b pb-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <CardTitle className="text-os-base font-semibold flex items-center gap-2">
                   <Filter className="w-4 h-4" />
                   Filters & Search
                 </CardTitle>
@@ -520,7 +520,7 @@ export default function AuditLogs() {
                   size="sm"
                   variant="outline"
                   onClick={resetFilters}
-                  className="rounded-afrikoni text-xs"
+                  className="rounded-afrikoni text-os-xs"
                 >
                   Reset Filters
                 </Button>
@@ -530,25 +530,25 @@ export default function AuditLogs() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Search */}
                 <div className="lg:col-span-2">
-                  <label className="text-xs font-medium mb-2 block">Search</label>
+                  <label className="text-os-xs font-medium mb-2 block">Search</label>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" />
                     <Input
                       placeholder="Search logs..."
                       value={filters.search}
                       onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                      className="pl-10 focus:border-afrikoni-gold focus:ring-2 focus:ring-afrikoni-gold/20 rounded-afrikoni"
+                      className="pl-10 focus:border-os-accent focus:ring-2 focus:ring-os-accent/20 rounded-afrikoni"
                     />
                   </div>
                 </div>
 
                 {/* Actor Type */}
                 <div>
-                  <label className="text-xs font-medium mb-2 block">Actor Type</label>
+                  <label className="text-os-xs font-medium mb-2 block">Actor Type</label>
                   <select
                     value={filters.actorType}
                     onChange={(e) => setFilters({ ...filters, actorType: e.target.value })}
-                    className="w-full text-sm border rounded-afrikoni px-3 py-2 focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20"
+                    className="w-full text-os-sm border rounded-afrikoni px-3 py-2 focus:outline-none focus:ring-2 focus:ring-os-accent/20"
                   >
                     <option value="all">All Types</option>
                     {actorTypes.map(type => (
@@ -559,11 +559,11 @@ export default function AuditLogs() {
 
                 {/* Status */}
                 <div>
-                  <label className="text-xs font-medium mb-2 block">Status</label>
+                  <label className="text-os-xs font-medium mb-2 block">Status</label>
                   <select
                     value={filters.status}
                     onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-                    className="w-full text-sm border rounded-afrikoni px-3 py-2 focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20"
+                    className="w-full text-os-sm border rounded-afrikoni px-3 py-2 focus:outline-none focus:ring-2 focus:ring-os-accent/20"
                   >
                     <option value="all">All Statuses</option>
                     <option value="success">Success</option>
@@ -574,11 +574,11 @@ export default function AuditLogs() {
 
                 {/* Risk Level */}
                 <div>
-                  <label className="text-xs font-medium mb-2 block">Risk Level</label>
+                  <label className="text-os-xs font-medium mb-2 block">Risk Level</label>
                   <select
                     value={filters.riskLevel}
                     onChange={(e) => setFilters({ ...filters, riskLevel: e.target.value })}
-                    className="w-full text-sm border rounded-afrikoni px-3 py-2 focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20"
+                    className="w-full text-os-sm border rounded-afrikoni px-3 py-2 focus:outline-none focus:ring-2 focus:ring-os-accent/20"
                   >
                     <option value="all">All Levels</option>
                     {riskLevels.map(level => (
@@ -589,11 +589,11 @@ export default function AuditLogs() {
 
                 {/* Event Source */}
                 <div>
-                  <label className="text-xs font-medium mb-2 block">Event Source</label>
+                  <label className="text-os-xs font-medium mb-2 block">Event Source</label>
                   <select
                     value={filters.eventSource}
                     onChange={(e) => setFilters({ ...filters, eventSource: e.target.value })}
-                    className="w-full text-sm border rounded-afrikoni px-3 py-2 focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20"
+                    className="w-full text-os-sm border rounded-afrikoni px-3 py-2 focus:outline-none focus:ring-2 focus:ring-os-accent/20"
                   >
                     <option value="all">All Sources</option>
                     {eventSources.map(source => (
@@ -604,11 +604,11 @@ export default function AuditLogs() {
 
                 {/* Country */}
                 <div>
-                  <label className="text-xs font-medium mb-2 block">Country</label>
+                  <label className="text-os-xs font-medium mb-2 block">Country</label>
                   <select
                     value={filters.country}
                     onChange={(e) => setFilters({ ...filters, country: e.target.value })}
-                    className="w-full text-sm border rounded-afrikoni px-3 py-2 focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20"
+                    className="w-full text-os-sm border rounded-afrikoni px-3 py-2 focus:outline-none focus:ring-2 focus:ring-os-accent/20"
                   >
                     <option value="all">All Countries</option>
                     {uniqueCountries.map(country => (
@@ -619,12 +619,12 @@ export default function AuditLogs() {
 
                 {/* IP Address */}
                 <div>
-                  <label className="text-xs font-medium mb-2 block">IP Address</label>
+                  <label className="text-os-xs font-medium mb-2 block">IP Address</label>
                   <Input
                     placeholder="Filter by IP..."
                     value={filters.ip}
                     onChange={(e) => setFilters({ ...filters, ip: e.target.value })}
-                    className="focus:border-afrikoni-gold focus:ring-2 focus:ring-afrikoni-gold/20 rounded-afrikoni"
+                    className="focus:border-os-accent focus:ring-2 focus:ring-os-accent/20 rounded-afrikoni"
                   />
                 </div>
               </div>
@@ -639,23 +639,23 @@ export default function AuditLogs() {
           transition={{ duration: 0.4, delay: 0.3 }}
         >
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3">
+            <h2 className="text-os-lg md:text-os-xl font-bold uppercase tracking-wider border-b-2 pb-3">
               Audit Log Entries
             </h2>
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="text-os-xs">
                 {filteredAndSortedLogs.length} entries
               </Badge>
             </div>
           </div>
-          <Card className="rounded-afrikoni-lg shadow-premium">
+          <Card className="rounded-afrikoni-lg shadow-os-md">
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead className="sticky top-0 z-10">
                     <tr className="border-b">
                       <th
-                        className="text-left py-3 px-4 text-xs font-semibold cursor-pointer hover:bg-afrikoni-gold/10 transition-colors"
+                        className="text-left py-3 px-4 text-os-xs font-semibold cursor-pointer hover:bg-os-accent/10 transition-colors"
                         onClick={() => handleSort('timestamp')}
                       >
                         <div className="flex items-center gap-2">
@@ -666,7 +666,7 @@ export default function AuditLogs() {
                         </div>
                       </th>
                       <th
-                        className="text-left py-3 px-4 text-xs font-semibold cursor-pointer hover:bg-afrikoni-gold/10 transition-colors"
+                        className="text-left py-3 px-4 text-os-xs font-semibold cursor-pointer hover:bg-os-accent/10 transition-colors"
                         onClick={() => handleSort('actor')}
                       >
                         <div className="flex items-center gap-2">
@@ -676,12 +676,12 @@ export default function AuditLogs() {
                           )}
                         </div>
                       </th>
-                      <th className="text-left py-3 px-4 text-xs font-semibold">Actor Type</th>
-                      <th className="text-left py-3 px-4 text-xs font-semibold">Action Type</th>
-                      <th className="text-left py-3 px-4 text-xs font-semibold">Target</th>
-                      <th className="text-left py-3 px-4 text-xs font-semibold">Country / IP</th>
-                      <th className="text-left py-3 px-4 text-xs font-semibold">Status</th>
-                      <th className="text-left py-3 px-4 text-xs font-semibold">Action</th>
+                      <th className="text-left py-3 px-4 text-os-xs font-semibold">Actor Type</th>
+                      <th className="text-left py-3 px-4 text-os-xs font-semibold">Action Type</th>
+                      <th className="text-left py-3 px-4 text-os-xs font-semibold">Target</th>
+                      <th className="text-left py-3 px-4 text-os-xs font-semibold">Country / IP</th>
+                      <th className="text-left py-3 px-4 text-os-xs font-semibold">Status</th>
+                      <th className="text-left py-3 px-4 text-os-xs font-semibold">Action</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -692,43 +692,43 @@ export default function AuditLogs() {
                           key={log.id}
                           className="border-b hover:bg-afrikoni-sand/10 transition-colors"
                         >
-                          <td className="py-3 px-4 text-xs">
+                          <td className="py-3 px-4 text-os-xs">
                             {log.timestamp ? format(new Date(log.timestamp), 'MMM d, yyyy HH:mm') : 'N/A'}
                           </td>
                           <td className="py-3 px-4">
                             <div className="flex items-center gap-2">
                               <ActorIcon className="w-3 h-3" />
-                              <span className="text-xs font-medium truncate max-w-[120px]">
+                              <span className="text-os-xs font-medium truncate max-w-[120px]">
                                 {log.actor}
                               </span>
                             </div>
                           </td>
                           <td className="py-3 px-4">
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="text-os-xs">
                               {log.actorType}
                             </Badge>
                           </td>
-                          <td className="py-3 px-4 text-xs">
+                          <td className="py-3 px-4 text-os-xs">
                             {log.actionType}
                           </td>
-                          <td className="py-3 px-4 text-xs truncate max-w-[150px]">
+                          <td className="py-3 px-4 text-os-xs truncate max-w-[150px]">
                             {log.target}
                           </td>
                           <td className="py-3 px-4">
-                            <div className="flex items-center gap-1 text-xs">
+                            <div className="flex items-center gap-1 text-os-xs">
                               <Globe className="w-3 h-3" />
                               <span>{log.country}</span>
                             </div>
-                            <div className="text-xs mt-1">
+                            <div className="text-os-xs mt-1">
                               {log.ip}
                             </div>
                           </td>
                           <td className="py-3 px-4">
                             <div className="flex flex-col gap-1">
-                              <Badge className={`${getStatusColor(log.status)} text-xs`}>
+                              <Badge className={`${getStatusColor(log.status)} text-os-xs`}>
                                 {log.status}
                               </Badge>
-                              <Badge className={`${getRiskLevelColor(log.riskLevel)} text-xs`}>
+                              <Badge className={`${getRiskLevelColor(log.riskLevel)} text-os-xs`}>
                                 {log.riskLevel}
                               </Badge>
                             </div>
@@ -738,7 +738,7 @@ export default function AuditLogs() {
                               size="sm"
                               variant="outline"
                               onClick={() => handleViewDetails(log)}
-                              className="rounded-afrikoni text-xs"
+                              className="rounded-afrikoni text-os-xs"
                             >
                               <Eye className="w-3 h-3 mr-1" />
                               View
@@ -753,7 +753,7 @@ export default function AuditLogs() {
               {/* Pagination */}
               {totalPages > 1 && (
                 <div className="flex items-center justify-between p-4 border-t">
-                  <div className="text-xs">
+                  <div className="text-os-xs">
                     Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, filteredAndSortedLogs.length)} of {filteredAndSortedLogs.length} entries
                   </div>
                   <div className="flex items-center gap-2">
@@ -766,7 +766,7 @@ export default function AuditLogs() {
                     >
                       Previous
                     </Button>
-                    <span className="text-xs">
+                    <span className="text-os-xs">
                       Page {currentPage} of {totalPages}
                     </span>
                     <Button
@@ -793,9 +793,9 @@ export default function AuditLogs() {
         >
           <div className="grid md:grid-cols-2 gap-6">
             {/* Integrity Verification */}
-            <Card className="rounded-afrikoni-lg shadow-premium">
+            <Card className="rounded-afrikoni-lg shadow-os-md">
               <CardHeader className="border-b pb-4">
-                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <CardTitle className="text-os-base font-semibold flex items-center gap-2">
                   <Shield className="w-4 h-4" />
                   Integrity Verification
                 </CardTitle>
@@ -803,29 +803,29 @@ export default function AuditLogs() {
               <CardContent className="p-6">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Algorithm</span>
+                    <span className="text-os-sm">Algorithm</span>
                     <Badge variant="outline" className="">
                       {integrityData.algorithm}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Last Check</span>
-                    <span className="text-sm">
+                    <span className="text-os-sm">Last Check</span>
+                    <span className="text-os-sm">
                       {new Date(integrityData.lastCheck).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Status</span>
+                    <span className="text-os-sm">Status</span>
                     <Badge className="">
                       <CheckCircle className="w-3 h-3 mr-1" />
                       {integrityData.status === 'verified' ? 'Verified' : 'Tampered'}
                     </Badge>
                   </div>
                   <div className="p-3 rounded-afrikoni border">
-                    <p className="text-xs mb-2">
+                    <p className="text-os-xs mb-2">
                       {integrityData.verificationMessage}
                     </p>
-                    <p className="text-xs">
+                    <p className="text-os-xs">
                       All audit logs are cryptographically hashed to ensure immutability and prevent tampering. This is critical for anti-corruption and transparency compliance.
                     </p>
                   </div>
@@ -842,9 +842,9 @@ export default function AuditLogs() {
             </Card>
 
             {/* Export & Download Tools */}
-            <Card className="rounded-afrikoni-lg shadow-premium">
+            <Card className="rounded-afrikoni-lg shadow-os-md">
               <CardHeader className="border-b pb-4">
-                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <CardTitle className="text-os-base font-semibold flex items-center gap-2">
                   <Download className="w-4 h-4" />
                   Export & Download
                 </CardTitle>
@@ -852,7 +852,7 @@ export default function AuditLogs() {
               <CardContent className="p-6">
                 <div className="space-y-3">
                   <Button
-                    className="w-full hover:bg-afrikoni-gold/90 rounded-afrikoni justify-start"
+                    className="w-full hover:bg-os-accent/90 rounded-afrikoni justify-start"
                     onClick={() => handleExport('csv')}
                   >
                     <FileSpreadsheet className="w-4 h-4 mr-2" />
@@ -875,7 +875,7 @@ export default function AuditLogs() {
                     Download Compliance Report (PDF)
                   </Button>
                   <div className="pt-3 border-t">
-                    <Badge variant="outline" className="text-xs w-full justify-center py-2">
+                    <Badge variant="outline" className="text-os-xs w-full justify-center py-2">
                       For regulators, auditors, and partners
                     </Badge>
                   </div>
@@ -906,7 +906,7 @@ export default function AuditLogs() {
             >
               <div className="sticky top-0 border-b p-6 z-10">
                 <div className="flex items-center justify-between mb-4">
-                  <h2 className="text-xl font-bold">Log Details</h2>
+                  <h2 className="text-os-xl font-bold">Log Details</h2>
                   <button
                     onClick={() => setShowDetailDrawer(false)}
                     className="hover:text-afrikoni-text-dark"
@@ -919,9 +919,9 @@ export default function AuditLogs() {
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
-                      className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                      className={`px-4 py-2 text-os-sm font-medium border-b-2 transition-colors ${
                         activeTab === tab
-                          ? 'border-afrikoni-gold text-afrikoni-gold'
+                          ? 'border-os-accent text-os-accent'
                           : 'border-transparent text-afrikoni-text-dark/70 hover:text-afrikoni-text-dark'
                       }`}
                     >
@@ -934,8 +934,8 @@ export default function AuditLogs() {
                 {activeTab === 'overview' && (
                   <div className="space-y-4">
                     <div>
-                      <h3 className="text-sm font-semibold mb-2">Event Information</h3>
-                      <div className="space-y-2 text-sm">
+                      <h3 className="text-os-sm font-semibold mb-2">Event Information</h3>
+                      <div className="space-y-2 text-os-sm">
                         <div className="flex justify-between">
                           <span className="">Event ID:</span>
                           <span className="font-mono">{selectedLog.id}</span>
@@ -955,8 +955,8 @@ export default function AuditLogs() {
                       </div>
                     </div>
                     <div>
-                      <h3 className="text-sm font-semibold mb-2">Actor Information</h3>
-                      <div className="space-y-2 text-sm">
+                      <h3 className="text-os-sm font-semibold mb-2">Actor Information</h3>
+                      <div className="space-y-2 text-os-sm">
                         <div className="flex justify-between">
                           <span className="">Actor:</span>
                           <span className="">{selectedLog.actor}</span>
@@ -968,7 +968,7 @@ export default function AuditLogs() {
                       </div>
                     </div>
                     <div>
-                      <h3 className="text-sm font-semibold mb-2">Status & Risk</h3>
+                      <h3 className="text-os-sm font-semibold mb-2">Status & Risk</h3>
                       <div className="flex gap-2">
                         <Badge className={getStatusColor(selectedLog.status)}>
                           {selectedLog.status}
@@ -979,8 +979,8 @@ export default function AuditLogs() {
                       </div>
                     </div>
                     <div>
-                      <h3 className="text-sm font-semibold mb-2">Location</h3>
-                      <div className="space-y-2 text-sm">
+                      <h3 className="text-os-sm font-semibold mb-2">Location</h3>
+                      <div className="space-y-2 text-os-sm">
                         <div className="flex items-center gap-2">
                           <MapPin className="w-4 h-4" />
                           <span className="">{selectedLog.country}</span>
@@ -995,8 +995,8 @@ export default function AuditLogs() {
                 )}
                 {activeTab === 'metadata' && (
                   <div className="space-y-4">
-                    <h3 className="text-sm font-semibold mb-2">Event Metadata</h3>
-                    <pre className="p-4 rounded-afrikoni border text-xs overflow-x-auto">
+                    <h3 className="text-os-sm font-semibold mb-2">Event Metadata</h3>
+                    <pre className="p-4 rounded-afrikoni border text-os-xs overflow-x-auto">
                       {JSON.stringify(selectedLog.metadata, null, 2)}
                     </pre>
                   </div>
@@ -1004,16 +1004,16 @@ export default function AuditLogs() {
                 {activeTab === 'security' && (
                   <div className="space-y-4">
                     <div>
-                      <h3 className="text-sm font-semibold mb-2">Integrity Hash</h3>
+                      <h3 className="text-os-sm font-semibold mb-2">Integrity Hash</h3>
                       <div className="p-3 rounded-afrikoni border">
-                        <code className="text-xs font-mono break-all">
+                        <code className="text-os-xs font-mono break-all">
                           {selectedLog.hash}
                         </code>
                       </div>
                     </div>
                     <div>
-                      <h3 className="text-sm font-semibold mb-2">Security Information</h3>
-                      <div className="space-y-2 text-sm">
+                      <h3 className="text-os-sm font-semibold mb-2">Security Information</h3>
+                      <div className="space-y-2 text-os-sm">
                         <div className="flex justify-between">
                           <span className="">Event Source:</span>
                           <Badge variant="outline">{selectedLog.eventSource}</Badge>
@@ -1030,8 +1030,8 @@ export default function AuditLogs() {
                 )}
                 {activeTab === 'raw' && (
                   <div className="space-y-4">
-                    <h3 className="text-sm font-semibold mb-2">Raw Log Data</h3>
-                    <pre className="p-4 rounded-afrikoni border text-xs overflow-x-auto">
+                    <h3 className="text-os-sm font-semibold mb-2">Raw Log Data</h3>
+                    <pre className="p-4 rounded-afrikoni border text-os-xs overflow-x-auto">
                       {JSON.stringify(selectedLog, null, 2)}
                     </pre>
                   </div>

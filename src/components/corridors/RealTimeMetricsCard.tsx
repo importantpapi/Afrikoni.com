@@ -64,8 +64,8 @@ export function RealTimeMetricsCard<T>({
                             <Icon className="w-5 h-5 text-white/70" />
                         </div>
                         <div>
-                            <h4 className="text-sm font-medium text-white/90">{label}</h4>
-                            <p className="text-xs text-white/50">{timeAgo}</p>
+                            <h4 className="text-os-sm font-medium text-white/90">{label}</h4>
+                            <p className="text-os-xs text-white/50">{timeAgo}</p>
                         </div>
                     </div>
                     {dataPoint.trend && (
@@ -82,15 +82,15 @@ export function RealTimeMetricsCard<T>({
                     transition={{ duration: 0.3 }}
                     className="flex items-baseline gap-2"
                 >
-                    <span className="text-2xl font-bold text-white">{displayValue}</span>
+                    <span className="text-os-2xl font-bold text-white">{displayValue}</span>
                     <ConfidenceBadge confidence={dataPoint.confidence} showLabel={false} size="sm" />
                 </motion.div>
 
                 {/* Confidence & Sources */}
                 <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                        <span className="text-xs text-white/50">Confidence</span>
-                        <span className="text-xs font-medium text-white/70">
+                        <span className="text-os-xs text-white/50">Confidence</span>
+                        <span className="text-os-xs font-medium text-white/70">
                             {dataPoint.confidence}%
                         </span>
                     </div>

@@ -170,20 +170,20 @@ function LockedFeatureCard({ feature, stats }) {
     return (
         <Surface variant="panel" className="p-6 border border-white/10">
             <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0">
+                <div className="w-12 h-12 rounded-os-sm bg-white/5 flex items-center justify-center flex-shrink-0">
                     <Lock className="w-6 h-6 text-white/40" />
                 </div>
 
                 <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-white mb-1">
+                    <h3 className="text-os-lg font-semibold text-white mb-1">
                         {feature.label}
                     </h3>
-                    <p className="text-sm text-white/60 mb-4">
+                    <p className="text-os-sm text-white/60 mb-4">
                         {feature.description}
                     </p>
 
                     <div className="space-y-2">
-                        <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center justify-between text-os-sm">
                             <span className="text-white/70">Progress</span>
                             <span className="text-white font-medium">
                                 {progress} / {total}
@@ -199,7 +199,7 @@ function LockedFeatureCard({ feature, stats }) {
                             />
                         </div>
 
-                        <p className="text-xs text-white/50">
+                        <p className="text-os-xs text-white/50">
                             {feature.requirement}
                         </p>
                     </div>
@@ -235,13 +235,13 @@ function CelebrationModal({ feature }) {
                         <Icon className="w-10 h-10 text-[#D4A937]" />
                     </motion.div>
 
-                    <h2 className="text-2xl font-bold text-white mb-2">
+                    <h2 className="text-os-2xl font-bold text-white mb-2">
                         Feature Unlocked!
                     </h2>
-                    <p className="text-lg text-[#D4A937] mb-4">
+                    <p className="text-os-lg text-[#D4A937] mb-4">
                         {feature.label}
                     </p>
-                    <p className="text-sm text-white/70">
+                    <p className="text-os-sm text-white/70">
                         {feature.description}
                     </p>
                 </Surface>

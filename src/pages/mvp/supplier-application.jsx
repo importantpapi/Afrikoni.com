@@ -122,20 +122,20 @@ export default function SupplierApplication() {
           <h1 className="text-4xl font-bold text-afrikoni-chestnut mb-3">
             Become an Afrikoni Supplier
           </h1>
-          <p className="text-lg text-afrikoni-deep/70">
+          <p className="text-os-lg text-afrikoni-deep/70">
             Join Africa's premier B2B marketplace. We're onboarding 10-20 verified suppliers for Phase 1.
           </p>
         </motion.div>
 
         {/* Progress Steps */}
-        <Card className="mb-6 border-2 border-afrikoni-gold/30">
+        <Card className="mb-6 border-2 border-os-accent/30">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               {[1, 2, 3].map((step) => (
                 <div key={step} className="flex items-center flex-1">
                   <div className={`
                     w-10 h-10 rounded-full flex items-center justify-center
-                    ${currentStep === step ? 'bg-afrikoni-gold text-white' : 
+                    ${currentStep === step ? 'bg-os-accent text-white' : 
                       currentStep > step ? 'bg-green-600 text-white' : 
                       'bg-afrikoni-deep/10 text-afrikoni-deep/40'}
                   `}>
@@ -151,7 +151,7 @@ export default function SupplierApplication() {
               ))}
             </div>
             <div className="text-center mt-4">
-              <p className="text-sm font-medium text-afrikoni-chestnut">
+              <p className="text-os-sm font-medium text-afrikoni-chestnut">
                 {currentStep === 1 && 'Company Information'}
                 {currentStep === 2 && 'Business Details'}
                 {currentStep === 3 && 'Application Submitted'}
@@ -162,7 +162,7 @@ export default function SupplierApplication() {
 
         {/* Form */}
         {currentStep < 3 && (
-          <Card className="border-2 border-afrikoni-gold/30 bg-white shadow-lg">
+          <Card className="border-2 border-os-accent/30 bg-white shadow-os-md">
             <CardContent className="p-8">
               <form onSubmit={handleSubmit}>
                 {currentStep === 1 && (
@@ -172,14 +172,14 @@ export default function SupplierApplication() {
                     className="space-y-6"
                   >
                     <div>
-                      <h2 className="text-2xl font-bold text-afrikoni-chestnut mb-4">
+                      <h2 className="text-os-2xl font-bold text-afrikoni-chestnut mb-4">
                         Company Information
                       </h2>
                     </div>
 
                     <div>
                       <Label htmlFor="company_name">
-                        Company Name <span className="text-red-500">*</span>
+                        Company Name <span className="text-os-red">*</span>
                       </Label>
                       <Input
                         id="company_name"
@@ -213,7 +213,7 @@ export default function SupplierApplication() {
 
                       <div>
                         <Label htmlFor="country">
-                          Country <span className="text-red-500">*</span>
+                          Country <span className="text-os-red">*</span>
                         </Label>
                         <Select 
                           value={formData.country} 
@@ -260,7 +260,7 @@ export default function SupplierApplication() {
 
                     <div>
                       <Label htmlFor="contact_name">
-                        Contact Person Name <span className="text-red-500">*</span>
+                        Contact Person Name <span className="text-os-red">*</span>
                       </Label>
                       <Input
                         id="contact_name"
@@ -275,7 +275,7 @@ export default function SupplierApplication() {
                     <div className="grid md:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor="email">
-                          Email <span className="text-red-500">*</span>
+                          Email <span className="text-os-red">*</span>
                         </Label>
                         <Input
                           id="email"
@@ -290,7 +290,7 @@ export default function SupplierApplication() {
 
                       <div>
                         <Label htmlFor="phone">
-                          Phone <span className="text-red-500">*</span>
+                          Phone <span className="text-os-red">*</span>
                         </Label>
                         <Input
                           id="phone"
@@ -314,7 +314,7 @@ export default function SupplierApplication() {
                         placeholder="+234 123 456 7890"
                         className="mt-1"
                       />
-                      <p className="text-xs text-afrikoni-deep/60 mt-1">
+                      <p className="text-os-xs text-afrikoni-deep/60 mt-1">
                         We'll use this for RFQ notifications
                       </p>
                     </div>
@@ -323,7 +323,7 @@ export default function SupplierApplication() {
                       <Button
                         type="button"
                         onClick={() => setCurrentStep(2)}
-                        className="bg-afrikoni-gold hover:bg-afrikoni-goldDark"
+                        className="bg-os-accent hover:bg-os-accentDark"
                       >
                         Next
                         <ArrowRight className="w-4 h-4 ml-2" />
@@ -339,7 +339,7 @@ export default function SupplierApplication() {
                     className="space-y-6"
                   >
                     <div>
-                      <h2 className="text-2xl font-bold text-afrikoni-chestnut mb-4">
+                      <h2 className="text-os-2xl font-bold text-afrikoni-chestnut mb-4">
                         Business Details
                       </h2>
                     </div>
@@ -438,7 +438,7 @@ export default function SupplierApplication() {
                       <Button
                         type="submit"
                         disabled={isSubmitting}
-                        className="bg-afrikoni-gold hover:bg-afrikoni-goldDark"
+                        className="bg-os-accent hover:bg-os-accentDark"
                       >
                         {isSubmitting ? (
                           <>
@@ -472,12 +472,12 @@ export default function SupplierApplication() {
                 <h2 className="text-3xl font-bold text-afrikoni-chestnut mb-4">
                   Application Submitted!
                 </h2>
-                <p className="text-lg text-afrikoni-deep/70 mb-6">
+                <p className="text-os-lg text-afrikoni-deep/70 mb-6">
                   Thank you for your interest in becoming an Afrikoni supplier.
                 </p>
                 <div className="bg-white rounded-lg p-6 mb-6 text-left">
                   <h3 className="font-semibold mb-3">What happens next?</h3>
-                  <ul className="space-y-2 text-sm text-afrikoni-deep/70">
+                  <ul className="space-y-2 text-os-sm text-afrikoni-deep/70">
                     <li>✅ We'll review your application within 2-3 business days</li>
                     <li>✅ Our team will contact you via email or WhatsApp</li>
                     <li>✅ If approved, we'll guide you through onboarding</li>
@@ -486,7 +486,7 @@ export default function SupplierApplication() {
                 </div>
                 <Button
                   onClick={() => navigate('/')}
-                  className="bg-afrikoni-gold hover:bg-afrikoni-goldDark"
+                  className="bg-os-accent hover:bg-os-accentDark"
                 >
                   Return to Home
                 </Button>
@@ -501,7 +501,7 @@ export default function SupplierApplication() {
             <h3 className="font-semibold text-afrikoni-chestnut mb-2">
               Phase 1 MVP - Limited Spots Available
             </h3>
-            <p className="text-sm text-afrikoni-deep/70">
+            <p className="text-os-sm text-afrikoni-deep/70">
               We're onboarding 10-20 verified African suppliers for our Phase 1 launch. 
               Selected suppliers will receive priority support, featured listings, and direct access to international buyers.
             </p>

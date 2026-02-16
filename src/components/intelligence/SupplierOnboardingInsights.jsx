@@ -18,7 +18,7 @@ export default function SupplierOnboardingInsights() {
       <Card>
         <CardContent className="p-6">
           <div className="flex items-center justify-center h-32">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-afrikoni-gold" />
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-os-accent" />
           </div>
         </CardContent>
       </Card>
@@ -30,7 +30,7 @@ export default function SupplierOnboardingInsights() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Target className="w-5 h-5 text-afrikoni-gold" />
+            <Target className="w-5 h-5 text-os-accent" />
             Supplier Onboarding Opportunities
           </CardTitle>
         </CardHeader>
@@ -38,7 +38,7 @@ export default function SupplierOnboardingInsights() {
           <div className="text-center py-8 text-afrikoni-deep/70">
             <Package className="w-12 h-12 mx-auto mb-3 text-afrikoni-deep/30" />
             <p>No supply gaps detected at this time.</p>
-            <p className="text-sm mt-2">Market demand is well-served by existing suppliers.</p>
+            <p className="text-os-sm mt-2">Market demand is well-served by existing suppliers.</p>
           </div>
         </CardContent>
       </Card>
@@ -49,10 +49,10 @@ export default function SupplierOnboardingInsights() {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Target className="w-5 h-5 text-afrikoni-gold" />
+          <Target className="w-5 h-5 text-os-accent" />
           Supplier Onboarding Opportunities
         </CardTitle>
-        <p className="text-sm text-afrikoni-deep/70 mt-1">
+        <p className="text-os-sm text-afrikoni-deep/70 mt-1">
           High-demand categories with low supplier availability
         </p>
       </CardHeader>
@@ -74,7 +74,7 @@ export default function SupplierOnboardingInsights() {
                       {gap.gap_count} {gap.gap_count === 1 ? 'gap' : 'gaps'}
                     </Badge>
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-orange-700">
+                  <div className="flex items-center gap-2 text-os-sm text-orange-700">
                     <MapPin className="w-3.5 h-3.5" />
                     <span>High demand in {gap.buyer_country || 'Multiple countries'}</span>
                   </div>
@@ -82,13 +82,13 @@ export default function SupplierOnboardingInsights() {
                 <TrendingUp className="w-5 h-5 text-orange-600 flex-shrink-0" />
               </div>
               <div className="mt-3 pt-3 border-t border-orange-200">
-                <p className="text-xs text-orange-800 font-medium">
+                <p className="text-os-xs text-orange-800 font-medium">
                   💡 Opportunity: We need more suppliers in {gap.category_name} for {gap.buyer_country}
                 </p>
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="mt-2 text-xs"
+                  className="mt-2 text-os-xs"
                   onClick={() => {
                     // Navigate to supplier onboarding with pre-filled category/country
                     window.location.href = `/become-supplier?category=${encodeURIComponent(gap.category_name)}&country=${encodeURIComponent(gap.buyer_country)}`;
@@ -103,7 +103,7 @@ export default function SupplierOnboardingInsights() {
         
         {supplyGaps.length > 10 && (
           <div className="mt-4 text-center">
-            <p className="text-sm text-afrikoni-deep/70">
+            <p className="text-os-sm text-afrikoni-deep/70">
               +{supplyGaps.length - 10} more opportunities
             </p>
           </div>

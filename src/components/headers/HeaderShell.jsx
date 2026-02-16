@@ -18,7 +18,7 @@ export default function HeaderShell({ children }) {
         sticky top-0
         w-full
         bg-afrikoni-offwhite
-        border-b border-afrikoni-gold/20
+        border-b border-os-accent/20
       "
       style={{ zIndex: zIndex.header }}
     >

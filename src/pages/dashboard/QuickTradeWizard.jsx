@@ -106,7 +106,7 @@ export default function QuickTradeWizard() {
         if (currentStep === 1 && expressMode) {
             setIsSubmitting(true);
             try {
-                toast.info('AI is sculpting your trade architecture...', { icon: <Sparkles className="w-4 h-4 text-afrikoni-gold" /> });
+                toast.info('AI is sculpting your trade architecture...', { icon: <Sparkles className="w-4 h-4 text-os-accent" /> });
                 const result = await KoniAIService.generateRFQ({
                     description: `${formData.quantity} ${formData.unit} of ${formData.productName}`,
                     context: { quantity: formData.quantity }
@@ -170,10 +170,10 @@ export default function QuickTradeWizard() {
     };
 
     return (
-        <div className="min-h-screen bg-[#08090A] text-white selection:bg-afrikoni-gold/30 font-sans">
+        <div className="min-h-screen bg-afrikoni-offwhite text-afrikoni-deep selection:bg-os-accent/30 font-sans">
             {/* Background Narrative */}
             <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] pointer-events-none" />
-            <div className="fixed inset-0 bg-gradient-to-tr from-afrikoni-gold/[0.02] via-transparent to-blue-500/[0.02] pointer-events-none" />
+            <div className="fixed inset-0 bg-gradient-to-tr from-os-accent/[0.02] via-transparent to-blue-500/[0.02] pointer-events-none" />
 
             <div className="max-w-5xl mx-auto px-6 py-12 relative z-10">
                 {/* Header Evolution */}
@@ -181,7 +181,7 @@ export default function QuickTradeWizard() {
                     <div className="space-y-6">
                         <button
                             onClick={() => navigate('/dashboard')}
-                            className="group flex items-center gap-2 text-[10px] font-black text-white/40 hover:text-white transition-all uppercase tracking-[0.3em]"
+                            className="group flex items-center gap-2 text-os-xs font-black text-white/40 hover:text-white transition-all uppercase tracking-[0.3em]"
                         >
                             <ArrowLeft className="w-3 h-3 group-hover:-translate-x-1 transition-transform" />
                             Esc Terminal / Return
@@ -190,18 +190,18 @@ export default function QuickTradeWizard() {
                         <div className="flex items-center gap-6">
                             <div className={cn(
                                 "w-20 h-20 rounded-[2rem] flex items-center justify-center border-2 transition-all duration-700 shadow-2xl relative group overflow-hidden",
-                                expressMode ? "border-afrikoni-gold/40 bg-afrikoni-gold/5" : "border-white/10 bg-white/5"
+                                expressMode ? "border-os-accent/40 bg-os-accent/5" : "border-white/10 bg-white/5"
                             )}>
                                 <div className="absolute inset-0 bg-gradient-to-tr from-white/[0.05] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                 <Zap className={cn(
                                     "w-10 h-10 transition-all duration-700",
-                                    expressMode ? "text-afrikoni-gold scale-110 drop-shadow-[0_0_15px_rgba(212,169,55,0.5)]" : "text-white/40"
+                                    expressMode ? "text-os-accent scale-110 drop-shadow-[0_0_15px_rgba(212,169,55,0.5)]" : "text-white/40"
                                 )} />
                             </div>
                             <div className="space-y-1">
                                 <h1 className="text-4xl font-black tracking-tighter flex items-center gap-4">
                                     Quick Trade
-                                    {expressMode && <Badge className="bg-afrikoni-gold text-black font-black hover:bg-afrikoni-gold px-2 text-[9px] tracking-widest uppercase">Express</Badge>}
+                                    {expressMode && <Badge className="bg-os-accent text-black font-black hover:bg-os-accent px-2 text-os-xs tracking-widest uppercase">Express</Badge>}
                                 </h1>
                                 <p className="text-white/40 font-medium italic">Autonomous trade architect v2.06 • {organization?.company_name || 'Afrikoni Enterprise'}</p>
                             </div>
@@ -210,8 +210,8 @@ export default function QuickTradeWizard() {
 
                     <div className="flex flex-col items-end gap-6">
                         <div className="flex items-center gap-3 bg-white/[0.02] p-2 pr-6 rounded-full border border-white/5 backdrop-blur-xl">
-                            <Switch checked={expressMode} onCheckedChange={setExpressMode} className="data-[state=checked]:bg-afrikoni-gold" />
-                            <span className={cn("text-[9px] font-black uppercase tracking-[0.2em]", expressMode ? "text-afrikoni-gold" : "text-white/30")}>Express Pulse</span>
+                            <Switch checked={expressMode} onCheckedChange={setExpressMode} className="data-[state=checked]:bg-os-accent" />
+                            <span className={cn("text-os-xs font-black uppercase tracking-[0.2em]", expressMode ? "text-os-accent" : "text-white/30")}>Express Pulse</span>
                         </div>
 
                         <div className="flex items-center gap-6">
@@ -219,10 +219,10 @@ export default function QuickTradeWizard() {
                                 <div key={step.id} className="flex flex-col items-center gap-2">
                                     <div className={cn(
                                         "w-2.5 h-2.5 rounded-full transition-all duration-500",
-                                        currentStep === step.id ? "bg-afrikoni-gold ring-8 ring-afrikoni-gold/10 scale-125" :
+                                        currentStep === step.id ? "bg-os-accent ring-8 ring-os-accent/10 scale-125" :
                                             currentStep > step.id ? "bg-emerald-500" : "bg-white/10"
                                     )} />
-                                    <span className={cn("text-[9px] font-black uppercase tracking-widest", currentStep === step.id ? "text-white" : "text-white/20")}>{step.label}</span>
+                                    <span className={cn("text-os-xs font-black uppercase tracking-widest", currentStep === step.id ? "text-white" : "text-white/20")}>{step.label}</span>
                                 </div>
                             ))}
                         </div>
@@ -243,16 +243,16 @@ export default function QuickTradeWizard() {
                                 >
                                     <div className="space-y-2">
                                         <h2 className="text-3xl font-black text-white">{STEPS[currentStep - 1].question}</h2>
-                                        <div className="w-16 h-1.5 bg-afrikoni-gold rounded-full" />
+                                        <div className="w-16 h-1.5 bg-os-accent rounded-full" />
                                     </div>
 
                                     {currentStep === 1 && (
                                         <div className="space-y-8">
                                             <div className="space-y-4">
                                                 <div className="flex justify-between items-center px-1">
-                                                    <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">Market Product Code</label>
+                                                    <label className="text-os-xs font-black uppercase tracking-[0.3em] text-white/40">Market Product Code</label>
                                                     {formData.productName.length > 2 && (
-                                                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 text-emerald-500 text-[9px] font-black uppercase tracking-widest">
+                                                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center gap-2 text-emerald-500 text-os-xs font-black uppercase tracking-widest">
                                                             <Activity className="w-3 h-3" /> AI Benchmarking Active
                                                         </motion.div>
                                                     )}
@@ -262,29 +262,29 @@ export default function QuickTradeWizard() {
                                                         placeholder="Specify commodity or SKU..."
                                                         value={formData.productName}
                                                         onChange={(e) => updateField('productName', e.target.value)}
-                                                        className="bg-black/60 border-white/5 hover:border-afrikoni-gold/30 focus:border-afrikoni-gold/50 text-xl h-20 px-8 rounded-3xl transition-all font-bold"
+                                                        className="bg-black/60 border-white/5 hover:border-os-accent/30 focus:border-os-accent/50 text-os-xl h-20 px-8 rounded-os-lg transition-all font-bold"
                                                     />
-                                                    <Package className="absolute right-8 top-1/2 -translate-y-1/2 w-6 h-6 text-white/10 group-focus-within:text-afrikoni-gold/50 transition-colors" />
+                                                    <Package className="absolute right-8 top-1/2 -translate-y-1/2 w-6 h-6 text-white/10 group-focus-within:text-os-accent/50 transition-colors" />
                                                 </div>
                                             </div>
 
                                             <div className="grid grid-cols-2 gap-6">
                                                 <div className="space-y-4">
-                                                    <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 px-1">Volume</label>
+                                                    <label className="text-os-xs font-black uppercase tracking-[0.3em] text-white/40 px-1">Volume</label>
                                                     <Input
                                                         type="number"
                                                         placeholder="0.00"
                                                         value={formData.quantity}
                                                         onChange={(e) => updateField('quantity', e.target.value)}
-                                                        className="bg-black/60 border-white/5 h-16 px-6 rounded-2xl font-black text-lg"
+                                                        className="bg-black/60 border-white/5 h-16 px-6 rounded-os-md font-black text-os-lg"
                                                     />
                                                 </div>
                                                 <div className="space-y-4">
-                                                    <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 px-1">Market Unit</label>
+                                                    <label className="text-os-xs font-black uppercase tracking-[0.3em] text-white/40 px-1">Market Unit</label>
                                                     <select
                                                         value={formData.unit}
                                                         onChange={(e) => updateField('unit', e.target.value)}
-                                                        className="w-full h-16 px-6 rounded-2xl bg-black/60 border border-white/5 text-white font-bold focus:border-afrikoni-gold/50 outline-none appearance-none"
+                                                        className="w-full h-16 px-6 rounded-os-md bg-black/60 border border-white/5 text-white font-bold focus:border-os-accent/50 outline-none appearance-none"
                                                     >
                                                         <option value="MT">MT (Tons)</option>
                                                         <option value="KG">Kilograms</option>
@@ -310,31 +310,31 @@ export default function QuickTradeWizard() {
                                     {currentStep === 2 && (
                                         <div className="space-y-8">
                                             <div className="space-y-4">
-                                                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 px-1">Destination Node (Country)</label>
+                                                <label className="text-os-xs font-black uppercase tracking-[0.3em] text-white/40 px-1">Destination Node (Country)</label>
                                                 <div className="relative group">
                                                     <Input
                                                         placeholder="e.g. Morocco, Senegal..."
                                                         value={formData.targetCountry}
                                                         onChange={(e) => updateField('targetCountry', e.target.value)}
-                                                        className="bg-black/60 border-white/5 h-20 px-8 rounded-3xl font-bold text-lg"
+                                                        className="bg-black/60 border-white/5 h-20 px-8 rounded-os-lg font-bold text-os-lg"
                                                     />
-                                                    <Globe className="absolute right-8 top-1/2 -translate-y-1/2 w-6 h-6 text-white/10 group-focus-within:text-afrikoni-gold/50 transition-colors" />
+                                                    <Globe className="absolute right-8 top-1/2 -translate-y-1/2 w-6 h-6 text-white/10 group-focus-within:text-os-accent/50 transition-colors" />
                                                 </div>
                                             </div>
 
                                             <div className="space-y-4">
-                                                <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 px-1">Compliance Directives (Notes)</label>
+                                                <label className="text-os-xs font-black uppercase tracking-[0.3em] text-white/40 px-1">Compliance Directives (Notes)</label>
                                                 <div className="relative">
                                                     <Textarea
                                                         placeholder="Specify terminal preferences, insurance requirements, or quality certs..."
                                                         value={formData.additionalNotes}
                                                         onChange={(e) => updateField('additionalNotes', e.target.value)}
-                                                        className="bg-black/60 border-white/5 rounded-3xl p-8 min-h-[160px] font-medium leading-relaxed"
+                                                        className="bg-black/60 border-white/5 rounded-os-lg p-8 min-h-[160px] font-medium leading-relaxed"
                                                     />
                                                     {formData.hsCode && (
-                                                        <div className="absolute bottom-4 right-4 px-3 py-1 bg-afrikoni-gold/10 border border-afrikoni-gold/20 rounded-full flex items-center gap-2">
-                                                            <Fingerprint className="w-3 h-3 text-afrikoni-gold" />
-                                                            <span className="text-[9px] font-black text-afrikoni-gold uppercase tracking-widest">HS: {formData.hsCode}</span>
+                                                        <div className="absolute bottom-4 right-4 px-3 py-1 bg-os-accent/10 border border-os-accent/20 rounded-full flex items-center gap-2">
+                                                            <Fingerprint className="w-3 h-3 text-os-accent" />
+                                                            <span className="text-os-xs font-black text-os-accent uppercase tracking-widest">HS: {formData.hsCode}</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -342,12 +342,12 @@ export default function QuickTradeWizard() {
 
                                             {formData.logisticsSequence?.length > 0 && (
                                                 <div className="space-y-4">
-                                                    <label className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40 px-1">Logistics Sequence (AI Proposed)</label>
+                                                    <label className="text-os-xs font-black uppercase tracking-[0.3em] text-white/40 px-1">Logistics Sequence (AI Proposed)</label>
                                                     <div className="grid grid-cols-3 gap-2">
                                                         {formData.logisticsSequence.map((step, idx) => (
-                                                            <div key={idx} className="p-4 rounded-xl bg-white/[0.02] border border-white/5 flex flex-col gap-1">
-                                                                <span className="text-[8px] font-black text-afrikoni-gold uppercase tracking-widest">Step {idx + 1}</span>
-                                                                <span className="text-[10px] font-bold text-white uppercase truncate">{step}</span>
+                                                            <div key={idx} className="p-4 rounded-os-sm bg-white/[0.02] border border-white/5 flex flex-col gap-1">
+                                                                <span className="text-os-xs font-black text-os-accent uppercase tracking-widest">Step {idx + 1}</span>
+                                                                <span className="text-os-xs font-bold text-white uppercase truncate">{step}</span>
                                                             </div>
                                                         ))}
                                                     </div>
@@ -374,30 +374,30 @@ export default function QuickTradeWizard() {
                                         <div className="space-y-10">
                                             <div className="p-8 rounded-[2.5rem] bg-emerald-500/5 border border-emerald-500/10 flex items-center gap-8 relative overflow-hidden group">
                                                 <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                <div className="w-20 h-20 rounded-3xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
+                                                <div className="w-20 h-20 rounded-os-lg bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center shrink-0">
                                                     <ShieldCheck className="w-10 h-10 text-emerald-500" />
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <h3 className="text-2xl font-black text-white">Trade Ready Prototype</h3>
-                                                    <p className="text-sm text-emerald-500/70 font-medium italic">Verified Corridor • Zero Compliance Friction Detected</p>
+                                                    <h3 className="text-os-2xl font-black text-white">Trade Ready Prototype</h3>
+                                                    <p className="text-os-sm text-emerald-500/70 font-medium italic">Verified Corridor • Zero Compliance Friction Detected</p>
                                                 </div>
                                             </div>
 
                                             <div className="grid grid-cols-2 gap-4">
                                                 <Surface variant="panel" className="p-6 bg-white/[0.02] border-white/5 flex flex-col gap-4">
-                                                    <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.3em]">Hashed Blueprint</span>
-                                                    <div className="text-xs font-mono text-afrikoni-gold opacity-50 truncate">0xAFR_TRADE_2026_CONFIRM_...</div>
+                                                    <span className="text-os-xs font-black text-white/30 uppercase tracking-[0.3em]">Hashed Blueprint</span>
+                                                    <div className="text-os-xs font-mono text-os-accent opacity-50 truncate">0xAFR_TRADE_2026_CONFIRM_...</div>
                                                 </Surface>
                                                 <Surface variant="panel" className="p-6 bg-white/[0.02] border-white/5 flex flex-col gap-4">
-                                                    <span className="text-[9px] font-black text-white/30 uppercase tracking-[0.3em]">Temporal Lock</span>
-                                                    <div className="text-xs font-bold text-white uppercase italic">Standard 48h Window</div>
+                                                    <span className="text-os-xs font-black text-white/30 uppercase tracking-[0.3em]">Temporal Lock</span>
+                                                    <div className="text-os-xs font-bold text-white uppercase italic">Standard 48h Window</div>
                                                 </Surface>
                                             </div>
 
                                             <Button
                                                 onClick={handlePublish}
                                                 disabled={isSubmitting}
-                                                className="w-full h-24 rounded-[2.5rem] bg-afrikoni-gold text-black hover:bg-afrikoni-gold/90 font-black uppercase tracking-[0.3em] text-sm shadow-[0_30px_60px_rgba(212,169,55,0.2)] transition-all hover:scale-[1.02] group"
+                                                className="w-full h-24 rounded-[2.5rem] bg-os-accent text-black hover:bg-os-accent/90 font-black uppercase tracking-[0.3em] text-os-sm shadow-[0_30px_60px_rgba(212,169,55,0.2)] transition-all hover:scale-[1.02] group"
                                             >
                                                 {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin" /> : (
                                                     <span className="flex items-center gap-4">
@@ -407,7 +407,7 @@ export default function QuickTradeWizard() {
                                                 )}
                                             </Button>
 
-                                            <p className="text-center text-[10px] font-black text-white/20 uppercase tracking-[0.4em]">Immutable Trade Ledger Entry v2.0</p>
+                                            <p className="text-center text-os-xs font-black text-white/20 uppercase tracking-[0.4em]">Immutable Trade Ledger Entry v2.0</p>
                                         </div>
                                     )}
                                 </motion.div>
@@ -419,8 +419,8 @@ export default function QuickTradeWizard() {
                     <div className="lg:col-span-4 space-y-8">
                         <section className="space-y-6">
                             <div className="flex items-center gap-3 px-1">
-                                <Sparkles className="w-4 h-4 text-afrikoni-gold" />
-                                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/50">Copilot Intelligence</h3>
+                                <Sparkles className="w-4 h-4 text-os-accent" />
+                                <h3 className="text-os-xs font-black uppercase tracking-[0.3em] text-white/50">Copilot Intelligence</h3>
                             </div>
 
                             <div className="space-y-4">
@@ -450,19 +450,19 @@ export default function QuickTradeWizard() {
                                 {!formData.productName && (
                                     <div className="p-10 rounded-[2rem] border-2 border-dashed border-white/5 flex flex-col items-center text-center gap-4 opacity-40">
                                         <Fingerprint className="w-10 h-10 text-white/20" />
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-white/40">Awating Input Signature</p>
+                                        <p className="text-os-xs font-black uppercase tracking-widest text-white/40">Awating Input Signature</p>
                                     </div>
                                 )}
                             </div>
                         </section>
 
-                        <Surface variant="glass" className="p-8 border-afrikoni-gold/20 bg-afrikoni-gold/[0.02] space-y-6">
-                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-afrikoni-gold">Prophet Insight</h4>
+                        <Surface variant="glass" className="p-8 border-os-accent/20 bg-os-accent/[0.02] space-y-6">
+                            <h4 className="text-os-xs font-black uppercase tracking-[0.2em] text-os-accent">Prophet Insight</h4>
                             <div className="flex items-baseline gap-2">
                                 <span className="text-4xl font-black text-white">98</span>
-                                <span className="text-lg font-black text-white/40">%</span>
+                                <span className="text-os-lg font-black text-white/40">%</span>
                             </div>
-                            <p className="text-sm text-white/60 font-medium italic leading-relaxed">
+                            <p className="text-os-sm text-white/60 font-medium italic leading-relaxed">
                                 Current market liquidity for this trade corridor is at historic levels. Bids expected within <span className="text-white">4 minutes</span> of publication.
                             </p>
                         </Surface>

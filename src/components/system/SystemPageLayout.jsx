@@ -30,12 +30,12 @@ export function SystemPageHero({
           className="text-center"
         >
           {eyebrow && (
-            <Badge className="bg-afrikoni-gold/20 text-afrikoni-goldLight border-afrikoni-gold/30 mb-6 inline-flex items-center gap-2">
+            <Badge className="bg-os-accent/20 text-os-accentLight border-os-accent/30 mb-6 inline-flex items-center gap-2">
               {EyebrowIcon && <EyebrowIcon className="w-4 h-4" />}
               {eyebrow}
             </Badge>
           )}
-          <h1 className="text-h1-mobile md:text-h1 font-bold leading-[1.1] tracking-[-0.02em] text-afrikoni-gold mb-6">
+          <h1 className="text-h1-mobile md:text-h1 font-bold leading-[1.1] tracking-[-0.02em] text-os-accent mb-6">
             {title}
           </h1>
           {subtitle && (
@@ -47,7 +47,7 @@ export function SystemPageHero({
             <div className="flex flex-wrap justify-center gap-4">
               {primaryCTA && (
                 <Link to={primaryCTA.to || '#'} onClick={primaryCTA.onClick}>
-                  <Button size="lg" className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white">
+                  <Button size="lg" className="bg-os-accent hover:bg-os-accentDark text-white">
                     {primaryCTA.label}
                   </Button>
                 </Link>
@@ -89,7 +89,7 @@ export function SystemPageSection({
             className="text-center mb-12"
           >
             {title && (
-              <h2 className="text-h2-mobile md:text-h2 font-semibold leading-[1.2] text-afrikoni-gold mb-6">
+              <h2 className="text-h2-mobile md:text-h2 font-semibold leading-[1.2] text-os-accent mb-6">
                 {title}
               </h2>
             )}
@@ -114,8 +114,8 @@ export function SystemPageCard({
   title, 
   children, 
   className = '',
-  iconBg = 'bg-afrikoni-gold/20',
-  iconColor = 'text-afrikoni-gold'
+  iconBg = 'bg-os-accent/20',
+  iconColor = 'text-os-accent'
 }) {
   return (
     <motion.div
@@ -123,7 +123,7 @@ export function SystemPageCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.6 }}
-      className={`bg-afrikoni-cream rounded-xl border border-afrikoni-gold/30 p-6 hover:shadow-lg transition-shadow ${className}`}
+      className={`bg-afrikoni-cream rounded-os-sm border border-os-accent/30 p-6 hover:shadow-os-md transition-shadow ${className}`}
     >
       {Icon && (
         <div className={`w-12 h-12 rounded-lg ${iconBg} flex items-center justify-center mb-4`}>
@@ -161,16 +161,16 @@ export function SystemPageTimeline({ steps, className = '' }) {
           >
             {/* Vertical line connector (hidden on last item) */}
             {idx < steps.length - 1 && (
-              <div className="hidden lg:block absolute top-12 left-12 w-full h-0.5 bg-afrikoni-gold/20 -z-10" />
+              <div className="hidden lg:block absolute top-12 left-12 w-full h-0.5 bg-os-accent/20 -z-10" />
             )}
-            <div className="bg-afrikoni-cream rounded-xl border border-afrikoni-gold/30 p-6 h-full">
+            <div className="bg-afrikoni-cream rounded-os-sm border border-os-accent/30 p-6 h-full">
               <div className="flex items-start gap-4 mb-4">
-                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-afrikoni-gold text-white flex items-center justify-center font-bold text-lg">
+                <div className="flex-shrink-0 w-12 h-12 rounded-full bg-os-accent text-white flex items-center justify-center font-bold text-os-lg">
                   {step.number || idx + 1}
                 </div>
                 {Icon && (
-                  <div className="w-10 h-10 rounded-lg bg-afrikoni-gold/20 flex items-center justify-center flex-shrink-0">
-                    <Icon className="w-5 h-5 text-afrikoni-gold" />
+                  <div className="w-10 h-10 rounded-lg bg-os-accent/20 flex items-center justify-center flex-shrink-0">
+                    <Icon className="w-5 h-5 text-os-accent" />
                   </div>
                 )}
               </div>
@@ -220,7 +220,7 @@ export function SystemPageCTA({
           )}
           {ctaLabel && (
             <Link to={ctaTo || '#'} onClick={onClick}>
-              <Button size="lg" className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white">
+              <Button size="lg" className="bg-os-accent hover:bg-os-accentDark text-white">
                 {ctaLabel}
               </Button>
             </Link>

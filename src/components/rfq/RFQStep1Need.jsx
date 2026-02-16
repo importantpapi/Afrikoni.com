@@ -89,38 +89,38 @@ export default function RFQStep1Need({ formData, updateFormData, categories = []
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-2">
+        <h1 className="text-os-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-2">
           What do you need?
         </h1>
-        <p className="text-afrikoni-deep/70 text-base">
+        <p className="text-afrikoni-deep/70 text-os-base">
           Describe the product or service you're looking for
         </p>
       </div>
 
       {/* Main Title Input */}
       <div>
-        <label className="block text-sm font-semibold text-afrikoni-deep mb-2">
+        <label className="block text-os-sm font-semibold text-afrikoni-deep mb-2">
           Product or Service Name *
         </label>
         <Input
           value={formData.title || ''}
           onChange={handleTitleChange}
           placeholder="e.g., Organic Cocoa Beans, Shipping Services..."
-          className="text-base min-h-[52px] px-4"
+          className="text-os-base min-h-[52px] px-4"
           autoFocus
         />
       </div>
 
       {/* Description (Optional) */}
       <div>
-        <label className="block text-sm font-semibold text-afrikoni-deep mb-2">
+        <label className="block text-os-sm font-semibold text-afrikoni-deep mb-2">
           Additional Details (Optional)
         </label>
         <Textarea
           value={formData.description || ''}
           onChange={handleDescriptionChange}
           placeholder="Specifications, quality requirements, certifications needed..."
-          className="text-base min-h-[120px] px-4 resize-none"
+          className="text-os-base min-h-[120px] px-4 resize-none"
           rows={5}
         />
       </div>
@@ -128,7 +128,7 @@ export default function RFQStep1Need({ formData, updateFormData, categories = []
       {/* Category Selection (Chips) */}
       {categories.length > 0 && (
         <div>
-          <label className="block text-sm font-semibold text-afrikoni-deep mb-3">
+          <label className="block text-os-sm font-semibold text-afrikoni-deep mb-3">
             Category (Optional)
           </label>
           <div className="flex flex-wrap gap-2">
@@ -138,8 +138,8 @@ export default function RFQStep1Need({ formData, updateFormData, categories = []
                 variant={formData.category_id === cat.id ? 'default' : 'outline'}
                 className={`min-h-[44px] px-4 py-2 cursor-pointer transition-all ${
                   formData.category_id === cat.id
-                    ? 'bg-afrikoni-gold text-afrikoni-chestnut'
-                    : 'border-afrikoni-gold/40 hover:bg-afrikoni-gold/10'
+                    ? 'bg-os-accent text-afrikoni-chestnut'
+                    : 'border-os-accent/40 hover:bg-os-accent/10'
                 }`}
                 onClick={() => handleCategorySelect(
                   formData.category_id === cat.id ? '' : cat.id
@@ -154,7 +154,7 @@ export default function RFQStep1Need({ formData, updateFormData, categories = []
 
       {/* Media Upload Section */}
       <div className="space-y-3">
-        <label className="block text-sm font-semibold text-afrikoni-deep">
+        <label className="block text-os-sm font-semibold text-afrikoni-deep">
           Add Photos (Optional)
         </label>
         
@@ -172,7 +172,7 @@ export default function RFQStep1Need({ formData, updateFormData, categories = []
             variant="outline"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            className="flex-1 min-h-[44px] border-afrikoni-gold/40"
+            className="flex-1 min-h-[44px] border-os-accent/40"
           >
             <Camera className="w-5 h-5 mr-2" />
             {isUploading ? 'Uploading...' : 'Add Photo'}
@@ -184,10 +184,10 @@ export default function RFQStep1Need({ formData, updateFormData, categories = []
             variant="outline"
             onClick={handleVoiceStart}
             disabled={voiceRecording}
-            className="min-h-[44px] min-w-[44px] border-afrikoni-gold/40"
+            className="min-h-[44px] min-w-[44px] border-os-accent/40"
             aria-label="Record voice note"
           >
-            <Mic className={`w-5 h-5 ${voiceRecording ? 'text-red-500' : ''}`} />
+            <Mic className={`w-5 h-5 ${voiceRecording ? 'text-os-red' : ''}`} />
           </Button>
         </div>
 
@@ -195,7 +195,7 @@ export default function RFQStep1Need({ formData, updateFormData, categories = []
         {formData.attachments && formData.attachments.length > 0 && (
           <div className="grid grid-cols-3 gap-3">
             {formData.attachments.map((url, idx) => (
-              <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-afrikoni-gold/20">
+              <div key={idx} className="relative aspect-square rounded-lg overflow-hidden border border-os-accent/20">
                 <img
                   src={url}
                   alt={`Attachment ${idx + 1}`}

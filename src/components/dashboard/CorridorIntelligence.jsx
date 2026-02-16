@@ -104,9 +104,9 @@ export default function CorridorIntelligence({ corridorId = 'CI-FR-COCOA' }) {
             <Surface variant="glass" className="p-6 border border-white/10">
                 <div className="flex items-start justify-between">
                     <div>
-                        <div className="text-xs text-white/50 uppercase tracking-wider mb-2">Corridor Intelligence</div>
-                        <h2 className="text-2xl font-bold text-white mb-2">{corridor.name}</h2>
-                        <div className="flex items-center gap-4 text-sm text-white/70">
+                        <div className="text-os-xs text-white/50 uppercase tracking-wider mb-2">Corridor Intelligence</div>
+                        <h2 className="text-os-2xl font-bold text-white mb-2">{corridor.name}</h2>
+                        <div className="flex items-center gap-4 text-os-sm text-white/70">
                             <span>{corridor.origin} → {corridor.destination}</span>
                             <span>•</span>
                             <span className="flex items-center gap-1">
@@ -132,14 +132,14 @@ export default function CorridorIntelligence({ corridorId = 'CI-FR-COCOA' }) {
             {/* Market Benchmarks */}
             <div className="grid md:grid-cols-4 gap-4">
                 <Surface variant="panel" className="p-5 border border-white/10">
-                    <div className="flex items-center gap-2 text-sm text-white/60 mb-2">
+                    <div className="flex items-center gap-2 text-os-sm text-white/60 mb-2">
                         <DollarSign className="w-4 h-4" />
                         Market Price
                     </div>
-                    <div className="text-2xl font-bold text-white">${corridor.avgPrice}/MT</div>
+                    <div className="text-os-2xl font-bold text-white">${corridor.avgPrice}/MT</div>
                     {userActivity.trades > 0 && (
                         <div className={cn(
-                            "text-xs mt-2 flex items-center gap-1",
+                            "text-os-xs mt-2 flex items-center gap-1",
                             priceDiff > 0 ? "text-emerald-400" : priceDiff < 0 ? "text-red-400" : "text-white/60"
                         )}>
                             {priceDiff > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
@@ -149,49 +149,49 @@ export default function CorridorIntelligence({ corridorId = 'CI-FR-COCOA' }) {
                 </Surface>
 
                 <Surface variant="panel" className="p-5 border border-white/10">
-                    <div className="flex items-center gap-2 text-sm text-white/60 mb-2">
+                    <div className="flex items-center gap-2 text-os-sm text-white/60 mb-2">
                         <Clock className="w-4 h-4" />
                         Transit Time
                     </div>
-                    <div className="text-2xl font-bold text-white">{corridor.avgTransitDays} days</div>
-                    <div className="text-xs text-white/60 mt-2">Sea freight average</div>
+                    <div className="text-os-2xl font-bold text-white">{corridor.avgTransitDays} days</div>
+                    <div className="text-os-xs text-white/60 mt-2">Sea freight average</div>
                 </Surface>
 
                 <Surface variant="panel" className="p-5 border border-white/10">
-                    <div className="flex items-center gap-2 text-sm text-white/60 mb-2">
+                    <div className="flex items-center gap-2 text-os-sm text-white/60 mb-2">
                         <Users className="w-4 h-4" />
                         Active Traders
                     </div>
-                    <div className="text-2xl font-bold text-white">{corridor.activeTraders}</div>
-                    <div className="text-xs text-white/60 mt-2">Verified suppliers</div>
+                    <div className="text-os-2xl font-bold text-white">{corridor.activeTraders}</div>
+                    <div className="text-os-xs text-white/60 mt-2">Verified suppliers</div>
                 </Surface>
 
                 <Surface variant="panel" className="p-5 border border-white/10">
-                    <div className="flex items-center gap-2 text-sm text-white/60 mb-2">
+                    <div className="flex items-center gap-2 text-os-sm text-white/60 mb-2">
                         <Package className="w-4 h-4" />
                         Monthly Volume
                     </div>
-                    <div className="text-2xl font-bold text-white">{(corridor.monthlyVolume / 1000).toFixed(1)}K MT</div>
-                    <div className="text-xs text-white/60 mt-2">Network total</div>
+                    <div className="text-os-2xl font-bold text-white">{(corridor.monthlyVolume / 1000).toFixed(1)}K MT</div>
+                    <div className="text-os-xs text-white/60 mt-2">Network total</div>
                 </Surface>
             </div>
 
             {/* Your Activity */}
             {userActivity.trades > 0 && (
                 <Surface variant="glass" className="p-6 border border-white/10">
-                    <h3 className="text-lg font-semibold text-white mb-4">Your Activity in This Corridor</h3>
+                    <h3 className="text-os-lg font-semibold text-white mb-4">Your Activity in This Corridor</h3>
                     <div className="grid md:grid-cols-3 gap-6">
                         <div>
-                            <div className="text-sm text-white/60 mb-1">Total Trades</div>
-                            <div className="text-2xl font-bold text-white">{userActivity.trades}</div>
+                            <div className="text-os-sm text-white/60 mb-1">Total Trades</div>
+                            <div className="text-os-2xl font-bold text-white">{userActivity.trades}</div>
                         </div>
                         <div>
-                            <div className="text-sm text-white/60 mb-1">Your Avg Price</div>
-                            <div className="text-2xl font-bold text-white">${userActivity.avgPrice}/MT</div>
+                            <div className="text-os-sm text-white/60 mb-1">Your Avg Price</div>
+                            <div className="text-os-2xl font-bold text-white">${userActivity.avgPrice}/MT</div>
                         </div>
                         <div>
-                            <div className="text-sm text-white/60 mb-1">Last Trade</div>
-                            <div className="text-lg font-medium text-white">
+                            <div className="text-os-sm text-white/60 mb-1">Last Trade</div>
+                            <div className="text-os-lg font-medium text-white">
                                 {userActivity.lastTrade ? new Date(userActivity.lastTrade).toLocaleDateString() : 'N/A'}
                             </div>
                         </div>
@@ -201,12 +201,12 @@ export default function CorridorIntelligence({ corridorId = 'CI-FR-COCOA' }) {
 
             {/* Compliance Requirements */}
             <Surface variant="glass" className="p-6 border border-white/10">
-                <h3 className="text-lg font-semibold text-white mb-4">Compliance Requirements</h3>
+                <h3 className="text-os-lg font-semibold text-white mb-4">Compliance Requirements</h3>
                 <div className="flex flex-wrap gap-2">
                     {(corridor.compliance || []).map((req) => (
                         <div
                             key={req}
-                            className="px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-sm text-emerald-400"
+                            className="px-3 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-os-sm text-emerald-400"
                         >
                             <Shield className="w-3 h-3 inline mr-1" />
                             {req}
@@ -229,19 +229,19 @@ export default function CorridorIntelligence({ corridorId = 'CI-FR-COCOA' }) {
                 <div className="flex items-start gap-3">
                     <Sparkles className="w-5 h-5 text-[#D4A937] mt-0.5" />
                     <div className="flex-1">
-                        <h3 className="text-lg font-semibold text-white mb-2">AI Recommendation</h3>
+                        <h3 className="text-os-lg font-semibold text-white mb-2">AI Recommendation</h3>
                         {userActivity.trades === 0 ? (
-                            <p className="text-sm text-white/70 mb-4">
+                            <p className="text-os-sm text-white/70 mb-4">
                                 This corridor has <strong>low risk</strong> and <strong>high liquidity</strong>.
                                 Perfect for your first trade. Start with a small order to build trust.
                             </p>
                         ) : priceDiff < 0 ? (
-                            <p className="text-sm text-white/70 mb-4">
+                            <p className="text-os-sm text-white/70 mb-4">
                                 You're paying <strong>{Math.abs(priceDiffPercent).toFixed(1)}% above market average</strong>.
                                 Consider negotiating better rates or exploring alternative suppliers.
                             </p>
                         ) : (
-                            <p className="text-sm text-white/70 mb-4">
+                            <p className="text-os-sm text-white/70 mb-4">
                                 Great pricing! You're <strong>{priceDiffPercent.toFixed(1)}% below market average</strong>.
                                 Consider increasing volume to maximize savings.
                             </p>

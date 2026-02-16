@@ -78,8 +78,8 @@ export default function InvoicesDashboard() {
   const getStatusBadgeStyles = (status) => {
     switch (status) {
       case 'paid': return 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500';
-      case 'issued': return 'bg-afrikoni-gold/10 border-afrikoni-gold/20 text-afrikoni-gold';
-      case 'overdue': return 'bg-red-500/10 border-red-500/20 text-red-500';
+      case 'issued': return 'bg-os-accent/10 border-os-accent/20 text-os-accent';
+      case 'overdue': return 'bg-os-red/10 border-os-red/20 text-os-red';
       case 'cancelled': return 'bg-white/5 border-white/10 text-os-muted';
       default: return 'bg-white/5 border-white/10 text-os-muted';
     }
@@ -104,8 +104,8 @@ export default function InvoicesDashboard() {
   const stats = [
     { label: 'Total Volume', value: invoices.length, icon: Layers, color: 'text-os-muted' },
     { label: 'Settled', value: invoices.filter(i => i.status === 'paid').length, icon: CheckCircle, color: 'text-emerald-500' },
-    { label: 'Outstanding', value: invoices.filter(i => i.status === 'issued').length, icon: Clock, color: 'text-afrikoni-gold' },
-    { label: 'Risk Factor', value: invoices.filter(i => isOverdue(i)).length, icon: AlertCircle, color: 'text-red-500' }
+    { label: 'Outstanding', value: invoices.filter(i => i.status === 'issued').length, icon: Clock, color: 'text-os-accent' },
+    { label: 'Risk Factor', value: invoices.filter(i => isOverdue(i)).length, icon: AlertCircle, color: 'text-os-red' }
   ];
 
   return (
@@ -114,18 +114,18 @@ export default function InvoicesDashboard() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2.5 bg-afrikoni-gold/10 rounded-xl border border-afrikoni-gold/30">
-              <Receipt className="w-6 h-6 text-afrikoni-gold" />
+            <div className="p-2.5 bg-os-accent/10 rounded-os-sm border border-os-accent/30">
+              <Receipt className="w-6 h-6 text-os-accent" />
             </div>
             <h1 className="text-4xl font-black tracking-tighter">Fiscal Clearing</h1>
           </div>
-          <p className="text-os-muted text-lg max-w-xl">Manage cross-border invoicing, institutional settlements, and automated tax reconciliation.</p>
+          <p className="text-os-muted text-os-lg max-w-xl">Manage cross-border invoicing, institutional settlements, and automated tax reconciliation.</p>
         </div>
 
         <div className="flex items-center gap-4">
           {userRole === 'seller' && (
             <Link to="/dashboard/orders">
-              <Button className="bg-afrikoni-gold text-black font-black px-6 rounded-xl hover:scale-105 transition-all gap-2">
+              <Button className="bg-os-accent text-black font-black px-6 rounded-os-sm hover:scale-105 transition-all gap-2">
                 <Plus className="w-4 h-4" />
                 Generate Invoice
               </Button>
@@ -137,16 +137,16 @@ export default function InvoicesDashboard() {
       {/* Stats Layer */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, i) => (
-          <Surface key={i} variant="panel" className="p-6 group hover:border-afrikoni-gold/20 transition-all">
+          <Surface key={i} variant="panel" className="p-6 group hover:border-os-accent/20 transition-all">
             <div className="flex items-center justify-between mb-4">
               <div className={cn("p-2 rounded-lg bg-white/5", stat.color)}>
                 <stat.icon className="w-5 h-5" />
               </div>
-              {i === 1 && <div className="text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">+12% MoM</div>}
+              {i === 1 && <div className="text-os-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">+12% MoM</div>}
             </div>
             <div className="space-y-1">
               <div className="text-3xl font-black">{stat.value}</div>
-              <div className="text-[10px] font-bold uppercase tracking-widest text-os-muted">{stat.label}</div>
+              <div className="text-os-xs font-bold uppercase tracking-widest text-os-muted">{stat.label}</div>
             </div>
           </Surface>
         ))}
@@ -156,16 +156,16 @@ export default function InvoicesDashboard() {
         <div className="lg:col-span-2 space-y-6">
           <Surface variant="glass" className="p-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 border-b border-white/5 pb-8">
-              <h2 className="text-2xl font-black tracking-tight flex items-center gap-3">
+              <h2 className="text-os-2xl font-black tracking-tight flex items-center gap-3">
                 Ledger Journal
-                <Badge variant="outline" className="text-[9px] font-black border-white/10 text-os-muted">
+                <Badge variant="outline" className="text-os-xs font-black border-white/10 text-os-muted">
                   {invoices.length} Entries
                 </Badge>
               </h2>
 
               <div className="flex items-center gap-3">
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger className="w-48 h-10 bg-white/[0.03] border-white/10 rounded-xl">
+                  <SelectTrigger className="w-48 h-10 bg-white/[0.03] border-white/10 rounded-os-sm">
                     <SelectValue placeholder="All Status" />
                   </SelectTrigger>
                   <SelectContent className="bg-black/90 backdrop-blur-xl border-white/10">
@@ -177,7 +177,7 @@ export default function InvoicesDashboard() {
                     <SelectItem value="cancelled">Voided</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="ghost" size="icon" className="h-10 w-10 border border-white/10 rounded-xl">
+                <Button variant="ghost" size="icon" className="h-10 w-10 border border-white/10 rounded-os-sm">
                   <Filter className="w-4 h-4 text-os-muted" />
                 </Button>
               </div>
@@ -195,17 +195,17 @@ export default function InvoicesDashboard() {
             ) : (
               <div className="space-y-4">
                 {invoices.map((invoice) => (
-                  <Surface key={invoice.id} variant="panel" className="p-6 border-white/5 hover:border-afrikoni-gold/30 transition-all group/card">
+                  <Surface key={invoice.id} variant="panel" className="p-6 border-white/5 hover:border-os-accent/30 transition-all group/card">
                     <div className="flex flex-col gap-6">
                       <div className="flex items-start justify-between">
                         <div className="flex gap-4">
-                          <div className="p-3 bg-white/5 rounded-2xl border border-white/10 group-hover/card:bg-afrikoni-gold/10 transition-colors">
-                            <FileText className="w-6 h-6 text-os-muted group-hover/card:text-afrikoni-gold" />
+                          <div className="p-3 bg-white/5 rounded-os-md border border-white/10 group-hover/card:bg-os-accent/10 transition-colors">
+                            <FileText className="w-6 h-6 text-os-muted group-hover/card:text-os-accent" />
                           </div>
                           <div className="space-y-1">
                             <div className="flex items-center gap-3">
-                              <h3 className="font-bold text-lg">{invoice.invoice_number}</h3>
-                              <Badge className={cn("text-[9px] font-black uppercase tracking-widest py-1 px-2.5", getStatusBadgeStyles(invoice.status))}>
+                              <h3 className="font-bold text-os-lg">{invoice.invoice_number}</h3>
+                              <Badge className={cn("text-os-xs font-black uppercase tracking-widest py-1 px-2.5", getStatusBadgeStyles(invoice.status))}>
                                 <span className="flex items-center gap-1.5">
                                   {getStatusIcon(invoice.status)}
                                   {invoice.status}
@@ -213,7 +213,7 @@ export default function InvoicesDashboard() {
                               </Badge>
                               {isOverdue(invoice) && <div className="w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />}
                             </div>
-                            <p className="text-xs text-os-muted font-medium">
+                            <p className="text-os-xs text-os-muted font-medium">
                               {userRole === 'buyer' ? 'Issuer: ' : 'Counterparty: '}
                               <span className="text-white font-bold">{userRole === 'buyer' ? invoice.seller_company?.name : invoice.buyer_company?.name || 'Institutional Member'}</span>
                             </p>
@@ -221,11 +221,11 @@ export default function InvoicesDashboard() {
                         </div>
 
                         <div className="text-right">
-                          <div className="text-2xl font-black flex items-baseline gap-1.5 justify-end">
-                            <span className="text-xs text-os-muted font-bold">{invoice.currency}</span>
+                          <div className="text-os-2xl font-black flex items-baseline gap-1.5 justify-end">
+                            <span className="text-os-xs text-os-muted font-bold">{invoice.currency}</span>
                             {parseFloat(invoice.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </div>
-                          <div className="text-[10px] text-os-muted font-bold uppercase tracking-widest mt-1">
+                          <div className="text-os-xs text-os-muted font-bold uppercase tracking-widest mt-1">
                             Due {format(new Date(invoice.due_date), 'MMM d, yyyy')}
                           </div>
                         </div>
@@ -233,10 +233,10 @@ export default function InvoicesDashboard() {
 
                       <div className="flex items-center justify-between pt-5 border-t border-white/5">
                         <div className="flex items-center gap-6">
-                          <Link to={`/dashboard/invoices/${invoice.id}`} className="text-[10px] font-black uppercase tracking-[0.2em] text-os-muted hover:text-afrikoni-gold transition-colors flex items-center gap-2">
+                          <Link to={`/dashboard/invoices/${invoice.id}`} className="text-os-xs font-black uppercase tracking-[0.2em] text-os-muted hover:text-os-accent transition-colors flex items-center gap-2">
                             Audit Trail <ArrowRight className="w-3 h-3" />
                           </Link>
-                          <button className="text-[10px] font-black uppercase tracking-[0.2em] text-os-muted hover:text-white transition-colors flex items-center gap-2">
+                          <button className="text-os-xs font-black uppercase tracking-[0.2em] text-os-muted hover:text-white transition-colors flex items-center gap-2">
                             PDF Manifest <Download className="w-3 h-3" />
                           </button>
                         </div>
@@ -244,7 +244,7 @@ export default function InvoicesDashboard() {
                         {userRole === 'buyer' && invoice.status === 'issued' && (
                           <Button
                             size="sm"
-                            className="bg-emerald-500 text-black font-black px-8 rounded-xl hover:scale-105 active:scale-95 transition-all text-xs shadow-lg shadow-emerald-500/20"
+                            className="bg-emerald-500 text-black font-black px-8 rounded-os-sm hover:scale-105 active:scale-95 transition-all text-os-xs shadow-os-md shadow-emerald-500/20"
                             onClick={() => handlePayInvoice(invoice.id, invoice)}
                           >
                             Initialize Settlement
@@ -267,27 +267,27 @@ export default function InvoicesDashboard() {
             </div>
 
             <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-4">
-              <h3 className="text-[10px] font-black uppercase tracking-widest">Fiscal Sovereignty</h3>
+              <h3 className="text-os-xs font-black uppercase tracking-widest">Fiscal Sovereignty</h3>
               <Lock className="w-3.5 h-3.5 text-os-muted" />
             </div>
 
             <div className="space-y-6 relative z-10">
-              <div className="p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl">
+              <div className="p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-os-md">
                 <div className="flex items-center gap-3 mb-2">
                   <CheckCircle className="w-4 h-4 text-emerald-500" />
-                  <span className="text-xs font-bold">Tax Compliance Check</span>
+                  <span className="text-os-xs font-bold">Tax Compliance Check</span>
                 </div>
-                <p className="text-[10px] text-os-muted">Your institutional profile is currently in good standing with all regional trade authorities.</p>
+                <p className="text-os-xs text-os-muted">Your institutional profile is currently in good standing with all regional trade authorities.</p>
               </div>
             </div>
           </Surface>
 
           {/* Inbound/Outbound Mix */}
           <Surface variant="glass" className="p-8">
-            <h3 className="text-[10px] font-black uppercase tracking-widest mb-8">Settlement Velocity</h3>
+            <h3 className="text-os-xs font-black uppercase tracking-widest mb-8">Settlement Velocity</h3>
             <div className="space-y-6">
               <div className="space-y-2">
-                <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
+                <div className="flex justify-between text-os-xs font-bold uppercase tracking-widest">
                   <span className="text-os-muted">Inbound Flows</span>
                   <span className="text-emerald-500">72%</span>
                 </div>
@@ -296,22 +296,22 @@ export default function InvoicesDashboard() {
                 </div>
               </div>
               <div className="space-y-2">
-                <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest">
+                <div className="flex justify-between text-os-xs font-bold uppercase tracking-widest">
                   <span className="text-os-muted">Outbound Flows</span>
-                  <span className="text-afrikoni-gold">28%</span>
+                  <span className="text-os-accent">28%</span>
                 </div>
                 <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                  <motion.div initial={{ width: 0 }} animate={{ width: '28%' }} className="h-full bg-afrikoni-gold" />
+                  <motion.div initial={{ width: 0 }} animate={{ width: '28%' }} className="h-full bg-os-accent" />
                 </div>
               </div>
             </div>
 
             <div className="mt-10 pt-8 border-t border-white/5 space-y-4">
-              <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center justify-between text-os-xs">
                 <span className="text-os-muted">Liquidity Index</span>
                 <span className="font-black">Institutional</span>
               </div>
-              <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center justify-between text-os-xs">
                 <span className="text-os-muted">AVG Settlement</span>
                 <span className="font-black">0.4 Days</span>
               </div>

@@ -29,6 +29,7 @@ import { trackPageLoad } from './utils/performance';
 import { toast } from 'sonner';
 import './i18n';
 import './index.css';
+import './styles/premium-mobile.css'; // Premium UX micro-interactions
 
 
 // Import test utility for email service (available in browser console)

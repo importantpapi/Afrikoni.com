@@ -138,29 +138,40 @@ export default function AuthCallback() {
   }, [navigate, searchParams, t, authReady, user, profile]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-cream to-afrikoni-offwhite flex items-center justify-center py-12 px-4">
-      <div className="w-full max-w-md text-center">
-        <div className="flex justify-center mb-6">
-          <Logo type="full" size="lg" link={true} showTagline={false} />
+    <div className="min-h-screen bg-gradient-to-br from-[#FDFBF7] via-[#F8F6F0] to-[#F5F2EA] flex items-center justify-center py-12 px-4">
+      <div className="w-full max-w-[460px] text-center">
+        <div className="bg-white rounded-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.12),0_8px_20px_rgba(0,0,0,0.08)] p-12 border border-black/[0.08]">
+          <div className="flex justify-center mb-10">
+            <Logo type="symbol" size="md" />
+          </div>
+          {isLoading ? (
+            <>
+              <Loader2 className="w-12 h-12 mx-auto mb-6 animate-spin text-[#D4A937]" />
+              <h2 className="text-[20px] font-semibold text-gray-900 mb-2">
+                {isEmailVerification ? 'Verifying your email' : 'Signing you in'}
+              </h2>
+              <p className="text-[14px] text-gray-600">
+                Please wait a moment...
+              </p>
+            </>
+          ) : error ? (
+            <>
+              <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                <div className="w-8 h-8 text-red-600 font-bold text-2xl">!</div>
+              </div>
+              <h2 className="text-[20px] font-semibold text-gray-900 mb-2">
+                Authentication error
+              </h2>
+              <p className="text-[14px] text-gray-600 mb-4">{error}</p>
+              <p className="text-[13px] text-gray-500">Redirecting to login...</p>
+            </>
+          ) : (
+            <>
+              <Loader2 className="w-8 h-8 mx-auto mb-4 animate-spin text-[#D4A937]" />
+              <p className="text-[14px] text-gray-600">Redirecting...</p>
+            </>
+          )}
         </div>
-        {isLoading ? (
-          <>
-            <Loader2 className="w-12 h-12 mx-auto mb-4 animate-spin text-afrikoni-gold" />
-            <p className="text-afrikoni-deep">
-              {isEmailVerification ? 'Verifying your email...' : 'Completing sign in...'}
-            </p>
-          </>
-        ) : error ? (
-          <>
-            <div className="text-red-600 mb-4">
-              <p className="font-semibold">Authentication Error</p>
-              <p className="text-sm mt-2">{error}</p>
-            </div>
-            <p className="text-afrikoni-deep text-sm">Redirecting to login...</p>
-          </>
-        ) : (
-          <p className="text-afrikoni-deep">Redirecting...</p>
-        )}
       </div>
     </div>
   );

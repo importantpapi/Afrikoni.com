@@ -324,10 +324,10 @@ export default function Suppliers() {
         url="/suppliers"
       />
     <div className="min-h-screen bg-stone-50">
-      <div className="bg-afrikoni-offwhite border-b border-afrikoni-gold/20">
+      <div className="bg-afrikoni-offwhite border-b border-os-accent/20">
         <div className="max-w-7xl mx-auto px-4 py-8">
           <h1 className="text-4xl font-bold text-afrikoni-chestnut mb-4">Verified African Suppliers</h1>
-          <p className="text-lg text-afrikoni-deep mb-6">Connect with trusted suppliers across Africa</p>
+          <p className="text-os-lg text-afrikoni-deep mb-6">Connect with trusted suppliers across Africa</p>
           
           {/* Search Bar */}
           <div className="mb-6">
@@ -337,7 +337,7 @@ export default function Suppliers() {
                 placeholder="Search suppliers by name or location..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 h-12 text-lg"
+                className="pl-12 h-12 text-os-lg"
               />
             </div>
           </div>
@@ -377,10 +377,10 @@ export default function Suppliers() {
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600" />
           </div>
         ) : rankedSuppliers.length === 0 ? (
-          <Card className="border-afrikoni-gold/20">
+          <Card className="border-os-accent/20">
             <CardContent className="p-12 text-center">
               <Building className="w-16 h-16 text-afrikoni-deep/70 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2">No suppliers found</h3>
+              <h3 className="text-os-xl font-bold text-afrikoni-chestnut mb-2">No suppliers found</h3>
               <p className="text-afrikoni-deep">Try adjusting your filters or search query</p>
             </CardContent>
           </Card>
@@ -400,7 +400,7 @@ export default function Suppliers() {
               };
 
               return (
-                <Card key={supplier.id} className="border-afrikoni-gold/20 hover:shadow-lg transition-shadow relative">
+                <Card key={supplier.id} className="border-os-accent/20 hover:shadow-os-md transition-shadow relative">
                   {/* ✅ PHASE A: Recommended Badge (Top suppliers only) */}
                   {supplier.is_recommended && index < 6 && (
                     <div className="absolute top-4 left-4 z-10">
@@ -430,7 +430,7 @@ export default function Suppliers() {
                       {/* Name and Verification */}
                       <div className="flex items-start justify-between mb-2">
                         <div className="flex-1">
-                          <h3 className="text-xl font-bold text-afrikoni-chestnut mb-1">{supplier.company_name || 'Supplier Name'}</h3>
+                          <h3 className="text-os-xl font-bold text-afrikoni-chestnut mb-1">{supplier.company_name || 'Supplier Name'}</h3>
                           {supplier.verified && (
                             <Badge className="bg-green-100 text-green-700 border-green-300">
                               <Shield className="w-3 h-3 mr-1" />
@@ -441,7 +441,7 @@ export default function Suppliers() {
                       </div>
 
                       {/* Location */}
-                      <div className="flex items-center gap-2 text-sm text-afrikoni-deep mb-3">
+                      <div className="flex items-center gap-2 text-os-sm text-afrikoni-deep mb-3">
                         <MapPin className="w-4 h-4" />
                         <span>{supplier.city ? `${supplier.city}, ` : ''}{supplier.country || 'Location'}</span>
                       </div>
@@ -457,52 +457,52 @@ export default function Suppliers() {
                               />
                             ))}
                           </div>
-                          <span className="text-sm font-semibold text-afrikoni-chestnut">{stats.rating > 0 ? stats.rating.toFixed(1) : '0.0'}</span>
-                          <span className="text-sm text-afrikoni-deep/70">({stats.reviews} {stats.reviews === 1 ? 'review' : 'reviews'})</span>
+                          <span className="text-os-sm font-semibold text-afrikoni-chestnut">{stats.rating > 0 ? stats.rating.toFixed(1) : '0.0'}</span>
+                          <span className="text-os-sm text-afrikoni-deep/70">({stats.reviews} {stats.reviews === 1 ? 'review' : 'reviews'})</span>
                         </div>
                       )}
 
                       {/* Description */}
-                      <p className="text-sm text-afrikoni-deep mb-4 line-clamp-2">
+                      <p className="text-os-sm text-afrikoni-deep mb-4 line-clamp-2">
                         {supplier.description || 'Leading exporter of premium products and organic agricultural products.'}
                       </p>
 
                       {/* Key Metrics */}
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 pb-4 border-b border-afrikoni-gold/20">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 pb-4 border-b border-os-accent/20">
                         {stats.products > 0 && (
                           <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-2 text-sm">
+                            <div className="flex items-center gap-2 text-os-sm">
                               <Package className="w-4 h-4 text-afrikoni-deep/70" />
                               <span className="text-afrikoni-deep font-semibold">{stats.products}</span>
                             </div>
-                            <span className="text-xs text-afrikoni-deep/60">products</span>
+                            <span className="text-os-xs text-afrikoni-deep/60">products</span>
                           </div>
                         )}
                         {stats.years > 0 && (
                           <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-2 text-sm">
+                            <div className="flex items-center gap-2 text-os-sm">
                               <Users className="w-4 h-4 text-afrikoni-deep/70" />
                               <span className="text-afrikoni-deep font-semibold">{stats.years}</span>
                             </div>
-                            <span className="text-xs text-afrikoni-deep/60">years</span>
+                            <span className="text-os-xs text-afrikoni-deep/60">years</span>
                           </div>
                         )}
                         {stats.responseTime !== 'N/A' && (
                           <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-2 text-sm">
+                            <div className="flex items-center gap-2 text-os-sm">
                               <MessageCircle className="w-4 h-4 text-afrikoni-deep/70" />
                               <span className="text-afrikoni-deep font-semibold">{stats.responseTime}</span>
                             </div>
-                            <span className="text-xs text-afrikoni-deep/60">response</span>
+                            <span className="text-os-xs text-afrikoni-deep/60">response</span>
                           </div>
                         )}
                         {stats.minOrder !== 'N/A' && stats.minOrder !== 'Contact' && (
                           <div className="flex flex-col gap-1">
-                            <div className="flex items-center gap-2 text-sm">
+                            <div className="flex items-center gap-2 text-os-sm">
                               <Globe className="w-4 h-4 text-afrikoni-deep/70" />
                               <span className="text-afrikoni-deep font-semibold">{stats.minOrder}</span>
                             </div>
-                            <span className="text-xs text-afrikoni-deep/60">min order</span>
+                            <span className="text-os-xs text-afrikoni-deep/60">min order</span>
                           </div>
                         )}
                       </div>
@@ -511,7 +511,7 @@ export default function Suppliers() {
                       {stats.categories.length > 0 && (
                         <div className="flex flex-wrap gap-2 mb-4">
                           {stats.categories.map((cat, idx) => (
-                            <Badge key={idx} variant="outline" className="text-xs border-afrikoni-gold/30 text-afrikoni-deep">
+                            <Badge key={idx} variant="outline" className="text-os-xs border-os-accent/30 text-afrikoni-deep">
                               {typeof cat === 'string' ? cat : 'Category'}
                             </Badge>
                           ))}
@@ -520,7 +520,7 @@ export default function Suppliers() {
 
                       {/* View Profile Button */}
                       <Link to={`/business/${supplier.id}`}>
-                        <Button className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream">
+                        <Button className="w-full bg-os-accent hover:bg-os-accentDark text-afrikoni-cream">
                           View Business Profile
                         </Button>
                       </Link>
@@ -534,29 +534,29 @@ export default function Suppliers() {
       </div>
 
       {/* Bottom CTA + waitlist */}
-      <div className="border-t border-afrikoni-gold/20 bg-afrikoni-offwhite mt-4">
+      <div className="border-t border-os-accent/20 bg-afrikoni-offwhite mt-4">
         <div className="max-w-7xl mx-auto px-4 py-10 md:py-12 grid md:grid-cols-2 gap-8 items-center">
           <div>
-            <h2 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-3">
+            <h2 className="text-os-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-3">
               Ready to become a verified African supplier?
             </h2>
-            <p className="text-sm md:text-base text-afrikoni-deep mb-5 max-w-xl">
+            <p className="text-os-sm md:text-os-base text-afrikoni-deep mb-5 max-w-xl">
               Join Afrikoni to access serious buyers across Africa and the world. Afrikoni Shield™ handles
               verification, escrow, and trust so you can focus on fulfilling orders.
             </p>
             <Link to="/signup">
-              <Button className="bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight px-6 md:px-8">
+              <Button className="bg-os-accent text-afrikoni-chestnut hover:bg-os-accentLight px-6 md:px-8">
                 Start as a Supplier
               </Button>
             </Link>
           </div>
           <div>
-            <Card className="border-afrikoni-gold/30 bg-white shadow-sm">
+            <Card className="border-os-accent/30 bg-white shadow-sm">
               <CardContent className="p-5">
-                <h3 className="text-lg font-semibold text-afrikoni-chestnut mb-2">
+                <h3 className="text-os-lg font-semibold text-afrikoni-chestnut mb-2">
                   Join the early access waitlist
                 </h3>
-                <p className="text-xs md:text-sm text-afrikoni-deep/80 mb-4">
+                <p className="text-os-xs md:text-os-sm text-afrikoni-deep/80 mb-4">
                   Leave your work email and we&apos;ll contact you with onboarding details, fees and pilot opportunities.
                 </p>
                 <form onSubmit={handleJoinWaitlist} className="flex flex-col sm:flex-row gap-3">
@@ -567,11 +567,11 @@ export default function Suppliers() {
                     placeholder="Work email"
                     className="flex-1"
                   />
-                  <Button type="submit" className="bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight">
+                  <Button type="submit" className="bg-os-accent text-afrikoni-chestnut hover:bg-os-accentLight">
                     Join waitlist
                   </Button>
                 </form>
-                <p className="mt-2 text-[11px] text-afrikoni-deep/60">
+                <p className="mt-2 text-os-xs text-afrikoni-deep/60">
                   We respect your privacy. No spam, just Afrikoni supplier updates.
                 </p>
               </CardContent>

@@ -147,17 +147,17 @@ export default function TradeFinancing() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold text-afrikoni-chestnut mb-2">Trade Financing</h1>
-            <p className="text-lg text-afrikoni-deep">Apply for trade financing to support your business</p>
+            <p className="text-os-lg text-afrikoni-deep">Apply for trade financing to support your business</p>
           </div>
           {!isAdmin && (
-            <Button onClick={() => setShowForm(!showForm)} className="bg-afrikoni-gold hover:bg-amber-700">
+            <Button onClick={() => setShowForm(!showForm)} className="bg-os-accent hover:bg-amber-700">
               <Plus className="w-4 h-4 mr-2" /> New Application
             </Button>
           )}
         </div>
 
         {showForm && !isAdmin && (
-          <Card className="border-afrikoni-gold/20 mb-6">
+          <Card className="border-os-accent/20 mb-6">
             <CardHeader>
               <CardTitle>New Financing Application</CardTitle>
             </CardHeader>
@@ -184,7 +184,7 @@ export default function TradeFinancing() {
                 />
               </div>
               <div className="flex gap-3">
-                <Button onClick={handleSubmit} disabled={isLoading} className="bg-afrikoni-gold hover:bg-amber-700">
+                <Button onClick={handleSubmit} disabled={isLoading} className="bg-os-accent hover:bg-amber-700">
                   {isLoading ? 'Submitting...' : 'Submit Application'}
                 </Button>
                 <Button variant="outline" onClick={() => setShowForm(false)}>Cancel</Button>
@@ -195,16 +195,16 @@ export default function TradeFinancing() {
 
         <div className="space-y-4">
           {applications.length === 0 ? (
-            <Card className="border-afrikoni-gold/20">
+            <Card className="border-os-accent/20">
               <CardContent className="p-12 text-center">
                 <DollarSign className="w-16 h-16 text-afrikoni-deep/70 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2">No applications yet</h3>
+                <h3 className="text-os-xl font-bold text-afrikoni-chestnut mb-2">No applications yet</h3>
                 <p className="text-afrikoni-deep">Your financing applications will appear here</p>
               </CardContent>
             </Card>
           ) : (
             Array.isArray(applications) && applications.map(application => (
-              <Card key={application.id} className="border-afrikoni-gold/20">
+              <Card key={application.id} className="border-os-accent/20">
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
@@ -220,7 +220,7 @@ export default function TradeFinancing() {
                           {application.status}
                         </Badge>
                       </div>
-                      <div className="grid md:grid-cols-3 gap-4 text-sm">
+                      <div className="grid md:grid-cols-3 gap-4 text-os-sm">
                         <div>
                           <div className="text-afrikoni-deep mb-1">Requested Amount</div>
                           <div className="font-semibold text-afrikoni-chestnut">${application.requested_amount}</div>

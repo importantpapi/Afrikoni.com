@@ -238,10 +238,10 @@ function LogisticsQuoteInner() {
 
   return (
     <div className="os-page os-stagger space-y-6">
-      <h1 className="text-2xl font-semibold text-[var(--os-text-primary)]">Request Shipping Quote</h1>
+      <h1 className="text-os-2xl font-semibold text-[var(--os-text-primary)]">Request Shipping Quote</h1>
 
       <Surface className="p-5 space-y-4">
-        <h2 className="text-lg font-semibold text-[var(--os-text-primary)]">Shipping Details</h2>
+        <h2 className="text-os-lg font-semibold text-[var(--os-text-primary)]">Shipping Details</h2>
         <Input className="os-input" placeholder="Pickup Country" value={pickupCountry} onChange={(e) => setPickupCountry(e.target.value)} />
         <Input className="os-input" placeholder="Delivery Country" value={deliveryCountry} onChange={(e) => setDeliveryCountry(e.target.value)} />
         <Input className="os-input" placeholder="Weight (kg)" value={weightKg} onChange={(e) => setWeightKg(e.target.value)} />
@@ -257,8 +257,8 @@ function LogisticsQuoteInner() {
               <Map className="w-6 h-6 text-emerald-400" />
             </div>
             <div className="flex-1">
-              <h3 className="text-lg font-bold text-white mb-1">Corridor Intelligence Active</h3>
-              <p className="text-sm text-emerald-200/70 mb-4">
+              <h3 className="text-os-lg font-bold text-white mb-1">Corridor Intelligence Active</h3>
+              <p className="text-os-sm text-emerald-200/70 mb-4">
                 {optimizedRoutes.analysis}
               </p>
 
@@ -270,7 +270,7 @@ function LogisticsQuoteInner() {
                         <span className="font-semibold text-white">{route.mode}</span>
                         {route.recommended && <Badge className="bg-emerald-500 text-black hover:bg-emerald-400">Optimal</Badge>}
                       </div>
-                      <div className="text-xs text-white/50 flex gap-3">
+                      <div className="text-os-xs text-white/50 flex gap-3">
                         <span>{route.origin} → {route.destination}</span>
                         <span>•</span>
                         <span>{route.transitTimeDays} Days</span>
@@ -279,8 +279,8 @@ function LogisticsQuoteInner() {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-lg font-mono font-bold text-white">${route.totalCost.toLocaleString()}</div>
-                      <div className="text-xs text-white/50">${route.costPerKg}/kg</div>
+                      <div className="text-os-lg font-mono font-bold text-white">${route.totalCost.toLocaleString()}</div>
+                      <div className="text-os-xs text-white/50">${route.costPerKg}/kg</div>
                     </div>
                   </div>
                 ))}
@@ -302,7 +302,7 @@ function LogisticsQuoteInner() {
                   </Badge>
                 )}
               </div>
-              <p className="mt-2 text-2xl font-bold text-[var(--os-text-primary)]">${q.finalPrice}</p>
+              <p className="mt-2 text-os-2xl font-bold text-[var(--os-text-primary)]">${q.finalPrice}</p>
               <Button className="mt-4 w-full" onClick={() => handleAcceptQuote(q)}>
                 Accept Quote
               </Button>

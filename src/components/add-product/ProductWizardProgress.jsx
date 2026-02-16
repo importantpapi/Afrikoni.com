@@ -6,10 +6,10 @@ export default function ProductWizardProgress({ currentStep, steps, completionPe
     <div className="w-full">
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-[var(--os-text-primary)]">
+          <span className="text-os-sm font-medium text-[var(--os-text-primary)]">
             {completionPercent}% Complete
           </span>
-          <span className="text-xs text-[var(--os-text-secondary)]">
+          <span className="text-os-xs text-[var(--os-text-secondary)]">
             Step {currentStep} of {steps.length}
           </span>
         </div>
@@ -35,7 +35,7 @@ export default function ProductWizardProgress({ currentStep, steps, completionPe
             >
               <div
                 className={cn(
-                  'w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300',
+                  'w-10 h-10 rounded-full flex items-center justify-center text-os-sm font-semibold transition-all duration-300',
                   isCompleted && 'bg-white text-black',
                   isCurrent && 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.2)]',
                   isUpcoming && 'bg-white/10 text-[var(--os-text-secondary)]'
@@ -44,7 +44,7 @@ export default function ProductWizardProgress({ currentStep, steps, completionPe
                 {isCompleted ? <Check className="w-5 h-5" /> : stepNumber}
               </div>
               <div className="mt-2 text-center hidden sm:block">
-                <p className={cn('text-xs font-medium', isCurrent ? 'text-[var(--os-text-primary)]' : 'text-[var(--os-text-secondary)]')}>
+                <p className={cn('text-os-xs font-medium', isCurrent ? 'text-[var(--os-text-primary)]' : 'text-[var(--os-text-secondary)]')}>
                   {step.title}
                 </p>
               </div>
@@ -54,10 +54,10 @@ export default function ProductWizardProgress({ currentStep, steps, completionPe
       </div>
 
       <div className="mt-4 text-center sm:hidden">
-        <p className="text-sm font-medium text-[var(--os-text-primary)]">
+        <p className="text-os-sm font-medium text-[var(--os-text-primary)]">
           {steps[currentStep - 1]?.title}
         </p>
-        <p className="text-xs text-[var(--os-text-secondary)] mt-0.5">
+        <p className="text-os-xs text-[var(--os-text-secondary)] mt-0.5">
           {steps[currentStep - 1]?.description}
         </p>
       </div>

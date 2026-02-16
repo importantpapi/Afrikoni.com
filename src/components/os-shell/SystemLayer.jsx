@@ -17,7 +17,7 @@ export function SystemLayer({ systemState }) {
     }
 
     return (
-        <div className="w-full h-full bg-white/95 dark:bg-[#0A0A0A]/95 backdrop-blur-xl border-b border-afrikoni-gold/20">
+        <div className="w-full h-full bg-white/95 dark:bg-[#0A0A0A]/95 backdrop-blur-xl border-b border-os-accent/20">
             <TradeReadinessBar systemState={systemState} />
         </div>
     );

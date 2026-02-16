@@ -1,32 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Mail, Lock, Loader2, Shield, CheckCircle, Eye, EyeOff } from 'lucide-react';
+import { Lock as LockIcon, Loader2, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
-import { Logo } from '@/components/shared/ui/Logo';
 import { useLanguage } from '@/i18n/LanguageContext';
 import GoogleSignIn from '@/components/auth/GoogleSignIn';
-import FacebookSignIn from '@/components/auth/FacebookSignIn';
 import { login as authServiceLogin } from '@/services/AuthService';
 import { isNetworkError, handleNetworkError } from '@/utils/networkErrorHandler';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useCapability } from '@/context/CapabilityContext';
 import { Button } from '@/components/shared/ui/button';
-import { Surface } from '@/components/system/Surface';
+import AuthLayout from '@/components/auth/AuthLayout';
 
 export default function Login() {
   const { t } = useLanguage();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // 🔐 AUTH STATE
-  const { authReady, hasUser, profile, user } = useAuth();
+  // Auth state
+  const { authReady, hasUser, profile } = useAuth();
+  const { ready } = useCapability();
 
-  // ✅ CAPABILITY HANDSHAKE
-  const { ready, refreshCapabilities, kernelError } = useCapability();
-
-  // ✅ FORM STATE
+  // Form state
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -34,7 +29,7 @@ export default function Login() {
 
   const redirectUrl = searchParams.get('redirect') || createPageUrl('Home');
 
-  // 🚨 REDIRECT LAW: Logged-in users are sent to Mission Control
+  // Redirect logged-in users
   useEffect(() => {
     if (authReady !== true || ready !== true || !hasUser) return;
 
@@ -48,20 +43,20 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!email || !password) {
-      toast.error(t('login.fillFields'));
+      toast.error('Please enter your email and password');
       return;
     }
 
     setIsLoading(true);
     try {
       await authServiceLogin(email.trim(), password);
-      toast.success(t('login.success') || 'Sovereign Handshake Complete');
+      toast.success('Welcome back to Afrikoni');
       navigate('/auth/post-login', { replace: true });
     } catch (err) {
       if (isNetworkError(err)) {
         toast.error(handleNetworkError(err));
       } else {
-        toast.error(err.message || 'Identity Resolution Failed');
+        toast.error(err.message || 'Login failed. Please try again.');
       }
     } finally {
       setIsLoading(false);
@@ -72,151 +67,113 @@ export default function Login() {
     return redirectUrl && redirectUrl !== createPageUrl('Home') ? redirectUrl : '/dashboard';
   };
 
+  // Loading state
   if (typeof ready === 'undefined') {
     return (
-      <div className="min-h-screen bg-os-surface-solid flex flex-col items-center justify-center p-6 text-center">
-        <div className="w-16 h-16 border-4 border-os-accent/10 border-t-os-accent rounded-full animate-spin mb-6" />
-        <p className="text-os-text-secondary uppercase tracking-[0.3em] font-black text-[10px]">Initializing Identity Kernel...</p>
+      <div className="min-h-screen bg-gradient-to-br from-[#FDFBF7] via-[#F8F6F0] to-[#F5F2EA] flex flex-col items-center justify-center p-6">
+        <div className="w-12 h-12 border-3 border-gray-200 border-t-[#D4A937] rounded-full animate-spin mb-4" />
+        <p className="text-sm text-gray-500 font-medium">Loading...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center py-12 px-4 relative overflow-hidden">
-      {/* 🎬 CINEMATIC DEPTH: Ambient Background Blobs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-os-accent/5 rounded-full blur-[120px] animate-pulse" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#D4A937]/5 rounded-full blur-[100px] animate-pulse delay-700" />
+    <AuthLayout
+      title="Welcome back"
+      subtitle="Sign in to access Afrikoni's private trade network"
+      footerText={
+        <>
+          Don't have an account?{' '}
+          <Link to="/signup" className="text-[#D4A937] hover:text-[#C29931] font-medium transition-colors">
+            Create account
+          </Link>
+        </>
+      }
+    >
+      {/* Google Sign In */}
+      <div className="mb-8">
+        <GoogleSignIn
+          redirectTo={getOAuthRedirectPath()}
+          className="w-full h-[52px] bg-white hover:bg-gray-50 active:bg-gray-100 text-gray-800 border border-gray-300 rounded-[14px] font-medium text-[15px] transition-all flex items-center justify-center gap-3 shadow-sm hover:shadow-md active:shadow-sm"
+        />
+      </div>
 
-      {/* Grid Grain Overlay */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
-
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
-        className="w-full max-w-md z-10"
-      >
-        <Surface variant="glass" className="p-10 border-white/[0.05] shadow-2xl backdrop-blur-3xl relative overflow-visible">
-          {/* Top Gold Accent Bar */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-[2px] bg-gradient-to-r from-transparent via-os-accent to-transparent" />
-
-          <div className="text-center mb-10">
-            <div className="flex justify-center mb-8">
-              <div className="p-3 bg-os-accent/10 rounded-2xl border border-os-accent/20">
-                <Logo type="symbol" size="lg" />
-              </div>
-            </div>
-            <h1 className="text-2xl font-black uppercase tracking-[0.3em] text-os-text-primary mb-3">
-              Identity <span className="text-os-accent">Gateway</span>
-            </h1>
-            <p className="text-xs font-bold text-os-text-secondary/60 uppercase tracking-widest">
-              Access the OS Trade Kernel
-            </p>
-          </div>
-
-          <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-os-text-secondary uppercase tracking-[0.3em] block ml-1">
-                Command Email
-              </label>
-              <div className="relative group">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-os-text-secondary/40 group-focus-within:text-os-accent transition-colors" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-white/[0.03] border border-white/[0.08] rounded-2xl py-4 pl-12 pr-4 text-sm text-os-text-primary placeholder:text-os-text-secondary/20 focus:outline-none focus:ring-2 focus:ring-os-accent/20 focus:border-os-accent/40 transition-all"
-                  placeholder="name@company.com"
-                  disabled={isLoading}
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex justify-between items-center ml-1">
-                <label className="text-[10px] font-black text-os-text-secondary uppercase tracking-[0.3em]">
-                  Security Protocol
-                </label>
-                <Link to="/forgot-password" title="Forgot Password" className="text-[9px] font-black text-os-accent uppercase tracking-widest hover:opacity-80 transition-opacity">
-                  Recovery
-                </Link>
-              </div>
-              <div className="relative group">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-os-text-secondary/40 group-focus-within:text-os-accent transition-colors" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white/[0.03] border border-white/[0.08] rounded-2xl py-4 pl-12 pr-12 text-sm text-os-text-primary placeholder:text-os-text-secondary/20 focus:outline-none focus:ring-2 focus:ring-os-accent/20 focus:border-os-accent/40 transition-all"
-                  placeholder="••••••••"
-                  disabled={isLoading}
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-os-text-secondary/40 hover:text-os-text-primary transition-colors"
-                >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full h-14 bg-os-accent hover:bg-os-accent/90 text-black font-black uppercase tracking-[0.2em] text-xs rounded-2xl shadow-glow transition-all active:scale-[0.98]"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-3 animate-spin" />
-                  Resolving...
-                </>
-              ) : (
-                'Initialize Handshake'
-              )}
-            </Button>
-          </form>
-
-          <div className="relative my-8">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-white/[0.05]" />
-            </div>
-            <div className="relative flex justify-center text-[9px] uppercase tracking-[0.3em] font-black text-os-text-secondary/40 bg-transparent px-4">
-              <span className="bg-[#0A0A0B] px-4">Satellite Auth</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4 mb-10">
-            <GoogleSignIn redirectTo={getOAuthRedirectPath()} className="h-12 bg-white/[0.03] hover:bg-white/[0.05] border border-white/[0.08] rounded-xl font-bold uppercase tracking-widest text-[9px] transition-all" />
-            <FacebookSignIn redirectTo={getOAuthRedirectPath()} className="h-12 bg-white/[0.03] hover:bg-white/[0.05] border border-white/[0.08] rounded-xl font-bold uppercase tracking-widest text-[9px] transition-all" />
-          </div>
-
-          <p className="text-center text-[10px] uppercase tracking-[0.2em] font-black text-os-text-secondary/60">
-            New Entity?{' '}
-            <Link to="/signup" className="text-os-accent hover:opacity-80 transition-opacity ml-1">
-              Apply for Access
-            </Link>
-          </p>
-        </Surface>
-
-        <div className="mt-8 text-center flex flex-col items-center gap-4">
-          <div className="flex items-center gap-6 opacity-30">
-            <div className="flex items-center gap-2">
-              <Shield className="w-3 h-3 text-os-accent" />
-              <span className="text-[8px] font-black uppercase tracking-[0.3em] text-os-text-secondary">AES-256 Encrypted</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <CheckCircle className="w-3 h-3 text-os-accent" />
-              <span className="text-[8px] font-black uppercase tracking-[0.3em] text-os-text-secondary">Verified Node</span>
-            </div>
-          </div>
-          <p className="text-os-text-secondary/20 text-[8px] font-black uppercase tracking-[0.5em]">
-            &copy; 2026 HORIZON PROTOCOL &bull; Trade is Active
-          </p>
+      <div className="relative my-8">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-gray-200" />
         </div>
-      </motion.div>
-    </div>
+        <div className="relative flex justify-center text-[13px] font-medium text-gray-500">
+          <span className="bg-white px-4">or continue with email</span>
+        </div>
+      </div>
+
+      <form onSubmit={handleLogin} className="space-y-6">
+        <div className="space-y-2.5">
+          <label className="text-[13px] font-medium text-gray-700 block">Work email</label>
+          <div className="relative">
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-white border border-gray-300 rounded-[13px] py-3.5 px-4 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D4A937]/20 focus:border-[#D4A937] transition-all"
+              placeholder="name@company.com"
+              disabled={isLoading}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="space-y-2.5">
+          <div className="flex items-center justify-between">
+            <label className="text-[13px] font-medium text-gray-700 block">Password</label>
+            <Link
+              to="/forgot-password"
+              className="text-[13px] font-medium text-[#D4A937] hover:text-[#C29931] transition-colors"
+            >
+              Forgot password?
+            </Link>
+          </div>
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full bg-white border border-gray-300 rounded-[13px] py-3.5 px-4 pr-12 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D4A937]/20 focus:border-[#D4A937] transition-all"
+              placeholder="Enter your password"
+              disabled={isLoading}
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
+            </button>
+          </div>
+        </div>
+
+        <Button
+          type="submit"
+          disabled={isLoading}
+          className="w-full h-[52px] bg-[#D4A937] hover:bg-[#C29931] active:bg-[#B38A2C] text-white font-semibold text-[15px] rounded-[14px] transition-all shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(212,169,55,0.15)] hover:shadow-[0_2px_4px_rgba(0,0,0,0.1),0_6px_16px_rgba(212,169,55,0.2)] active:shadow-[0_1px_2px_rgba(0,0,0,0.12)] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="w-[18px] h-[18px] mr-2 animate-spin" />
+              Signing in...
+            </>
+          ) : (
+            'Sign in'
+          )}
+        </Button>
+
+        {/* Trust signal */}
+        <div className="flex items-center justify-center gap-2 text-[13px] text-gray-500 pt-2">
+          <LockIcon className="w-3.5 h-3.5" />
+          <span>Your information is encrypted and protected</span>
+        </div>
+      </form>
+    </AuthLayout>
   );
 }

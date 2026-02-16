@@ -14,7 +14,7 @@ export default function AntiCorruptionPolicy() {
           <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
             Anti-Corruption &amp; Ethics Policy
           </h1>
-          <p className="text-sm text-afrikoni-deep/80">
+          <p className="text-os-sm text-afrikoni-deep/80">
             This policy will outline Afrikoni&apos;s approach to anti-corruption, ethical sourcing,
             anti-bribery standards, and how violations are investigated and enforced.
           </p>

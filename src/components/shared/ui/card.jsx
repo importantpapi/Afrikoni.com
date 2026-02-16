@@ -13,9 +13,9 @@ const Card = React.forwardRef(({
     <div
       ref={ref}
       className={cn(
-        'rounded-xl border border-afrikoni-gold/20 bg-afrikoni-cream text-afrikoni-chestnut shadow-afrikoni transition-all',
-        hover && 'hover:shadow-afrikoni-lg hover:border-afrikoni-gold/40',
-        selected && 'ring-2 ring-afrikoni-gold border-afrikoni-gold',
+        'rounded-os-sm border border-os-accent/20 bg-afrikoni-cream text-afrikoni-chestnut shadow-os-gold transition-all',
+        hover && 'hover:shadow-os-gold-lg hover:border-os-accent/40',
+        selected && 'ring-2 ring-os-accent border-os-accent',
         gradientHeader && 'overflow-hidden',
         className
       )}
@@ -43,7 +43,7 @@ const CardHeader = React.forwardRef(({ className, gradient = false, ...props }, 
     ref={ref}
     className={cn(
       'flex flex-col space-y-1.5 p-5 md:p-6',
-      gradient && 'bg-gradient-to-br from-afrikoni-gold to-afrikoni-goldDark text-afrikoni-chestnut',
+      gradient && 'bg-gradient-to-br from-os-accent to-os-accentDark text-afrikoni-chestnut',
       className
     )}
     {...props}
@@ -54,7 +54,7 @@ CardHeader.displayName = 'CardHeader';
 const CardTitle = React.forwardRef(({ className, ...props }, ref) => (
   <h3
     ref={ref}
-    className={cn('text-xl md:text-2xl font-bold leading-none tracking-tight', className)}
+    className={cn('text-os-xl md:text-os-2xl font-bold leading-none tracking-tight', className)}
     {...props}
   />
 ));
@@ -63,7 +63,7 @@ CardTitle.displayName = 'CardTitle';
 const CardDescription = React.forwardRef(({ className, ...props }, ref) => (
   <p
     ref={ref}
-      className={cn('text-sm text-afrikoni-deep', className)}
+      className={cn('text-os-sm text-afrikoni-deep', className)}
     {...props}
   />
 ));

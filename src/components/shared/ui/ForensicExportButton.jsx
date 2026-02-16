@@ -16,8 +16,8 @@ export const ForensicExportButton = ({
             disabled={isGenerating}
             variant={variant}
             className={cn(
-                "relative h-12 px-6 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all duration-500 overflow-hidden group",
-                variant === "outline" ? "border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-500" : "bg-afrikoni-gold text-black hover:scale-[1.02]",
+                "relative h-12 px-6 rounded-os-sm font-black uppercase tracking-widest text-os-xs transition-all duration-500 overflow-hidden group",
+                variant === "outline" ? "border-emerald-500/20 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-500" : "bg-os-accent text-black hover:scale-[1.02]",
                 className
             )}
         >

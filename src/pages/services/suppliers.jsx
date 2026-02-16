@@ -79,26 +79,26 @@ export default function SuppliersService() {
       />
       <div className="min-h-screen bg-afrikoni-offwhite">
         {/* Hero Section */}
-        <section className="bg-gradient-to-r from-afrikoni-gold/20 to-afrikoni-chestnut/20 py-16 md:py-24">
+        <section className="bg-gradient-to-r from-os-accent/20 to-afrikoni-chestnut/20 py-16 md:py-24">
           <div className="max-w-7xl mx-auto px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="text-center max-w-4xl mx-auto"
             >
-              <div className="w-20 h-20 bg-afrikoni-gold rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-20 h-20 bg-os-accent rounded-full flex items-center justify-center mx-auto mb-6">
                 <Store className="w-10 h-10 text-white" />
               </div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-afrikoni-chestnut mb-6">
                 Join as Supplier
               </h1>
-              <p className="text-xl md:text-2xl text-afrikoni-deep mb-8">
+              <p className="text-os-xl md:text-os-2xl text-afrikoni-deep mb-8">
                 Reach global buyers, get verified, and grow your business with secure payments and logistics support.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button
                   size="lg"
-                  className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white px-8 py-6 text-lg"
+                  className="bg-os-accent hover:bg-os-accentDark text-white px-8 py-6 text-os-lg"
                   asChild
                 >
                   <Link to="/become-supplier">Get Started Free</Link>
@@ -106,7 +106,7 @@ export default function SuppliersService() {
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10 px-8 py-6 text-lg"
+                  className="border-os-accent text-afrikoni-chestnut hover:bg-os-accent/10 px-8 py-6 text-os-lg"
                   asChild
                 >
                   <Link to="/pricing">View Pricing</Link>
@@ -128,7 +128,7 @@ export default function SuppliersService() {
               <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
                 Why Sell on Afrikoni?
               </h2>
-              <p className="text-lg text-afrikoni-deep/80">
+              <p className="text-os-lg text-afrikoni-deep/80">
                 Everything you need to grow your business globally
               </p>
             </motion.div>
@@ -144,12 +144,12 @@ export default function SuppliersService() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: idx * 0.1 }}
                   >
-                    <Card className="h-full border-afrikoni-gold/20 hover:border-afrikoni-gold transition-all">
+                    <Card className="h-full border-os-accent/20 hover:border-os-accent transition-all">
                       <CardContent className="p-6">
-                        <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-lg flex items-center justify-center mb-4">
-                          <Icon className="w-6 h-6 text-afrikoni-gold" />
+                        <div className="w-12 h-12 bg-os-accent/20 rounded-lg flex items-center justify-center mb-4">
+                          <Icon className="w-6 h-6 text-os-accent" />
                         </div>
-                        <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2">
+                        <h3 className="text-os-xl font-bold text-afrikoni-chestnut mb-2">
                           {benefit.title}
                         </h3>
                         <p className="text-afrikoni-deep/80">
@@ -176,7 +176,7 @@ export default function SuppliersService() {
               <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
                 How It Works
               </h2>
-              <p className="text-lg text-afrikoni-deep/80">
+              <p className="text-os-lg text-afrikoni-deep/80">
                 Get started in 4 simple steps
               </p>
             </motion.div>
@@ -191,12 +191,12 @@ export default function SuppliersService() {
                   transition={{ duration: 0.5, delay: idx * 0.1 }}
                   className="relative"
                 >
-                  <Card className="h-full border-afrikoni-gold/20">
+                  <Card className="h-full border-os-accent/20">
                     <CardContent className="p-6">
-                      <div className="text-5xl font-bold text-afrikoni-gold/20 mb-4">
+                      <div className="text-5xl font-bold text-os-accent/20 mb-4">
                         {step.number}
                       </div>
-                      <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2">
+                      <h3 className="text-os-xl font-bold text-afrikoni-chestnut mb-2">
                         {step.title}
                       </h3>
                       <p className="text-afrikoni-deep/80">
@@ -206,7 +206,7 @@ export default function SuppliersService() {
                   </Card>
                   {idx < steps.length - 1 && (
                     <div className="hidden lg:block absolute top-1/2 -right-3 transform -translate-y-1/2">
-                      <ArrowRight className="w-6 h-6 text-afrikoni-gold/50" />
+                      <ArrowRight className="w-6 h-6 text-os-accent/50" />
                     </div>
                   )}
                 </motion.div>
@@ -216,7 +216,7 @@ export default function SuppliersService() {
         </section>
 
         {/* CTA Section */}
-        <section className="py-16 md:py-20 bg-gradient-to-r from-afrikoni-gold/20 to-afrikoni-chestnut/20">
+        <section className="py-16 md:py-20 bg-gradient-to-r from-os-accent/20 to-afrikoni-chestnut/20">
           <div className="max-w-4xl mx-auto px-4 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -226,12 +226,12 @@ export default function SuppliersService() {
               <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
                 Ready to Grow Your Business?
               </h2>
-              <p className="text-lg text-afrikoni-deep mb-8">
+              <p className="text-os-lg text-afrikoni-deep mb-8">
                 Join thousands of suppliers already selling on Afrikoni
               </p>
               <Button
                 size="lg"
-                className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white px-8 py-6 text-lg"
+                className="bg-os-accent hover:bg-os-accentDark text-white px-8 py-6 text-os-lg"
                 asChild
               >
                 <Link to="/become-supplier">Join as Supplier</Link>

@@ -53,32 +53,32 @@ export default function OracleKit({ farmerId, tradeId }) {
     };
 
     return (
-        <Surface variant="glass" className="p-8 border-afrikoni-gold/10 bg-afrikoni-gold/[0.02] space-y-8">
+        <Surface variant="glass" className="p-8 border-os-accent/10 bg-os-accent/[0.02] space-y-8">
             <div className="flex justify-between items-start">
                 <div>
-                    <h3 className="text-2xl font-black tracking-tighter text-white">ORACLE KIT v2.0</h3>
-                    <p className="text-os-muted text-sm font-medium uppercase tracking-widest">Afrikoni Youth Agent Verification Rail</p>
+                    <h3 className="text-os-2xl font-black tracking-tighter text-white">ORACLE KIT v2.0</h3>
+                    <p className="text-os-muted text-os-sm font-medium uppercase tracking-widest">Afrikoni Youth Agent Verification Rail</p>
                 </div>
-                <Badge className="bg-afrikoni-gold text-black px-4 py-1 font-black">ACTIVE AGENT</Badge>
+                <Badge className="bg-os-accent text-black px-4 py-1 font-black">ACTIVE AGENT</Badge>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <Button
                     variant="outline"
-                    className="h-32 flex flex-col gap-3 border-white/5 bg-white/[0.02] hover:bg-white/[0.05] rounded-2xl"
+                    className="h-32 flex flex-col gap-3 border-white/5 bg-white/[0.02] hover:bg-white/[0.05] rounded-os-md"
                     onClick={() => setGpsCaptured(true)}
                 >
                     <MapPin className={`w-8 h-8 ${gpsCaptured ? 'text-emerald-500' : 'text-os-muted'}`} />
-                    <span className="font-bold uppercase tracking-widest text-[10px]">Capture GPS DNA</span>
+                    <span className="font-bold uppercase tracking-widest text-os-xs">Capture GPS DNA</span>
                 </Button>
 
                 <Button
                     variant="outline"
-                    className="h-32 flex flex-col gap-3 border-white/5 bg-white/[0.02] hover:bg-white/[0.05] rounded-2xl"
+                    className="h-32 flex flex-col gap-3 border-white/5 bg-white/[0.02] hover:bg-white/[0.05] rounded-os-md"
                     onClick={() => toast.info('Camera Access Initialized')}
                 >
                     <Camera className="w-8 h-8 text-os-muted" />
-                    <span className="font-bold uppercase tracking-widest text-[10px]">Scan Product Quality</span>
+                    <span className="font-bold uppercase tracking-widest text-os-xs">Scan Product Quality</span>
                 </Button>
             </div>
 
@@ -86,8 +86,8 @@ export default function OracleKit({ farmerId, tradeId }) {
                 <div className="flex items-center gap-4 text-emerald-500">
                     <ShieldCheck className="w-6 h-6" />
                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest">Sovereign Integrity Check</p>
-                        <p className="text-sm font-medium text-white/80">
+                        <p className="text-os-xs font-black uppercase tracking-widest">Sovereign Integrity Check</p>
+                        <p className="text-os-sm font-medium text-white/80">
                             Verification by Youth Oracle acts as the primary risk-mitigation layer for trade finance partners.
                         </p>
                     </div>
@@ -97,7 +97,7 @@ export default function OracleKit({ farmerId, tradeId }) {
             <Button
                 onClick={handleVerification}
                 disabled={scanned || isCommitting}
-                className="w-full h-16 bg-gradient-to-r from-afrikoni-gold/80 to-afrikoni-gold text-black font-black uppercase tracking-[0.2em] rounded-2xl shadow-2xl shadow-afrikoni-gold/20 hover:scale-[1.02] transition-all"
+                className="w-full h-16 bg-gradient-to-r from-os-accent/80 to-os-accent text-black font-black uppercase tracking-[0.2em] rounded-os-md shadow-2xl shadow-os-accent/20 hover:scale-[1.02] transition-all"
             >
                 {scanned ? 'FORENSIC DNA COMMITTED⚡' : isCommitting ? 'COMMITTING...' : 'COMMIT FIELD DNA'}
                 <Zap className="ml-2 w-5 h-5 fill-black" />

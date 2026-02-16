@@ -84,7 +84,7 @@ export function FirstTimeRFQGuidance({ onDismiss }) {
         exit={{ opacity: 0, y: 20 }}
         className="fixed bottom-6 right-6 z-50 max-w-md"
       >
-        <Card className="border-2 border-afrikoni-gold shadow-2xl">
+        <Card className="border-2 border-os-accent shadow-2xl">
           <CardContent className="p-6">
             {/* Header */}
             <div className="flex items-start justify-between mb-4">
@@ -101,10 +101,10 @@ export function FirstTimeRFQGuidance({ onDismiss }) {
 
             {/* Content */}
             <div className="mb-4">
-              <h3 className="font-bold text-afrikoni-chestnut text-lg mb-2">
+              <h3 className="font-bold text-afrikoni-chestnut text-os-lg mb-2">
                 {step.title}
               </h3>
-              <p className="text-sm text-afrikoni-deep/80">
+              <p className="text-os-sm text-afrikoni-deep/80">
                 {step.description}
               </p>
             </div>
@@ -115,7 +115,7 @@ export function FirstTimeRFQGuidance({ onDismiss }) {
                 <div
                   key={index}
                   className={`h-1 flex-1 rounded-full transition-colors ${
-                    index <= currentStep ? 'bg-afrikoni-gold' : 'bg-gray-200'
+                    index <= currentStep ? 'bg-os-accent' : 'bg-gray-200'
                   }`}
                 />
               ))}
@@ -123,12 +123,12 @@ export function FirstTimeRFQGuidance({ onDismiss }) {
 
             {/* Actions */}
             <div className="flex items-center justify-between">
-              <span className="text-xs text-afrikoni-deep/60">
+              <span className="text-os-xs text-afrikoni-deep/60">
                 Step {currentStep + 1} of {steps.length}
               </span>
               <Button
                 onClick={handleNext}
-                className="bg-afrikoni-gold hover:bg-afrikoni-gold/90"
+                className="bg-os-accent hover:bg-os-accent/90"
                 size="sm"
               >
                 {currentStep < steps.length - 1 ? (
@@ -172,7 +172,7 @@ export function FirstTimeQuoteGuidance({ onDismiss }) {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-gradient-to-br from-amber-50 to-white border-2 border-amber-300 rounded-lg p-4 mb-4 shadow-lg"
+        className="bg-gradient-to-br from-amber-50 to-white border-2 border-amber-300 rounded-lg p-4 mb-4 shadow-os-md"
       >
         <div className="flex items-start gap-3">
           <div className="p-2 rounded-lg bg-amber-100 flex-shrink-0">
@@ -190,7 +190,7 @@ export function FirstTimeQuoteGuidance({ onDismiss }) {
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <ul className="text-sm text-afrikoni-deep/80 space-y-1.5 mb-3">
+            <ul className="text-os-sm text-afrikoni-deep/80 space-y-1.5 mb-3">
               <li className="flex items-start gap-2">
                 <CheckCircle2 className="w-4 h-4 text-green-600 flex-shrink-0 mt-0.5" />
                 <span><strong>Match the RFQ exactly:</strong> Address every requirement the buyer mentioned</span>
@@ -208,7 +208,7 @@ export function FirstTimeQuoteGuidance({ onDismiss }) {
                 <span><strong>Use templates:</strong> Professional quote templates are available below</span>
               </li>
             </ul>
-            <p className="text-xs text-afrikoni-deep/60 italic">
+            <p className="text-os-xs text-afrikoni-deep/60 italic">
               💡 Complete, professional quotes are 2x more likely to win the deal.
             </p>
           </div>
@@ -258,7 +258,7 @@ export function ContextualTooltip({
         exit={{ opacity: 0 }}
         className={`absolute ${position === 'bottom' ? 'top-full mt-2' : 'bottom-full mb-2'} left-0 right-0 z-50`}
       >
-        <div className="bg-blue-600 text-white text-xs rounded-lg px-3 py-2 shadow-lg max-w-xs">
+        <div className="bg-blue-600 text-white text-os-xs rounded-lg px-3 py-2 shadow-os-md max-w-xs">
           <div className="flex items-start justify-between gap-2">
             <p>{message}</p>
             <button

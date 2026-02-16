@@ -39,7 +39,7 @@ export default function RFQSuccess() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-afrikoni-offwhite flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-os-accent" />
       </div>
     );
   }
@@ -54,24 +54,24 @@ export default function RFQSuccess() {
           className="text-center mb-8"
         >
           <div className="flex justify-center mb-4">
-            <div className="w-20 h-20 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
-              <CheckCircle className="w-12 h-12 text-afrikoni-gold" />
+            <div className="w-20 h-20 bg-os-accent/20 rounded-full flex items-center justify-center">
+              <CheckCircle className="w-12 h-12 text-os-accent" />
             </div>
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold text-afrikoni-chestnut mb-3">
             Your RFQ has been received
           </h1>
           {rfq && (
-            <p className="text-lg text-afrikoni-deep">
+            <p className="text-os-lg text-afrikoni-deep">
               "{rfq.title}" is now being reviewed
             </p>
           )}
         </motion.div>
 
         {/* What Happens Next */}
-        <Card className="border-afrikoni-gold/30 shadow-lg mb-6">
+        <Card className="border-os-accent/30 shadow-os-md mb-6">
           <CardContent className="p-6 sm:p-8">
-            <h2 className="text-xl font-bold text-afrikoni-chestnut mb-6">
+            <h2 className="text-os-xl font-bold text-afrikoni-chestnut mb-6">
               What happens next?
             </h2>
             <div className="space-y-6">
@@ -82,15 +82,15 @@ export default function RFQSuccess() {
                 className="flex gap-4"
               >
                 <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-afrikoni-gold/10 rounded-full flex items-center justify-center">
-                    <Clock className="w-6 h-6 text-afrikoni-gold" />
+                  <div className="w-12 h-12 bg-os-accent/10 rounded-full flex items-center justify-center">
+                    <Clock className="w-6 h-6 text-os-accent" />
                   </div>
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-afrikoni-chestnut mb-1">
                     Afrikoni reviews the request
                   </h3>
-                  <p className="text-sm text-afrikoni-deep">
+                  <p className="text-os-sm text-afrikoni-deep">
                     Our team reviews your RFQ to ensure it's complete and matches with the right suppliers.
                   </p>
                 </div>
@@ -103,15 +103,15 @@ export default function RFQSuccess() {
                 className="flex gap-4"
               >
                 <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-afrikoni-gold/10 rounded-full flex items-center justify-center">
-                    <Users className="w-6 h-6 text-afrikoni-gold" />
+                  <div className="w-12 h-12 bg-os-accent/10 rounded-full flex items-center justify-center">
+                    <Users className="w-6 h-6 text-os-accent" />
                   </div>
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-afrikoni-chestnut mb-1">
                     Verified suppliers are matched
                   </h3>
-                  <p className="text-sm text-afrikoni-deep">
+                  <p className="text-os-sm text-afrikoni-deep">
                     We match your request with verified suppliers who can fulfill your requirements.
                   </p>
                 </div>
@@ -124,15 +124,15 @@ export default function RFQSuccess() {
                 className="flex gap-4"
               >
                 <div className="flex-shrink-0">
-                  <div className="w-12 h-12 bg-afrikoni-gold/10 rounded-full flex items-center justify-center">
-                    <Shield className="w-6 h-6 text-afrikoni-gold" />
+                  <div className="w-12 h-12 bg-os-accent/10 rounded-full flex items-center justify-center">
+                    <Shield className="w-6 h-6 text-os-accent" />
                   </div>
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold text-afrikoni-chestnut mb-1">
                     You'll receive responses in your dashboard
                   </h3>
-                  <p className="text-sm text-afrikoni-deep">
+                  <p className="text-os-sm text-afrikoni-deep">
                     All supplier quotes and communications will appear in your dashboard. You control who sees your contact information.
                   </p>
                 </div>
@@ -145,7 +145,7 @@ export default function RFQSuccess() {
         <div className="text-center">
           <Button
             onClick={() => navigate('/dashboard/rfqs')}
-            className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut font-semibold text-base min-h-[52px] px-8"
+            className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut font-semibold text-os-base min-h-[52px] px-8"
           >
             Go to Dashboard
             <ArrowRight className="ml-2 w-5 h-5" />
@@ -154,7 +154,7 @@ export default function RFQSuccess() {
 
         {/* Trust Note */}
         <div className="mt-8 text-center">
-          <p className="text-sm text-afrikoni-deep/70">
+          <p className="text-os-sm text-afrikoni-deep/70">
             Your RFQ is private. Only verified suppliers matched by Afrikoni can respond.
           </p>
         </div>

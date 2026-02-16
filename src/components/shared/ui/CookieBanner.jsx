@@ -65,7 +65,7 @@ export default function CookieBanner() {
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed bottom-0 left-0 right-0 z-[9999] bg-afrikoni-chestnut border-t-4 border-afrikoni-gold shadow-afrikoni-xl"
+            className="fixed bottom-0 left-0 right-0 z-[9999] bg-afrikoni-chestnut border-t-4 border-os-accent shadow-os-gold-xl"
             role="dialog"
             aria-labelledby="cookie-banner-title"
             aria-describedby="cookie-banner-description"
@@ -82,42 +82,42 @@ export default function CookieBanner() {
                     whileHover={{ rotate: 10, scale: 1.1 }}
                     transition={{ type: "spring", stiffness: 300 }}
                   >
-                    <Cookie className="w-6 h-6 text-afrikoni-gold flex-shrink-0 mt-1" aria-hidden="true" />
+                    <Cookie className="w-6 h-6 text-os-accent flex-shrink-0 mt-1" aria-hidden="true" />
                   </motion.div>
                   <div className="flex-1">
                     <h3 
                       id="cookie-banner-title"
-                      className="text-lg md:text-xl font-bold text-afrikoni-cream mb-2"
+                      className="text-os-lg md:text-os-xl font-bold text-afrikoni-cream mb-2"
                     >
                       Afrikoni respects your privacy
                     </h3>
                     <p 
                       id="cookie-banner-description"
-                      className="text-sm md:text-base text-afrikoni-cream/90 mb-2"
+                      className="text-os-sm md:text-os-base text-afrikoni-cream/90 mb-2"
                     >
                       Afrikoni and 3rd parties use essential and non-essential cookies to provide, secure, analyze and improve our Services, and to show you relevant ads (including professional and job ads) on and off Afrikoni. 
                       <Link 
                         to="/cookie-policy" 
-                        className="text-afrikoni-gold hover:underline ml-1 font-semibold"
+                        className="text-os-accent hover:underline ml-1 font-semibold"
                         aria-label="Learn more about our cookie policy"
                       >
                         Learn more in our Cookie Policy.
                       </Link>
                     </p>
-                    <p className="text-xs md:text-sm text-afrikoni-cream/80">
+                    <p className="text-os-xs md:text-os-sm text-afrikoni-cream/80">
                       Select Accept to consent or Reject to decline non-essential cookies for this use. You can update your choices at any time in your settings.
                     </p>
                     <motion.div 
-                      className="flex flex-wrap gap-2 text-xs text-afrikoni-cream/80"
+                      className="flex flex-wrap gap-2 text-os-xs text-afrikoni-cream/80"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.3, delay: 0.2 }}
                     >
-                      <Link to="/privacy-policy" className="hover:text-afrikoni-gold hover:underline">
+                      <Link to="/privacy-policy" className="hover:text-os-accent hover:underline">
                         Privacy Policy
                       </Link>
                       <span>•</span>
-                      <Link to="/cookie-policy" className="hover:text-afrikoni-gold hover:underline">
+                      <Link to="/cookie-policy" className="hover:text-os-accent hover:underline">
                         Cookie Policy
                       </Link>
                     </motion.div>
@@ -137,7 +137,7 @@ export default function CookieBanner() {
                       onClick={handleReject}
                       variant="outline"
                       size="sm"
-                      className="border-afrikoni-gold/50 text-afrikoni-cream hover:bg-afrikoni-gold/10"
+                      className="border-os-accent/50 text-afrikoni-cream hover:bg-os-accent/10"
                     >
                       Reject
                     </Button>
@@ -150,7 +150,7 @@ export default function CookieBanner() {
                       onClick={handleCustomize}
                       variant="outline"
                       size="sm"
-                      className="border-afrikoni-gold/50 text-afrikoni-cream hover:bg-afrikoni-gold/10"
+                      className="border-os-accent/50 text-afrikoni-cream hover:bg-os-accent/10"
                     >
                       Customize
                     </Button>
@@ -162,7 +162,7 @@ export default function CookieBanner() {
                     <Button
                       onClick={handleAcceptAll}
                       size="sm"
-                      className="bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight"
+                      className="bg-os-accent text-afrikoni-chestnut hover:bg-os-accentLight"
                     >
                       Accept All
                     </Button>

@@ -72,7 +72,7 @@ const Shipments = () => {
       <div className="os-page os-stagger space-y-6">
         <Surface variant="glass" className="p-6 md:p-8">
           <h1 className="os-title">Shipment Tracking</h1>
-          <p className="text-sm text-os-muted">No shipments found for your account.</p>
+          <p className="text-os-sm text-os-muted">No shipments found for your account.</p>
         </Surface>
       </div>
     );
@@ -84,7 +84,7 @@ const Shipments = () => {
         <div>
           <div className="os-label">Logistics Control Tower</div>
           <h1 className="os-title mt-2">Shipment Tracking</h1>
-          <p className="text-sm text-os-muted">
+          <p className="text-os-sm text-os-muted">
             Real-time logistics visibility for all active shipments
           </p>
         </div>
@@ -94,26 +94,26 @@ const Shipments = () => {
         <div className="p-6 border-b border-os-stroke bg-gradient-to-r from-blue-500/5 to-transparent">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-xl bg-blue-500/10 flex items-center justify-center">
-                <Ship className="h-7 w-7 text-blue-500" />
+              <div className="w-14 h-14 rounded-os-sm bg-os-blue/10 flex items-center justify-center">
+                <Ship className="h-7 w-7 text-os-blue" />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-semibold text-[var(--os-text-primary)]">
+                  <h2 className="text-os-lg font-semibold text-[var(--os-text-primary)]">
                     {trade?.product_name || "Active Shipment"}
                   </h2>
-                  <span className="bg-blue-500/10 text-blue-500 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
+                  <span className="bg-os-blue/10 text-os-blue text-os-xs font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">
                     {activeShipment.status?.replace("_", " ") || "In Transit"}
                   </span>
                 </div>
-                <p className="text-sm text-os-muted">
+                <p className="text-os-sm text-os-muted">
                   {activeShipment.carrier_name || "Carrier"} · {activeShipment.tracking_number || "Tracking Pending"}
                 </p>
               </div>
             </div>
             <div className="text-right">
-              <p className="text-sm text-os-muted">ETA</p>
-              <p className="text-lg font-semibold text-[var(--os-text-primary)]">
+              <p className="text-os-sm text-os-muted">ETA</p>
+              <p className="text-os-lg font-semibold text-[var(--os-text-primary)]">
                 {(activeShipment.scheduled_delivery_date || activeShipment.actual_delivery_date)
                   ? new Date(activeShipment.actual_delivery_date || activeShipment.scheduled_delivery_date).toLocaleDateString("en-US", {
                     month: "short",
@@ -131,10 +131,10 @@ const Shipments = () => {
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-blue-400" />
               <div>
-                <p className="text-sm font-medium text-[var(--os-text-primary)]">
+                <p className="text-os-sm font-medium text-[var(--os-text-primary)]">
                   {originCountry}
                 </p>
-                <p className="text-xs text-os-muted">
+                <p className="text-os-xs text-os-muted">
                   Origin
                 </p>
               </div>
@@ -148,18 +148,18 @@ const Shipments = () => {
                 />
               </div>
               <div className="flex justify-between mt-1">
-                <span className="text-[10px] text-os-muted">Origin</span>
-                <span className="text-[10px] text-blue-400 font-medium">{activeShipment.current_location || "—"}</span>
-                <span className="text-[10px] text-os-muted">Destination</span>
+                <span className="text-os-xs text-os-muted">Origin</span>
+                <span className="text-os-xs text-blue-400 font-medium">{activeShipment.current_location || "—"}</span>
+                <span className="text-os-xs text-os-muted">Destination</span>
               </div>
             </div>
             <div className="flex items-center gap-2">
               <MapPin className="h-4 w-4 text-emerald-400" />
               <div className="text-right">
-                <p className="text-sm font-medium text-[var(--os-text-primary)]">
+                <p className="text-os-sm font-medium text-[var(--os-text-primary)]">
                   {destinationCountry}
                 </p>
-                <p className="text-xs text-os-muted">
+                <p className="text-os-xs text-os-muted">
                   Destination
                 </p>
               </div>
@@ -194,9 +194,9 @@ const Shipments = () => {
               <div key={stat.label} className="p-3 rounded-lg bg-os-surface-1 border border-os-stroke">
                 <div className="flex items-center gap-1 mb-1">
                   <stat.icon className="h-3 w-3 text-os-muted" />
-                  <span className="text-[10px] uppercase tracking-wider text-os-muted font-semibold">{stat.label}</span>
+                  <span className="text-os-xs uppercase tracking-wider text-os-muted font-semibold">{stat.label}</span>
                 </div>
-                <p className="text-sm font-semibold text-[var(--os-text-primary)] capitalize">
+                <p className="text-os-sm font-semibold text-[var(--os-text-primary)] capitalize">
                   {stat.value}
                 </p>
               </div>
@@ -205,7 +205,7 @@ const Shipments = () => {
         </div>
 
         <div className="p-6">
-          <h3 className="text-sm font-semibold text-[var(--os-text-primary)] mb-4">
+          <h3 className="text-os-sm font-semibold text-[var(--os-text-primary)] mb-4">
             Shipment Milestones
           </h3>
           <div className="space-y-0">
@@ -223,7 +223,7 @@ const Shipments = () => {
                         isCompleted &&
                         "bg-emerald-500/10 border-emerald-500 text-emerald-500",
                         isActive &&
-                        "bg-blue-500/10 border-blue-500 text-blue-500 animate-pulse-glow",
+                        "bg-os-blue/10 border-blue-500 text-os-blue animate-pulse-glow",
                         !isCompleted &&
                         !isActive &&
                         "bg-os-surface-0 border-os-stroke text-os-muted"
@@ -232,7 +232,7 @@ const Shipments = () => {
                       {isCompleted ? (
                         <CheckCircle2 className="h-4 w-4" />
                       ) : (
-                        <span className="text-xs font-bold">{idx + 1}</span>
+                        <span className="text-os-xs font-bold">{idx + 1}</span>
                       )}
                     </div>
                     {!isLast && (
@@ -247,7 +247,7 @@ const Shipments = () => {
                   <div className="pb-6">
                     <p
                       className={cn(
-                        "text-sm font-medium",
+                        "text-os-sm font-medium",
                         isCompleted || isActive
                           ? "text-[var(--os-text-primary)]"
                           : "text-os-muted"
@@ -255,7 +255,7 @@ const Shipments = () => {
                     >
                       {milestone.name}
                     </p>
-                    <p className="text-xs text-os-muted">
+                    <p className="text-os-xs text-os-muted">
                       {milestone.completedAt
                         ? new Date(milestone.completedAt).toLocaleDateString(
                           "en-US",
@@ -276,7 +276,7 @@ const Shipments = () => {
                           : "Pending"}
                     </p>
                     {milestone.aiConfidence && (
-                      <span className="inline-flex items-center gap-1 mt-1 text-[10px] text-blue-400 bg-blue-400/10 px-1.5 py-0.5 rounded">
+                      <span className="inline-flex items-center gap-1 mt-1 text-os-xs text-blue-400 bg-blue-400/10 px-1.5 py-0.5 rounded">
                         AI Confidence: {milestone.aiConfidence}%
                       </span>
                     )}
@@ -289,18 +289,18 @@ const Shipments = () => {
       </Surface>
 
       <Surface variant="panel" className="p-6">
-        <h3 className="text-sm font-semibold text-[var(--os-text-primary)] mb-4">Event Log</h3>
+        <h3 className="text-os-sm font-semibold text-[var(--os-text-primary)] mb-4">Event Log</h3>
         <div className="space-y-3">
           {trackingEvents.map((event) => (
             <div key={event.id} className="flex items-center gap-4 p-3 rounded-lg bg-os-surface-1 border border-os-stroke">
               <div
                 className={cn(
                   "w-8 h-8 rounded-lg flex items-center justify-center",
-                  event.event_type === "picked_up" && "bg-blue-500/10 text-blue-500",
+                  event.event_type === "picked_up" && "bg-os-blue/10 text-os-blue",
                   event.event_type === "in_transit" && "bg-blue-400/10 text-blue-400",
                   event.event_type === "in_customs" && "bg-amber-500/10 text-amber-500",
                   event.event_type === "delivered" && "bg-emerald-500/10 text-emerald-500",
-                  event.event_type === "exception" && "bg-red-500/10 text-red-500"
+                  event.event_type === "exception" && "bg-os-red/10 text-os-red"
                 )}
               >
                 {event.event_type === "picked_up" ? (
@@ -314,14 +314,14 @@ const Shipments = () => {
                 )}
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium text-[var(--os-text-primary)]">
+                <p className="text-os-sm font-medium text-[var(--os-text-primary)]">
                   {event.description || event.event_type?.replace(/_/g, " ") || "Shipment update"}
                 </p>
-                <p className="text-xs text-os-muted">
+                <p className="text-os-xs text-os-muted">
                   {event.location || "—"}
                 </p>
               </div>
-              <span className="text-xs text-os-muted tabular-nums">
+              <span className="text-os-xs text-os-muted tabular-nums">
                 {event.event_timestamp
                   ? new Date(event.event_timestamp).toLocaleDateString("en-US", {
                     month: "short",
@@ -332,7 +332,7 @@ const Shipments = () => {
             </div>
           ))}
           {trackingEvents.length === 0 && (
-            <div className="text-sm text-os-muted">No tracking events logged yet.</div>
+            <div className="text-os-sm text-os-muted">No tracking events logged yet.</div>
           )}
         </div>
       </Surface>

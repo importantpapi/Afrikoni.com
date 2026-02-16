@@ -78,12 +78,12 @@ export function ProactiveIssueAlert({ issue, onDismiss, onTakeAction, className 
                       </h4>
                       <Badge 
                         variant="outline" 
-                        className={`text-xs bg-${issueType.color}-100 text-${issueType.color}-700 border-${issueType.color}-300`}
+                        className={`text-os-xs bg-${issueType.color}-100 text-${issueType.color}-700 border-${issueType.color}-300`}
                       >
                         {issueType.severity} priority
                       </Badge>
                     </div>
-                    <p className={`text-sm text-${issueType.color}-800 mb-3`}>
+                    <p className={`text-os-sm text-${issueType.color}-800 mb-3`}>
                       {issue.description}
                     </p>
                   </div>
@@ -98,7 +98,7 @@ export function ProactiveIssueAlert({ issue, onDismiss, onTakeAction, className 
                 {/* Recommended Actions */}
                 {issue.recommendedActions && issue.recommendedActions.length > 0 && (
                   <div className="space-y-2">
-                    <p className={`text-xs font-medium text-${issueType.color}-900`}>
+                    <p className={`text-os-xs font-medium text-${issueType.color}-900`}>
                       Recommended actions:
                     </p>
                     <div className="flex flex-wrap gap-2">
@@ -108,7 +108,7 @@ export function ProactiveIssueAlert({ issue, onDismiss, onTakeAction, className 
                           size="sm"
                           variant="outline"
                           onClick={() => onTakeAction(action)}
-                          className={`text-xs h-auto py-1.5 border-${issueType.color}-300 hover:bg-${issueType.color}-100`}
+                          className={`text-os-xs h-auto py-1.5 border-${issueType.color}-300 hover:bg-${issueType.color}-100`}
                         >
                           {action.label}
                         </Button>
@@ -120,7 +120,7 @@ export function ProactiveIssueAlert({ issue, onDismiss, onTakeAction, className 
                 {/* Impact if not resolved */}
                 {issue.impact && (
                   <div className={`mt-3 pt-3 border-t border-${issueType.color}-200`}>
-                    <p className={`text-xs text-${issueType.color}-700 italic`}>
+                    <p className={`text-os-xs text-${issueType.color}-700 italic`}>
                       ⚠️ {issue.impact}
                     </p>
                   </div>
@@ -292,7 +292,7 @@ export function IssuesDashboardWidget({ orders = [], onIssueAction, className = 
           <AlertTriangle className="w-5 h-5 text-amber-600" />
           Proactive Alerts ({allIssues.length})
         </h3>
-        <Badge variant="outline" className="text-xs">
+        <Badge variant="outline" className="text-os-xs">
           {allIssues.filter(i => i.severity === 'high').length} high priority
         </Badge>
       </div>

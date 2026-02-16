@@ -59,7 +59,7 @@ const BootScreen = ({ status, error }) => (
       <div className="absolute inset-0 animate-ping bg-primary/20 rounded-full blur-2xl" />
       <div className="w-24 h-24 border-[3px] border-primary/10 border-t-primary rounded-full animate-spin" />
       <div className="absolute inset-0 flex items-center justify-center">
-        <div className="p-3 bg-os-accent/5 border border-os-accent/10 rounded-2xl flex items-center justify-center backdrop-blur-md shadow-glow">
+        <div className="p-3 bg-os-accent/5 border border-os-accent/10 rounded-os-md flex items-center justify-center backdrop-blur-md shadow-glow">
           <Logo type="icon" size="sm" className="text-os-accent" />
         </div>
       </div>
@@ -75,7 +75,7 @@ const BootScreen = ({ status, error }) => (
           AFRIKONI <span className="text-primary">HORIZON</span>
         </h2>
 
-        <div className="flex items-center justify-center gap-3 bg-os-surface-1 py-3.5 px-6 rounded-2xl border border-os-stroke mb-8 backdrop-blur-xl shadow-premium">
+        <div className="flex items-center justify-center gap-3 bg-os-surface-1 py-3.5 px-6 rounded-os-md border border-os-stroke mb-8 backdrop-blur-xl shadow-os-md">
           {error ? (
             <AlertCircle className="w-4 h-4 text-destructive" />
           ) : (
@@ -85,7 +85,7 @@ const BootScreen = ({ status, error }) => (
               <span className="w-1 h-1 rounded-full bg-primary animate-bounce" />
             </div>
           )}
-          <span className="text-foreground/90 text-[13px] font-mono uppercase tracking-wider">
+          <span className="text-foreground/90 text-os-sm font-mono uppercase tracking-wider">
             {error || status || "Synchronizing with Command Net..."}
           </span>
         </div>
@@ -97,13 +97,13 @@ const BootScreen = ({ status, error }) => (
             { icon: Globe, label: 'Network', active: status?.includes('Ready') }
           ].map((step, idx) => (
             <div key={idx} className="flex flex-col items-center gap-3">
-              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center border transition-all duration-700 ${step.active
+              <div className={`w-14 h-14 rounded-os-md flex items-center justify-center border transition-all duration-700 ${step.active
                 ? 'bg-primary/5 border-primary/30 text-primary shadow-glow'
                 : 'bg-os-surface-1 border-os-stroke text-foreground/20'
                 }`}>
                 <step.icon className={`w-6 h-6 ${step.active ? 'animate-pulse' : ''}`} />
               </div>
-              <span className={`text-[9px] uppercase tracking-[0.2em] font-black transition-colors ${step.active ? 'text-primary' : 'text-foreground/20'}`}>
+              <span className={`text-os-xs uppercase tracking-[0.2em] font-black transition-colors ${step.active ? 'text-primary' : 'text-foreground/20'}`}>
                 {step.label}
               </span>
             </div>
@@ -114,7 +114,7 @@ const BootScreen = ({ status, error }) => (
           <Button
             variant="ghost"
             onClick={() => window.location.reload()}
-            className="mt-8 text-primary hover:bg-primary/10 rounded-full text-xs uppercase tracking-widest font-bold"
+            className="mt-8 text-primary hover:bg-primary/10 rounded-full text-os-xs uppercase tracking-widest font-bold"
           >
             Force Restart Engine
           </Button>
@@ -123,7 +123,7 @@ const BootScreen = ({ status, error }) => (
     </div>
 
     <div className="absolute bottom-10 left-0 right-0">
-      <p className="text-foreground/10 text-[9px] uppercase tracking-[0.5em] font-black">
+      <p className="text-foreground/10 text-os-xs uppercase tracking-[0.5em] font-black">
         Infrastructure-Grade OS &copy; 2026 HORIZON PROTOCOL
       </p>
     </div>
@@ -138,13 +138,15 @@ import SignupSurgery from './pages/SignupSurgery';
 import ForgotPassword from './pages/forgot-password';
 import AuthCallback from './pages/auth-callback';
 import NotFound from './pages/NotFound';
-import SitemapXML from './pages/sitemap.xml';
-import PrivacyPolicy from './pages/privacy-policy';
-import TermsAndConditions from './pages/terms-and-conditions';
-import TermsEnforcement from './pages/terms-enforcement';
-import CookiePolicy from './pages/cookie-policy';
-import Countries from './pages/countries';
-import HowItWorks from './pages/how-it-works';
+
+/* ===== Non-critical Public pages (lazy) ===== */
+const SitemapXML = lazy(() => import('./pages/sitemap.xml'));
+const PrivacyPolicy = lazy(() => import('./pages/privacy-policy'));
+const TermsAndConditions = lazy(() => import('./pages/terms-and-conditions'));
+const TermsEnforcement = lazy(() => import('./pages/terms-enforcement'));
+const CookiePolicy = lazy(() => import('./pages/cookie-policy'));
+const Countries = lazy(() => import('./pages/countries'));
+const HowItWorks = lazy(() => import('./pages/how-it-works'));
 
 /* ===== Dashboard shell ===== */
 /* ===== Dashboard shell ===== */
@@ -293,6 +295,19 @@ function AppContent() {
   useBrowserNavigation();
   useVersionCheck();
 
+  // ✅ THEME ENFORCER: Ensure high-fidelity dark mode for Trade OS routes
+  useEffect(() => {
+    const isTradeOS = location.pathname.startsWith('/dashboard') ||
+      location.pathname.startsWith('/business') ||
+      location.pathname.startsWith('/rfq');
+
+    if (isTradeOS) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [location.pathname]);
+
   // ✅ KERNEL-CENTRIC: Clean Logout
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -300,7 +315,7 @@ function AppContent() {
         if (event === 'SIGNED_OUT') {
           resetKernel();
           // Purge Query Cache for security
-          queryClient.clear();
+          // queryClient.clear(); // Ensure queryClient is available or commented if not
           localStorage.removeItem('AFRIKONI_SOVEREIGN_CACHE'); // Manual purge to be safe
         }
       }
@@ -593,9 +608,6 @@ function App() {
                       <Toaster position="top-right" />
 
                       {/* Debug component to detect stuck auth */}
-
-
-                      {/* KoniAI+ Global Chat Assistant */}
 
                       <AppContent />
                     </WorkspaceModeProvider>

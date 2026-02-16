@@ -61,8 +61,8 @@ export default function UnifiedHeader({
         sticky top-0 z-[100]
         w-full
         ${headerBgClass}
-        border-b border-afrikoni-gold/30
-        shadow-lg
+        border-b border-os-accent/30
+        shadow-os-md
         transition-all duration-300
         safe-area-top
       `}
@@ -73,7 +73,7 @@ export default function UnifiedHeader({
           {/* Logo/Home Button - Mobile optimized */}
           <Link
             to="/"
-            className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-lg hover:bg-afrikoni-gold/20 md:hover:bg-afrikoni-gold/10 active:scale-95 md:active:scale-100 transition-all touch-manipulation min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0"
+            className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-lg hover:bg-os-accent/20 md:hover:bg-os-accent/10 active:scale-95 md:active:scale-100 transition-all touch-manipulation min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0"
             aria-label="Home"
           >
             <Logo type="icon" size="sm" />
@@ -81,21 +81,21 @@ export default function UnifiedHeader({
 
           {/* Breadcrumbs or Page Title */}
           {breadcrumbs.length > 0 ? (
-            <nav className="hidden md:flex items-center gap-2 text-sm" aria-label="Breadcrumb">
+            <nav className="hidden md:flex items-center gap-2 text-os-sm" aria-label="Breadcrumb">
               {breadcrumbs.map((crumb, idx) => (
                 <React.Fragment key={idx}>
                   {idx > 0 && (
-                    <ChevronRight className="w-4 h-4 text-afrikoni-gold/60" />
+                    <ChevronRight className="w-4 h-4 text-os-accent/60" />
                   )}
                   {crumb.href ? (
                     <Link
                       to={crumb.href}
-                      className="text-afrikoni-cream/90 hover:text-afrikoni-gold transition-colors"
+                      className="text-afrikoni-cream/90 hover:text-os-accent transition-colors"
                     >
                       {crumb.label}
                     </Link>
                   ) : (
-                    <span className="text-afrikoni-gold font-semibold">
+                    <span className="text-os-accent font-semibold">
                       {crumb.label}
                     </span>
                   )}
@@ -103,7 +103,7 @@ export default function UnifiedHeader({
               ))}
             </nav>
           ) : pageTitle ? (
-            <h1 className="hidden md:block text-lg md:text-xl font-bold text-afrikoni-gold">
+            <h1 className="hidden md:block text-os-lg md:text-os-xl font-bold text-os-accent">
               {pageTitle}
             </h1>
           ) : null}
@@ -113,12 +113,12 @@ export default function UnifiedHeader({
         <div className="flex-1 flex items-center justify-center px-4">
           {showSearch && (
             <div className="relative w-full max-w-2xl">
-              <Search className="w-4 h-4 text-afrikoni-gold/70 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-4 h-4 text-os-accent/70 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <Input
                 type="search"
                 placeholder={searchPlaceholder || t('search_placeholder') || 'Search products, suppliers, RFQs...'}
                 onChange={(e) => onSearchChange?.(e.target.value)}
-                className="pl-10 pr-4 h-11 w-full border-afrikoni-gold/30 bg-white/95 focus:border-afrikoni-gold focus:ring-2 focus:ring-afrikoni-gold/20 shadow-sm transition-all text-sm rounded-lg"
+                className="pl-10 pr-4 h-11 w-full border-os-accent/30 bg-white/95 focus:border-os-accent focus:ring-2 focus:ring-os-accent/20 shadow-sm transition-all text-os-sm rounded-lg"
               />
             </div>
           )}
@@ -135,10 +135,10 @@ export default function UnifiedHeader({
               variant="outline"
               size="sm"
               onClick={onFiltersClick}
-              className="hidden md:flex items-center gap-2 border-afrikoni-gold/40 bg-white/90 hover:bg-white text-afrikoni-chestnut h-11 px-4"
+              className="hidden md:flex items-center gap-2 border-os-accent/40 bg-white/90 hover:bg-white text-afrikoni-chestnut h-11 px-4"
             >
               <Menu className="w-4 h-4" />
-              <span className="text-sm font-medium">{t('marketplace.filters') || 'Filters'}</span>
+              <span className="text-os-sm font-medium">{t('marketplace.filters') || 'Filters'}</span>
             </Button>
           )}
 
@@ -146,17 +146,17 @@ export default function UnifiedHeader({
           {showCreateRFQ && (
             <Button
               onClick={() => window.location.href = '/dashboard/rfqs/new'}
-              className="hidden md:flex items-center gap-2 bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-afrikoni-chestnut font-semibold shadow-md rounded-lg px-4 md:px-6 h-11 transition-all hover:shadow-lg whitespace-nowrap"
+              className="hidden md:flex items-center gap-2 bg-os-accent hover:bg-os-accent/90 text-afrikoni-chestnut font-semibold shadow-md rounded-lg px-4 md:px-6 h-11 transition-all hover:shadow-os-md whitespace-nowrap"
             >
               <Plus className="w-4 h-4" />
-              <span className="text-sm">{t('dashboard.createRFQ') || 'Create RFQ'}</span>
+              <span className="text-os-sm">{t('dashboard.createRFQ') || 'Create RFQ'}</span>
             </Button>
           )}
 
           {/* Language Selector - Mobile optimized */}
           <div className="relative group">
             <button
-              className="flex items-center justify-center w-10 h-10 md:w-10 md:h-10 rounded-lg hover:bg-afrikoni-gold/20 md:hover:bg-afrikoni-gold/10 active:scale-95 md:active:scale-100 text-afrikoni-cream transition-all touch-manipulation min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0"
+              className="flex items-center justify-center w-10 h-10 md:w-10 md:h-10 rounded-lg hover:bg-os-accent/20 md:hover:bg-os-accent/10 active:scale-95 md:active:scale-100 text-afrikoni-cream transition-all touch-manipulation min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0"
               aria-label="Change language"
             >
               <Globe className="w-5 h-5" />
@@ -167,7 +167,7 @@ export default function UnifiedHeader({
           {/* Messages - Mobile optimized */}
           <Link
             to="/messages"
-            className="relative flex items-center justify-center w-10 h-10 md:w-10 md:h-10 rounded-lg hover:bg-afrikoni-gold/20 md:hover:bg-afrikoni-gold/10 active:scale-95 md:active:scale-100 text-afrikoni-cream transition-all touch-manipulation min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0"
+            className="relative flex items-center justify-center w-10 h-10 md:w-10 md:h-10 rounded-lg hover:bg-os-accent/20 md:hover:bg-os-accent/10 active:scale-95 md:active:scale-100 text-afrikoni-cream transition-all touch-manipulation min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0"
             aria-label="Messages"
           >
             <MessageSquare className="w-5 h-5" />
@@ -183,7 +183,7 @@ export default function UnifiedHeader({
           {onMenuToggle && (
             <button
               onClick={onMenuToggle}
-              className="md:hidden flex items-center justify-center w-10 h-10 rounded-lg hover:bg-afrikoni-gold/20 text-afrikoni-cream transition-colors touch-manipulation"
+              className="md:hidden flex items-center justify-center w-10 h-10 rounded-lg hover:bg-os-accent/20 text-afrikoni-cream transition-colors touch-manipulation"
               aria-label="Toggle menu"
             >
               <Menu className="w-5 h-5" />
@@ -194,15 +194,15 @@ export default function UnifiedHeader({
           {userAvatar || (
             <Link
               to={user ? '/dashboard' : '/login'}
-              className="flex items-center justify-center w-10 h-10 md:w-10 md:h-10 rounded-full bg-afrikoni-gold/20 hover:bg-afrikoni-gold/30 md:hover:bg-afrikoni-gold/20 active:scale-95 md:active:scale-100 border-2 border-afrikoni-gold/40 transition-all touch-manipulation min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0"
+              className="flex items-center justify-center w-10 h-10 md:w-10 md:h-10 rounded-full bg-os-accent/20 hover:bg-os-accent/30 md:hover:bg-os-accent/20 active:scale-95 md:active:scale-100 border-2 border-os-accent/40 transition-all touch-manipulation min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0"
               aria-label={user ? 'Dashboard' : 'Login'}
             >
               {user ? (
-                <span className="text-afrikoni-gold font-semibold text-sm">
+                <span className="text-os-accent font-semibold text-os-sm">
                   {user.email?.[0]?.toUpperCase() || 'U'}
                 </span>
               ) : (
-                <span className="text-afrikoni-gold text-xs">Login</span>
+                <span className="text-os-accent text-os-xs">Login</span>
               )}
             </Link>
           )}

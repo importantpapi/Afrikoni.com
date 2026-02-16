@@ -168,7 +168,7 @@ export default function MobileProductGrid({
     return (
       <div className="md:hidden px-4 py-2">
         {showHeader && (
-          <h3 className="text-sm font-semibold text-afrikoni-chestnut mb-3">
+          <h3 className="text-os-sm font-semibold text-afrikoni-chestnut mb-3">
             {getHeaderText()}
           </h3>
         )}
@@ -193,7 +193,7 @@ export default function MobileProductGrid({
     <div className="md:hidden px-4 py-2">
       {/* Header - Compact */}
       {showHeader && (
-        <h3 className="text-sm font-semibold text-afrikoni-chestnut mb-3">
+        <h3 className="text-os-sm font-semibold text-afrikoni-chestnut mb-3">
           {getHeaderText()}
         </h3>
       )}

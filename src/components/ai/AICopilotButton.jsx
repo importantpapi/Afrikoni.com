@@ -24,11 +24,11 @@ export default function AICopilotButton({
       {...props}
     >
       {loading ? (
-        <span className="w-4 h-4 border-2 border-afrikoni-gold border-t-transparent rounded-full animate-spin" />
+        <span className="w-4 h-4 border-2 border-os-accent border-t-transparent rounded-full animate-spin" />
       ) : (
-        <Icon className="w-4 h-4 text-afrikoni-gold" />
+        <Icon className="w-4 h-4 text-os-accent" />
       )}
-      <span className="text-xs md:text-sm">{label}</span>
+      <span className="text-os-xs md:text-os-sm">{label}</span>
     </Button>
   );
 }

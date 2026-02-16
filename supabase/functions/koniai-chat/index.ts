@@ -1,5 +1,5 @@
-// @ts-nocheck
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 /**
  * KoniAI Chat v2.1 (Gemini 3 Upgrade) 
@@ -111,7 +111,19 @@ async function main(req: Request) {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+  const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
   try {
+    // ✅ JWT VERIFICATION
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) throw new Error("Authorization required");
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) throw new Error("Invalid authorization");
+
     if (!GEMINI_API_KEY) {
       throw new Error('Gemini API key not configured');
     }

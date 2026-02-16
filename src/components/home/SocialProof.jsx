@@ -97,7 +97,7 @@ export default function SocialProof() {
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-serif text-afrikoni-chestnut mb-4">
             Trusted by Early Businesses in Africa
           </h2>
-          <p className="text-lg md:text-xl text-afrikoni-deep max-w-3xl mx-auto">
+          <p className="text-os-lg md:text-os-xl text-afrikoni-deep max-w-3xl mx-auto">
             Join hundreds of suppliers and buyers building successful B2B relationships across the continent
           </p>
         </motion.div>
@@ -112,13 +112,13 @@ export default function SocialProof() {
               exit={{ opacity: 0, x: -50 }}
               transition={{ duration: 0.3 }}
             >
-              <Card className="border-afrikoni-gold/20 shadow-xl max-w-4xl mx-auto">
+              <Card className="border-os-accent/20 shadow-os-lg max-w-4xl mx-auto">
                 <CardContent className="p-8 md:p-12">
                   <div className="flex items-start gap-6">
                     {/* Quote Icon */}
                     <div className="flex-shrink-0">
-                      <div className="w-16 h-16 rounded-full bg-afrikoni-gold/20 flex items-center justify-center">
-                        <Quote className="w-8 h-8 text-afrikoni-gold" />
+                      <div className="w-16 h-16 rounded-full bg-os-accent/20 flex items-center justify-center">
+                        <Quote className="w-8 h-8 text-os-accent" />
                       </div>
                     </div>
 
@@ -138,7 +138,7 @@ export default function SocialProof() {
                       </div>
 
                       {/* Testimonial Text */}
-                      <p className="text-lg md:text-xl text-afrikoni-deep mb-6 leading-relaxed italic">
+                      <p className="text-os-lg md:text-os-xl text-afrikoni-deep mb-6 leading-relaxed italic">
                         "{currentTestimonial.text}"
                       </p>
 
@@ -151,10 +151,10 @@ export default function SocialProof() {
                               <CheckCircle className="w-4 h-4 text-green-600" />
                             )}
                           </div>
-                          <p className="text-sm text-afrikoni-deep">
+                          <p className="text-os-sm text-afrikoni-deep">
                             {currentTestimonial.role}, {currentTestimonial.company}
                           </p>
-                          <p className="text-xs text-afrikoni-deep/70">{currentTestimonial.country}</p>
+                          <p className="text-os-xs text-afrikoni-deep/70">{currentTestimonial.country}</p>
                         </div>
                         <div className="flex items-center gap-2">
                           {currentTestimonial.verified && (
@@ -178,7 +178,7 @@ export default function SocialProof() {
               variant="outline"
               size="icon"
               onClick={prevTestimonial}
-              className="rounded-full border-afrikoni-gold text-afrikoni-gold hover:bg-afrikoni-gold/10"
+              className="rounded-full border-os-accent text-os-accent hover:bg-os-accent/10"
             >
               <ChevronLeft className="w-5 h-5" />
             </Button>
@@ -188,8 +188,8 @@ export default function SocialProof() {
                   key={idx}
                   onClick={() => setCurrentIndex(idx)}
                   className={`w-2 h-2 rounded-full transition-all ${idx === currentIndex
-                      ? 'bg-afrikoni-gold w-8'
-                      : 'bg-afrikoni-gold/30'
+                      ? 'bg-os-accent w-8'
+                      : 'bg-os-accent/30'
                     }`}
                 />
               ))}
@@ -198,7 +198,7 @@ export default function SocialProof() {
               variant="outline"
               size="icon"
               onClick={nextTestimonial}
-              className="rounded-full border-afrikoni-gold text-afrikoni-gold hover:bg-afrikoni-gold/10"
+              className="rounded-full border-os-accent text-os-accent hover:bg-os-accent/10"
             >
               <ChevronRight className="w-5 h-5" />
             </Button>
@@ -213,8 +213,8 @@ export default function SocialProof() {
           transition={{ delay: 0.2 }}
           className="text-center mt-12"
         >
-          <div className="bg-gradient-to-r from-afrikoni-gold/20 to-afrikoni-chestnut/20 rounded-2xl p-8 md:p-12">
-            <h3 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-4">
+          <div className="bg-gradient-to-r from-os-accent/20 to-afrikoni-chestnut/20 rounded-os-md p-8 md:p-12">
+            <h3 className="text-os-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-4">
               Become a Verified Supplier
             </h3>
             <p className="text-afrikoni-deep mb-6 max-w-2xl mx-auto">
@@ -222,12 +222,12 @@ export default function SocialProof() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link to="/signup">
-                <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-charcoal">
+                <Button className="bg-os-accent hover:bg-os-accentDark text-afrikoni-charcoal">
                   Get Started
                 </Button>
               </Link>
               <Link to="/dashboard/verification-center">
-                <Button variant="outline" className="border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-sand/20">
+                <Button variant="outline" className="border-os-accent text-afrikoni-chestnut hover:bg-afrikoni-sand/20">
                   Learn About Verification
                 </Button>
               </Link>

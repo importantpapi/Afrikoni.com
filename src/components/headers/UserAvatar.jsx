@@ -29,10 +29,10 @@ export default function UserAvatar({
       aria-expanded={userMenuOpen}
     >
       {/* User Initial Circle */}
-      <div className="w-9 h-9 bg-afrikoni-gold rounded-full
+      <div className="w-9 h-9 bg-os-accent rounded-full
                       flex items-center justify-center
-                      text-afrikoni-charcoal font-bold text-sm
-                      shadow-sm border-2 border-afrikoni-gold/20">
+                      text-afrikoni-charcoal font-bold text-os-sm
+                      shadow-sm border-2 border-os-accent/20">
         {(() => {
           try {
             return getUserInitial?.(user || null, profile || null) || 'U';

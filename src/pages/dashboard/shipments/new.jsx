@@ -263,8 +263,8 @@ export default function NewShipmentPage() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <p className="text-[11px] uppercase tracking-[0.35em]">Trade OS</p>
-            <h1 className="text-2xl font-semibold mt-2">
+            <p className="text-os-xs uppercase tracking-[0.35em]">Trade OS</p>
+            <h1 className="text-os-2xl font-semibold mt-2">
               Create New Shipment
             </h1>
             <p className="">
@@ -277,7 +277,7 @@ export default function NewShipmentPage() {
       <Surface className="p-6 space-y-4">
         <div className="flex items-center gap-2">
           <Truck className="w-5 h-5" />
-          <h2 className="text-lg font-semibold">Shipment Details</h2>
+          <h2 className="text-os-lg font-semibold">Shipment Details</h2>
         </div>
             {/* Order Selection */}
             <div>
@@ -302,7 +302,7 @@ export default function NewShipmentPage() {
                 </SelectContent>
               </Select>
               {orders.length === 0 && (
-                <p className="text-sm mt-1">
+                <p className="text-os-sm mt-1">
                   All orders already have shipments. Create an order first.
                 </p>
               )}
@@ -397,7 +397,7 @@ export default function NewShipmentPage() {
               <Button
                 onClick={handleCreateShipment}
                 disabled={isCreating || !selectedOrderId || orders.length === 0}
-                className="flex-1 hover:bg-afrikoni-goldDark"
+                className="flex-1 hover:bg-os-accentDark"
               >
                 {isCreating ? 'Creating...' : 'Create Shipment'}
               </Button>

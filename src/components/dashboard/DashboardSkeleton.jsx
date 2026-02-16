@@ -56,7 +56,7 @@ export default function DashboardSkeleton() {
                         <div className="h-4 w-32 bg-gray-200 dark:bg-white/10 rounded mb-6" />
                         <div className="h-12 w-full bg-gray-200 dark:bg-white/5 rounded" />
                     </Surface>
-                    <div className="flex-1 bg-gray-200 dark:bg-white/5 rounded-xl h-[400px]" />
+                    <div className="flex-1 bg-gray-200 dark:bg-white/5 rounded-os-sm h-[400px]" />
                 </div>
 
                 {/* Right: AI */}

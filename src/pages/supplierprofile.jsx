@@ -110,7 +110,7 @@ export default function SupplierProfile() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-os-accent" />
       </div>
     );
   }
@@ -135,15 +135,15 @@ export default function SupplierProfile() {
       
       <div className="max-w-7xl mx-auto px-4 -mt-20 relative z-10">
         {/* Supplier Header Card */}
-        <Card className="border-2 border-afrikoni-gold/30 shadow-2xl mb-8 bg-afrikoni-offwhite">
+        <Card className="border-2 border-os-accent/30 shadow-2xl mb-8 bg-afrikoni-offwhite">
           <CardContent className="p-8">
             <div className="flex flex-col md:flex-row gap-6">
               {/* Logo */}
-              <div className="w-40 h-40 bg-afrikoni-offwhite rounded-2xl border-4 border-afrikoni-gold/30 shadow-xl flex items-center justify-center flex-shrink-0">
+              <div className="w-40 h-40 bg-afrikoni-offwhite rounded-os-md border-4 border-os-accent/30 shadow-os-lg flex items-center justify-center flex-shrink-0">
                 {supplier.logo_url ? (
-                  <OptimizedImage src={supplier.logo_url} alt={supplier.company_name} className="w-full h-full object-cover rounded-xl" />
+                  <OptimizedImage src={supplier.logo_url} alt={supplier.company_name} className="w-full h-full object-cover rounded-os-sm" />
                 ) : (
-                  <Building className="w-20 h-20 text-afrikoni-gold" />
+                  <Building className="w-20 h-20 text-os-accent" />
                 )}
               </div>
               
@@ -153,7 +153,7 @@ export default function SupplierProfile() {
                   <div>
                     <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-2">{supplier.company_name}</h1>
                     <div className="flex items-center gap-2 text-afrikoni-deep mb-3">
-                      <MapPin className="w-4 h-4 text-afrikoni-gold" />
+                      <MapPin className="w-4 h-4 text-os-accent" />
                       <span>{supplier.city && `${supplier.city}, `}{supplier.country}</span>
                     </div>
                     <div className="flex flex-wrap gap-2 mb-4">
@@ -180,7 +180,7 @@ export default function SupplierProfile() {
                           </Badge>
                         )}
                       {typeof supplier.trust_score === 'number' && supplier.trust_score >= 80 && (
-                        <Badge className="bg-afrikoni-gold/20 text-afrikoni-gold border-afrikoni-gold-300 flex items-center gap-1">
+                        <Badge className="bg-os-accent/20 text-os-accent border-os-accent-300 flex items-center gap-1">
                           <Award className="w-3 h-3" /> Trade Shield Eligible
                         </Badge>
                       )}
@@ -197,35 +197,35 @@ export default function SupplierProfile() {
                     </div>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3">
-                    <Button onClick={handleContactSupplier} className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream">
+                    <Button onClick={handleContactSupplier} className="bg-os-accent hover:bg-os-accentDark text-afrikoni-cream">
                       Contact Supplier
                     </Button>
-                    <Button onClick={handleCreateRFQ} variant="outline" className="border-afrikoni-gold text-afrikoni-gold hover:bg-afrikoni-gold/10">
+                    <Button onClick={handleCreateRFQ} variant="outline" className="border-os-accent text-os-accent hover:bg-os-accent/10">
                       Request Quote
                     </Button>
                   </div>
                 </div>
                 
                 {/* Stats Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-afrikoni-gold/20">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-6 border-t border-os-accent/20">
                   <div>
-                    <div className="text-2xl font-bold text-afrikoni-gold mb-1">{supplier.trust_score || 0}</div>
-                    <div className="text-sm text-afrikoni-deep">Trust Score</div>
+                    <div className="text-os-2xl font-bold text-os-accent mb-1">{supplier.trust_score || 0}</div>
+                    <div className="text-os-sm text-afrikoni-deep">Trust Score</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-afrikoni-chestnut mb-1">{supplier.response_rate || 0}%</div>
-                    <div className="text-sm text-afrikoni-deep">Response Rate</div>
+                    <div className="text-os-2xl font-bold text-afrikoni-chestnut mb-1">{supplier.response_rate || 0}%</div>
+                    <div className="text-os-sm text-afrikoni-deep">Response Rate</div>
                   </div>
                   <div>
-                    <div className="text-2xl font-bold text-afrikoni-chestnut mb-1">{supplier.total_orders || 0}</div>
-                    <div className="text-sm text-afrikoni-deep">Total Orders</div>
+                    <div className="text-os-2xl font-bold text-afrikoni-chestnut mb-1">{supplier.total_orders || 0}</div>
+                    <div className="text-os-sm text-afrikoni-deep">Total Orders</div>
                   </div>
                   <div>
                     <div className="flex items-center gap-1 mb-1">
-                      <Star className="w-5 h-5 text-afrikoni-gold fill-afrikoni-gold" />
-                      <span className="text-2xl font-bold text-afrikoni-chestnut">{calculateAverageRating()}</span>
+                      <Star className="w-5 h-5 text-os-accent fill-os-accent" />
+                      <span className="text-os-2xl font-bold text-afrikoni-chestnut">{calculateAverageRating()}</span>
                     </div>
-                    <div className="text-sm text-afrikoni-deep">{reviews.length} Reviews</div>
+                    <div className="text-os-sm text-afrikoni-deep">{reviews.length} Reviews</div>
                   </div>
                 </div>
               </div>
@@ -236,14 +236,14 @@ export default function SupplierProfile() {
         <div className="grid md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-6">
             <Tabs defaultValue="about">
-              <TabsList className="w-full justify-start bg-afrikoni-offwhite border border-afrikoni-gold/20 p-1">
+              <TabsList className="w-full justify-start bg-afrikoni-offwhite border border-os-accent/20 p-1">
                 <TabsTrigger value="about">About</TabsTrigger>
                 <TabsTrigger value="products">Products ({products.length})</TabsTrigger>
                 <TabsTrigger value="reviews">Reviews ({reviews.length})</TabsTrigger>
               </TabsList>
 
               <TabsContent value="about">
-                <Card className="border-afrikoni-gold/20">
+                <Card className="border-os-accent/20">
                   <CardHeader>
                     <CardTitle>Company Overview</CardTitle>
                   </CardHeader>
@@ -267,14 +267,14 @@ export default function SupplierProfile() {
                     {supplier.certifications && supplier.certifications.length > 0 && (
                       <div>
                         <h3 className="font-semibold text-afrikoni-chestnut mb-3 flex items-center gap-2">
-                          <Award className="w-5 h-5 text-afrikoni-gold" />
+                          <Award className="w-5 h-5 text-os-accent" />
                           Certifications & Compliance
                         </h3>
                         <div className="grid sm:grid-cols-2 gap-3">
                           {Array.isArray(supplier?.certifications) && supplier.certifications.map((cert, idx) => (
                             <div key={idx} className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
                               <Award className="w-4 h-4 text-green-700 flex-shrink-0" />
-                              <span className="text-sm font-medium text-green-700">{cert}</span>
+                              <span className="text-os-sm font-medium text-green-700">{cert}</span>
                             </div>
                           ))}
                         </div>
@@ -282,21 +282,21 @@ export default function SupplierProfile() {
                     )}
                     
                     {/* Additional Company Info */}
-                    <div className="grid sm:grid-cols-2 gap-4 pt-4 border-t border-afrikoni-gold/20">
+                    <div className="grid sm:grid-cols-2 gap-4 pt-4 border-t border-os-accent/20">
                       {supplier.employee_count && (
                         <div>
-                          <h4 className="text-sm font-semibold text-afrikoni-chestnut mb-1">Company Size</h4>
-                          <p className="text-sm text-afrikoni-deep">{supplier.employee_count} employees</p>
+                          <h4 className="text-os-sm font-semibold text-afrikoni-chestnut mb-1">Company Size</h4>
+                          <p className="text-os-sm text-afrikoni-deep">{supplier.employee_count} employees</p>
                         </div>
                       )}
                       {supplier.website && (
                         <div>
-                          <h4 className="text-sm font-semibold text-afrikoni-chestnut mb-1">Website</h4>
+                          <h4 className="text-os-sm font-semibold text-afrikoni-chestnut mb-1">Website</h4>
                           <a 
                             href={supplier.website.startsWith('http') ? supplier.website : `https://${supplier.website}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-sm text-afrikoni-gold hover:underline flex items-center gap-1"
+                            className="text-os-sm text-os-accent hover:underline flex items-center gap-1"
                           >
                             <Globe className="w-3 h-3" />
                             {supplier.website}
@@ -305,10 +305,10 @@ export default function SupplierProfile() {
                       )}
                       {supplier.email && (
                         <div>
-                          <h4 className="text-sm font-semibold text-afrikoni-chestnut mb-1">Email</h4>
+                          <h4 className="text-os-sm font-semibold text-afrikoni-chestnut mb-1">Email</h4>
                           <a 
                             href={`mailto:${supplier.email}`}
-                            className="text-sm text-afrikoni-gold hover:underline flex items-center gap-1"
+                            className="text-os-sm text-os-accent hover:underline flex items-center gap-1"
                           >
                             <Mail className="w-3 h-3" />
                             {supplier.email}
@@ -317,10 +317,10 @@ export default function SupplierProfile() {
                       )}
                       {supplier.phone && (
                         <div>
-                          <h4 className="text-sm font-semibold text-afrikoni-chestnut mb-1">Phone</h4>
+                          <h4 className="text-os-sm font-semibold text-afrikoni-chestnut mb-1">Phone</h4>
                           <a 
                             href={`tel:${supplier.phone}`}
-                            className="text-sm text-afrikoni-gold hover:underline flex items-center gap-1"
+                            className="text-os-sm text-os-accent hover:underline flex items-center gap-1"
                           >
                             <Phone className="w-3 h-3" />
                             {supplier.phone}
@@ -329,9 +329,9 @@ export default function SupplierProfile() {
                       )}
                       {supplier.address && (
                         <div className="sm:col-span-2">
-                          <h4 className="text-sm font-semibold text-afrikoni-chestnut mb-1">Address</h4>
-                          <p className="text-sm text-afrikoni-deep flex items-start gap-1">
-                            <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0 text-afrikoni-gold" />
+                          <h4 className="text-os-sm font-semibold text-afrikoni-chestnut mb-1">Address</h4>
+                          <p className="text-os-sm text-afrikoni-deep flex items-start gap-1">
+                            <MapPin className="w-3 h-3 mt-0.5 flex-shrink-0 text-os-accent" />
                             {supplier.address}
                           </p>
                         </div>
@@ -342,7 +342,7 @@ export default function SupplierProfile() {
               </TabsContent>
 
               <TabsContent value="products">
-                <Card className="border-afrikoni-gold/20">
+                <Card className="border-os-accent/20">
                   <CardContent className="p-6">
                     {products.length === 0 ? (
                       <div className="text-center py-12">
@@ -360,7 +360,7 @@ export default function SupplierProfile() {
                             <Link
                               key={product.id}
                               to={createPageUrl('ProductDetail') + '?id=' + product.id}
-                              className="group border border-afrikoni-gold/20 rounded-lg overflow-hidden hover:border-afrikoni-gold hover:shadow-lg transition-all bg-white"
+                              className="group border border-os-accent/20 rounded-lg overflow-hidden hover:border-os-accent hover:shadow-os-md transition-all bg-white"
                             >
                               <div className="relative h-48 bg-afrikoni-cream overflow-hidden">
                                 {primaryImage ? (
@@ -376,38 +376,38 @@ export default function SupplierProfile() {
                                 )}
                                 {product.featured && (
                                   <div className="absolute top-2 left-2">
-                                    <Badge className="bg-afrikoni-gold text-afrikoni-chestnut text-xs">⭐ Featured</Badge>
+                                    <Badge className="bg-os-accent text-afrikoni-chestnut text-os-xs">⭐ Featured</Badge>
                                   </div>
                                 )}
                               </div>
                               <div className="p-4">
-                                <h4 className="font-semibold text-afrikoni-chestnut line-clamp-2 mb-2 text-sm md:text-base group-hover:text-afrikoni-gold transition-colors">
+                                <h4 className="font-semibold text-afrikoni-chestnut line-clamp-2 mb-2 text-os-sm md:text-os-base group-hover:text-os-accent transition-colors">
                                   {product.title || product.name}
                                 </h4>
                                 {product.short_description && (
-                                  <p className="text-xs text-afrikoni-deep/70 line-clamp-2 mb-3">
+                                  <p className="text-os-xs text-afrikoni-deep/70 line-clamp-2 mb-3">
                                     {product.short_description}
                                   </p>
                                 )}
                                 <div className="flex items-center justify-between mb-2">
                                   {productPrice ? (
-                                    <div className="text-lg font-bold text-afrikoni-gold">
+                                    <div className="text-os-lg font-bold text-os-accent">
                                       {product.currency || 'USD'} {parseFloat(productPrice).toLocaleString()}
                                       {product.price_max && product.price_max !== productPrice && (
-                                        <span className="text-sm text-afrikoni-deep/70"> - {parseFloat(product.price_max).toLocaleString()}</span>
+                                        <span className="text-os-sm text-afrikoni-deep/70"> - {parseFloat(product.price_max).toLocaleString()}</span>
                                       )}
                                     </div>
                                   ) : (
-                                    <div className="text-sm text-afrikoni-deep/70">Price on request</div>
+                                    <div className="text-os-sm text-afrikoni-deep/70">Price on request</div>
                                   )}
                                 </div>
                                 {moq && (
-                                  <div className="text-xs text-afrikoni-deep/70 mb-2">
+                                  <div className="text-os-xs text-afrikoni-deep/70 mb-2">
                                     MOQ: {moq} {product.moq_unit || product.unit || 'units'}
                                   </div>
                                 )}
                                 {product.country_of_origin && (
-                                  <div className="flex items-center gap-1 text-xs text-afrikoni-deep/70">
+                                  <div className="flex items-center gap-1 text-os-xs text-afrikoni-deep/70">
                                     <MapPin className="w-3 h-3" />
                                     {product.country_of_origin}
                                   </div>
@@ -423,7 +423,7 @@ export default function SupplierProfile() {
               </TabsContent>
 
               <TabsContent value="reviews">
-                <Card className="border-afrikoni-gold/20">
+                <Card className="border-os-accent/20">
                   <CardContent className="p-6">
                     {reviews.length === 0 ? (
                       <div className="text-center py-12">
@@ -433,7 +433,7 @@ export default function SupplierProfile() {
                     ) : (
                       <div className="space-y-4">
                         {reviews.map(review => (
-                          <div key={review.id} className="border-b border-afrikoni-gold/20 pb-4 last:border-0">
+                          <div key={review.id} className="border-b border-os-accent/20 pb-4 last:border-0">
                             <div className="flex items-start justify-between mb-2">
                               <div className="flex items-center gap-1">
                                 {[1, 2, 3, 4, 5].map((_, i) => (
@@ -446,14 +446,14 @@ export default function SupplierProfile() {
                                 ))}
                               </div>
                               {review.verified_purchase && (
-                                <Badge className="bg-green-50 text-green-700 border-green-200 text-xs">
+                                <Badge className="bg-green-50 text-green-700 border-green-200 text-os-xs">
                                   <CheckCircle className="w-3 h-3 mr-1" /> Verified Purchase
                                 </Badge>
                               )}
                             </div>
-                            {review.comment && <p className="text-sm text-afrikoni-deep">{review.comment}</p>}
+                            {review.comment && <p className="text-os-sm text-afrikoni-deep">{review.comment}</p>}
                             {review.quality_rating && (
-                              <div className="grid grid-cols-3 gap-3 mt-3 text-xs text-afrikoni-deep/70">
+                              <div className="grid grid-cols-3 gap-3 mt-3 text-os-xs text-afrikoni-deep/70">
                                 <div>Quality: {review.quality_rating}/5</div>
                                 {review.communication_rating && <div>Communication: {review.communication_rating}/5</div>}
                                 {review.delivery_rating && <div>Delivery: {review.delivery_rating}/5</div>}
@@ -470,21 +470,21 @@ export default function SupplierProfile() {
           </div>
 
           <div className="space-y-6">
-            <Card className="border-afrikoni-gold/20">
+            <Card className="border-os-accent/20">
               <CardHeader>
-                <CardTitle className="text-lg">Contact Information</CardTitle>
+                <CardTitle className="text-os-lg">Contact Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 {supplier.phone && (
                   <div className="flex items-center gap-3">
                     <Phone className="w-4 h-4 text-afrikoni-deep/70" />
-                    <span className="text-sm text-afrikoni-deep">{supplier.phone}</span>
+                    <span className="text-os-sm text-afrikoni-deep">{supplier.phone}</span>
                   </div>
                 )}
                 {supplier.email && (
                   <div className="flex items-center gap-3">
                     <Mail className="w-4 h-4 text-afrikoni-deep/70" />
-                    <span className="text-sm text-afrikoni-deep">{supplier.email}</span>
+                    <span className="text-os-sm text-afrikoni-deep">{supplier.email}</span>
                   </div>
                 )}
                 {supplier.website && (
@@ -494,7 +494,7 @@ export default function SupplierProfile() {
                       href={supplier.website}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-amber-600 hover:text-amber-700"
+                      className="text-os-sm text-amber-600 hover:text-amber-700"
                     >
                       Visit Website
                     </a>
@@ -503,17 +503,17 @@ export default function SupplierProfile() {
                 {supplier.address && (
                   <div className="flex items-start gap-3">
                     <MapPin className="w-4 h-4 text-afrikoni-deep/70 mt-0.5" />
-                    <span className="text-sm text-afrikoni-deep">{supplier.address}</span>
+                    <span className="text-os-sm text-afrikoni-deep">{supplier.address}</span>
                   </div>
                 )}
               </CardContent>
             </Card>
 
-            <Card className="border-afrikoni-gold/20">
+            <Card className="border-os-accent/20">
               <CardHeader>
-                <CardTitle className="text-lg">Company Details</CardTitle>
+                <CardTitle className="text-os-lg">Company Details</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-3 text-sm">
+              <CardContent className="space-y-3 text-os-sm">
                 {supplier.employee_count && (
                   <div className="flex justify-between">
                     <span className="text-afrikoni-deep">Company Size</span>

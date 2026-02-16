@@ -55,23 +55,23 @@ export default function ContractSigningPanel({ trade, onNextStep, isTransitionin
 
   if (loading) {
     return (
-      <Card className="border rounded-2xl">
+      <Card className="border rounded-os-md">
         <CardContent className="p-6 text-center">
           <Loader2 className="w-6 h-6 animate-spin mx-auto" />
-          <p className="text-sm mt-2">Loading contract...</p>
+          <p className="text-os-sm mt-2">Loading contract...</p>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="border bg-gradient-to-br from-[#0E1016] to-[#141B24] rounded-2xl shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
+    <Card className="border bg-gradient-to-br from-[#0E1016] to-[#141B24] rounded-os-md shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
       <CardContent className="p-6">
         <div className="mb-6">
-          <h2 className="text-2xl font-semibold">
+          <h2 className="text-os-2xl font-semibold">
             {signed ? 'Contract Signed' : 'Review & Sign Contract'}
           </h2>
-          <p className="text-sm mt-1">
+          <p className="text-os-sm mt-1">
             {signed
               ? 'Your contract has been digitally signed.'
               : 'Review the contract terms and sign to proceed.'}
@@ -79,7 +79,7 @@ export default function ContractSigningPanel({ trade, onNextStep, isTransitionin
         </div>
 
         {error && (
-          <div className="mb-4 p-3 rounded-xl border text-sm">
+          <div className="mb-4 p-3 rounded-os-sm border text-os-sm">
             {error}
           </div>
         )}
@@ -87,10 +87,10 @@ export default function ContractSigningPanel({ trade, onNextStep, isTransitionin
         {!signed ? (
           <>
             {/* Contract Preview */}
-            <div className="border rounded-xl mb-4 overflow-hidden">
+            <div className="border rounded-os-sm mb-4 overflow-hidden">
               <div className="px-4 py-3 flex items-center gap-2 border-b">
                 <FileText className="w-4 h-4" />
-                <span className="text-sm font-semibold">
+                <span className="text-os-sm font-semibold">
                   {contract?.title || 'Supply Contract'}
                 </span>
               </div>
@@ -100,7 +100,7 @@ export default function ContractSigningPanel({ trade, onNextStep, isTransitionin
                   {contract?.content_html ? (
                     <div dangerouslySetInnerHTML={{ __html: contract.content_html }} />
                   ) : (
-                    <div className="space-y-3 text-sm">
+                    <div className="space-y-3 text-os-sm">
                       <p><strong>Buyer:</strong> {trade?.buyer?.company_name}</p>
                       <p><strong>Supplier:</strong> {trade?.seller?.company_name}</p>
                       <p><strong>Product:</strong> {trade?.title}</p>
@@ -115,14 +115,14 @@ export default function ContractSigningPanel({ trade, onNextStep, isTransitionin
 
             {/* Agreement / Signature Pad */}
             <div className="space-y-4 mb-6">
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-afrikoni-gold opacity-80">
+              <p className="text-os-xs font-black uppercase tracking-[0.3em] text-os-accent opacity-80">
                 Sovereign Digital Signature
               </p>
               <SignaturePad
                 onSign={(data) => setAgreed(!!data)}
                 className="bg-black/20"
               />
-              <p className="text-[9px] text-os-muted italic leading-relaxed">
+              <p className="text-os-xs text-os-muted italic leading-relaxed">
                 By signing above, you cryptographically commit to the terms of this Trade DNA.
                 This signature is immutable and tied to the Afrikoni Sovereign Ledger.
               </p>
@@ -132,7 +132,7 @@ export default function ContractSigningPanel({ trade, onNextStep, isTransitionin
             <Button
               onClick={handleSign}
               disabled={!agreed || isTransitioning}
-              className="w-full h-14 bg-afrikoni-gold text-black font-black uppercase tracking-widest text-xs rounded-2xl hover:scale-[1.02] transition-all shadow-xl shadow-afrikoni-gold/10"
+              className="w-full h-14 bg-os-accent text-black font-black uppercase tracking-widest text-os-xs rounded-os-md hover:scale-[1.02] transition-all shadow-os-lg shadow-os-accent/10"
             >
               {isTransitioning ? (
                 <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Committing to Ledger...</>
@@ -143,13 +143,13 @@ export default function ContractSigningPanel({ trade, onNextStep, isTransitionin
           </>
         ) : (
           <div className="text-center py-8">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl mb-4 border">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-os-md mb-4 border">
               <CheckCircle2 className="w-6 h-6" />
             </div>
             <p className="font-semibold">
               Contract Signed
             </p>
-            <p className="text-sm mt-2">
+            <p className="text-os-sm mt-2">
               Next step: Fund escrow to confirm the trade.
             </p>
           </div>

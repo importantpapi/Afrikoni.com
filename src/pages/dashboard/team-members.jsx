@@ -343,7 +343,7 @@ function TeamMembersInner() {
           </div>
           <Button
             onClick={() => setShowInviteDialog(true)}
-            className="hover:bg-afrikoni-goldDark"
+            className="hover:bg-os-accentDark"
             disabled={activeMembersCount >= maxMembers}
           >
             <UserPlus className="w-4 h-4 mr-2" />
@@ -367,8 +367,8 @@ function TeamMembersInner() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm">Active Members</p>
-                  <p className="text-2xl font-bold">{activeMembersCount}</p>
+                  <p className="text-os-sm">Active Members</p>
+                  <p className="text-os-2xl font-bold">{activeMembersCount}</p>
                 </div>
                 <Users className="w-8 h-8" />
               </div>
@@ -378,8 +378,8 @@ function TeamMembersInner() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm">Plan Limit</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-os-sm">Plan Limit</p>
+                  <p className="text-os-2xl font-bold">
                     {maxMembers === 999 ? 'Unlimited' : maxMembers}
                   </p>
                 </div>
@@ -391,8 +391,8 @@ function TeamMembersInner() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm">Pending Invites</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-os-sm">Pending Invites</p>
+                  <p className="text-os-2xl font-bold">
                     {teamMembers.filter(m => m.status === 'invited' || m.status === 'pending').length}
                   </p>
                 </div>
@@ -414,13 +414,13 @@ function TeamMembersInner() {
             {teamMembers.length === 0 ? (
               <div className="text-center py-12">
                 <Users className="w-16 h-16 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No team members yet</h3>
+                <h3 className="text-os-lg font-semibold mb-2">No team members yet</h3>
                 <p className="mb-4">
                   Invite team members to collaborate on your business
                 </p>
                 <Button
                   onClick={() => setShowInviteDialog(true)}
-                  className="hover:bg-afrikoni-goldDark"
+                  className="hover:bg-os-accentDark"
                 >
                   <UserPlus className="w-4 h-4 mr-2" />
                   Invite First Member
@@ -435,7 +435,7 @@ function TeamMembersInner() {
                       key={member.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="p-4 border rounded-lg hover:border-afrikoni-gold/40 transition-colors"
+                      className="p-4 border rounded-lg hover:border-os-accent/40 transition-colors"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -450,8 +450,8 @@ function TeamMembersInner() {
                                 </h3>
                                 {getStatusBadge(member.status)}
                               </div>
-                              <p className="text-sm">{member.member_email}</p>
-                              <p className="text-xs mt-1">
+                              <p className="text-os-sm">{member.member_email}</p>
+                              <p className="text-os-xs mt-1">
                                 {TEAM_ROLES.find(r => r.value === member.role_label)?.label || member.role_label}
                               </p>
                             </div>
@@ -467,7 +467,7 @@ function TeamMembersInner() {
                                 }
                                 disabled={member.status !== 'active'}
                               />
-                              <Label className="text-xs flex items-center gap-1">
+                              <Label className="text-os-xs flex items-center gap-1">
                                 <DollarSign className="w-3 h-3" />
                                 Payouts
                               </Label>
@@ -480,7 +480,7 @@ function TeamMembersInner() {
                                 }
                                 disabled={member.status !== 'active'}
                               />
-                              <Label className="text-xs flex items-center gap-1">
+                              <Label className="text-os-xs flex items-center gap-1">
                                 <Truck className="w-3 h-3" />
                                 Tracking
                               </Label>
@@ -493,7 +493,7 @@ function TeamMembersInner() {
                                 }
                                 disabled={member.status !== 'active'}
                               />
-                              <Label className="text-xs flex items-center gap-1">
+                              <Label className="text-os-xs flex items-center gap-1">
                                 <Package className="w-3 h-3" />
                                 Products
                               </Label>
@@ -506,7 +506,7 @@ function TeamMembersInner() {
                                 }
                                 disabled={member.status !== 'active'}
                               />
-                              <Label className="text-xs flex items-center gap-1">
+                              <Label className="text-os-xs flex items-center gap-1">
                                 <FileText className="w-3 h-3" />
                                 Orders
                               </Label>
@@ -519,7 +519,7 @@ function TeamMembersInner() {
                                 }
                                 disabled={member.status !== 'active'}
                               />
-                              <Label className="text-xs flex items-center gap-1">
+                              <Label className="text-os-xs flex items-center gap-1">
                                 <FileText className="w-3 h-3" />
                                 RFQs
                               </Label>
@@ -593,7 +593,7 @@ function TeamMembersInner() {
                           <role.icon className="w-4 h-4" />
                           <div>
                             <div>{role.label}</div>
-                            <div className="text-xs">{role.description}</div>
+                            <div className="text-os-xs">{role.description}</div>
                           </div>
                         </div>
                       </SelectItem>
@@ -603,7 +603,7 @@ function TeamMembersInner() {
               </div>
 
               <div className="border-t pt-4">
-                <Label className="text-base font-semibold mb-3 block">Permissions</Label>
+                <Label className="text-os-base font-semibold mb-3 block">Permissions</Label>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <Label className="flex items-center gap-2">
@@ -665,7 +665,7 @@ function TeamMembersInner() {
                 <Button
                   onClick={handleInviteMember}
                   disabled={isInviting || !inviteForm.email}
-                  className="hover:bg-afrikoni-goldDark"
+                  className="hover:bg-os-accentDark"
                 >
                   {isInviting ? 'Sending...' : 'Send Invitation'}
                 </Button>

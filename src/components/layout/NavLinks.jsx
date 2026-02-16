@@ -14,10 +14,10 @@ export default function NavLinks({ navLinks, isActive }) {
               key={idx}
               to={link.path}
               className={`
-                flex items-center gap-1.5 px-3 py-2 rounded-md text-sm font-medium transition-all
+                flex items-center gap-1.5 px-3 py-2 rounded-md text-os-sm font-medium transition-all
                 ${active 
-                  ? 'text-afrikoni-gold bg-afrikoni-gold/10' 
-                  : 'text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/5'
+                  ? 'text-os-accent bg-os-accent/10' 
+                  : 'text-afrikoni-cream hover:text-os-accent hover:bg-os-accent/5'
                 }
               `}
             >

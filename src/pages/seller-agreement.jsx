@@ -14,7 +14,7 @@ export default function SellerAgreement() {
           <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
             Seller Agreement
           </h1>
-          <p className="text-sm text-afrikoni-deep/80">
+          <p className="text-os-sm text-afrikoni-deep/80">
             This agreement will define the commercial and legal terms that apply to suppliers who
             list products and transact on Afrikoni. Use this as a placeholder until your legal team
             provides final wording.

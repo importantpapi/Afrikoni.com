@@ -105,7 +105,7 @@ export default function GoogleSignIn({
       variant={variant}
       onClick={signInWithGoogle}
       disabled={isLoading}
-      className={`w-full h-12 min-h-[44px] flex items-center justify-center gap-2 border-afrikoni-gold/30 hover:bg-afrikoni-cream touch-manipulation ${className}`}
+      className={`w-full h-12 min-h-[44px] flex items-center justify-center gap-2 border-os-accent/30 hover:bg-afrikoni-cream touch-manipulation ${className}`}
       aria-label={t('login.signInWithGoogle') || 'Sign in with Google'}
     >
       {isLoading ? (

@@ -18,10 +18,10 @@ export default function ConversationList({ conversations, onSelectConversation, 
     return (
       <div className="flex flex-col items-center justify-center py-12 px-4">
         <Building className="w-16 h-16 mb-4" />
-        <h3 className="text-lg font-semibold mb-2">
+        <h3 className="text-os-lg font-semibold mb-2">
           No conversations yet
         </h3>
-        <p className="text-sm text-center">
+        <p className="text-os-sm text-center">
           Start a conversation by contacting a supplier or responding to an RFQ
         </p>
       </div>
@@ -29,12 +29,12 @@ export default function ConversationList({ conversations, onSelectConversation, 
   }
 
   return (
-    <div className="divide-y divide-afrikoni-gold/10">
+    <div className="divide-y divide-os-accent/10">
       {conversations.map((conv) => (
         <div
           key={conv.id}
           onClick={() => onSelectConversation(conv.id)}
-          className="px-4 py-3 hover:bg-afrikoni-gold/5 active:bg-afrikoni-gold/10 transition-colors cursor-pointer min-h-[72px] flex items-center gap-3"
+          className="px-4 py-3 hover:bg-os-accent/5 active:bg-os-accent/10 transition-colors cursor-pointer min-h-[72px] flex items-center gap-3"
         >
           {/* Avatar */}
           <div className="relative flex-shrink-0">
@@ -59,22 +59,22 @@ export default function ConversationList({ conversations, onSelectConversation, 
           {/* Content */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between mb-1">
-              <h3 className="font-semibold text-base truncate">
+              <h3 className="font-semibold text-os-base truncate">
                 {conv.otherCompany?.company_name || 'Unknown Company'}
               </h3>
               {conv.lastMessageAt && (
-                <span className="text-xs flex-shrink-0 ml-2">
+                <span className="text-os-xs flex-shrink-0 ml-2">
                   {formatDistanceToNow(new Date(conv.lastMessageAt), { addSuffix: true })}
                 </span>
               )}
             </div>
             
             <div className="flex items-center gap-2">
-              <p className="text-sm truncate flex-1">
+              <p className="text-os-sm truncate flex-1">
                 {conv.lastMessage || 'No messages yet'}
               </p>
               {conv.unreadCount > 0 && (
-                <Badge className="min-w-[20px] h-5 flex items-center justify-center text-xs font-semibold">
+                <Badge className="min-w-[20px] h-5 flex items-center justify-center text-os-xs font-semibold">
                   {conv.unreadCount > 99 ? '99+' : conv.unreadCount}
                 </Badge>
               )}
@@ -83,7 +83,7 @@ export default function ConversationList({ conversations, onSelectConversation, 
             {/* Verification Badge */}
             {conv.otherCompany?.verification_status === 'verified' && (
               <div className="mt-1">
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-os-xs">
                   <CheckCircle className="w-3 h-3 mr-1" />
                   Verified Supplier
                 </Badge>

@@ -91,14 +91,14 @@ export default function ComplianceCenter() {
 
   if (!isSystemReady || loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#08090A]">
+      <div className="flex items-center justify-center min-h-screen bg-afrikoni-offwhite">
         <SpinnerWithTimeout message="Initializing Sovereign Nodes..." ready={isSystemReady && !loading} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#08090A] text-white selection:bg-afrikoni-gold/30 font-sans p-8 md:p-12">
+    <div className="min-h-screen bg-afrikoni-offwhite text-afrikoni-deep selection:bg-os-accent/30 font-sans p-8 md:p-12">
       {/* Background Ambience */}
       <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] pointer-events-none" />
 
@@ -111,13 +111,13 @@ export default function ComplianceCenter() {
           className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-white/5 pb-10"
         >
           <div className="space-y-4">
-            <Link to="/dashboard" className="inline-flex items-center gap-2 text-[10px] font-black text-white/40 hover:text-white transition-all uppercase tracking-[0.3em]">
+            <Link to="/dashboard" className="inline-flex items-center gap-2 text-os-xs font-black text-white/40 hover:text-white transition-all uppercase tracking-[0.3em]">
               <ArrowLeft className="w-3 h-3" />
               Return / Dashboard
             </Link>
             <div className="flex items-center gap-6">
-              <div className="p-4 bg-afrikoni-gold/10 rounded-3xl border border-afrikoni-gold/30 shadow-[0_0_30px_rgba(212,169,55,0.1)]">
-                <Shield className="w-8 h-8 text-afrikoni-gold" />
+              <div className="p-4 bg-os-accent/10 rounded-os-lg border border-os-accent/30 shadow-[0_0_30px_rgba(212,169,55,0.1)]">
+                <Shield className="w-8 h-8 text-os-accent" />
               </div>
               <div className="space-y-1">
                 <h1 className="text-4xl font-black tracking-tighter">Sovereign Compliance</h1>
@@ -127,10 +127,10 @@ export default function ComplianceCenter() {
           </div>
 
           <div className="flex items-center gap-4">
-            <Button variant="outline" className="h-14 px-8 rounded-2xl border-white/5 bg-white/[0.02] font-black uppercase tracking-widest text-[10px]">
+            <Button variant="outline" className="h-14 px-8 rounded-os-md border-white/5 bg-white/[0.02] font-black uppercase tracking-widest text-os-xs">
               <Download className="w-4 h-4 mr-2" /> Export Audit Trail
             </Button>
-            <Button className="h-14 px-8 rounded-2xl bg-white text-black hover:bg-white/90 font-black uppercase tracking-widest text-[10px] shadow-[0_20px_40px_rgba(255,255,255,0.05)]">
+            <Button className="h-14 px-8 rounded-os-md bg-white text-black hover:bg-white/90 font-black uppercase tracking-widest text-os-xs shadow-[0_20px_40px_rgba(255,255,255,0.05)]">
               <Upload className="w-4 h-4 mr-2" /> Commit Document
             </Button>
           </div>
@@ -140,18 +140,18 @@ export default function ComplianceCenter() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
           {[
             { label: 'Integrity Pulse', value: `${complianceKPIs.overallScore}%`, icon: Activity, color: 'text-emerald-500' },
-            { label: 'Regulatory Load', value: complianceKPIs.activeTasks, sub: 'Active Nodes', icon: Boxes, color: 'text-afrikoni-gold' },
-            { label: 'Risk Factor', value: complianceKPIs.riskLevel, icon: ShieldAlert, color: 'text-blue-500' },
-            { label: 'Prophet Signal', value: complianceKPIs.taxProphet, sub: 'AI Estimated', icon: Zap, color: 'text-afrikoni-gold' }
+            { label: 'Regulatory Load', value: complianceKPIs.activeTasks, sub: 'Active Nodes', icon: Boxes, color: 'text-os-accent' },
+            { label: 'Risk Factor', value: complianceKPIs.riskLevel, icon: ShieldAlert, color: 'text-os-blue' },
+            { label: 'Prophet Signal', value: complianceKPIs.taxProphet, sub: 'AI Estimated', icon: Zap, color: 'text-os-accent' }
           ].map((kpi, i) => (
             <Surface key={i} variant="panel" className="p-6 space-y-4 hover:border-white/10 transition-all group overflow-hidden relative">
               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                 <kpi.icon className="w-16 h-16" />
               </div>
-              <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40">{kpi.label}</span>
+              <span className="text-os-xs font-black uppercase tracking-[0.3em] text-white/40">{kpi.label}</span>
               <div className="space-y-1">
                 <div className={cn("text-3xl font-black tracking-tighter", kpi.color)}>{kpi.value}</div>
-                {kpi.sub && <div className="text-[10px] text-white/30 font-bold uppercase tracking-widest">{kpi.sub}</div>}
+                {kpi.sub && <div className="text-os-xs text-white/30 font-bold uppercase tracking-widest">{kpi.sub}</div>}
               </div>
             </Surface>
           ))}
@@ -164,11 +164,11 @@ export default function ComplianceCenter() {
             {/* Regulatory Node Matrix */}
             <section className="space-y-6">
               <div className="flex items-center justify-between px-2">
-                <h2 className="text-xl font-black uppercase tracking-widest flex items-center gap-3">
-                  <Globe className="w-5 h-5 text-afrikoni-gold" />
+                <h2 className="text-os-xl font-black uppercase tracking-widest flex items-center gap-3">
+                  <Globe className="w-5 h-5 text-os-accent" />
                   Regulatory Node Matrix
                 </h2>
-                <Badge variant="outline" className="text-[10px] border-white/10 text-white/40">AfCFTA Active</Badge>
+                <Badge variant="outline" className="text-os-xs border-white/10 text-white/40">AfCFTA Active</Badge>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -184,31 +184,31 @@ export default function ComplianceCenter() {
                   >
                     <div className="flex justify-between items-start mb-6">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-black/40 border border-white/5 flex items-center justify-center font-black text-white/40">
+                        <div className="w-12 h-12 rounded-os-md bg-black/40 border border-white/5 flex items-center justify-center font-black text-white/40">
                           {node.code}
                         </div>
                         <div>
-                          <div className="font-black text-lg">{node.country}</div>
-                          <div className="text-[9px] font-bold text-white/30 uppercase tracking-widest">{node.logic}</div>
+                          <div className="font-black text-os-lg">{node.country}</div>
+                          <div className="text-os-xs font-bold text-white/30 uppercase tracking-widest">{node.logic}</div>
                         </div>
                       </div>
                       <Badge className={cn(
-                        "text-[9px] font-black uppercase tracking-widest px-2",
+                        "text-os-xs font-black uppercase tracking-widest px-2",
                         node.status === 'verified' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" :
-                          node.status === 'warning' ? "bg-red-500/10 text-red-500 border-red-500/20" :
-                            "bg-afrikoni-gold/10 text-afrikoni-gold border-afrikoni-gold/20"
+                          node.status === 'warning' ? "bg-os-red/10 text-os-red border-os-red/20" :
+                            "bg-os-accent/10 text-os-accent border-os-accent/20"
                       )}>
                         {node.status}
                       </Badge>
                     </div>
                     <div className="flex items-center justify-between pt-4 border-t border-white/5">
                       <div className="space-y-1">
-                        <div className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em]">Tariff Node</div>
-                        <div className="font-bold text-sm text-afrikoni-gold">{node.duties}</div>
+                        <div className="text-os-xs font-black text-white/20 uppercase tracking-[0.2em]">Tariff Node</div>
+                        <div className="font-bold text-os-sm text-os-accent">{node.duties}</div>
                       </div>
                       <div className="text-right space-y-1">
-                        <div className="text-[8px] font-black text-white/20 uppercase tracking-[0.2em]">Risk Grade</div>
-                        <div className="font-bold text-sm capitalize">{node.risk}</div>
+                        <div className="text-os-xs font-black text-white/20 uppercase tracking-[0.2em]">Risk Grade</div>
+                        <div className="font-bold text-os-sm capitalize">{node.risk}</div>
                       </div>
                     </div>
                   </Surface>
@@ -219,8 +219,8 @@ export default function ComplianceCenter() {
             {/* Document Ledger */}
             <section className="space-y-6">
               <div className="flex items-center justify-between px-2">
-                <h2 className="text-xl font-black uppercase tracking-widest flex items-center gap-3">
-                  <Database className="w-5 h-5 text-blue-500" />
+                <h2 className="text-os-xl font-black uppercase tracking-widest flex items-center gap-3">
+                  <Database className="w-5 h-5 text-os-blue" />
                   Sovereign Document Ledger
                 </h2>
               </div>
@@ -228,9 +228,9 @@ export default function ComplianceCenter() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-white/5">
-                      <th className="text-left p-6 text-[10px] font-black uppercase tracking-[0.3em] text-white/20">Resource</th>
-                      <th className="text-left p-6 text-[10px] font-black uppercase tracking-[0.3em] text-white/20">Commit State</th>
-                      <th className="text-left p-6 text-[10px] font-black uppercase tracking-[0.3em] text-white/20">Temporal Link</th>
+                      <th className="text-left p-6 text-os-xs font-black uppercase tracking-[0.3em] text-white/20">Resource</th>
+                      <th className="text-left p-6 text-os-xs font-black uppercase tracking-[0.3em] text-white/20">Commit State</th>
+                      <th className="text-left p-6 text-os-xs font-black uppercase tracking-[0.3em] text-white/20">Temporal Link</th>
                       <th className="text-right p-6"></th>
                     </tr>
                   </thead>
@@ -239,7 +239,7 @@ export default function ComplianceCenter() {
                       <tr key={doc.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors group">
                         <td className="p-6">
                           <div className="flex items-center gap-4">
-                            <div className="p-2 bg-white/5 rounded-lg border border-white/5 group-hover:border-afrikoni-gold/30 transition-all">
+                            <div className="p-2 bg-white/5 rounded-lg border border-white/5 group-hover:border-os-accent/30 transition-all">
                               <FileText className="w-4 h-4 text-white/40" />
                             </div>
                             <span className="font-bold">{doc.name}</span>
@@ -247,13 +247,13 @@ export default function ComplianceCenter() {
                         </td>
                         <td className="p-6">
                           <Badge variant="outline" className={cn(
-                            "text-[8px] font-black uppercase tracking-[0.2em]",
-                            doc.status === 'verified' ? "border-emerald-500/30 text-emerald-500" : "border-afrikoni-gold/30 text-afrikoni-gold"
+                            "text-os-xs font-black uppercase tracking-[0.2em]",
+                            doc.status === 'verified' ? "border-emerald-500/30 text-emerald-500" : "border-os-accent/30 text-os-accent"
                           )}>
                             {doc.status === 'verified' ? 'Hashed / Immutable' : 'Synchronizing'}
                           </Badge>
                         </td>
-                        <td className="p-6 text-[10px] font-mono text-white/30 uppercase">{doc.date}</td>
+                        <td className="p-6 text-os-xs font-mono text-white/30 uppercase">{doc.date}</td>
                         <td className="p-6 text-right">
                           <Button variant="ghost" size="sm" className="hover:bg-white/5 text-white/40 hover:text-white">
                             <Eye className="w-4 h-4" />
@@ -272,8 +272,8 @@ export default function ComplianceCenter() {
 
             <section className="space-y-6">
               <div className="flex items-center gap-3 px-1">
-                <Zap className="w-4 h-4 text-afrikoni-gold" />
-                <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white/50">Prophet Signals</h3>
+                <Zap className="w-4 h-4 text-os-accent" />
+                <h3 className="text-os-xs font-black uppercase tracking-[0.3em] text-white/50">Prophet Signals</h3>
               </div>
               <div className="space-y-4">
                 <CopilotSignal
@@ -297,25 +297,25 @@ export default function ComplianceCenter() {
               </div>
             </section>
 
-            <Surface variant="glass" className="p-8 border-afrikoni-gold/20 bg-afrikoni-gold/[0.02] space-y-8 relative overflow-hidden">
+            <Surface variant="glass" className="p-8 border-os-accent/20 bg-os-accent/[0.02] space-y-8 relative overflow-hidden">
               <div className="absolute top-0 right-0 p-4 opacity-10">
-                <Fingerprint className="w-12 h-12 text-afrikoni-gold" />
+                <Fingerprint className="w-12 h-12 text-os-accent" />
               </div>
               <div className="space-y-2">
-                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-afrikoni-gold/60">Compliance DNA</h4>
+                <h4 className="text-os-xs font-black uppercase tracking-[0.2em] text-os-accent/60">Compliance DNA</h4>
                 <div className="text-3xl font-black">Institutional</div>
               </div>
-              <p className="text-xs text-white/60 font-medium italic leading-relaxed">
+              <p className="text-os-xs text-white/60 font-medium italic leading-relaxed">
                 Your enterprise DNA is currently synchronized with the Pan-African Trade Ledger.
                 <span className="text-white"> All nodes are green </span> for immediate cross-border settlement.
               </p>
               <div className="space-y-2 pt-4">
-                <div className="flex justify-between text-[8px] font-black text-white/40 uppercase tracking-widest">
+                <div className="flex justify-between text-os-xs font-black text-white/40 uppercase tracking-widest">
                   <span>Ledger Synchronization</span>
                   <span>100%</span>
                 </div>
                 <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                  <motion.div initial={{ width: 0 }} animate={{ width: '100%' }} className="h-full bg-afrikoni-gold shadow-[0_0_10px_rgba(212,169,55,0.5)]" />
+                  <motion.div initial={{ width: 0 }} animate={{ width: '100%' }} className="h-full bg-os-accent shadow-[0_0_10px_rgba(212,169,55,0.5)]" />
                 </div>
               </div>
             </Surface>

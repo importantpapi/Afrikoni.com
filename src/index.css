@@ -60,6 +60,18 @@
   color-scheme: dark;
 }
 
+/* Explicit Light Mode Override for specific sections (like Marketplace Maison) */
+.light {
+  --os-bg: #FBFBF9;
+  --os-surface: rgba(255, 255, 255, 0.75);
+  --os-surface-solid: #FFFFFF;
+  --os-stroke: rgba(0, 0, 0, 0.05);
+  --os-text-primary: #1D1D1F;
+  --os-text-secondary: #86868B;
+  --os-accent: #D4A937;
+  color-scheme: light;
+}
+
 /* ============================================
    2026 EDITION PALETTES
    ============================================ */
@@ -67,33 +79,33 @@
 /* 1. GOLD (Classic Afrikoni) */
 :root.palette-gold {
   --os-accent: #D4A937;
-  --os-accent-glow: rgba(212, 169, 55, 0.3);
+  --os-accent-alpha-30: rgba(212, 169, 55, 0.3);
 }
 
 /* 2. COBALT (Enterprise Infrastructure) */
 :root.palette-cobalt {
   --os-accent: #007AFF;
   /* Apple Blue */
-  --os-accent-glow: rgba(0, 122, 255, 0.3);
+  --os-accent-alpha-30: rgba(0, 122, 255, 0.3);
 }
 
 /* 3. EMERALD (Sustainable Growth) */
 :root.palette-emerald {
   --os-accent: #34C759;
   /* Apple Green */
-  --os-accent-glow: rgba(52, 199, 89, 0.3);
+  --os-accent-alpha-30: rgba(52, 199, 89, 0.3);
 }
 
 /* 4. CRIMSON (Market Power) */
 :root.palette-crimson {
   --os-accent: #FF3B30;
   /* Apple Red */
-  --os-accent-glow: rgba(255, 59, 48, 0.3);
+  --os-accent-alpha-30: rgba(255, 59, 48, 0.3);
 }
 
 /* Apply accent to glow effects */
 .shadow-glow {
-  box-shadow: 0 0 20px var(--os-accent-glow);
+  box-shadow: 0 0 20px var(--os-accent-alpha-30);
 }
 
 /* ============================================
@@ -159,11 +171,45 @@ h4 {
    ANIMATIONS & MICRO-INTERACTIONS
    ============================================ */
 .apple-transition {
-  transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 400ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .button-depress:active {
-  transform: scale(0.97);
+  transform: scale(0.98);
+}
+
+/* ============================================
+   BRAND MATERIALITY: THE AFRIKONI SIGNATURE
+   ============================================ */
+.afrikoni-pattern-ivory {
+  background-color: #FBFBF9;
+  background-image: radial-gradient(#D4A937 0.5px, transparent 0.5px);
+  background-size: 24px 24px;
+  background-attachment: fixed;
+  opacity: 0.1;
+}
+
+.afrikoni-pattern-grain {
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+  filter: contrast(120%) brightness(100%);
+  opacity: 0.03;
+  pointer-events: none;
+}
+
+.luxury-reveal {
+  animation: reveal 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ============================================
@@ -220,7 +266,7 @@ h4 {
 }
 
 /* Premium gold border glow for active states */
-.dark .border-afrikoni-gold {
+.dark .border-os-accent {
   box-shadow: 0 0 8px rgba(212, 169, 55, 0.15);
 }
 
@@ -449,8 +495,8 @@ body {
   }
 
   /* Reduce shadow complexity on mobile */
-  .shadow-lg,
-  .shadow-xl,
+  .shadow-os-md,
+  .shadow-os-lg,
   .shadow-2xl {
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
   }

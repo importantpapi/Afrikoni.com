@@ -22,8 +22,8 @@ const badgeConfig = {
     icon: CheckCircle,
     label: 'Verified Supplier',
     description: 'This supplier has been verified with business documents, tax certificates, and identity verification.',
-    color: 'bg-afrikoni-gold/20 text-afrikoni-chestnut border-afrikoni-gold',
-    iconColor: 'text-afrikoni-gold'
+    color: 'bg-os-accent/20 text-afrikoni-chestnut border-os-accent',
+    iconColor: 'text-os-accent'
   },
   'trust-score': {
     icon: Award,
@@ -50,9 +50,9 @@ export default function TrustBadge({
 
   const Icon = config.icon;
   const sizeClasses = {
-    sm: 'text-xs px-2 py-0.5 gap-1',
-    default: 'text-sm px-3 py-1 gap-1.5',
-    lg: 'text-base px-4 py-1.5 gap-2'
+    sm: 'text-os-xs px-2 py-0.5 gap-1',
+    default: 'text-os-sm px-3 py-1 gap-1.5',
+    lg: 'text-os-base px-4 py-1.5 gap-2'
   };
 
   const iconSizes = {
@@ -81,7 +81,7 @@ export default function TrustBadge({
   const tooltipContent = (
     <div className="max-w-xs">
       <p className="font-semibold mb-1">{config.label}</p>
-      <p className="text-xs">{config.description}</p>
+      <p className="text-os-xs">{config.description}</p>
     </div>
   );
 

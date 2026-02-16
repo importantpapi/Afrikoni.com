@@ -161,7 +161,7 @@ export default function InboxMobile() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-afrikoni-offwhite flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-os-accent" />
       </div>
     );
   }
@@ -184,8 +184,8 @@ export default function InboxMobile() {
   return (
     <div className="min-h-screen bg-white md:bg-afrikoni-offwhite">
       {/* Header */}
-      <div className="sticky top-0 z-40 bg-white border-b border-afrikoni-gold/20 px-4 py-3">
-        <h1 className="text-xl font-bold text-afrikoni-chestnut mb-3">
+      <div className="sticky top-0 z-40 bg-white border-b border-os-accent/20 px-4 py-3">
+        <h1 className="text-os-xl font-bold text-afrikoni-chestnut mb-3">
           Messages
         </h1>
         
@@ -196,7 +196,7 @@ export default function InboxMobile() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search conversations..."
-            className="pl-10 min-h-[44px] text-base"
+            className="pl-10 min-h-[44px] text-os-base"
           />
         </div>
       </div>

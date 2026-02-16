@@ -238,6 +238,10 @@ export default function Navbar({ user, onLogout }) {
     }
   }, [user, authProfile, authRole]);
 
+  // ✅ KERNEL ALIGNMENT: Define verification variables used in JSX
+  const verificationStatus = authProfile?.verification_status || 'UNVERIFIED';
+  const isVerified = verificationStatus === 'VERIFIED';
+
   // Load categories for mega dropdown
   useEffect(() => {
     const loadCategories = async () => {
@@ -364,7 +368,7 @@ export default function Navbar({ user, onLogout }) {
   };
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 w-full bg-afrikoni-chestnut text-afrikoni-cream border-b border-afrikoni-gold/30 z-[10000] transition-shadow duration-300 ${isScrolled ? 'shadow-lg' : ''} overflow-visible`} style={{ height: '80px' }}>
+    <nav className={`fixed top-0 left-0 right-0 w-full bg-afrikoni-chestnut/90 backdrop-blur-xl text-afrikoni-cream border-b border-os-accent/30 z-[10000] transition-all duration-300 ${isScrolled ? 'shadow-[0_4px_20px_rgba(0,0,0,0.12)]' : 'shadow-none'} overflow-visible`} style={{ height: '80px' }}>
       {/* Top bar */}
       <div className="max-w-[1440px] mx-auto px-3 sm:px-4 flex items-center justify-between gap-2 sm:gap-4 lg:gap-6 h-full overflow-visible">
         {/* Left: logo + explore + quick link */}
@@ -376,21 +380,21 @@ export default function Navbar({ user, onLogout }) {
           {/* All Categories - Opens Mega Menu (Alibaba-style) */}
           <button
             onClick={toggleMegaMenu}
-            className={`hidden sm:flex items-center gap-1 text-sm sm:text-base font-bold transition-colors whitespace-nowrap ${megaOpen
-              ? 'text-afrikoni-gold border-b-2 border-afrikoni-gold pb-1'
-              : 'text-afrikoni-cream hover:text-afrikoni-gold'
+            className={`hidden sm:flex items-center gap-1 text-os-sm sm:text-os-base font-bold transition-colors whitespace-nowrap ${megaOpen
+              ? 'text-os-accent border-b-2 border-os-accent pb-1'
+              : 'text-afrikoni-cream hover:text-os-accent'
               }`}
           >
             All Categories
           </button>
 
           {/* Marketplace Link */}
-          <Link to="/marketplace" className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap">
+          <Link to="/marketplace" className="hidden sm:flex items-center gap-1 text-os-xs sm:text-os-sm font-medium text-afrikoni-cream hover:text-os-accent transition-colors whitespace-nowrap">
             Marketplace
           </Link>
 
           {/* How It Works Link */}
-          <Link to="/how-it-works" className="hidden sm:flex items-center gap-1 text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold transition-colors whitespace-nowrap">
+          <Link to="/how-it-works" className="hidden sm:flex items-center gap-1 text-os-xs sm:text-os-sm font-medium text-afrikoni-cream hover:text-os-accent transition-colors whitespace-nowrap">
             How It Works
           </Link>
 
@@ -399,11 +403,11 @@ export default function Navbar({ user, onLogout }) {
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 sm:h-9 px-2 text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10"
+                className="h-8 sm:h-9 px-2 text-afrikoni-cream hover:text-os-accent hover:bg-os-accent/10"
               >
                 <GitCompare className="w-4 h-4" />
                 <span className="ml-1 hidden lg:inline">Compare</span>
-                <span className="ml-1 bg-afrikoni-gold text-afrikoni-chestnut text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+                <span className="ml-1 bg-os-accent text-afrikoni-chestnut text-os-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
                   {compareCount}
                 </span>
               </Button>
@@ -417,7 +421,7 @@ export default function Navbar({ user, onLogout }) {
           <div className="relative hidden sm:block">
             <button
               onClick={openCountryMenu}
-              className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 transition-colors"
+              className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-md text-os-xs sm:text-os-sm font-medium text-afrikoni-cream hover:text-os-accent hover:bg-os-accent/10 transition-colors"
             >
               <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
               <span className="hidden lg:inline">
@@ -441,10 +445,10 @@ export default function Navbar({ user, onLogout }) {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2, ease: 'easeOut' }}
-                    className="absolute right-0 mt-2 w-96 max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-2xl border-2 border-afrikoni-gold/30 z-[70] p-6 max-h-[600px] overflow-y-auto"
+                    className="absolute right-0 mt-2 w-96 max-w-[calc(100vw-2rem)] bg-os-card rounded-lg shadow-2xl border-2 border-os-accent/30 z-[70] p-6 max-h-[600px] overflow-y-auto"
                   >
-                    <h3 className="text-lg font-bold text-afrikoni-chestnut mb-2">Select Delivery Country</h3>
-                    <p className="text-sm text-afrikoni-deep/70 mb-4">
+                    <h3 className="text-os-lg font-bold text-os-text-primary mb-2">Select Delivery Country</h3>
+                    <p className="text-os-sm text-os-text-secondary/70 mb-4">
                       Shipping options and costs vary based on your location. Your currency will update automatically.
                     </p>
 
@@ -455,7 +459,7 @@ export default function Navbar({ user, onLogout }) {
                         placeholder="Search country..."
                         value={countrySearchQuery}
                         onChange={(e) => setCountrySearchQuery(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-afrikoni-gold text-sm"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-os-accent text-os-sm"
                         id="country-search"
                         autoFocus
                       />
@@ -475,18 +479,18 @@ export default function Navbar({ user, onLogout }) {
                             className={`
                             w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center gap-3
                             ${detectedCountry === country.code
-                                ? 'bg-afrikoni-gold/20 border-2 border-afrikoni-gold text-afrikoni-chestnut font-medium'
-                                : 'bg-afrikoni-offwhite hover:bg-afrikoni-gold/10 text-afrikoni-deep border-2 border-transparent'
+                                ? 'bg-os-accent/20 border-2 border-os-accent text-os-text-primary font-medium'
+                                : 'bg-os-surface-0 hover:bg-os-accent/10 text-os-text-secondary border-2 border-transparent'
                               }
                           `}
                           >
-                            <span className="text-xl flex-shrink-0">{country.flag}</span>
+                            <span className="text-os-xl flex-shrink-0">{country.flag}</span>
                             <div className="flex-1">
                               <div className="font-medium">{country.name}</div>
-                              <div className="text-xs text-afrikoni-deep/60">{country.currency}</div>
+                              <div className="text-os-xs text-afrikoni-deep/60">{country.currency}</div>
                             </div>
                             {detectedCountry === country.code && (
-                              <Check className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
+                              <Check className="w-5 h-5 text-os-accent flex-shrink-0" />
                             )}
                           </button>
                         ))}
@@ -494,7 +498,7 @@ export default function Navbar({ user, onLogout }) {
                         country.name.toLowerCase().includes(countrySearchQuery.toLowerCase()) ||
                         country.code.toLowerCase().includes(countrySearchQuery.toLowerCase())
                       ).length === 0 && (
-                          <div className="text-center py-8 text-afrikoni-deep/60 text-sm">
+                          <div className="text-center py-8 text-afrikoni-deep/60 text-os-sm">
                             No countries found matching "{countrySearchQuery}"
                           </div>
                         )}
@@ -509,7 +513,7 @@ export default function Navbar({ user, onLogout }) {
           <div className="relative">
             <button
               onClick={openSettingsMenu}
-              className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-md text-xs sm:text-sm font-medium text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 transition-colors"
+              className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-md text-os-xs sm:text-os-sm font-medium text-afrikoni-cream hover:text-os-accent hover:bg-os-accent/10 transition-colors"
             >
               <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
               <span className="hidden lg:inline whitespace-nowrap">
@@ -533,19 +537,19 @@ export default function Navbar({ user, onLogout }) {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2, ease: 'easeOut' }}
-                    className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white rounded-lg shadow-2xl border-2 border-afrikoni-gold/30 z-[70] p-6 max-h-[80vh] overflow-y-auto"
+                    className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-os-card rounded-lg shadow-2xl border-2 border-os-accent/30 z-[70] p-6 max-h-[80vh] overflow-y-auto"
                   >
-                    <h3 className="text-lg font-bold text-afrikoni-chestnut mb-2">Set Language & Currency</h3>
-                    <p className="text-sm text-afrikoni-deep/70 mb-6">
+                    <h3 className="text-os-lg font-bold text-os-text-primary mb-2">Set Language & Currency</h3>
+                    <p className="text-os-sm text-os-text-secondary/70 mb-6">
                       Select your preferred language and currency. You can update the settings at any time.
                     </p>
 
                     {/* Language Section */}
                     <div className="mb-6">
                       <div className="flex items-center gap-2 mb-3">
-                        <label className="block text-sm font-semibold text-afrikoni-deep">Language</label>
+                        <label className="block text-os-sm font-semibold text-os-text-primary">Language</label>
                         <span
-                          className="text-xs text-afrikoni-deep/60 cursor-help"
+                          className="text-os-xs text-afrikoni-deep/60 cursor-help"
                           title="Public pages are translated. Dashboards and internal tools are currently available in English."
                         >
                           ℹ️
@@ -559,15 +563,15 @@ export default function Navbar({ user, onLogout }) {
                             className={`
                               w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center gap-3
                               ${language === lang.code
-                                ? 'bg-afrikoni-gold/20 border-2 border-afrikoni-gold text-afrikoni-chestnut font-medium'
-                                : 'bg-afrikoni-offwhite hover:bg-afrikoni-gold/10 text-afrikoni-deep border-2 border-transparent'
+                                ? 'bg-os-accent/20 border-2 border-os-accent text-os-text-primary font-medium'
+                                : 'bg-os-surface-0 hover:bg-os-accent/10 text-os-text-secondary border-2 border-transparent'
                               }
                             `}
                           >
-                            <span className="text-xl flex-shrink-0">{lang.flag}</span>
+                            <span className="text-os-xl flex-shrink-0">{lang.flag}</span>
                             <span className="flex-1">{lang.label || lang.name}</span>
                             {language === lang.code && (
-                              <Check className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
+                              <Check className="w-5 h-5 text-os-accent flex-shrink-0" />
                             )}
                           </button>
                         ))}
@@ -576,7 +580,7 @@ export default function Navbar({ user, onLogout }) {
 
                     {/* Currency Section */}
                     <div>
-                      <label className="block text-sm font-semibold text-afrikoni-deep mb-3">Currency</label>
+                      <label className="block text-os-sm font-semibold text-afrikoni-deep mb-3">Currency</label>
                       <div className="space-y-2">
                         {currencies.map((curr) => (
                           <button
@@ -585,17 +589,17 @@ export default function Navbar({ user, onLogout }) {
                             className={`
                               w-full text-left px-4 py-3 rounded-lg transition-colors flex items-center justify-between
                               ${selectedCurrency === curr.code
-                                ? 'bg-afrikoni-gold/20 border-2 border-afrikoni-gold text-afrikoni-chestnut font-medium'
-                                : 'bg-afrikoni-offwhite hover:bg-afrikoni-gold/10 text-afrikoni-deep border-2 border-transparent'
+                                ? 'bg-os-accent/20 border-2 border-os-accent text-os-text-primary font-medium'
+                                : 'bg-os-surface-0 hover:bg-os-accent/10 text-os-text-secondary border-2 border-transparent'
                               }
                             `}
                           >
                             <span className="flex items-center gap-2">
-                              <span className="text-lg">{curr.symbol}</span>
+                              <span className="text-os-lg">{curr.symbol}</span>
                               <span>{curr.name}</span>
                             </span>
                             {selectedCurrency === curr.code && (
-                              <Check className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
+                              <Check className="w-5 h-5 text-os-accent flex-shrink-0" />
                             )}
                           </button>
                         ))}
@@ -612,10 +616,10 @@ export default function Navbar({ user, onLogout }) {
             <>
               <Link
                 to="/orders"
-                className="hidden lg:block relative p-2 rounded-md hover:bg-afrikoni-gold/10 transition-colors"
+                className="hidden lg:block relative p-2 rounded-md hover:bg-os-accent/10 transition-colors"
               >
-                <ShoppingCart className="w-5 h-5 text-afrikoni-cream hover:text-afrikoni-gold transition-colors" />
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-afrikoni-gold text-afrikoni-chestnut text-xs rounded-full flex items-center justify-center font-bold">
+                <ShoppingCart className="w-5 h-5 text-afrikoni-cream hover:text-os-accent transition-colors" />
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-os-accent text-afrikoni-chestnut text-os-xs rounded-full flex items-center justify-center font-bold">
                   0
                 </span>
               </Link>
@@ -627,9 +631,9 @@ export default function Navbar({ user, onLogout }) {
               <div className="relative">
                 <button
                   onClick={openUserMenu}
-                  className="flex items-center gap-1.5 sm:gap-2 px-1.5 sm:px-2 py-1.5 sm:py-2 rounded-md hover:bg-afrikoni-gold/10 transition-colors"
+                  className="flex items-center gap-1.5 sm:gap-2 px-1.5 sm:px-2 py-1.5 sm:py-2 rounded-md hover:bg-os-accent/10 transition-colors"
                 >
-                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-afrikoni-gold rounded-full flex items-center justify-center text-afrikoni-chestnut font-bold text-xs sm:text-sm flex-shrink-0">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 bg-os-accent rounded-full flex items-center justify-center text-afrikoni-chestnut font-bold text-os-xs sm:text-os-sm flex-shrink-0">
                     {(() => {
                       try {
                         return getUserInitial(user || null, null);
@@ -657,20 +661,29 @@ export default function Navbar({ user, onLogout }) {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2, ease: 'easeOut' }}
-                        className="absolute right-0 mt-2 w-64 md:w-72 max-w-[90vw] bg-afrikoni-offwhite border border-afrikoni-gold/20 rounded-lg shadow-afrikoni-xl z-[70] overflow-hidden"
+                        className="absolute right-0 mt-2 w-64 md:w-72 max-w-[90vw] bg-os-card border border-os-accent/20 rounded-lg shadow-os-lg z-[70] overflow-hidden"
                       >
                         <div className="py-1">
-                          <div className="px-4 py-3 border-b border-afrikoni-gold/20">
-                            <div className="font-semibold text-afrikoni-chestnut text-sm">
+                          <div className="px-4 py-3 border-b border-os-accent/20">
+                            <div className="font-semibold text-afrikoni-chestnut text-os-sm">
                               {user.email}
                             </div>
-                            <div className="text-xs text-afrikoni-deep/70">
+                            <div className="text-os-xs text-afrikoni-deep/70">
                               {user.user_role || 'User'}
                             </div>
+                            {isVerified ? (
+                              <div className="absolute top-2 right-2 bg-os-surface-0/90 backdrop-blur-sm rounded-full shadow-sm">
+                                <VerificationBadge status="VERIFIED" size="xs" showLabel variant="badge" />
+                              </div>
+                            ) : verificationStatus === 'PENDING' ? (
+                              <div className="absolute top-2 right-2 bg-os-surface-0/90 backdrop-blur-sm rounded-full shadow-sm">
+                                <VerificationBadge status="PENDING" size="xs" variant="badge" />
+                              </div>
+                            ) : null}
                           </div>
                           <Link
                             to="/dashboard"
-                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-cream text-sm text-afrikoni-deep transition-colors"
+                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-cream text-os-sm text-afrikoni-deep transition-colors"
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <LayoutDashboard className="w-4 h-4" />
@@ -678,7 +691,7 @@ export default function Navbar({ user, onLogout }) {
                           </Link>
                           <Link
                             to={userProfile?.company_id ? `/business/${userProfile.company_id}` : '/dashboard/settings'}
-                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-cream text-sm text-afrikoni-deep transition-colors"
+                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-os-accent/10 text-os-sm text-os-text-primary transition-colors"
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <User className="w-4 h-4" />
@@ -686,7 +699,7 @@ export default function Navbar({ user, onLogout }) {
                           </Link>
                           <Link
                             to="/messages"
-                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-cream text-sm text-afrikoni-deep transition-colors"
+                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-os-accent/10 text-os-sm text-os-text-primary transition-colors"
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <MessageSquare className="w-4 h-4" />
@@ -694,7 +707,7 @@ export default function Navbar({ user, onLogout }) {
                           </Link>
                           <Link
                             to="/orders"
-                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-cream text-sm text-afrikoni-deep transition-colors"
+                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-os-accent/10 text-os-sm text-os-text-primary transition-colors"
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <Package className="w-4 h-4" />
@@ -702,7 +715,7 @@ export default function Navbar({ user, onLogout }) {
                           </Link>
                           <Link
                             to={createPageUrl('RFQManagement')}
-                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-cream text-sm text-afrikoni-deep transition-colors"
+                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-os-accent/10 text-os-sm text-os-text-primary transition-colors"
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <FileText className="w-4 h-4" />
@@ -710,29 +723,29 @@ export default function Navbar({ user, onLogout }) {
                           </Link>
                           <Link
                             to="/dashboard/settings"
-                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-afrikoni-cream text-sm text-afrikoni-deep transition-colors"
+                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-os-accent/10 text-os-sm text-os-text-primary transition-colors"
                             onClick={() => setUserMenuOpen(false)}
                           >
                             <Settings className="w-4 h-4" />
                             Settings
                           </Link>
-                          <div className="border-t border-afrikoni-gold/20 my-1"></div>
+                          <div className="border-t border-os-stroke my-1"></div>
                           <button
                             onClick={() => {
                               setUserMenuOpen(false);
                               openWhatsAppCommunity('profile_sidebar');
                             }}
-                            className="flex items-center gap-3 w-full text-left px-4 py-2.5 hover:bg-afrikoni-cream text-sm transition-colors bg-afrikoni-gold/5"
+                            className="flex items-center gap-3 w-full text-left px-4 py-2.5 hover:bg-os-accent/10 text-os-sm transition-colors bg-os-accent/5"
                           >
-                            <MessageSquare className="w-4 h-4 text-afrikoni-gold" />
-                            <span className="text-afrikoni-gold font-semibold">Join Community 🚀</span>
+                            <MessageSquare className="w-4 h-4 text-os-accent" />
+                            <span className="text-os-accent font-semibold">Join Community 🚀</span>
                           </button>
                           <button
                             onClick={() => {
                               onLogout();
                               setUserMenuOpen(false);
                             }}
-                            className="flex items-center gap-3 w-full text-left px-4 py-2.5 hover:bg-red-50 text-sm text-red-600 transition-colors"
+                            className="flex items-center gap-3 w-full text-left px-4 py-2.5 hover:bg-os-accent/10 text-os-sm text-destructive font-medium transition-colors"
                           >
                             <LogOut className="w-4 h-4" />
                             Logout
@@ -751,7 +764,7 @@ export default function Navbar({ user, onLogout }) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 sm:h-9 px-2 sm:px-3 lg:px-4 text-afrikoni-cream hover:text-afrikoni-gold hover:bg-afrikoni-gold/10 rounded-full text-xs sm:text-sm transition-all"
+                  className="h-8 sm:h-9 px-2 sm:px-3 lg:px-4 text-afrikoni-cream hover:text-os-accent hover:bg-os-accent/10 rounded-full text-os-xs sm:text-os-sm transition-all"
                 >
                   Login
                 </Button>
@@ -763,7 +776,7 @@ export default function Navbar({ user, onLogout }) {
                 >
                   <Button
                     size="sm"
-                    className="h-9 px-4 bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight rounded-full font-semibold shadow-lg hover:shadow-xl transition-all hover:ring-2 hover:ring-afrikoni-gold/50"
+                    className="h-9 px-4 bg-os-accent text-afrikoni-chestnut hover:bg-os-accentLight rounded-full font-semibold shadow-os-md hover:shadow-os-lg transition-all hover:ring-2 hover:ring-os-accent/50"
                   >
                     Sign Up
                   </Button>
@@ -774,7 +787,7 @@ export default function Navbar({ user, onLogout }) {
               <Link to="/signup" className="sm:hidden">
                 <Button
                   size="sm"
-                  className="h-8 sm:h-9 px-2 sm:px-3 bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight text-xs rounded-full whitespace-nowrap"
+                  className="h-8 sm:h-9 px-2 sm:px-3 bg-os-accent text-afrikoni-chestnut hover:bg-os-accentLight text-os-xs rounded-full whitespace-nowrap"
                 >
                   Sign Up
                 </Button>
@@ -797,40 +810,40 @@ export default function Navbar({ user, onLogout }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="absolute left-0 top-full w-full bg-white shadow-xl border-t border-gray-200 z-[50] max-h-[calc(100vh-4rem)] overflow-y-auto"
+              className="absolute left-0 top-full w-full bg-os-card shadow-os-lg border-t border-os-stroke z-[50] max-h-[calc(100vh-4rem)] overflow-y-auto"
             >
               <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
                 {/* Main Categories Section - Alibaba Style */}
                 <div className="mb-6">
-                  <h2 className="text-xl sm:text-2xl font-bold text-afrikoni-chestnut mb-4">Browse All Categories</h2>
+                  <h2 className="text-os-xl sm:text-os-2xl font-bold text-os-text-primary mb-4">Browse All Categories</h2>
                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
                     {categoriesLoading ? (
-                      <div className="col-span-full text-gray-500 text-sm py-4">Loading categories...</div>
+                      <div className="col-span-full text-gray-500 text-os-sm py-4">Loading categories...</div>
                     ) : categories.length > 0 ? (
                       categories.map((category) => (
                         <Link
                           key={category.id}
                           to={`/marketplace?category=${encodeURIComponent(category.id)}`}
                           onClick={() => setMegaOpen(false)}
-                          className="flex flex-col items-center p-3 sm:p-4 rounded-lg border border-gray-200 hover:border-afrikoni-gold hover:bg-afrikoni-gold/5 transition-all group"
+                          className="flex flex-col items-center p-3 sm:p-4 rounded-lg border border-os-stroke hover:border-os-accent hover:bg-os-accent/5 transition-all group"
                         >
-                          <div className="w-12 h-12 sm:w-14 sm:h-14 mb-2 flex items-center justify-center bg-afrikoni-offwhite rounded-lg group-hover:bg-afrikoni-gold/10 transition-colors">
-                            <Package className="w-6 h-6 sm:w-7 sm:h-7 text-afrikoni-gold" />
+                          <div className="w-12 h-12 sm:w-14 sm:h-14 mb-2 flex items-center justify-center bg-os-surface-1 rounded-lg group-hover:bg-os-accent/10 transition-colors">
+                            <Package className="w-6 h-6 sm:w-7 sm:h-7 text-os-accent" />
                           </div>
-                          <span className="text-xs sm:text-sm font-medium text-gray-700 group-hover:text-afrikoni-gold text-center line-clamp-2">
+                          <span className="text-os-xs sm:text-os-sm font-medium text-gray-700 group-hover:text-os-accent text-center line-clamp-2">
                             {category.name}
                           </span>
                         </Link>
                       ))
                     ) : (
-                      <div className="col-span-full text-gray-500 text-sm py-4">No categories available</div>
+                      <div className="col-span-full text-gray-500 text-os-sm py-4">No categories available</div>
                     )}
                   </div>
                   <div className="mt-4 text-center">
                     <Link
                       to="/categories"
                       onClick={() => setMegaOpen(false)}
-                      className="inline-flex items-center gap-2 text-afrikoni-gold hover:text-afrikoni-chestnut font-semibold text-sm sm:text-base transition-colors"
+                      className="inline-flex items-center gap-2 text-os-accent hover:text-os-accent-light font-semibold text-os-sm sm:text-os-base transition-colors"
                     >
                       View All Categories
                       <ChevronDown className="w-4 h-4 rotate-[-90deg]" />
@@ -847,7 +860,7 @@ export default function Navbar({ user, onLogout }) {
                   {/* Marketplace */}
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-3">Marketplace</h3>
-                    <nav className="flex flex-col gap-2 text-gray-700 text-sm">
+                    <nav className="flex flex-col gap-2 text-gray-700 text-os-sm">
                       <Link to="/marketplace" onClick={() => setMegaOpen(false)}>Browse Products</Link>
                       <Link to="/trending" onClick={() => setMegaOpen(false)}>Trending</Link>
                       <Link to="/suppliers" onClick={() => setMegaOpen(false)}>Find Suppliers</Link>
@@ -858,7 +871,7 @@ export default function Navbar({ user, onLogout }) {
                   {/* Buyers */}
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-3">For Buyers</h3>
-                    <nav className="flex flex-col gap-2 text-gray-700 text-sm">
+                    <nav className="flex flex-col gap-2 text-gray-700 text-os-sm">
                       <Link to="/suppliers" onClick={() => setMegaOpen(false)}>Find Suppliers</Link>
                       <Link to="/rfq" onClick={() => setMegaOpen(false)}>Request Quotation</Link>
                       <Link to="/buyer-hub" onClick={() => setMegaOpen(false)}>Buyer Hub</Link>
@@ -871,7 +884,7 @@ export default function Navbar({ user, onLogout }) {
                   {/* Suppliers */}
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-3">For Suppliers</h3>
-                    <nav className="flex flex-col gap-2 text-gray-700 text-sm">
+                    <nav className="flex flex-col gap-2 text-gray-700 text-os-sm">
                       <Link to="/become-supplier" onClick={() => setMegaOpen(false)}>Sell on Afrikoni</Link>
                       <Link
                         to={user ? "/dashboard" : "/become-supplier"}
@@ -895,7 +908,7 @@ export default function Navbar({ user, onLogout }) {
                   {/* Trust & Safety */}
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-3">Trust & Safety</h3>
-                    <nav className="flex flex-col gap-2 text-gray-700 text-sm">
+                    <nav className="flex flex-col gap-2 text-gray-700 text-os-sm">
                       <Link to="/protection" onClick={() => setMegaOpen(false)}>Afrikoni Shield</Link>
                       <Link to="/order-protection" onClick={() => setMegaOpen(false)}>Order Protection</Link>
                       <Link to="/anti-fraud" onClick={() => setMegaOpen(false)}>Anti-Fraud</Link>
@@ -918,7 +931,7 @@ export default function Navbar({ user, onLogout }) {
           </>
         )}
       </AnimatePresence>
-    </nav>
+    </nav >
   );
 }
 

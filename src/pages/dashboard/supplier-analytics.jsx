@@ -462,14 +462,14 @@ function SupplierAnalyticsInner() {
         <Card className="max-w-md">
           <CardContent className="p-8 text-center">
             <Package className="w-16 h-16 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">
+            <h2 className="text-os-2xl font-bold mb-2">
               Company Setup Required
             </h2>
             <p className="mb-6">
               Please complete your company profile to view analytics.
             </p>
             <Link to="/dashboard/company-info">
-              <Button className="hover:bg-afrikoni-goldDark">
+              <Button className="hover:bg-os-accentDark">
                 Complete Setup
               </Button>
             </Link>
@@ -497,7 +497,7 @@ function SupplierAnalyticsInner() {
               <h1 className="text-3xl md:text-4xl font-bold mb-2">
                 Supplier Analytics
               </h1>
-              <p className="text-sm md:text-base">
+              <p className="text-os-sm md:text-os-base">
                 Track your product performance and optimize your listings
               </p>
             </div>
@@ -534,7 +534,7 @@ function SupplierAnalyticsInner() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.05 }}
           >
-            <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
+            <Card className="hover:border-os-accent/40 hover:shadow-os-md-lg transition-all rounded-afrikoni-lg">
               <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3">
                   <div className="w-12 h-12 rounded-full flex items-center justify-center">
@@ -550,7 +550,7 @@ function SupplierAnalyticsInner() {
                 <div className="text-3xl md:text-4xl font-bold mb-2">
                   {metrics.totalViews.toLocaleString()}
                 </div>
-                <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
+                <div className="text-os-xs md:text-os-sm font-medium uppercase tracking-wide">
                   Total Views
                 </div>
               </CardContent>
@@ -562,7 +562,7 @@ function SupplierAnalyticsInner() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.1 }}
           >
-            <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
+            <Card className="hover:border-os-accent/40 hover:shadow-os-md-lg transition-all rounded-afrikoni-lg">
               <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3">
                   <div className="w-12 h-12 rounded-full flex items-center justify-center">
@@ -578,7 +578,7 @@ function SupplierAnalyticsInner() {
                 <div className="text-3xl md:text-4xl font-bold mb-2">
                   {metrics.totalContacts.toLocaleString()}
                 </div>
-                <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
+                <div className="text-os-xs md:text-os-sm font-medium uppercase tracking-wide">
                   Contacts
                 </div>
               </CardContent>
@@ -590,7 +590,7 @@ function SupplierAnalyticsInner() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.15 }}
           >
-            <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
+            <Card className="hover:border-os-accent/40 hover:shadow-os-md-lg transition-all rounded-afrikoni-lg">
               <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3">
                   <div className="w-12 h-12 rounded-full flex items-center justify-center">
@@ -600,7 +600,7 @@ function SupplierAnalyticsInner() {
                 <div className="text-3xl md:text-4xl font-bold mb-2">
                   {metrics.totalRFQs.toLocaleString()}
                 </div>
-                <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
+                <div className="text-os-xs md:text-os-sm font-medium uppercase tracking-wide">
                   RFQs Received
                 </div>
               </CardContent>
@@ -612,7 +612,7 @@ function SupplierAnalyticsInner() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.2 }}
           >
-            <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
+            <Card className="hover:border-os-accent/40 hover:shadow-os-md-lg transition-all rounded-afrikoni-lg">
               <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3">
                   <div className="w-12 h-12 rounded-full flex items-center justify-center">
@@ -622,7 +622,7 @@ function SupplierAnalyticsInner() {
                 <div className="text-3xl md:text-4xl font-bold mb-2">
                   {metrics.conversionRate.toFixed(2)}%
                 </div>
-                <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
+                <div className="text-os-xs md:text-os-sm font-medium uppercase tracking-wide">
                   Conversion Rate
                 </div>
               </CardContent>
@@ -634,7 +634,7 @@ function SupplierAnalyticsInner() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 0.25 }}
           >
-            <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
+            <Card className="hover:border-os-accent/40 hover:shadow-os-md-lg transition-all rounded-afrikoni-lg">
               <CardContent className="p-5">
                 <div className="flex items-center justify-between mb-3">
                   <div className="w-12 h-12 rounded-full flex items-center justify-center">
@@ -644,7 +644,7 @@ function SupplierAnalyticsInner() {
                 <div className="text-3xl md:text-4xl font-bold mb-2">
                   {metrics.avgViewsPerProduct.toFixed(0)}
                 </div>
-                <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
+                <div className="text-os-xs md:text-os-sm font-medium uppercase tracking-wide">
                   Avg Views/Product
                 </div>
               </CardContent>
@@ -668,9 +668,9 @@ function SupplierAnalyticsInner() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.3 }}
             >
-              <Card className="rounded-afrikoni-lg shadow-premium">
+              <Card className="rounded-afrikoni-lg shadow-os-md">
                 <CardHeader className="border-b pb-4">
-                  <CardTitle className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-2 inline-block">
+                  <CardTitle className="text-os-lg md:text-os-xl font-bold uppercase tracking-wider border-b-2 pb-2 inline-block">
                     Views & Engagement Trend
                   </CardTitle>
                 </CardHeader>
@@ -732,9 +732,9 @@ function SupplierAnalyticsInner() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.35 }}
             >
-              <Card className="rounded-afrikoni-lg shadow-premium">
+              <Card className="rounded-afrikoni-lg shadow-os-md">
                 <CardHeader className="border-b pb-4">
-                  <CardTitle className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-2 inline-block">
+                  <CardTitle className="text-os-lg md:text-os-xl font-bold uppercase tracking-wider border-b-2 pb-2 inline-block">
                     Engagement Breakdown
                   </CardTitle>
                 </CardHeader>
@@ -783,9 +783,9 @@ function SupplierAnalyticsInner() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.3 }}
             >
-              <Card className="rounded-afrikoni-lg shadow-premium">
+              <Card className="rounded-afrikoni-lg shadow-os-md">
                 <CardHeader className="border-b pb-4">
-                  <CardTitle className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-2 inline-block">
+                  <CardTitle className="text-os-lg md:text-os-xl font-bold uppercase tracking-wider border-b-2 pb-2 inline-block">
                     Top Performing Products
                   </CardTitle>
                 </CardHeader>
@@ -832,9 +832,9 @@ function SupplierAnalyticsInner() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.3 }}
             >
-              <Card className="rounded-afrikoni-lg shadow-premium">
+              <Card className="rounded-afrikoni-lg shadow-os-md">
                 <CardHeader className="border-b pb-4">
-                  <CardTitle className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-2 inline-block">
+                  <CardTitle className="text-os-lg md:text-os-xl font-bold uppercase tracking-wider border-b-2 pb-2 inline-block">
                     Conversion Analysis
                   </CardTitle>
                 </CardHeader>
@@ -881,9 +881,9 @@ function SupplierAnalyticsInner() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.3 }}
             >
-              <Card className="rounded-afrikoni-lg shadow-premium">
+              <Card className="rounded-afrikoni-lg shadow-os-md">
                 <CardHeader className="border-b pb-4">
-                  <CardTitle className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-2 inline-block">
+                  <CardTitle className="text-os-lg md:text-os-xl font-bold uppercase tracking-wider border-b-2 pb-2 inline-block">
                     Traffic Sources
                   </CardTitle>
                 </CardHeader>
@@ -934,7 +934,7 @@ function SupplierAnalyticsInner() {
         >
           <Card className="">
             <CardHeader className="border-b pb-4">
-              <CardTitle className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-2 inline-block flex items-center gap-2">
+              <CardTitle className="text-os-lg md:text-os-xl font-bold uppercase tracking-wider border-b-2 pb-2 inline-block flex items-center gap-2">
                 <Award className="w-5 h-5" />
                 Marketplace Comparison
               </CardTitle>
@@ -943,11 +943,11 @@ function SupplierAnalyticsInner() {
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm">Your Average Views/Product</span>
+                    <span className="text-os-sm">Your Average Views/Product</span>
                     <span className="font-bold">{metrics.avgViewsPerProduct.toFixed(0)}</span>
                   </div>
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm">Marketplace Average</span>
+                    <span className="text-os-sm">Marketplace Average</span>
                     <span className="font-bold">{metrics.marketplaceAvgViews.toFixed(0)}</span>
                   </div>
                   <div className="h-2 rounded-full overflow-hidden">
@@ -959,7 +959,7 @@ function SupplierAnalyticsInner() {
                     />
                   </div>
                   {metrics.avgViewsPerProduct > metrics.marketplaceAvgViews && (
-                    <p className="text-sm mt-2 flex items-center gap-1">
+                    <p className="text-os-sm mt-2 flex items-center gap-1">
                       <TrendingUp className="w-4 h-4" />
                       You're performing above average!
                     </p>
@@ -967,11 +967,11 @@ function SupplierAnalyticsInner() {
                 </div>
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm">Your Top Product Views</span>
+                    <span className="text-os-sm">Your Top Product Views</span>
                     <span className="font-bold">{metrics.topProductViews}</span>
                   </div>
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm">Marketplace Average</span>
+                    <span className="text-os-sm">Marketplace Average</span>
                     <span className="font-bold">{metrics.marketplaceAvgViews.toFixed(0)}</span>
                   </div>
                   <div className="h-2 rounded-full overflow-hidden">

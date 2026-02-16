@@ -49,7 +49,7 @@ export default function AuthDebug() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 bg-black/90 text-green-400 text-xs p-3 rounded-lg max-w-sm overflow-auto border border-green-500/30 shadow-lg">
+    <div className="fixed bottom-4 right-4 z-50 bg-black/90 text-green-400 text-os-xs p-3 rounded-lg max-w-sm overflow-auto border border-green-500/30 shadow-os-md">
       <div className="font-bold mb-2 text-green-300">🔐 Auth Debug (Dev Only)</div>
       <pre className="whitespace-pre-wrap break-words">
         {JSON.stringify({

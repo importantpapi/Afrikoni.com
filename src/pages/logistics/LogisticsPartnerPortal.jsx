@@ -190,14 +190,14 @@ export default function LogisticsPartnerPortal() {
       case 'out_for_delivery':
         return 'bg-amber-500/20 text-amber-300 border-amber-500/30';
       default:
-        return 'bg-white/10 text-gray-300 border-white/10';
+        return 'bg-white/10 text-gray-300 border-os-stroke';
     }
   };
 
   if (!isSystemReady || loading) {
     return (
       <div className="flex items-center justify-center h-[60vh]">
-        <Loader2 className="w-8 h-8 animate-spin text-afrikoni-gold" />
+        <Loader2 className="w-8 h-8 animate-spin text-os-accent" />
       </div>
     );
   }
@@ -206,7 +206,7 @@ export default function LogisticsPartnerPortal() {
     return (
       <div className="max-w-2xl mx-auto mt-16">
         <Card className="border-red-200 bg-red-50/50">
-          <CardContent className="p-6 text-sm text-red-700">
+          <CardContent className="p-6 text-os-sm text-red-700">
             Logistics capability not approved. Contact support to activate your logistics profile.
           </CardContent>
         </Card>
@@ -220,13 +220,13 @@ export default function LogisticsPartnerPortal() {
         {/* Header */}
         <div className="flex items-start justify-between gap-6 mb-8">
           <div>
-            <p className="text-[10px] uppercase tracking-[0.25em] text-gray-400">Logistics Partner Portal</p>
+            <p className="text-os-xs uppercase tracking-[0.25em] text-gray-400">Logistics Partner Portal</p>
             <h1 className="text-3xl md:text-4xl font-bold mt-2">Control Tower</h1>
-            <p className="text-sm text-gray-400 mt-2">Real-time shipment orchestration and event injection.</p>
+            <p className="text-os-sm text-gray-400 mt-2">Real-time shipment orchestration and event injection.</p>
           </div>
-          <div className="rounded-2xl border border-afrikoni-gold/20 bg-white/5 px-4 py-3 text-right">
-            <p className="text-[10px] uppercase tracking-[0.25em] text-gray-400">Trust Layer</p>
-            <p className="text-sm font-semibold text-afrikoni-gold flex items-center gap-2 justify-end">
+          <div className="rounded-os-md border border-os-accent/20 bg-os-accent/5 px-4 py-3 text-right">
+            <p className="text-os-xs uppercase tracking-[0.25em] text-gray-400">Trust Layer</p>
+            <p className="text-os-sm font-semibold text-os-accent flex items-center gap-2 justify-end">
               <ShieldCheck className="w-4 h-4" /> Verified Logistics
             </p>
           </div>
@@ -234,7 +234,7 @@ export default function LogisticsPartnerPortal() {
 
         {error && (
           <Card className="border-red-200 bg-red-50/50 mb-6">
-            <CardContent className="p-4 text-sm text-red-700">
+            <CardContent className="p-4 text-os-sm text-red-700">
               {error}
             </CardContent>
           </Card>
@@ -248,13 +248,13 @@ export default function LogisticsPartnerPortal() {
             { label: 'Delivered', value: stats.delivered, icon: CheckCircle2 },
             { label: 'Pending', value: stats.pending, icon: Clock }
           ].map((stat) => (
-            <Card key={stat.label} className="border border-white/10 bg-white/5">
+            <Card key={stat.label} className="border border-os-stroke bg-os-accent/5">
               <CardContent className="p-4 flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-gray-400">{stat.label}</p>
-                  <p className="text-2xl font-bold text-white">{stat.value}</p>
+                  <p className="text-os-xs text-gray-400">{stat.label}</p>
+                  <p className="text-os-2xl font-bold text-white">{stat.value}</p>
                 </div>
-                <stat.icon className="w-6 h-6 text-afrikoni-gold/80" />
+                <stat.icon className="w-6 h-6 text-os-accent/80" />
               </CardContent>
             </Card>
           ))}
@@ -268,7 +268,7 @@ export default function LogisticsPartnerPortal() {
               placeholder="Search tracking # or trade title"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-white/5 border-white/10 text-white"
+              className="pl-10 bg-os-accent/5 border-os-stroke text-white"
             />
           </div>
           <div className="flex items-center gap-2">
@@ -276,7 +276,7 @@ export default function LogisticsPartnerPortal() {
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white"
+              className="px-3 py-2 bg-os-accent/5 border border-os-stroke rounded-lg text-os-sm text-white"
             >
               {STATUS_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value} className="text-black">
@@ -287,19 +287,19 @@ export default function LogisticsPartnerPortal() {
           </div>
           <Button
             onClick={() => setUploadMode(true)}
-            className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-black"
+            className="bg-os-accent hover:bg-os-accent/90 text-black"
           >
             <Upload className="w-4 h-4 mr-2" /> Bulk Upload
           </Button>
         </div>
 
         {/* Shipments Table */}
-        <Card className="border border-white/10 bg-white/5">
+        <Card className="border border-os-stroke bg-os-accent/5">
           <CardContent className="p-0">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-white/5 border-b border-white/10">
-                  <tr className="text-left text-xs uppercase tracking-wider text-gray-400">
+                <thead className="bg-os-accent/5 border-b border-os-stroke">
+                  <tr className="text-left text-os-xs uppercase tracking-wider text-gray-400">
                     <th className="px-6 py-3">Tracking</th>
                     <th className="px-6 py-3">Trade</th>
                     <th className="px-6 py-3">Status</th>
@@ -310,11 +310,11 @@ export default function LogisticsPartnerPortal() {
                 </thead>
                 <tbody className="divide-y divide-white/5">
                   {filteredShipments.map((shipment) => (
-                    <tr key={shipment.id} className="hover:bg-white/5">
-                      <td className="px-6 py-4 text-sm font-mono text-white">
+                    <tr key={shipment.id} className="hover:bg-os-accent/5">
+                      <td className="px-6 py-4 text-os-sm font-mono text-white">
                         {shipment.tracking_number || '—'}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-200">
+                      <td className="px-6 py-4 text-os-sm text-gray-200">
                         {shipment.trades?.title || 'Trade'}
                       </td>
                       <td className="px-6 py-4">
@@ -322,10 +322,10 @@ export default function LogisticsPartnerPortal() {
                           {shipment.status?.replace('_', ' ')}
                         </Badge>
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-300">
+                      <td className="px-6 py-4 text-os-sm text-gray-300">
                         {shipment.current_location || shipment.last_update_location || '—'}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-400">
+                      <td className="px-6 py-4 text-os-sm text-gray-400">
                         {shipment.last_tracking_update
                           ? new Date(shipment.last_tracking_update).toLocaleString()
                           : '—'}
@@ -334,7 +334,7 @@ export default function LogisticsPartnerPortal() {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="border-white/10 text-white"
+                          className="border-os-stroke text-white"
                           onClick={() => {
                             setSelectedShipment(shipment);
                             setShowUpdatePanel(true);
@@ -347,7 +347,7 @@ export default function LogisticsPartnerPortal() {
                   ))}
                   {filteredShipments.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-6 py-10 text-center text-sm text-gray-400">
+                      <td colSpan={6} className="px-6 py-10 text-center text-os-sm text-gray-400">
                         No shipments found.
                       </td>
                     </tr>
@@ -366,14 +366,14 @@ export default function LogisticsPartnerPortal() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="fixed bottom-6 right-6 w-[360px] rounded-2xl border border-white/10 bg-[#0F141B] p-4 shadow-2xl"
+            className="fixed bottom-6 right-6 w-[360px] rounded-os-md border border-os-stroke bg-[#0F141B] p-4 shadow-2xl"
           >
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-xs text-gray-400">Update Shipment</p>
-                <p className="text-sm font-semibold">{selectedShipment.tracking_number}</p>
+                <p className="text-os-xs text-gray-400">Update Shipment</p>
+                <p className="text-os-sm font-semibold">{selectedShipment.tracking_number}</p>
               </div>
-              <Button size="sm" variant="outline" className="border-white/10" onClick={() => setShowUpdatePanel(false)}>
+              <Button size="sm" variant="outline" className="border-os-stroke" onClick={() => setShowUpdatePanel(false)}>
                 Close
               </Button>
             </div>
@@ -383,24 +383,24 @@ export default function LogisticsPartnerPortal() {
                 placeholder="Milestone (e.g., In Transit)"
                 value={updateForm.milestoneName}
                 onChange={(e) => setUpdateForm({ ...updateForm, milestoneName: e.target.value })}
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-os-accent/5 border-os-stroke text-white"
               />
               <Input
                 placeholder="Location"
                 value={updateForm.location}
                 onChange={(e) => setUpdateForm({ ...updateForm, location: e.target.value })}
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-os-accent/5 border-os-stroke text-white"
               />
               <Input
                 placeholder="Notes"
                 value={updateForm.notes}
                 onChange={(e) => setUpdateForm({ ...updateForm, notes: e.target.value })}
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-os-accent/5 border-os-stroke text-white"
               />
               <Button
                 onClick={handleUpdateMilestone}
                 disabled={updating}
-                className="w-full bg-afrikoni-gold text-black"
+                className="w-full bg-os-accent text-black"
               >
                 {updating ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Updating...</> : 'Apply Update'}
               </Button>
@@ -416,14 +416,14 @@ export default function LogisticsPartnerPortal() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="fixed bottom-6 left-6 w-[420px] rounded-2xl border border-white/10 bg-[#0F141B] p-4 shadow-2xl"
+            className="fixed bottom-6 left-6 w-[420px] rounded-os-md border border-os-stroke bg-[#0F141B] p-4 shadow-2xl"
           >
             <div className="flex items-center justify-between mb-3">
               <div>
-                <p className="text-xs text-gray-400">Bulk Upload</p>
-                <p className="text-sm font-semibold">CSV format</p>
+                <p className="text-os-xs text-gray-400">Bulk Upload</p>
+                <p className="text-os-sm font-semibold">CSV format</p>
               </div>
-              <Button size="sm" variant="outline" className="border-white/10" onClick={() => setUploadMode(false)}>
+              <Button size="sm" variant="outline" className="border-os-stroke" onClick={() => setUploadMode(false)}>
                 Close
               </Button>
             </div>
@@ -432,7 +432,7 @@ export default function LogisticsPartnerPortal() {
               value={csvContent}
               onChange={(e) => setCsvContent(e.target.value)}
               rows={6}
-              className="w-full p-3 bg-white/5 border border-white/10 rounded-lg text-sm text-white"
+              className="w-full p-3 bg-os-accent/5 border border-os-stroke rounded-lg text-os-sm text-white"
               placeholder="tracking_number,status,location,timestamp,notes"
             />
 
@@ -440,7 +440,7 @@ export default function LogisticsPartnerPortal() {
               <Button
                 onClick={handleBulkUpload}
                 disabled={updating}
-                className="w-full bg-afrikoni-gold text-black"
+                className="w-full bg-os-accent text-black"
               >
                 {updating ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...</> : 'Process Updates'}
               </Button>

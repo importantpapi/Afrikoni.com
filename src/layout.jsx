@@ -79,46 +79,46 @@ function Footer() {
             <div className="mb-3 md:mb-4">
               <Logo type="full" size="sm" link={true} className="text-afrikoni-cream" />
             </div>
-            <p className="text-xs md:text-sm text-afrikoni-cream/90 mb-3 md:mb-4 leading-relaxed">
+            <p className="text-os-xs md:text-os-sm text-afrikoni-cream/90 mb-3 md:mb-4 leading-relaxed">
               Afrikoni — Building trusted B2B trade infrastructure for Africa.
               <br />
               Connecting suppliers, buyers & logistics across 54 countries.
             </p>
-            <div className="space-y-1.5 md:space-y-2 text-xs md:text-sm mb-4 md:mb-6">
+            <div className="space-y-1.5 md:space-y-2 text-os-xs md:text-os-sm mb-4 md:mb-6">
               <motion.div
                 whileHover={{ x: 4 }}
                 className="flex items-center gap-2"
               >
-                <Mail className="w-3 h-3 md:w-4 md:h-4 text-afrikoni-gold flex-shrink-0" />
-                <a href="mailto:hello@afrikoni.com" className="hover:text-afrikoni-gold transition-colors break-all">hello@afrikoni.com</a>
+                <Mail className="w-3 h-3 md:w-4 md:h-4 text-os-accent flex-shrink-0" />
+                <a href="mailto:hello@afrikoni.com" className="hover:text-os-accent transition-colors break-all">hello@afrikoni.com</a>
               </motion.div>
               <motion.div
                 whileHover={{ x: 4 }}
                 className="flex items-center gap-2"
               >
-                <Phone className="w-3 h-3 md:w-4 md:h-4 text-afrikoni-gold flex-shrink-0" />
-                <a href="tel:+32456779368" className="hover:text-afrikoni-gold transition-colors">+32 456 77 93 68</a>
+                <Phone className="w-3 h-3 md:w-4 md:h-4 text-os-accent flex-shrink-0" />
+                <a href="tel:+32456779368" className="hover:text-os-accent transition-colors">+32 456 77 93 68</a>
               </motion.div>
               <motion.div
                 whileHover={{ x: 4 }}
                 className="flex items-center gap-2"
               >
-                <MapPin className="w-3 h-3 md:w-4 md:h-4 text-afrikoni-gold flex-shrink-0" />
-                <span className="text-afrikoni-gold font-medium">Brussels, Belgium HQ</span>
+                <MapPin className="w-3 h-3 md:w-4 md:h-4 text-os-accent flex-shrink-0" />
+                <span className="text-os-accent font-medium">Brussels, Belgium HQ</span>
               </motion.div>
             </div>
             {/* Additional CTAs - Hidden on mobile */}
             <div className="hidden md:flex flex-col gap-2">
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Link to="/signup">
-                  <Button className="w-full bg-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-goldLight text-sm py-2">
+                  <Button className="w-full bg-os-accent text-afrikoni-chestnut hover:bg-os-accentLight text-os-sm py-2">
                     Become a Supplier
                   </Button>
                 </Link>
               </motion.div>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Link to="/signup">
-                  <Button variant="secondary" className="w-full text-sm py-2">
+                  <Button variant="secondary" className="w-full text-os-sm py-2">
                     Join as Buyer
                   </Button>
                 </Link>
@@ -132,9 +132,9 @@ function Footer() {
               onClick={() => toggleSection('buyers')}
               className="md:pointer-events-none w-full flex items-center justify-between md:justify-start mb-3 md:mb-4"
             >
-              <h4 className="font-semibold text-afrikoni-gold text-sm md:text-base">For Buyers</h4>
+              <h4 className="font-semibold text-os-accent text-os-sm md:text-os-base">For Buyers</h4>
               <ChevronDown
-                className={`w-4 h-4 md:hidden text-afrikoni-gold transition-transform duration-200 ${openSections.buyers ? 'rotate-180' : ''
+                className={`w-4 h-4 md:hidden text-os-accent transition-transform duration-200 ${openSections.buyers ? 'rotate-180' : ''
                   }`}
               />
             </button>
@@ -145,7 +145,7 @@ function Footer() {
                   animate={isMobile ? { height: 'auto', opacity: 1 } : false}
                   exit={isMobile ? { height: 0, opacity: 0 } : false}
                   transition={{ duration: 0.2 }}
-                  className="space-y-1.5 md:space-y-2 text-xs md:text-sm overflow-hidden md:overflow-visible"
+                  className="space-y-1.5 md:space-y-2 text-os-xs md:text-os-sm overflow-hidden md:overflow-visible"
                 >
                   {buyerLinks.map((item, idx) => (
                     <motion.li
@@ -153,7 +153,7 @@ function Footer() {
                       whileHover={{ x: 4 }}
                       className="md:block"
                     >
-                      <Link to={item.to} className="hover:text-afrikoni-gold transition-colors block text-afrikoni-cream/90 py-1">
+                      <Link to={item.to} className="hover:text-os-accent transition-colors block text-afrikoni-cream/90 py-1">
                         {item.label}
                       </Link>
                     </motion.li>
@@ -169,9 +169,9 @@ function Footer() {
               onClick={() => toggleSection('sellers')}
               className="md:pointer-events-none w-full flex items-center justify-between md:justify-start mb-3 md:mb-4"
             >
-              <h4 className="font-semibold text-afrikoni-gold text-sm md:text-base">For Sellers</h4>
+              <h4 className="font-semibold text-os-accent text-os-sm md:text-os-base">For Sellers</h4>
               <ChevronDown
-                className={`w-4 h-4 md:hidden text-afrikoni-gold transition-transform duration-200 ${openSections.sellers ? 'rotate-180' : ''
+                className={`w-4 h-4 md:hidden text-os-accent transition-transform duration-200 ${openSections.sellers ? 'rotate-180' : ''
                   }`}
               />
             </button>
@@ -182,7 +182,7 @@ function Footer() {
                   animate={isMobile ? { height: 'auto', opacity: 1 } : false}
                   exit={isMobile ? { height: 0, opacity: 0 } : false}
                   transition={{ duration: 0.2 }}
-                  className="space-y-1.5 md:space-y-2 text-xs md:text-sm overflow-hidden md:overflow-visible"
+                  className="space-y-1.5 md:space-y-2 text-os-xs md:text-os-sm overflow-hidden md:overflow-visible"
                 >
                   {sellerLinks.map((item, idx) => (
                     <motion.li
@@ -190,7 +190,7 @@ function Footer() {
                       whileHover={{ x: 4 }}
                       className="md:block"
                     >
-                      <Link to={item.to} className="hover:text-afrikoni-gold transition-colors block text-afrikoni-cream/90 py-1">
+                      <Link to={item.to} className="hover:text-os-accent transition-colors block text-afrikoni-cream/90 py-1">
                         {item.label}
                       </Link>
                     </motion.li>
@@ -206,9 +206,9 @@ function Footer() {
               onClick={() => toggleSection('support')}
               className="md:pointer-events-none w-full flex items-center justify-between md:justify-start mb-3 md:mb-4"
             >
-              <h4 className="font-semibold text-afrikoni-gold text-sm md:text-base">Company</h4>
+              <h4 className="font-semibold text-os-accent text-os-sm md:text-os-base">Company</h4>
               <ChevronDown
-                className={`w-4 h-4 md:hidden text-afrikoni-gold transition-transform duration-200 ${openSections.support ? 'rotate-180' : ''
+                className={`w-4 h-4 md:hidden text-os-accent transition-transform duration-200 ${openSections.support ? 'rotate-180' : ''
                   }`}
               />
             </button>
@@ -219,7 +219,7 @@ function Footer() {
                   animate={isMobile ? { height: 'auto', opacity: 1 } : false}
                   exit={isMobile ? { height: 0, opacity: 0 } : false}
                   transition={{ duration: 0.2 }}
-                  className="space-y-1.5 md:space-y-2 text-xs md:text-sm overflow-hidden md:overflow-visible"
+                  className="space-y-1.5 md:space-y-2 text-os-xs md:text-os-sm overflow-hidden md:overflow-visible"
                 >
                   {companyLinks.map((item, idx) => {
                     const Icon = item.icon;
@@ -231,7 +231,7 @@ function Footer() {
                       >
                         <Link
                           to={item.to}
-                          className={`hover:text-afrikoni-gold transition-colors block text-afrikoni-cream/90 py-1 flex items-center gap-2 ${item.highlight ? 'text-afrikoni-gold font-semibold' : ''}`}
+                          className={`hover:text-os-accent transition-colors block text-afrikoni-cream/90 py-1 flex items-center gap-2 ${item.highlight ? 'text-os-accent font-semibold' : ''}`}
                         >
                           {Icon && <Icon className="w-4 h-4" />}
                           {item.label}
@@ -246,48 +246,48 @@ function Footer() {
         </div>
 
         {/* Trust & Security Section */}
-        <div className="border-t border-afrikoni-gold/30 pt-4 md:pt-6 lg:pt-8 mb-4 md:mb-6 lg:mb-8">
+        <div className="border-t border-os-accent/30 pt-4 md:pt-6 lg:pt-8 mb-4 md:mb-6 lg:mb-8">
           <div className="flex items-center gap-2 mb-3 md:mb-4">
-            <Shield className="w-4 h-4 md:w-5 md:h-5 text-afrikoni-gold flex-shrink-0" />
-            <h3 className="text-base md:text-lg font-bold text-afrikoni-gold">Your Trust & Security Are Our Priority</h3>
+            <Shield className="w-4 h-4 md:w-5 md:h-5 text-os-accent flex-shrink-0" />
+            <h3 className="text-os-base md:text-os-lg font-bold text-os-accent">Your Trust & Security Are Our Priority</h3>
           </div>
-          <p className="text-xs md:text-sm text-afrikoni-cream/90 mb-4 md:mb-6">Built with verification, secure transactions, and trade protection from day one.</p>
+          <p className="text-os-xs md:text-os-sm text-afrikoni-cream/90 mb-4 md:mb-6">Built with verification, secure transactions, and trade protection from day one.</p>
           <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
             <div className="flex items-start gap-2 md:gap-3">
-              <Lock className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+              <Lock className="w-5 h-5 md:w-6 md:h-6 text-os-accent flex-shrink-0 mt-0.5" />
               <div>
-                <div className="font-semibold text-afrikoni-cream mb-1 text-xs md:text-sm">Secure Transactions</div>
-                <div className="text-xs md:text-sm text-afrikoni-cream/80">Trade with protection mechanisms designed to reduce risk and fraud</div>
+                <div className="font-semibold text-afrikoni-cream mb-1 text-os-xs md:text-os-sm">Secure Transactions</div>
+                <div className="text-os-xs md:text-os-sm text-afrikoni-cream/80">Trade with protection mechanisms designed to reduce risk and fraud</div>
               </div>
 
             </div>
             <div className="flex items-start gap-2 md:gap-3">
-              <Shield className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+              <Shield className="w-5 h-5 md:w-6 md:h-6 text-os-accent flex-shrink-0 mt-0.5" />
               <div>
-                <div className="font-semibold text-afrikoni-cream mb-1 text-xs md:text-sm">Verified Suppliers</div>
-                <div className="text-xs md:text-sm text-afrikoni-cream/80">Suppliers complete identity and business verification before gaining full access</div>
+                <div className="font-semibold text-afrikoni-cream mb-1 text-os-xs md:text-os-sm">Verified Suppliers</div>
+                <div className="text-os-xs md:text-os-sm text-afrikoni-cream/80">Suppliers complete identity and business verification before gaining full access</div>
               </div>
 
             </div>
             <div className="flex items-start gap-2 md:gap-3 sm:col-span-2 md:col-span-1">
-              <Award className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+              <Award className="w-5 h-5 md:w-6 md:h-6 text-os-accent flex-shrink-0 mt-0.5" />
               <div>
-                <div className="font-semibold text-afrikoni-cream mb-1 text-xs md:text-sm">Trade Protection</div>
-                <div className="text-xs md:text-sm text-afrikoni-cream/80">Clear rules, dispute handling, and enforcement standards</div>
+                <div className="font-semibold text-afrikoni-cream mb-1 text-os-xs md:text-os-sm">Trade Protection</div>
+                <div className="text-os-xs md:text-os-sm text-afrikoni-cream/80">Clear rules, dispute handling, and enforcement standards</div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-afrikoni-gold/30 pt-4 md:pt-6 flex flex-col md:flex-row items-center justify-between gap-3 md:gap-4">
+        <div className="border-t border-os-accent/30 pt-4 md:pt-6 flex flex-col md:flex-row items-center justify-between gap-3 md:gap-4">
           <div className="flex flex-col sm:flex-row items-center gap-3 md:gap-4 w-full md:w-auto">
-            <Logo type="icon" size="sm" link={false} className="text-afrikoni-gold" />
+            <Logo type="icon" size="sm" link={false} className="text-os-accent" />
             <div className="flex flex-wrap items-center justify-center gap-1.5 md:gap-2">
-              <div className="px-2 md:px-3 py-0.5 md:py-1 border border-afrikoni-gold rounded-full text-[10px] md:text-xs text-afrikoni-gold whitespace-nowrap">SSL Secured</div>
-              <div className="px-2 md:px-3 py-0.5 md:py-1 border border-afrikoni-gold rounded-full text-[10px] md:text-xs text-afrikoni-gold whitespace-nowrap">256-bit Encryption</div>
-              <div className="px-2 md:px-3 py-0.5 md:py-1 border border-afrikoni-gold rounded-full text-[10px] md:text-xs text-afrikoni-gold whitespace-nowrap">ISO Certified</div>
-              <div className="px-2 md:px-3 py-0.5 md:py-1 border border-afrikoni-gold rounded-full text-[10px] md:text-xs text-afrikoni-gold whitespace-nowrap">Verified Platform</div>
+              <div className="px-2 md:px-3 py-0.5 md:py-1 border border-os-accent rounded-full text-os-xs md:text-os-xs text-os-accent whitespace-nowrap">SSL Secured</div>
+              <div className="px-2 md:px-3 py-0.5 md:py-1 border border-os-accent rounded-full text-os-xs md:text-os-xs text-os-accent whitespace-nowrap">256-bit Encryption</div>
+              <div className="px-2 md:px-3 py-0.5 md:py-1 border border-os-accent rounded-full text-os-xs md:text-os-xs text-os-accent whitespace-nowrap">ISO Certified</div>
+              <div className="px-2 md:px-3 py-0.5 md:py-1 border border-os-accent rounded-full text-os-xs md:text-os-xs text-os-accent whitespace-nowrap">Verified Platform</div>
             </div>
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-3 md:gap-4 w-full md:w-auto">
@@ -310,23 +310,23 @@ function Footer() {
                     rel={social.href !== '#' ? 'noopener noreferrer' : undefined}
                     whileHover={{ scale: 1.2, y: -2 }}
                     whileTap={{ scale: 0.9 }}
-                    className="text-afrikoni-cream/70 hover:text-afrikoni-gold transition-colors"
+                    className="text-afrikoni-cream/70 hover:text-os-accent transition-colors"
                     aria-label={social.label}
                   >
                     {Icon ? (
                       <Icon className="w-4 h-4 md:w-5 md:h-5" />
                     ) : (
-                      <span className="text-xs font-semibold">{social.customIcon}</span>
+                      <span className="text-os-xs font-semibold">{social.customIcon}</span>
                     )}
                   </motion.a>
                 );
               })}
             </div>
-            <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-[10px] md:text-xs lg:text-sm">
+            <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-os-xs md:text-os-xs lg:text-os-sm">
               <motion.div whileHover={{ x: 2 }}>
                 <Link
                   to="/trust"
-                  className="text-afrikoni-cream/70 hover:text-afrikoni-gold transition-colors whitespace-nowrap"
+                  className="text-afrikoni-cream/70 hover:text-os-accent transition-colors whitespace-nowrap"
                 >
                   Marketplace Rules
                 </Link>
@@ -334,7 +334,7 @@ function Footer() {
               <motion.div whileHover={{ x: 2 }}>
                 <Link
                   to="/privacy-policy"
-                  className="text-afrikoni-cream/70 hover:text-afrikoni-gold transition-colors whitespace-nowrap"
+                  className="text-afrikoni-cream/70 hover:text-os-accent transition-colors whitespace-nowrap"
                 >
                   Privacy Policy
                 </Link>
@@ -342,7 +342,7 @@ function Footer() {
               <motion.div whileHover={{ x: 2 }}>
                 <Link
                   to="/terms-enforcement"
-                  className="text-afrikoni-cream/70 hover:text-afrikoni-gold transition-colors whitespace-nowrap"
+                  className="text-afrikoni-cream/70 hover:text-os-accent transition-colors whitespace-nowrap"
                 >
                   Terms of Use
                 </Link>
@@ -350,7 +350,7 @@ function Footer() {
               <motion.div whileHover={{ x: 2 }}>
                 <Link
                   to="/cookie-policy"
-                  className="text-afrikoni-cream/70 hover:text-afrikoni-gold transition-colors whitespace-nowrap"
+                  className="text-afrikoni-cream/70 hover:text-os-accent transition-colors whitespace-nowrap"
                 >
                   Cookie Policy
                 </Link>
@@ -361,8 +361,8 @@ function Footer() {
         </div>
 
         {/* Global Disclaimer */}
-        <div className="border-t border-afrikoni-gold/30 pt-4 md:pt-6">
-          <p className="text-xs text-afrikoni-cream/70 text-center max-w-4xl mx-auto leading-relaxed">
+        <div className="border-t border-os-accent/30 pt-4 md:pt-6">
+          <p className="text-os-xs text-afrikoni-cream/70 text-center max-w-4xl mx-auto leading-relaxed">
             Product volumes shown include verified supplier catalogs and partner inventories available during our beta phase.
           </p>
         </div>
@@ -433,7 +433,7 @@ export default function Layout({ children }) {
     if (!authReady || authLoading) {
       return (
         <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-os-accent" />
         </div>
       );
     }
@@ -449,8 +449,8 @@ export default function Layout({ children }) {
   if (isMobile && !isDashboardRoute) {
     try {
       return (
-        <div className="min-h-screen bg-afrikoni-offwhite relative overflow-visible">
-          <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" /></div>}>
+        <div className="min-h-screen bg-os-bg relative overflow-visible transition-colors duration-500">
+          <Suspense fallback={<div className="min-h-screen flex items-center justify-center"><div className="animate-spin rounded-full h-12 w-12 border-b-2 border-os-accent" /></div>}>
             <MobileLayout user={user}>
               {children}
             </MobileLayout>
@@ -472,12 +472,12 @@ export default function Layout({ children }) {
 
   // Desktop layout (unchanged)
   return (
-    <div className="min-h-screen bg-afrikoni-offwhite relative overflow-visible">
-      {/* Navbar */}
+    <div className="min-h-screen bg-os-bg relative overflow-visible transition-colors duration-500">
+      {/* Navbar - Fixed at top (80px height) */}
       <Navbar user={user} onLogout={handleLogout} />
 
-      {/* Main Content - Add padding-top for navbar, padding-bottom for mobile nav */}
-      <main className="bg-afrikoni-offwhite pt-20 pb-20 md:pb-0 relative overflow-visible">{children}</main>
+      {/* Main Content - Add padding-top for navbar (80px), padding-bottom for mobile nav (88px includes safe area) */}
+      <main className="bg-os-bg pt-[80px] pb-[88px] md:pb-0 relative overflow-visible">{children}</main>
 
       {/* Footer */}
       <Footer />

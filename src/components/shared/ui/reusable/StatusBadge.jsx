@@ -21,9 +21,9 @@ export const StatusBadge = React.memo(function StatusBadge({
   const statusVariant = variant || getStatusVariant(status, type);
 
   const sizeClasses = {
-    sm: 'text-xs',
-    md: 'text-sm',
-    lg: 'text-base'
+    sm: 'text-os-xs',
+    md: 'text-os-sm',
+    lg: 'text-os-base'
   };
 
   return (

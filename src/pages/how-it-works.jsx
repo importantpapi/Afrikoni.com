@@ -376,35 +376,35 @@ export default function HowItWorks() {
               transition={{ duration: 0.6 }}
               className="text-center max-w-4xl mx-auto"
             >
-              <Badge className="bg-afrikoni-gold/20 text-afrikoni-gold border-afrikoni-gold/30 mb-4">
+              <Badge className="bg-os-accent/20 text-os-accent border-os-accent/30 mb-4">
                 <Sparkles className="w-3 h-3 mr-1" />
                 Platform Overview
               </Badge>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-afrikoni-cream mb-6">
                 The Premium B2B Marketplace for Africa
               </h1>
-              <p className="text-xl md:text-2xl text-afrikoni-cream/90 mb-4 max-w-3xl mx-auto font-medium">
+              <p className="text-os-xl md:text-os-2xl text-afrikoni-cream/90 mb-4 max-w-3xl mx-auto font-medium">
                 Enterprise-grade platform connecting verified African suppliers with global buyers. KYC-verified, escrow-protected, and built for serious business.
               </p>
-              <p className="text-base md:text-lg text-afrikoni-cream/80 max-w-2xl mx-auto mb-8">
+              <p className="text-os-base md:text-os-lg text-afrikoni-cream/80 max-w-2xl mx-auto mb-8">
                 Every supplier is manually verified. Every transaction is protected. Every partnership is backed by our guarantee.
               </p>
               
               {/* Premium Trust Badges */}
               <div className="flex flex-wrap items-center justify-center gap-4 mt-8">
-                <Badge className="bg-afrikoni-cream/10 backdrop-blur-sm border-afrikoni-gold/40 text-afrikoni-cream px-4 py-2">
+                <Badge className="bg-afrikoni-cream/10 backdrop-blur-sm border-os-accent/40 text-afrikoni-cream px-4 py-2">
                   <Shield className="w-4 h-4 mr-2" />
                   KYC/AML Compliant
                 </Badge>
-                <Badge className="bg-afrikoni-cream/10 backdrop-blur-sm border-afrikoni-gold/40 text-afrikoni-cream px-4 py-2">
+                <Badge className="bg-afrikoni-cream/10 backdrop-blur-sm border-os-accent/40 text-afrikoni-cream px-4 py-2">
                   <Lock className="w-4 h-4 mr-2" />
                   Bank-Grade Security
                 </Badge>
-                <Badge className="bg-afrikoni-cream/10 backdrop-blur-sm border-afrikoni-gold/40 text-afrikoni-cream px-4 py-2">
+                <Badge className="bg-afrikoni-cream/10 backdrop-blur-sm border-os-accent/40 text-afrikoni-cream px-4 py-2">
                   <Award className="w-4 h-4 mr-2" />
                   Enterprise Ready
                 </Badge>
-                <Badge className="bg-afrikoni-cream/10 backdrop-blur-sm border-afrikoni-gold/40 text-afrikoni-cream px-4 py-2">
+                <Badge className="bg-afrikoni-cream/10 backdrop-blur-sm border-os-accent/40 text-afrikoni-cream px-4 py-2">
                   <CheckCircle className="w-4 h-4 mr-2" />
                   100% Verified Suppliers
                 </Badge>
@@ -418,12 +418,12 @@ export default function HowItWorks() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.2 + idx * 0.1 }}
-                    className="bg-afrikoni-cream/10 backdrop-blur-sm rounded-lg p-4 border border-afrikoni-gold/20"
+                    className="bg-afrikoni-cream/10 backdrop-blur-sm rounded-lg p-4 border border-os-accent/20"
                   >
-                    <div className="text-2xl md:text-3xl font-bold text-afrikoni-gold mb-1">
+                    <div className="text-os-2xl md:text-3xl font-bold text-os-accent mb-1">
                       {stat.value}
                     </div>
-                    <div className="text-sm text-afrikoni-cream/80">
+                    <div className="text-os-sm text-afrikoni-cream/80">
                       {stat.label}
                     </div>
                   </motion.div>
@@ -453,19 +453,19 @@ export default function HowItWorks() {
               <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
                 Source Premium Products in 3 Steps
               </h2>
-              <p className="text-lg text-afrikoni-deep/70 max-w-2xl mx-auto font-medium">
+              <p className="text-os-lg text-afrikoni-deep/70 max-w-2xl mx-auto font-medium">
                 Connect with verified suppliers, get competitive quotes, and trade with full protection. Enterprise-grade platform built for serious buyers.
               </p>
               <div className="flex flex-wrap items-center justify-center gap-3 mt-4">
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-os-xs">
                   <CheckCircle className="w-3 h-3 mr-1" />
                   All suppliers manually verified
                 </Badge>
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-os-xs">
                   <Shield className="w-3 h-3 mr-1" />
                   Escrow protection included
                 </Badge>
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-os-xs">
                   <Zap className="w-3 h-3 mr-1" />
                   24-48h quote response time
                 </Badge>
@@ -474,7 +474,7 @@ export default function HowItWorks() {
 
             <div className="relative mb-12">
               {/* Timeline line */}
-              <div className="hidden md:block absolute left-8 top-0 bottom-0 w-0.5 bg-afrikoni-gold/20" />
+              <div className="hidden md:block absolute left-8 top-0 bottom-0 w-0.5 bg-os-accent/20" />
 
               <div className="space-y-8">
                 {buyerSteps.map((step, idx) => {
@@ -489,26 +489,26 @@ export default function HowItWorks() {
                       className="relative flex items-start gap-6"
                     >
                       {/* Step number circle */}
-                      <div className={`hidden md:flex relative z-10 w-16 h-16 ${step.bgColor} rounded-full items-center justify-center flex-shrink-0 shadow-lg border-2 ${step.borderClass}`}>
+                      <div className={`hidden md:flex relative z-10 w-16 h-16 ${step.bgColor} rounded-full items-center justify-center flex-shrink-0 shadow-os-md border-2 ${step.borderClass}`}>
                         <Icon className={`w-8 h-8 ${step.color}`} />
                       </div>
-                      <div className={`md:hidden w-12 h-12 ${step.bgColor} rounded-full flex items-center justify-center flex-shrink-0 shadow-lg border-2 ${step.borderClass}`}>
+                      <div className={`md:hidden w-12 h-12 ${step.bgColor} rounded-full flex items-center justify-center flex-shrink-0 shadow-os-md border-2 ${step.borderClass}`}>
                         <Icon className={`w-6 h-6 ${step.color}`} />
                       </div>
 
                       {/* Content */}
-                      <Card className={`flex-1 border-2 ${step.borderClass} hover:shadow-xl transition-all`}>
+                      <Card className={`flex-1 border-2 ${step.borderClass} hover:shadow-os-lg transition-all`}>
                         <CardContent className="p-6">
                           <div className="flex items-start justify-between mb-2">
                             <div>
                               <Badge className={`${step.bgColor} ${step.color} border ${step.borderClass} mb-2`}>
                                 {step.number}
                               </Badge>
-                              <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2">
+                              <h3 className="text-os-xl font-bold text-afrikoni-chestnut mb-2">
                                 {step.title}
                               </h3>
                             </div>
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="text-os-xs">
                               <Clock className="w-3 h-3 mr-1" />
                               {step.duration}
                             </Badge>
@@ -518,17 +518,17 @@ export default function HowItWorks() {
                           </p>
                           <ul className="space-y-2 mb-3">
                             {step.features.map((feature, fIdx) => (
-                              <li key={fIdx} className="flex items-center gap-2 text-sm text-afrikoni-deep/70">
+                              <li key={fIdx} className="flex items-center gap-2 text-os-sm text-afrikoni-deep/70">
                                 <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
                                 {feature}
                               </li>
                             ))}
                           </ul>
                           {step.premium && (
-                            <div className="mt-3 pt-3 border-t border-afrikoni-gold/20">
+                            <div className="mt-3 pt-3 border-t border-os-accent/20">
                               <div className="flex items-start gap-2">
-                                <Sparkles className="w-4 h-4 text-afrikoni-gold flex-shrink-0 mt-0.5" />
-                                <p className="text-xs text-afrikoni-deep/60 italic">
+                                <Sparkles className="w-4 h-4 text-os-accent flex-shrink-0 mt-0.5" />
+                                <p className="text-os-xs text-afrikoni-deep/60 italic">
                                   {step.premium}
                                 </p>
                               </div>
@@ -554,15 +554,15 @@ export default function HowItWorks() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: idx * 0.1 }}
                   >
-                    <Card className={`h-full border-2 border-afrikoni-gold/20 hover:border-afrikoni-gold/40 transition-all`}>
+                    <Card className={`h-full border-2 border-os-accent/20 hover:border-os-accent/40 transition-all`}>
                       <CardContent className="p-4 text-center">
                         <div className={`w-10 h-10 ${benefit.bgColor} rounded-lg flex items-center justify-center mx-auto mb-3`}>
                           <Icon className={`w-5 h-5 ${benefit.color}`} />
                         </div>
-                        <h4 className="font-semibold text-afrikoni-chestnut mb-1 text-sm">
+                        <h4 className="font-semibold text-afrikoni-chestnut mb-1 text-os-sm">
                           {benefit.title}
                         </h4>
-                        <p className="text-xs text-afrikoni-deep/70">
+                        <p className="text-os-xs text-afrikoni-deep/70">
                           {benefit.description}
                         </p>
                       </CardContent>
@@ -580,7 +580,7 @@ export default function HowItWorks() {
               className="text-center"
             >
               <Link to={createPageUrl('BuyerCentral')}>
-                <Button size="lg" className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut px-8 py-6 text-lg font-bold shadow-xl">
+                <Button size="lg" className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut px-8 py-6 text-os-lg font-bold shadow-os-lg">
                   <ShoppingCart className="w-5 h-5 mr-2" />
                   Start Sourcing Now
                   <ArrowRight className="w-5 h-5 ml-2" />
@@ -590,7 +590,7 @@ export default function HowItWorks() {
           </section>
 
           {/* Divider */}
-          <div className="border-t-2 border-afrikoni-gold/20 my-16 md:my-20" />
+          <div className="border-t-2 border-os-accent/20 my-16 md:my-20" />
 
           {/* For Sellers Section */}
           <section className="mb-16 md:mb-20">
@@ -607,19 +607,19 @@ export default function HowItWorks() {
               <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
                 Scale Your Business in 3 Steps
               </h2>
-              <p className="text-lg text-afrikoni-deep/70 max-w-2xl mx-auto font-medium">
+              <p className="text-os-lg text-afrikoni-deep/70 max-w-2xl mx-auto font-medium">
                 Get verified, list products, and access premium buyers. Only serious suppliers are accepted - quality over quantity.
               </p>
               <div className="flex flex-wrap items-center justify-center gap-3 mt-4">
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-os-xs">
                   <CheckCircle className="w-3 h-3 mr-1" />
                   Manual verification process
                 </Badge>
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-os-xs">
                   <TrendingUp className="w-3 h-3 mr-1" />
                   10x more visibility when verified
                 </Badge>
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-os-xs">
                   <DollarSign className="w-3 h-3 mr-1" />
                   Guaranteed payments via escrow
                 </Badge>
@@ -628,7 +628,7 @@ export default function HowItWorks() {
 
             <div className="relative mb-12">
               {/* Timeline line */}
-              <div className="hidden md:block absolute left-8 top-0 bottom-0 w-0.5 bg-afrikoni-gold/20" />
+              <div className="hidden md:block absolute left-8 top-0 bottom-0 w-0.5 bg-os-accent/20" />
 
               <div className="space-y-8">
                 {sellerSteps.map((step, idx) => {
@@ -643,26 +643,26 @@ export default function HowItWorks() {
                       className="relative flex items-start gap-6"
                     >
                       {/* Step number circle */}
-                      <div className={`hidden md:flex relative z-10 w-16 h-16 ${step.bgColor} rounded-full items-center justify-center flex-shrink-0 shadow-lg border-2 ${step.borderClass}`}>
+                      <div className={`hidden md:flex relative z-10 w-16 h-16 ${step.bgColor} rounded-full items-center justify-center flex-shrink-0 shadow-os-md border-2 ${step.borderClass}`}>
                         <Icon className={`w-8 h-8 ${step.color}`} />
                       </div>
-                      <div className={`md:hidden w-12 h-12 ${step.bgColor} rounded-full flex items-center justify-center flex-shrink-0 shadow-lg border-2 ${step.borderClass}`}>
+                      <div className={`md:hidden w-12 h-12 ${step.bgColor} rounded-full flex items-center justify-center flex-shrink-0 shadow-os-md border-2 ${step.borderClass}`}>
                         <Icon className={`w-6 h-6 ${step.color}`} />
                       </div>
 
                       {/* Content */}
-                      <Card className={`flex-1 border-2 ${step.borderClass} hover:shadow-xl transition-all`}>
+                      <Card className={`flex-1 border-2 ${step.borderClass} hover:shadow-os-lg transition-all`}>
                         <CardContent className="p-6">
                           <div className="flex items-start justify-between mb-2">
                             <div>
                               <Badge className={`${step.bgColor} ${step.color} border ${step.borderClass} mb-2`}>
                                 {step.number}
                               </Badge>
-                              <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2">
+                              <h3 className="text-os-xl font-bold text-afrikoni-chestnut mb-2">
                                 {step.title}
                               </h3>
                             </div>
-                            <Badge variant="outline" className="text-xs">
+                            <Badge variant="outline" className="text-os-xs">
                               <Clock className="w-3 h-3 mr-1" />
                               {step.duration}
                             </Badge>
@@ -672,17 +672,17 @@ export default function HowItWorks() {
                           </p>
                           <ul className="space-y-2 mb-3">
                             {step.features.map((feature, fIdx) => (
-                              <li key={fIdx} className="flex items-center gap-2 text-sm text-afrikoni-deep/70">
+                              <li key={fIdx} className="flex items-center gap-2 text-os-sm text-afrikoni-deep/70">
                                 <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
                                 {feature}
                               </li>
                             ))}
                           </ul>
                           {step.premium && (
-                            <div className="mt-3 pt-3 border-t border-afrikoni-gold/20">
+                            <div className="mt-3 pt-3 border-t border-os-accent/20">
                               <div className="flex items-start gap-2">
-                                <Sparkles className="w-4 h-4 text-afrikoni-gold flex-shrink-0 mt-0.5" />
-                                <p className="text-xs text-afrikoni-deep/60 italic">
+                                <Sparkles className="w-4 h-4 text-os-accent flex-shrink-0 mt-0.5" />
+                                <p className="text-os-xs text-afrikoni-deep/60 italic">
                                   {step.premium}
                                 </p>
                               </div>
@@ -708,15 +708,15 @@ export default function HowItWorks() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: idx * 0.1 }}
                   >
-                    <Card className={`h-full border-2 border-afrikoni-gold/20 hover:border-afrikoni-gold/40 transition-all`}>
+                    <Card className={`h-full border-2 border-os-accent/20 hover:border-os-accent/40 transition-all`}>
                       <CardContent className="p-4 text-center">
                         <div className={`w-10 h-10 ${benefit.bgColor} rounded-lg flex items-center justify-center mx-auto mb-3`}>
                           <Icon className={`w-5 h-5 ${benefit.color}`} />
                         </div>
-                        <h4 className="font-semibold text-afrikoni-chestnut mb-1 text-sm">
+                        <h4 className="font-semibold text-afrikoni-chestnut mb-1 text-os-sm">
                           {benefit.title}
                         </h4>
-                        <p className="text-xs text-afrikoni-deep/70">
+                        <p className="text-os-xs text-afrikoni-deep/70">
                           {benefit.description}
                         </p>
                       </CardContent>
@@ -734,7 +734,7 @@ export default function HowItWorks() {
               className="text-center"
             >
               <Link to={createPageUrl('SellerOnboarding')}>
-                <Button size="lg" variant="outline" className="border-2 border-afrikoni-gold/40 text-afrikoni-chestnut hover:bg-afrikoni-gold/10 px-8 py-6 text-lg">
+                <Button size="lg" variant="outline" className="border-2 border-os-accent/40 text-afrikoni-chestnut hover:bg-os-accent/10 px-8 py-6 text-os-lg">
                   <TrendingUp className="w-5 h-5 mr-2" />
                   Start Selling Now
                   <ArrowRight className="w-5 h-5 ml-2" />
@@ -744,58 +744,58 @@ export default function HowItWorks() {
           </section>
 
           {/* Final CTA Section */}
-          <section className="bg-gradient-to-r from-afrikoni-chestnut via-afrikoni-deep to-afrikoni-chestnut rounded-2xl p-8 md:p-12 text-center">
+          <section className="bg-gradient-to-r from-afrikoni-chestnut via-afrikoni-deep to-afrikoni-chestnut rounded-os-md p-8 md:p-12 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.6 }}
             >
-              <div className="w-16 h-16 bg-afrikoni-gold rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="w-16 h-16 bg-os-accent rounded-full flex items-center justify-center mx-auto mb-6">
                 <Zap className="w-8 h-8 text-afrikoni-chestnut" />
               </div>
               <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-cream mb-4">
                 Ready to Join Africa's Premium B2B Marketplace?
               </h2>
-              <p className="text-lg text-afrikoni-cream/90 mb-4 max-w-2xl mx-auto font-medium">
+              <p className="text-os-lg text-afrikoni-cream/90 mb-4 max-w-2xl mx-auto font-medium">
                 Enterprise-grade platform trusted by serious buyers and verified suppliers across 54 African countries.
               </p>
-              <p className="text-base text-afrikoni-cream/80 mb-8 max-w-2xl mx-auto">
+              <p className="text-os-base text-afrikoni-cream/80 mb-8 max-w-2xl mx-auto">
                 Every account is manually reviewed. Every transaction is protected. Every partnership is backed by our guarantee.
               </p>
               
               {/* Key Differentiators */}
               <div className="grid md:grid-cols-3 gap-4 max-w-3xl mx-auto mb-8">
-                <div className="bg-afrikoni-cream/10 backdrop-blur-sm rounded-lg p-4 border border-afrikoni-gold/30">
-                  <div className="text-2xl font-bold text-afrikoni-gold mb-1">100%</div>
-                  <div className="text-sm text-afrikoni-cream/80">Verified Suppliers Only</div>
+                <div className="bg-afrikoni-cream/10 backdrop-blur-sm rounded-lg p-4 border border-os-accent/30">
+                  <div className="text-os-2xl font-bold text-os-accent mb-1">100%</div>
+                  <div className="text-os-sm text-afrikoni-cream/80">Verified Suppliers Only</div>
                 </div>
-                <div className="bg-afrikoni-cream/10 backdrop-blur-sm rounded-lg p-4 border border-afrikoni-gold/30">
-                  <div className="text-2xl font-bold text-afrikoni-gold mb-1">Bank-Grade</div>
-                  <div className="text-sm text-afrikoni-cream/80">Escrow Protection</div>
+                <div className="bg-afrikoni-cream/10 backdrop-blur-sm rounded-lg p-4 border border-os-accent/30">
+                  <div className="text-os-2xl font-bold text-os-accent mb-1">Bank-Grade</div>
+                  <div className="text-os-sm text-afrikoni-cream/80">Escrow Protection</div>
                 </div>
-                <div className="bg-afrikoni-cream/10 backdrop-blur-sm rounded-lg p-4 border border-afrikoni-gold/30">
-                  <div className="text-2xl font-bold text-afrikoni-gold mb-1">24/7</div>
-                  <div className="text-sm text-afrikoni-cream/80">Priority Support</div>
+                <div className="bg-afrikoni-cream/10 backdrop-blur-sm rounded-lg p-4 border border-os-accent/30">
+                  <div className="text-os-2xl font-bold text-os-accent mb-1">24/7</div>
+                  <div className="text-os-sm text-afrikoni-cream/80">Priority Support</div>
                 </div>
               </div>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link to="/signup">
-                  <Button size="lg" className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut px-8 py-6 text-lg font-bold shadow-xl">
+                  <Button size="lg" className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut px-8 py-6 text-os-lg font-bold shadow-os-lg">
                     <Users className="w-5 h-5 mr-2" />
                     Join as Buyer
                     <ArrowRight className="w-5 h-5 ml-2" />
                   </Button>
                 </Link>
                 <Link to="/become-supplier">
-                  <Button size="lg" variant="outline" className="border-2 border-afrikoni-cream/30 text-afrikoni-cream/80 hover:bg-afrikoni-cream/5 px-8 py-6 text-lg opacity-75">
+                  <Button size="lg" variant="outline" className="border-2 border-afrikoni-cream/30 text-afrikoni-cream/80 hover:bg-afrikoni-cream/5 px-8 py-6 text-os-lg opacity-75">
                     <Building className="w-5 h-5 mr-2" />
                     Become a Supplier
                     <ArrowRight className="w-5 h-5 ml-2" />
                   </Button>
                 </Link>
               </div>
-              <p className="text-sm text-afrikoni-cream/70 mt-6">
+              <p className="text-os-sm text-afrikoni-cream/70 mt-6">
                 Free to join • No credit card required • Manual verification ensures quality • Start trading today
               </p>
               <div className="flex flex-wrap items-center justify-center gap-4 mt-4">

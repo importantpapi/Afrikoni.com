@@ -29,7 +29,7 @@ export const LoadingScreen = ({
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="flex justify-center mb-10"
           >
-            <div className="p-4 bg-os-accent/5 rounded-2xl border border-os-accent/10 backdrop-blur-md">
+            <div className="p-4 bg-os-accent/5 rounded-os-md border border-os-accent/10 backdrop-blur-md">
               <Logo type="symbol" size={size} />
             </div>
           </motion.div>
@@ -45,7 +45,7 @@ export const LoadingScreen = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <p className="text-os-text-primary text-[11px] font-black uppercase tracking-[0.4em] leading-relaxed">
+          <p className="text-os-text-primary text-os-xs font-black uppercase tracking-[0.4em] leading-relaxed">
             {message}
           </p>
           <div className="mt-6 flex justify-center gap-1">
@@ -57,7 +57,7 @@ export const LoadingScreen = ({
       </div>
 
       <div className="absolute bottom-12 left-0 right-0 text-center">
-        <p className="text-os-text-secondary/10 text-[8px] font-black uppercase tracking-[0.6em] select-none">
+        <p className="text-os-text-secondary/10 text-os-xs font-black uppercase tracking-[0.6em] select-none">
           Infrastructure-Grade Trade OS
         </p>
       </div>

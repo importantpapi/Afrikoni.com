@@ -38,7 +38,7 @@ export default function TradeMap({ className = '' }) {
     }, []);
 
     return (
-        <div className={`relative w-full aspect-[2/1] bg-[#050505] rounded-xl overflow-hidden border border-white/5 ${className}`}>
+        <div className={`relative w-full aspect-[2/1] bg-[#050505] rounded-os-sm overflow-hidden border border-white/5 ${className}`}>
             {/* Background Grid */}
             <div className="absolute inset-0 opacity-10">
                 <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px]" />
@@ -121,7 +121,7 @@ export default function TradeMap({ className = '' }) {
                         <div className="absolute inset-0 bg-koni-gold rounded-full animate-ping opacity-50" />
 
                         {/* Hover Tooltip */}
-                        <div className="absolute top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 border border-white/10 px-2 py-1 rounded text-[10px] text-white whitespace-nowrap z-20 pointer-events-none">
+                        <div className="absolute top-4 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 border border-white/10 px-2 py-1 rounded text-os-xs text-white whitespace-nowrap z-20 pointer-events-none">
                             {name}
                         </div>
                     </div>
@@ -130,11 +130,11 @@ export default function TradeMap({ className = '' }) {
 
             {/* Legend / Overlay */}
             <div className="absolute bottom-4 left-4 flex gap-4">
-                <div className="flex items-center gap-2 text-xs text-white/60 bg-black/50 px-3 py-1.5 rounded-full border border-white/5 backdrop-blur-sm">
+                <div className="flex items-center gap-2 text-os-xs text-white/60 bg-black/50 px-3 py-1.5 rounded-full border border-white/5 backdrop-blur-sm">
                     <div className="w-2 h-2 rounded-full bg-koni-gold animate-pulse" />
                     <span>Active Trade Flows</span>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-white/60 bg-black/50 px-3 py-1.5 rounded-full border border-white/5 backdrop-blur-sm">
+                <div className="flex items-center gap-2 text-os-xs text-white/60 bg-black/50 px-3 py-1.5 rounded-full border border-white/5 backdrop-blur-sm">
                     <div className="w-2 h-2 rounded-full border border-white/40" />
                     <span>Hub Node</span>
                 </div>

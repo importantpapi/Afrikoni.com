@@ -73,7 +73,7 @@ export function SimpleChart({ data, labels, height = 200, color = 'orange', seco
                   x={`${x + 1.5}%`}
                   y={height - 5}
                   textAnchor="middle"
-                  className="text-xs fill-zinc-500"
+                  className="text-os-xs fill-zinc-500"
                   fontSize="10"
                 >
                   {labels[index]}

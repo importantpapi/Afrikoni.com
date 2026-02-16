@@ -69,12 +69,12 @@ export default function MobileMainNav({ user }) {
 
   return (
     <nav 
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t-2 border-afrikoni-gold/30 shadow-[0_-4px_20px_rgba(0,0,0,0.1)]"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/85 backdrop-blur-xl border-t border-os-accent/20 shadow-[0_-4px_24px_rgba(0,0,0,0.08)]"
       role="navigation"
       aria-label="Main navigation"
     >
       {/* Safe area padding for notched devices */}
-      <div className="flex items-center justify-around px-1 py-2 pb-safe">
+      <div className="flex items-center justify-around px-1 py-3 pb-safe">
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path || 
@@ -91,24 +91,24 @@ export default function MobileMainNav({ user }) {
               aria-label={item.ariaLabel}
               className={`
                 flex flex-col items-center justify-center gap-1 
-                min-w-[44px] min-h-[44px] px-2 py-2
-                rounded-lg transition-all duration-200
-                touch-manipulation active:scale-95
+                min-w-[48px] min-h-[48px] px-2 py-2
+                rounded-xl transition-all duration-200 ease-out
+                touch-manipulation active:scale-[0.92]
                 ${isActive 
-                  ? 'text-afrikoni-gold bg-afrikoni-gold/10' 
-                  : 'text-afrikoni-deep/70 active:text-afrikoni-gold'
+                  ? 'text-os-accent bg-os-accent/12 shadow-sm scale-105' 
+                  : 'text-afrikoni-deep/70 hover:text-os-accent hover:bg-os-accent/5'
                 }
               `}
             >
               <Icon 
-                className={`w-6 h-6 ${isActive ? 'text-afrikoni-gold' : 'text-afrikoni-deep/70'}`}
+                className={`w-6 h-6 ${isActive ? 'text-os-accent' : 'text-afrikoni-deep/70'}`}
                 strokeWidth={isActive ? 2.5 : 2}
                 aria-hidden="true"
               />
               <span 
-                className={`text-[11px] font-medium leading-tight text-center ${
+                className={`text-os-xs font-medium leading-tight text-center ${
                   isActive 
-                    ? 'text-afrikoni-gold font-semibold' 
+                    ? 'text-os-accent font-semibold' 
                     : 'text-afrikoni-deep/70'
                 }`}
               >
@@ -117,7 +117,7 @@ export default function MobileMainNav({ user }) {
               {isActive && (
                 <motion.div
                   layoutId="activeMainNav"
-                  className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-1 bg-afrikoni-gold rounded-b-full"
+                  className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-1 bg-os-accent rounded-b-full"
                   transition={{ type: "spring", stiffness: 500, damping: 30 }}
                   aria-hidden="true"
                 />

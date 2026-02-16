@@ -73,7 +73,7 @@ export default function TransparencySection() {
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-serif text-afrikoni-chestnut mb-4">
             {t('transparency.title') || 'Transparent & Fair Pricing'}
           </h2>
-          <p className="text-lg md:text-xl text-afrikoni-deep max-w-3xl mx-auto">
+          <p className="text-os-lg md:text-os-xl text-afrikoni-deep max-w-3xl mx-auto">
             {t('transparency.subtitle') || 'Afrikoni earns only when trade happens successfully — no hidden fees.'}
           </p>
         </motion.div>
@@ -90,7 +90,7 @@ export default function TransparencySection() {
                 viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
               >
-                <Card className="h-full border-afrikoni-gold/20 hover:border-afrikoni-gold transition-all shadow-md hover:shadow-xl">
+                <Card className="h-full border-os-accent/20 hover:border-os-accent transition-all shadow-md hover:shadow-os-lg">
                   <CardHeader>
                     <div className="flex items-start justify-between mb-2">
                       <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${
@@ -100,11 +100,11 @@ export default function TransparencySection() {
                       }`}>
                         <Icon className={`w-6 h-6 ${source.color}`} />
                       </div>
-                      <span className={`text-sm font-bold px-3 py-1 rounded-full ${source.badgeColor || 'bg-gray-100 text-gray-700'}`}>
+                      <span className={`text-os-sm font-bold px-3 py-1 rounded-full ${source.badgeColor || 'bg-gray-100 text-gray-700'}`}>
                         {source.percentage}
                       </span>
                     </div>
-                    <CardTitle className="text-xl font-bold text-afrikoni-chestnut">
+                    <CardTitle className="text-os-xl font-bold text-afrikoni-chestnut">
                       {source.title}
                     </CardTitle>
                   </CardHeader>
@@ -125,9 +125,9 @@ export default function TransparencySection() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.4 }}
-          className="bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-chestnut/10 rounded-2xl p-8 md:p-12"
+          className="bg-gradient-to-r from-os-accent/10 to-afrikoni-chestnut/10 rounded-os-md p-8 md:p-12"
         >
-          <h3 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-8 text-center">
+          <h3 className="text-os-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-8 text-center">
             {t('transparency.principlesTitle') || 'Our Core Principles'}
           </h3>
           <div className="grid md:grid-cols-3 gap-6">
@@ -142,10 +142,10 @@ export default function TransparencySection() {
                   transition={{ duration: 0.4, delay: 0.5 + idx * 0.1 }}
                   className="text-center"
                 >
-                  <div className="w-16 h-16 bg-afrikoni-gold/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Icon className="w-8 h-8 text-afrikoni-gold" />
+                  <div className="w-16 h-16 bg-os-accent/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <Icon className="w-8 h-8 text-os-accent" />
                   </div>
-                  <h4 className="text-lg font-bold text-afrikoni-chestnut mb-2">
+                  <h4 className="text-os-lg font-bold text-afrikoni-chestnut mb-2">
                     {principle.title}
                   </h4>
                   <p className="text-afrikoni-deep">
@@ -165,7 +165,7 @@ export default function TransparencySection() {
           transition={{ duration: 0.6, delay: 0.8 }}
           className="mt-12 text-center"
         >
-          <p className="text-afrikoni-deep/80 text-sm md:text-base max-w-2xl mx-auto">
+          <p className="text-afrikoni-deep/80 text-os-sm md:text-os-base max-w-2xl mx-auto">
             {t('transparency.footer') || '💡 Most features on Afrikoni are completely free. Browse products, create RFQs, message suppliers, and discover opportunities at no cost. We only charge when you complete a transaction or choose premium features.'}
           </p>
         </motion.div>

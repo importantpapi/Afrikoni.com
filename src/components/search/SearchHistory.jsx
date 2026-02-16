@@ -89,18 +89,18 @@ export default function SearchHistory({ onSelectSearch, onClearHistory }) {
     <div className="space-y-4">
       {/* Recent Searches */}
       {history.length > 0 && (
-        <Card className="border-afrikoni-gold/20 bg-white">
+        <Card className="border-os-accent/20 bg-white">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-afrikoni-gold" />
+                <Clock className="w-4 h-4 text-os-accent" />
                 <h3 className="font-semibold text-afrikoni-text-dark">Recent Searches</h3>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={clearHistory}
-                className="text-xs text-afrikoni-deep/70 hover:text-afrikoni-deep"
+                className="text-os-xs text-afrikoni-deep/70 hover:text-afrikoni-deep"
               >
                 Clear
               </Button>
@@ -117,7 +117,7 @@ export default function SearchHistory({ onSelectSearch, onClearHistory }) {
                   >
                     <Badge
                       variant="outline"
-                      className="cursor-pointer hover:bg-afrikoni-gold/10 hover:border-afrikoni-gold pr-1"
+                      className="cursor-pointer hover:bg-os-accent/10 hover:border-os-accent pr-1"
                       onClick={() => onSelectSearch(item.query)}
                     >
                       <Search className="w-3 h-3 mr-1" />
@@ -127,7 +127,7 @@ export default function SearchHistory({ onSelectSearch, onClearHistory }) {
                           e.stopPropagation();
                           removeFromHistory(item.query);
                         }}
-                        className="ml-1 hover:bg-afrikoni-gold/20 rounded-full p-0.5"
+                        className="ml-1 hover:bg-os-accent/20 rounded-full p-0.5"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -142,10 +142,10 @@ export default function SearchHistory({ onSelectSearch, onClearHistory }) {
 
       {/* Trending Searches */}
       {trending.length > 0 && (
-        <Card className="border-afrikoni-gold/20 bg-white">
+        <Card className="border-os-accent/20 bg-white">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-3">
-              <TrendingUp className="w-4 h-4 text-afrikoni-gold" />
+              <TrendingUp className="w-4 h-4 text-os-accent" />
               <h3 className="font-semibold text-afrikoni-text-dark">Trending Searches</h3>
             </div>
             <div className="space-y-2">
@@ -153,10 +153,10 @@ export default function SearchHistory({ onSelectSearch, onClearHistory }) {
                 <button
                   key={idx}
                   onClick={() => onSelectSearch(item.query)}
-                  className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-afrikoni-gold/5 transition-colors text-left"
+                  className="w-full flex items-center justify-between p-2 rounded-lg hover:bg-os-accent/5 transition-colors text-left"
                 >
-                  <span className="text-sm text-afrikoni-text-dark">{item.query}</span>
-                  <Badge variant="outline" className="text-xs">
+                  <span className="text-os-sm text-afrikoni-text-dark">{item.query}</span>
+                  <Badge variant="outline" className="text-os-xs">
                     {item.count}
                   </Badge>
                 </button>

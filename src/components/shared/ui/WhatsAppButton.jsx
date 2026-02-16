@@ -43,7 +43,7 @@ export default function WhatsAppButton() {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={handleClick}
-          className="md:hidden fixed bottom-24 right-4 z-40 w-12 h-12 bg-afrikoni-chestnut/90 hover:bg-afrikoni-chestnut text-afrikoni-cream rounded-full shadow-md hover:shadow-lg flex items-center justify-center transition-all border-2 border-afrikoni-gold/30"
+          className="md:hidden fixed bottom-24 right-4 z-40 w-12 h-12 bg-afrikoni-chestnut/90 hover:bg-afrikoni-chestnut text-afrikoni-cream rounded-full shadow-md hover:shadow-os-md flex items-center justify-center transition-all border-2 border-os-accent/30"
           aria-label="Open WhatsApp Community"
           title="Join our WhatsApp Community"
           style={{ 

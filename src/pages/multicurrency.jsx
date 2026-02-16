@@ -34,14 +34,14 @@ export default function MultiCurrency() {
   return (
     <div className="min-h-screen bg-stone-50 py-12">
       <div className="max-w-2xl mx-auto px-4">
-        <Card className="border-afrikoni-gold/20">
+        <Card className="border-os-accent/20">
           <CardHeader>
             <CardTitle className="text-3xl">Currency Converter</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid md:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium text-afrikoni-deep mb-2 block">From</label>
+                <label className="text-os-sm font-medium text-afrikoni-deep mb-2 block">From</label>
                 <Select value={fromCurrency} onValueChange={setFromCurrency}>
                   <SelectTrigger>
                     <SelectValue />
@@ -57,7 +57,7 @@ export default function MultiCurrency() {
                 </Select>
               </div>
               <div>
-                <label className="text-sm font-medium text-afrikoni-deep mb-2 block">To</label>
+                <label className="text-os-sm font-medium text-afrikoni-deep mb-2 block">To</label>
                 <Select value={toCurrency} onValueChange={setToCurrency}>
                   <SelectTrigger>
                     <SelectValue />
@@ -74,7 +74,7 @@ export default function MultiCurrency() {
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium text-afrikoni-deep mb-2 block">Amount</label>
+              <label className="text-os-sm font-medium text-afrikoni-deep mb-2 block">Amount</label>
               <Input
                 type="number"
                 value={amount}
@@ -82,13 +82,13 @@ export default function MultiCurrency() {
                 placeholder="Enter amount"
               />
             </div>
-            <Button onClick={handleConvert} className="w-full bg-afrikoni-gold hover:bg-amber-700">
+            <Button onClick={handleConvert} className="w-full bg-os-accent hover:bg-amber-700">
               Convert
             </Button>
             {convertedAmount && (
               <div className="p-4 bg-amber-50 rounded-lg">
-                <div className="text-sm text-afrikoni-deep mb-1">Converted Amount</div>
-                <div className="text-2xl font-bold text-amber-600">
+                <div className="text-os-sm text-afrikoni-deep mb-1">Converted Amount</div>
+                <div className="text-os-2xl font-bold text-amber-600">
                   {convertedAmount} {toCurrency}
                 </div>
               </div>

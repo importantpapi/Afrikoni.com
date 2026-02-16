@@ -46,7 +46,7 @@ export function DataSourceIndicator({
             case 'verified':
                 return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
             case 'partner':
-                return 'text-blue-400 bg-blue-500/10 border-blue-500/20';
+                return 'text-blue-400 bg-os-blue/10 border-os-blue/20';
             case 'crowdsourced':
                 return 'text-amber-400 bg-amber-500/10 border-amber-500/20';
             case 'heuristic':
@@ -57,12 +57,12 @@ export function DataSourceIndicator({
 
     return (
         <div className={cn('flex items-center gap-2 flex-wrap', className)}>
-            <span className="text-xs text-white/50">Sources:</span>
+            <span className="text-os-xs text-white/50">Sources:</span>
             {sources.map((source, index) => (
                 <div
                     key={index}
                     className={cn(
-                        'inline-flex items-center gap-1.5 px-2 py-1 rounded-md border text-xs',
+                        'inline-flex items-center gap-1.5 px-2 py-1 rounded-md border text-os-xs',
                         getSourceColor(source.type)
                     )}
                     title={`${source.name} - ${source.confidence}% confidence - Updated ${new Date(source.lastUpdated).toLocaleDateString()}`}

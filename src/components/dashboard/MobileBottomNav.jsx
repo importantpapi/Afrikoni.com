@@ -25,15 +25,15 @@ export default function MobileBottomNav({
         { icon: LayoutDashboard, label: 'Home', path: '/dashboard' },
         { icon: Package, label: 'Inventory', path: '/dashboard/products' },
         { divider: true }, // Placeholder for central button
-        { icon: ShoppingCart, label: 'Orders', path: '/dashboard/orders' },
+        { icon: ShoppingCart, label: 'My Deals', path: '/dashboard/orders' },
         { icon: MessageSquare, label: 'Signals', path: '/dashboard/notifications' }
       ];
     } else {
       return [
         { icon: LayoutDashboard, label: 'Home', path: '/dashboard' },
-        { icon: Package, label: 'Browse', path: '/marketplace' },
+        { icon: Package, label: 'Marketplace', path: '/marketplace' },
         { divider: true }, // Placeholder for central button
-        { icon: FileText, label: 'RFQs', path: '/dashboard/rfqs' },
+        { icon: FileText, label: 'Find Buyers', path: '/dashboard/rfqs' },
         { icon: MessageSquare, label: 'Signals', path: '/dashboard/notifications' }
       ];
     }
@@ -43,7 +43,7 @@ export default function MobileBottomNav({
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/80 dark:bg-[#0A0A0A]/80 backdrop-blur-xl border-t border-afrikoni-gold/10 shadow-[0_-4px_24px_rgba(0,0,0,0.1)] px-4 pb-safe"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/80 dark:bg-[#0A0A0A]/80 backdrop-blur-xl border-t border-os-accent/10 shadow-[0_-4px_24px_rgba(0,0,0,0.1)] px-4 pb-safe"
       role="navigation"
     >
       <div className="flex items-center justify-between h-16 max-w-lg mx-auto relative">
@@ -64,7 +64,7 @@ export default function MobileBottomNav({
                     className="absolute inset-0 rounded-full bg-[#D4A937] -z-10"
                   />
                 </motion.button>
-                <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] font-black uppercase tracking-tighter text-[#D4A937]">NEW TRADE</span>
+                <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-os-xs font-black uppercase tracking-tighter text-[#D4A937]">NEW TRADE</span>
               </div>
             );
           }
@@ -99,7 +99,7 @@ export default function MobileBottomNav({
                   />
                 )}
               </div>
-              <span className={`text-[9px] font-bold uppercase tracking-wide ${isActive ? 'opacity-100' : 'opacity-60'}`}>
+              <span className={`text-os-xs font-bold uppercase tracking-wide ${isActive ? 'opacity-100' : 'opacity-60'}`}>
                 {item.label}
               </span>
 

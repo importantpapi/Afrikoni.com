@@ -47,8 +47,8 @@ export function RFQInbox({ rfqs = [], className }) {
             <FileText className="h-5 w-5 text-os-muted" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-[var(--os-text-primary)]">RFQ Inbox</h3>
-            <p className="text-xs text-os-muted">{activeRFQs.length} active requests</p>
+            <h3 className="text-os-lg font-semibold text-[var(--os-text-primary)]">RFQ Inbox</h3>
+            <p className="text-os-xs text-os-muted">{activeRFQs.length} active requests</p>
           </div>
         </div>
         <Button variant="outline" size="sm" className="gap-1">
@@ -61,8 +61,8 @@ export function RFQInbox({ rfqs = [], className }) {
         {(!rfqs || rfqs.length === 0) ? (
           <div className="p-8 text-center">
             <FileText className="h-10 w-10 text-os-muted mx-auto mb-3" />
-            <p className="text-sm font-medium text-[var(--os-text-primary)]">No RFQs yet</p>
-            <p className="text-xs text-os-muted mt-1">New buyer requests will appear here</p>
+            <p className="text-os-sm font-medium text-[var(--os-text-primary)]">No RFQs yet</p>
+            <p className="text-os-xs text-os-muted mt-1">New buyer requests will appear here</p>
           </div>
         ) : (
           (rfqs || []).slice(0, 4).map((rfq) => {
@@ -78,13 +78,13 @@ export function RFQInbox({ rfqs = [], className }) {
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <p className="text-sm font-medium text-[var(--os-text-primary)] truncate">
+                      <p className="text-os-sm font-medium text-[var(--os-text-primary)] truncate">
                         {rfq.productName}
                       </p>
                       <StatusBadge label={config.label} tone="neutral" />
                     </div>
 
-                    <div className="flex items-center gap-3 text-xs text-os-muted">
+                    <div className="flex items-center gap-3 text-os-xs text-os-muted">
                       <span className="font-medium text-[var(--os-text-primary)]">
                         {rfq.buyerCompany}
                       </span>
@@ -95,17 +95,17 @@ export function RFQInbox({ rfqs = [], className }) {
                     </div>
 
                     <div className="flex items-center gap-4 mt-2">
-                      <span className="text-xs text-os-muted">
+                      <span className="text-os-xs text-os-muted">
                         {rfq.quantity.toLocaleString()} {rfq.unit}
                       </span>
                       {rfq.targetPrice && (
-                        <span className="flex items-center gap-1 text-xs text-os-muted">
+                        <span className="flex items-center gap-1 text-os-xs text-os-muted">
                           <DollarSign className="h-3 w-3" />
                           {rfq.targetPrice}/{rfq.unit}
                         </span>
                       )}
                       {rfq.quotesReceived > 0 && (
-                        <span className="flex items-center gap-1 text-xs text-os-muted">
+                        <span className="flex items-center gap-1 text-os-xs text-os-muted">
                           <MessageSquare className="h-3 w-3" />
                           {rfq.quotesReceived} quotes
                         </span>
@@ -116,7 +116,7 @@ export function RFQInbox({ rfqs = [], className }) {
                   <div className="text-right flex-shrink-0">
                     <div
                       className={cn(
-                        'flex items-center gap-1 text-xs font-medium',
+                        'flex items-center gap-1 text-os-xs font-medium',
                         isUrgent ? 'text-[var(--os-text-primary)]' : 'text-os-muted'
                       )}
                     >
@@ -133,7 +133,7 @@ export function RFQInbox({ rfqs = [], className }) {
 
       {(rfqs || []).length > 4 && (
         <div className="p-3 border-t border-os-stroke bg-os-surface-1">
-          <Button variant="ghost" className="w-full text-sm text-os-muted hover:text-[var(--os-text-primary)]">
+          <Button variant="ghost" className="w-full text-os-sm text-os-muted hover:text-[var(--os-text-primary)]">
             View {(rfqs || []).length - 4} more requests
           </Button>
         </div>

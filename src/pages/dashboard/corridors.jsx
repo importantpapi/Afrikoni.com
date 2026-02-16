@@ -30,7 +30,7 @@ export default function CorridorsPage() {
                 <div>
                     <div className="os-label">Global Infrastructure</div>
                     <h1 className="os-title mt-2">Trade Corridors</h1>
-                    <p className="text-sm text-os-muted">
+                    <p className="text-os-sm text-os-muted">
                         Monitor active trade flows, congestion, and efficiency across key routes.
                     </p>
                 </div>
@@ -68,9 +68,9 @@ export default function CorridorsPage() {
             {/* Corridor Intelligence Panel (when selected) */}
             {selectedCorridor && (
                 <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div className="w-full max-w-6xl max-h-[90vh] overflow-y-auto bg-[#0E1016] rounded-2xl border border-white/10 shadow-2xl">
+                    <div className="w-full max-w-6xl max-h-[90vh] overflow-y-auto bg-[#0E1016] rounded-os-md border border-white/10 shadow-2xl">
                         <div className="sticky top-0 bg-[#0E1016] border-b border-white/10 p-4 flex items-center justify-between z-10">
-                            <h2 className="text-xl font-bold text-white">Corridor Intelligence</h2>
+                            <h2 className="text-os-xl font-bold text-white">Corridor Intelligence</h2>
                             <Button
                                 variant="ghost"
                                 size="sm"
@@ -89,7 +89,7 @@ export default function CorridorsPage() {
 
             {/* Corridor List */}
             <div className="space-y-4">
-                <h3 className="text-sm font-medium text-os-muted uppercase tracking-wider">Active Routes</h3>
+                <h3 className="text-os-sm font-medium text-os-muted uppercase tracking-wider">Active Routes</h3>
 
                 <div className="grid grid-cols-1 gap-3">
                     {CORRIDOR_DATA.map((corridor) => (
@@ -108,11 +108,11 @@ export default function CorridorsPage() {
                                 {/* Route Info */}
                                 <div>
                                     <div className="flex items-center gap-2 mb-1">
-                                        <span className="text-base font-bold text-white">{corridor.origin}</span>
+                                        <span className="text-os-base font-bold text-white">{corridor.origin}</span>
                                         <ArrowRight className="w-4 h-4 text-os-muted" />
-                                        <span className="text-base font-bold text-white">{corridor.dest}</span>
+                                        <span className="text-os-base font-bold text-white">{corridor.dest}</span>
                                     </div>
-                                    <div className="flex items-center gap-3 text-xs text-os-muted">
+                                    <div className="flex items-center gap-3 text-os-xs text-os-muted">
                                         <span>{corridor.type === 'air' ? 'Air Freight' : 'Sea Freight'}</span>
                                         <span>•</span>
                                         <span className={corridor.friction === 'High' ? 'text-red-400' : 'text-emerald-400'}>
@@ -131,12 +131,12 @@ export default function CorridorsPage() {
                             {/* Metrics */}
                             <div className="text-right flex items-center gap-8">
                                 <div>
-                                    <div className="text-sm font-bold text-white tabular-nums">{corridor.volume}</div>
-                                    <div className="text-[10px] text-os-muted uppercase">Vol (30d)</div>
+                                    <div className="text-os-sm font-bold text-white tabular-nums">{corridor.volume}</div>
+                                    <div className="text-os-xs text-os-muted uppercase">Vol (30d)</div>
                                 </div>
                                 <div>
-                                    <div className="text-sm font-bold text-white tabular-nums">{corridor.active}</div>
-                                    <div className="text-[10px] text-os-muted uppercase">Conversions</div>
+                                    <div className="text-os-sm font-bold text-white tabular-nums">{corridor.active}</div>
+                                    <div className="text-os-xs text-os-muted uppercase">Conversions</div>
                                 </div>
                                 <StatusBadge
                                     label={corridor.risk === 'low' ? 'Optimal' : 'Caution'}

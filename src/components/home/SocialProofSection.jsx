@@ -94,12 +94,12 @@ export default function SocialProofSection() {
           className="text-center mb-12 md:mb-16"
         >
           <div className="inline-flex items-center gap-2 mb-4">
-            <Star className="w-8 h-8 text-afrikoni-gold" aria-hidden="true" />
+            <Star className="w-8 h-8 text-os-accent" aria-hidden="true" />
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-serif text-afrikoni-chestnut">
               Trusted by Africa's Builders
             </h2>
           </div>
-          <p className="text-lg md:text-xl text-afrikoni-deep/80 max-w-3xl mx-auto">
+          <p className="text-os-lg md:text-os-xl text-afrikoni-deep/80 max-w-3xl mx-auto">
             Join the growing community of businesses building Africa's trade future
           </p>
         </motion.div>
@@ -113,43 +113,43 @@ export default function SocialProofSection() {
           transition={{ duration: 0.6 }}
           className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12 md:mb-16"
         >
-          <Card className="border-afrikoni-gold/20 text-center">
+          <Card className="border-os-accent/20 text-center">
             <CardContent className="p-6">
-              <div className="w-16 h-16 bg-afrikoni-gold/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle className="w-8 h-8 text-afrikoni-gold" aria-hidden="true" />
+              <div className="w-16 h-16 bg-os-accent/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-8 h-8 text-os-accent" aria-hidden="true" />
               </div>
               <p className="text-4xl md:text-5xl font-bold text-afrikoni-chestnut mb-2">
                 {counters.businesses}+
               </p>
-              <p className="text-sm md:text-base text-afrikoni-deep/80 uppercase tracking-wide">
+              <p className="text-os-sm md:text-os-base text-afrikoni-deep/80 uppercase tracking-wide">
                 Verified Businesses
               </p>
             </CardContent>
           </Card>
 
-          <Card className="border-afrikoni-gold/20 text-center">
+          <Card className="border-os-accent/20 text-center">
             <CardContent className="p-6">
-              <div className="w-16 h-16 bg-afrikoni-gold/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <MapPin className="w-8 h-8 text-afrikoni-gold" aria-hidden="true" />
+              <div className="w-16 h-16 bg-os-accent/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MapPin className="w-8 h-8 text-os-accent" aria-hidden="true" />
               </div>
               <p className="text-4xl md:text-5xl font-bold text-afrikoni-chestnut mb-2">
                 {counters.countries}
               </p>
-              <p className="text-sm md:text-base text-afrikoni-deep/80 uppercase tracking-wide">
+              <p className="text-os-sm md:text-os-base text-afrikoni-deep/80 uppercase tracking-wide">
                 Countries in Pilot Phase
               </p>
             </CardContent>
           </Card>
 
-          <Card className="border-afrikoni-gold/20 text-center">
+          <Card className="border-os-accent/20 text-center">
             <CardContent className="p-6">
-              <div className="w-16 h-16 bg-afrikoni-gold/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Star className="w-8 h-8 text-afrikoni-gold" aria-hidden="true" />
+              <div className="w-16 h-16 bg-os-accent/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Star className="w-8 h-8 text-os-accent" aria-hidden="true" />
               </div>
               <p className="text-4xl md:text-5xl font-bold text-afrikoni-chestnut mb-2">
                 ${counters.tradeValue}K
               </p>
-              <p className="text-sm md:text-base text-afrikoni-deep/80 uppercase tracking-wide">
+              <p className="text-os-sm md:text-os-base text-afrikoni-deep/80 uppercase tracking-wide">
                 Trade Value Facilitated
               </p>
             </CardContent>
@@ -164,7 +164,7 @@ export default function SocialProofSection() {
           transition={{ duration: 0.6, delay: 0.2 }}
           className="mb-12 md:mb-16"
         >
-          <h3 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut text-center mb-8">
+          <h3 className="text-os-xl md:text-os-2xl font-bold text-afrikoni-chestnut text-center mb-8">
             Our Partners
           </h3>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-6 md:gap-8">
@@ -176,9 +176,9 @@ export default function SocialProofSection() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: idx * 0.05 }}
                 whileHover={{ scale: 1.1, y: -4 }}
-                className="flex items-center justify-center h-20 bg-afrikoni-offwhite border border-afrikoni-gold/20 rounded-lg hover:border-afrikoni-gold transition-all"
+                className="flex items-center justify-center h-20 bg-afrikoni-offwhite border border-os-accent/20 rounded-lg hover:border-os-accent transition-all"
               >
-                <div className="text-afrikoni-gold/40 text-xs font-semibold">
+                <div className="text-os-accent/40 text-os-xs font-semibold">
                   {partner.name}
                 </div>
               </motion.div>
@@ -193,7 +193,7 @@ export default function SocialProofSection() {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.3 }}
         >
-          <h3 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut text-center mb-8">
+          <h3 className="text-os-xl md:text-os-2xl font-bold text-afrikoni-chestnut text-center mb-8">
             What Our Partners Say
           </h3>
           <div className="grid md:grid-cols-3 gap-6">
@@ -205,9 +205,9 @@ export default function SocialProofSection() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: idx * 0.1 }}
               >
-                <Card className="h-full border-afrikoni-gold/20 hover:border-afrikoni-gold transition-all hover:shadow-lg">
+                <Card className="h-full border-os-accent/20 hover:border-os-accent transition-all hover:shadow-os-md">
                   <CardContent className="p-6">
-                    <Quote className="w-8 h-8 text-afrikoni-gold/30 mb-4" aria-hidden="true" />
+                    <Quote className="w-8 h-8 text-os-accent/30 mb-4" aria-hidden="true" />
                     <p className="text-afrikoni-deep mb-4 italic leading-relaxed">
                       "{testimonial.quote}"
                     </p>
@@ -217,21 +217,21 @@ export default function SocialProofSection() {
                           key={i}
                           className={`w-4 h-4 ${
                             i < testimonial.rating
-                              ? 'fill-afrikoni-gold text-afrikoni-gold'
+                              ? 'fill-os-accent text-os-accent'
                               : 'text-gray-300'
                           }`}
                           aria-hidden="true"
                         />
                       ))}
                     </div>
-                    <div className="border-t border-afrikoni-gold/20 pt-4">
-                      <p className="font-semibold text-afrikoni-chestnut text-sm mb-1">
+                    <div className="border-t border-os-accent/20 pt-4">
+                      <p className="font-semibold text-afrikoni-chestnut text-os-sm mb-1">
                         {testimonial.name}
                       </p>
-                      <p className="text-xs text-afrikoni-deep/70 mb-1">
+                      <p className="text-os-xs text-afrikoni-deep/70 mb-1">
                         {testimonial.company}
                       </p>
-                      <div className="flex items-center gap-1 text-xs text-afrikoni-deep/70">
+                      <div className="flex items-center gap-1 text-os-xs text-afrikoni-deep/70">
                         <MapPin className="w-3 h-3" aria-hidden="true" />
                         <span>{testimonial.country}</span>
                       </div>

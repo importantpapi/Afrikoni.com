@@ -102,8 +102,8 @@ export default function CookieSettingsModal({ isOpen, onClose, onSave }: CookieS
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-2xl text-afrikoni-chestnut">
-            <Cookie className="w-6 h-6 text-afrikoni-gold" />
+          <DialogTitle className="flex items-center gap-2 text-os-2xl text-afrikoni-chestnut">
+            <Cookie className="w-6 h-6 text-os-accent" />
             Cookie Preferences
           </DialogTitle>
           <DialogDescription className="text-gray-600 dark:text-gray-400">
@@ -117,12 +117,12 @@ export default function CookieSettingsModal({ isOpen, onClose, onSave }: CookieS
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <Label htmlFor="necessary" className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                  <Label htmlFor="necessary" className="text-os-base font-semibold text-gray-900 dark:text-gray-100">
                     Necessary Cookies
                   </Label>
                   <Info className="w-4 h-4 text-gray-500" />
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-os-sm text-gray-600 dark:text-gray-400">
                   Essential for the website to function. These cannot be disabled.
                 </p>
               </div>
@@ -140,11 +140,11 @@ export default function CookieSettingsModal({ isOpen, onClose, onSave }: CookieS
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <Label htmlFor="preferences" className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                  <Label htmlFor="preferences" className="text-os-base font-semibold text-gray-900 dark:text-gray-100">
                     Preference Cookies
                   </Label>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-os-sm text-gray-600 dark:text-gray-400">
                   Remember your settings and preferences (language, currency, etc.)
                 </p>
               </div>
@@ -161,11 +161,11 @@ export default function CookieSettingsModal({ isOpen, onClose, onSave }: CookieS
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <Label htmlFor="analytics" className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                  <Label htmlFor="analytics" className="text-os-base font-semibold text-gray-900 dark:text-gray-100">
                     Analytics Cookies
                   </Label>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-os-sm text-gray-600 dark:text-gray-400">
                   Help us understand how visitors use our website to improve performance
                 </p>
               </div>
@@ -182,11 +182,11 @@ export default function CookieSettingsModal({ isOpen, onClose, onSave }: CookieS
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <Label htmlFor="marketing" className="text-base font-semibold text-gray-900 dark:text-gray-100">
+                  <Label htmlFor="marketing" className="text-os-base font-semibold text-gray-900 dark:text-gray-100">
                     Marketing Cookies
                   </Label>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">
+                <p className="text-os-sm text-gray-600 dark:text-gray-400">
                   Used for targeted advertising (currently not in use, reserved for future)
                 </p>
               </div>
@@ -200,9 +200,9 @@ export default function CookieSettingsModal({ isOpen, onClose, onSave }: CookieS
 
           {/* Cookie Policy Link */}
           <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
+            <p className="text-os-sm text-gray-600 dark:text-gray-400 text-center">
               Learn more about how we use cookies in our{' '}
-              <Link to="/cookie-policy" className="text-afrikoni-gold hover:underline font-medium">
+              <Link to="/cookie-policy" className="text-os-accent hover:underline font-medium">
                 Cookie Policy
               </Link>
             </p>
@@ -227,7 +227,7 @@ export default function CookieSettingsModal({ isOpen, onClose, onSave }: CookieS
           </Button>
           <Button
             onClick={handleAcceptAll}
-            className="flex-1 bg-afrikoni-gold hover:bg-afrikoni-goldLight text-afrikoni-charcoal"
+            className="flex-1 bg-os-accent hover:bg-os-accentLight text-afrikoni-charcoal"
           >
             Accept All
           </Button>

@@ -118,7 +118,7 @@ export default function SupplierVerificationModal({ open, onOpenChange, companyI
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-afrikoni-chestnut">
+          <DialogTitle className="text-os-2xl font-bold text-afrikoni-chestnut">
             Supplier Verification
           </DialogTitle>
           <DialogClose onClose={() => onOpenChange(false)} />
@@ -126,12 +126,12 @@ export default function SupplierVerificationModal({ open, onOpenChange, companyI
 
         <div className="space-y-6 py-4">
           {/* Info Card */}
-          <Card className="border-afrikoni-gold/20 bg-afrikoni-gold/5">
+          <Card className="border-os-accent/20 bg-os-accent/5">
             <CardContent className="p-4">
               <div className="flex items-start gap-3">
-                <AlertCircle className="w-5 h-5 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+                <AlertCircle className="w-5 h-5 text-os-accent flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm text-afrikoni-deep">
+                  <p className="text-os-sm text-afrikoni-deep">
                     Complete verification to get your "Verified Supplier" badge and increase buyer trust. 
                     All documents are securely stored and reviewed by our team.
                   </p>
@@ -216,15 +216,15 @@ export default function SupplierVerificationModal({ open, onOpenChange, companyI
             <Label className="font-semibold text-afrikoni-chestnut mb-2 block">
               Additional Certificates (Optional)
             </Label>
-            <p className="text-sm text-afrikoni-deep/70 mb-3">
+            <p className="text-os-sm text-afrikoni-deep/70 mb-3">
               Upload quality certificates, ISO certifications, or other relevant documents
             </p>
             <div className="space-y-2">
               {formData.certificate_uploads.map((url, index) => (
-                <div key={index} className="flex items-center justify-between p-2 bg-afrikoni-offwhite rounded border border-afrikoni-gold/20">
+                <div key={index} className="flex items-center justify-between p-2 bg-afrikoni-offwhite rounded border border-os-accent/20">
                   <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-afrikoni-gold" />
-                    <span className="text-sm text-afrikoni-deep truncate">{url.split('/').pop()}</span>
+                    <FileText className="w-4 h-4 text-os-accent" />
+                    <span className="text-os-sm text-afrikoni-deep truncate">{url.split('/').pop()}</span>
                   </div>
                   <Button
                     type="button"
@@ -273,14 +273,14 @@ export default function SupplierVerificationModal({ open, onOpenChange, companyI
             <Button
               onClick={handleSubmit}
               disabled={isSubmitting}
-              className="flex-1 bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-charcoal"
+              className="flex-1 bg-os-accent hover:bg-os-accentDark text-afrikoni-charcoal"
             >
               {isSubmitting ? 'Submitting...' : 'Submit for Verification'}
             </Button>
             <Button
               onClick={() => onOpenChange(false)}
               variant="outline"
-              className="border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-sand/20"
+              className="border-os-accent text-afrikoni-chestnut hover:bg-afrikoni-sand/20"
             >
               Cancel
             </Button>

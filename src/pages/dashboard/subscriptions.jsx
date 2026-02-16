@@ -177,12 +177,12 @@ function SubscriptionsPageInner() {
           <Surface variant="soft" className="p-4 border">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-[var(--os-text-secondary)]">Current Plan</p>
-                <p className="text-xl font-semibold text-[var(--os-text-primary)]">
+                <p className="text-os-sm text-[var(--os-text-secondary)]">Current Plan</p>
+                <p className="text-os-xl font-semibold text-[var(--os-text-primary)]">
                   {planDetails.name} Plan
                 </p>
                 {currentSubscription.current_period_end && (
-                  <p className="text-xs text-[var(--os-text-secondary)] mt-1">
+                  <p className="text-os-xs text-[var(--os-text-secondary)] mt-1">
                     Renews on {new Date(currentSubscription.current_period_end).toLocaleDateString()}
                   </p>
                 )}
@@ -210,12 +210,12 @@ function SubscriptionsPageInner() {
               >
                 <Surface className={`h-full flex flex-col p-5 ${
                   plan.id === 'elite' 
-                    ? 'border-2 border-afrikoni-gold shadow-lg' 
+                    ? 'border-2 border-os-accent shadow-os-md' 
                     : 'border border-white/10'
                 }`}>
                   <div className="mb-6">
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-xl font-semibold text-[var(--os-text-primary)]">{plan.name}</h3>
+                      <h3 className="text-os-xl font-semibold text-[var(--os-text-primary)]">{plan.name}</h3>
                       {plan.id === 'elite' && (
                         <Crown className="w-6 h-6" />
                       )}
@@ -230,7 +230,7 @@ function SubscriptionsPageInner() {
                       <span className="text-[var(--os-text-secondary)]">/month</span>
                     </div>
                     {plan.visibilityBoost > 0 && (
-                      <p className="text-sm mt-2">
+                      <p className="text-os-sm mt-2">
                         <Zap className="w-4 h-4 inline mr-1" />
                         {plan.visibilityBoost === 1.5 ? '50%' : '200%'} visibility boost
                       </p>
@@ -241,7 +241,7 @@ function SubscriptionsPageInner() {
                       {plan.features.map((feature, idx) => (
                         <li key={idx} className="flex items-start gap-2">
                           <Check className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                          <span className="text-sm text-[var(--os-text-secondary)]">{feature}</span>
+                          <span className="text-os-sm text-[var(--os-text-secondary)]">{feature}</span>
                         </li>
                       ))}
                     </ul>
@@ -250,9 +250,9 @@ function SubscriptionsPageInner() {
                       disabled={isCurrentPlan || isUpgrading}
                       className={`w-full ${
                         isCurrentPlan
-                          ? 'bg-afrikoni-gold/20 text-afrikoni-text-dark cursor-not-allowed'
+                          ? 'bg-os-accent/20 text-afrikoni-text-dark cursor-not-allowed'
                           : plan.id === 'elite'
-                          ? 'bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut'
+                          ? 'bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut'
                           : 'bg-afrikoni-purple hover:bg-afrikoni-purple/90 text-white'
                       }`}
                     >
@@ -281,7 +281,7 @@ function SubscriptionsPageInner() {
             transition={{ delay: 0.5 }}
           >
             <Surface variant="soft" className="p-6 bg-gradient-to-r border">
-              <h3 className="text-lg font-semibold text-[var(--os-text-primary)] mb-3">
+              <h3 className="text-os-lg font-semibold text-[var(--os-text-primary)] mb-3">
               🚀 Upgrade to Increase Your Visibility
               </h3>
               <p className="text-[var(--os-text-secondary)] mb-4">
@@ -292,14 +292,14 @@ function SubscriptionsPageInner() {
                   <Sparkles className="w-5 h-5 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="font-semibold text-[var(--os-text-primary)]">AI-Powered Ranking</p>
-                    <p className="text-sm text-[var(--os-text-secondary)]">Get matched with more relevant buyers</p>
+                    <p className="text-os-sm text-[var(--os-text-secondary)]">Get matched with more relevant buyers</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
                   <Crown className="w-5 h-5 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="font-semibold text-[var(--os-text-primary)]">Featured Placement</p>
-                    <p className="text-sm text-[var(--os-text-secondary)]">Appear at the top of search results</p>
+                    <p className="text-os-sm text-[var(--os-text-secondary)]">Appear at the top of search results</p>
                   </div>
                 </div>
               </div>

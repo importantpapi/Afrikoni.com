@@ -6,7 +6,7 @@ const SelectContext = React.createContext();
 
 export const Select = ({ children, value, onValueChange }) => {
   const [open, setOpen] = useState(false);
-  
+
   return (
     <SelectContext.Provider value={{ value, onValueChange, open, setOpen }}>
       <div className="relative">{children}</div>
@@ -23,7 +23,7 @@ export const SelectTrigger = React.forwardRef(({ className, children, ...props }
       type="button"
       onClick={() => setOpen(!open)}
       className={cn(
-        'flex h-10 sm:h-10 min-h-[44px] sm:min-h-0 w-full items-center justify-between rounded-md border border-afrikoni-gold/30 bg-afrikoni-offwhite px-3 py-2 text-sm ring-offset-white placeholder:text-afrikoni-earth/60 text-afrikoni-earth focus:outline-none focus:ring-2 focus:ring-afrikoni-gold focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 touch-manipulation',
+        'flex h-10 sm:h-10 min-h-[44px] sm:min-h-0 w-full items-center justify-between rounded-md border border-os-stroke bg-os-surface-0 px-3 py-2 text-os-sm ring-offset-os-bg placeholder:text-os-text-secondary/60 text-os-text-primary focus:outline-none focus:ring-2 focus:ring-os-accent focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 touch-manipulation transition-all',
         className
       )}
       {...props}
@@ -44,7 +44,7 @@ export const SelectValue = ({ placeholder, displayValue }) => {
 export const SelectContent = ({ children, className }) => {
   const { open, setOpen } = React.useContext(SelectContext);
   const contentRef = React.useRef(null);
-  
+
   React.useEffect(() => {
     if (open) {
       // Close on escape key
@@ -57,13 +57,13 @@ export const SelectContent = ({ children, className }) => {
       return () => document.removeEventListener('keydown', handleEscape);
     }
   }, [open, setOpen]);
-  
+
   if (!open) return null;
-  
+
   return (
     <>
-      <div 
-        className="fixed inset-0 z-40" 
+      <div
+        className="fixed inset-0 z-40"
         onClick={() => setOpen(false)}
         role="button"
         tabIndex={0}
@@ -75,10 +75,10 @@ export const SelectContent = ({ children, className }) => {
           }
         }}
       />
-      <div 
+      <div
         ref={contentRef}
         className={cn(
-          'absolute z-50 min-w-[8rem] w-full sm:w-auto max-h-[300px] sm:max-h-[400px] overflow-y-auto rounded-md border border-afrikoni-gold/20 bg-afrikoni-offwhite text-afrikoni-chestnut shadow-afrikoni',
+          'absolute z-50 min-w-[8rem] w-full sm:w-auto max-h-[300px] sm:max-h-[400px] overflow-y-auto rounded-md border border-os-stroke bg-os-card text-os-text-primary shadow-os-lg',
           className
         )}
         onClick={(e) => {
@@ -97,7 +97,7 @@ export const SelectContent = ({ children, className }) => {
 
 export const SelectItem = ({ children, value, className, ...props }) => {
   const { onValueChange, setOpen } = React.useContext(SelectContext);
-  
+
   const handleClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -106,11 +106,11 @@ export const SelectItem = ({ children, value, className, ...props }) => {
     }
     setOpen(false);
   };
-  
+
   return (
     <div
       className={cn(
-        'relative flex w-full cursor-pointer select-none items-center rounded-sm py-3 sm:py-1.5 px-3 sm:px-2 text-sm outline-none hover:bg-afrikoni-cream focus:bg-afrikoni-cream text-afrikoni-deep transition-colors touch-manipulation min-h-[44px] sm:min-h-0',
+        'relative flex w-full cursor-pointer select-none items-center rounded-sm py-3 sm:py-1.5 px-3 sm:px-2 text-os-sm outline-none hover:bg-os-accent/10 focus:bg-os-accent/10 text-os-text-primary transition-colors touch-manipulation min-h-[44px] sm:min-h-0',
         className
       )}
       onClick={handleClick}

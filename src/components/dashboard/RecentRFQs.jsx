@@ -15,7 +15,7 @@ export function RecentRFQs() {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <FileText className="h-5 w-5 text-os-muted" />
-          <h3 className="text-lg font-semibold text-[var(--os-text-primary)]">Recent RFQs</h3>
+          <h3 className="text-os-lg font-semibold text-[var(--os-text-primary)]">Recent RFQs</h3>
         </div>
         <Button variant="outline" size="sm" className="gap-1">
           View All
@@ -33,7 +33,7 @@ export function RecentRFQs() {
               <h4 className="font-medium text-[var(--os-text-primary)] truncate">
                 {rfq.title}
               </h4>
-              <div className="flex items-center gap-1.5 mt-1 text-sm text-os-muted">
+              <div className="flex items-center gap-1.5 mt-1 text-os-sm text-os-muted">
                 <Calendar className="h-3.5 w-3.5" />
                 <span>{rfq.date}</span>
               </div>
@@ -51,7 +51,7 @@ export function RecentRFQs() {
         {(rfqs || []).length === 0 && (
           <div className="text-center py-8">
             <FileText className="h-10 w-10 text-os-muted mx-auto mb-3" />
-            <p className="text-sm text-os-muted">No recent RFQs</p>
+            <p className="text-os-sm text-os-muted">No recent RFQs</p>
           </div>
         )}
       </div>

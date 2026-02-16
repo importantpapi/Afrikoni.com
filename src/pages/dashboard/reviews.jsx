@@ -160,8 +160,8 @@ function ReviewsDashboardInner() {
                 <Shield className="w-6 h-6" />
               </div>
               <div className="flex-1">
-                <h3 className="text-lg font-bold mb-3">How We Verify Reviews</h3>
-                <div className="space-y-2 text-sm">
+                <h3 className="text-os-lg font-bold mb-3">How We Verify Reviews</h3>
+                <div className="space-y-2 text-os-sm">
                   <div className="flex items-start gap-2">
                     <CheckCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                     <p><strong>Only completed orders:</strong> Buyers can only review deals they've actually completed on Afrikoni</p>
@@ -184,7 +184,7 @@ function ReviewsDashboardInner() {
                   </div>
                 </div>
                 <div className="mt-4 pt-4 border-t">
-                  <p className="text-xs italic">
+                  <p className="text-os-xs italic">
                     💡 This system ensures your trust score reflects real trade performance, not marketing.
                   </p>
                 </div>
@@ -208,14 +208,14 @@ function ReviewsDashboardInner() {
                     <Shield className="w-8 h-8" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm mb-1">Trust Score</p>
+                    <p className="text-os-sm mb-1">Trust Score</p>
                     <div className="flex items-baseline gap-2">
                       <p className="text-4xl font-black">
                         {stats.trustScore}
                       </p>
-                      <span className="text-lg">/100</span>
+                      <span className="text-os-lg">/100</span>
                     </div>
-                    <p className="text-xs mt-1">
+                    <p className="text-os-xs mt-1">
                       Based on {stats.totalReviews} verified {stats.totalReviews === 1 ? 'review' : 'reviews'}
                     </p>
                   </div>
@@ -237,7 +237,7 @@ function ReviewsDashboardInner() {
                     <Star className="w-8 h-8" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm mb-1">Average Rating</p>
+                    <p className="text-os-sm mb-1">Average Rating</p>
                     <div className="flex items-baseline gap-2">
                       <p className="text-4xl font-black">
                         {stats.averageRating.toFixed(1)}
@@ -247,7 +247,7 @@ function ReviewsDashboardInner() {
                           <Star
                             key={i}
                             className={`w-4 h-4 ${i < Math.round(stats.averageRating)
-                                ? 'text-afrikoni-gold fill-afrikoni-gold'
+                                ? 'text-os-accent fill-os-accent'
                                 : 'text-afrikoni-deep/20'
                               }`}
                           />
@@ -273,7 +273,7 @@ function ReviewsDashboardInner() {
                     <Award className="w-8 h-8" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-sm mb-1">Approved Reviews</p>
+                    <p className="text-os-sm mb-1">Approved Reviews</p>
                     <p className="text-4xl font-black">
                       {stats.totalReviews}
                     </p>
@@ -300,8 +300,8 @@ function ReviewsDashboardInner() {
                 return (
                   <div key={rating} className="flex items-center gap-4">
                     <div className="flex items-center gap-1 w-16">
-                      <span className="text-sm font-medium">{rating}</span>
-                      <Star className="w-4 h-4 fill-afrikoni-gold" />
+                      <span className="text-os-sm font-medium">{rating}</span>
+                      <Star className="w-4 h-4 fill-os-accent" />
                     </div>
                     <div className="flex-1 h-3 rounded-full overflow-hidden">
                       <div
@@ -309,7 +309,7 @@ function ReviewsDashboardInner() {
                         style={{ width: `${percentage}%` }}
                       />
                     </div>
-                    <span className="text-sm w-16 text-right">
+                    <span className="text-os-sm w-16 text-right">
                       {count} ({percentage.toFixed(0)}%)
                     </span>
                   </div>
@@ -333,7 +333,7 @@ function ReviewsDashboardInner() {
                 <div className="w-20 h-20 mx-auto mb-4 bg-gradient-to-br rounded-full flex items-center justify-center">
                   <Heart className="w-10 h-10" />
                 </div>
-                <h3 className="text-xl font-bold mb-2">
+                <h3 className="text-os-xl font-bold mb-2">
                   No reviews yet
                 </h3>
                 <p className="max-w-md mx-auto">
@@ -349,7 +349,7 @@ function ReviewsDashboardInner() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.05 }}
-                    className="p-5 bg-gradient-to-r rounded-lg border hover:border-afrikoni-gold/40 transition-all"
+                    className="p-5 bg-gradient-to-r rounded-lg border hover:border-os-accent/40 transition-all"
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex flex-wrap items-center gap-2">
@@ -357,7 +357,7 @@ function ReviewsDashboardInner() {
                           <Star
                             key={i}
                             className={`w-5 h-5 ${i < review.rating
-                                ? 'text-afrikoni-gold fill-afrikoni-gold'
+                                ? 'text-os-accent fill-os-accent'
                                 : 'text-afrikoni-deep/20'
                               }`}
                           />
@@ -366,14 +366,14 @@ function ReviewsDashboardInner() {
                           <CheckCircle className="w-3 h-3 mr-1" />
                           Verified Order
                         </Badge>
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-os-xs">
                           {new Date(review.approved_at).toLocaleDateString('en-US', {
                             month: 'short',
                             year: 'numeric'
                           })}
                         </Badge>
                       </div>
-                      <span className="text-sm">
+                      <span className="text-os-sm">
                         {new Date(review.approved_at).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'long',
@@ -391,14 +391,14 @@ function ReviewsDashboardInner() {
                     {review.tags && review.tags.length > 0 && (
                       <div className="flex flex-wrap gap-2 mb-3">
                         {review.tags.map((tag, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs">
+                          <Badge key={idx} variant="outline" className="text-os-xs">
                             {tag.replace(/_/g, ' ')}
                           </Badge>
                         ))}
                       </div>
                     )}
 
-                    <div className="flex items-center gap-4 text-sm">
+                    <div className="flex items-center gap-4 text-os-sm">
                       <div className="flex items-center gap-1">
                         <Package className="w-4 h-4" />
                         Deal: {review.order_id?.slice(0, 8)}

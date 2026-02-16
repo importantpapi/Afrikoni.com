@@ -95,7 +95,7 @@ export default function TestimonialsSection() {
           <h2 className="text-3xl md:text-4xl font-bold font-serif text-afrikoni-chestnut mb-4">
             What Our Customers Say
           </h2>
-          <p className="text-lg text-afrikoni-deep/80">
+          <p className="text-os-lg text-afrikoni-deep/80">
             Trusted by businesses across Africa
           </p>
         </motion.div>
@@ -108,7 +108,7 @@ export default function TestimonialsSection() {
             <>
               <motion.button
                 onClick={prevSlide}
-                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-12 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border-2 border-afrikoni-gold/30 hover:border-afrikoni-gold shadow-lg flex items-center justify-center text-afrikoni-chestnut hover:bg-afrikoni-gold/10 transition-all"
+                className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 md:-translate-x-12 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border-2 border-os-accent/30 hover:border-os-accent shadow-os-md flex items-center justify-center text-afrikoni-chestnut hover:bg-os-accent/10 transition-all"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 aria-label="Previous testimonials"
@@ -117,7 +117,7 @@ export default function TestimonialsSection() {
               </motion.button>
               <motion.button
                 onClick={nextSlide}
-                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 md:translate-x-12 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border-2 border-afrikoni-gold/30 hover:border-afrikoni-gold shadow-lg flex items-center justify-center text-afrikoni-chestnut hover:bg-afrikoni-gold/10 transition-all"
+                className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 md:translate-x-12 z-10 w-10 h-10 md:w-12 md:h-12 rounded-full bg-white border-2 border-os-accent/30 hover:border-os-accent shadow-os-md flex items-center justify-center text-afrikoni-chestnut hover:bg-os-accent/10 transition-all"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 aria-label="Next testimonials"
@@ -145,10 +145,10 @@ export default function TestimonialsSection() {
                   transition={{ duration: 0.5, delay: idx * 0.1 }}
                   whileHover={{ scale: 1.02, y: -4 }}
                 >
-                  <Card className="h-full border-afrikoni-gold/20 hover:border-afrikoni-gold transition-all shadow-md hover:shadow-xl">
+                  <Card className="h-full border-os-accent/20 hover:border-os-accent transition-all shadow-md hover:shadow-os-lg">
                     <CardContent className="p-6">
                       {/* Quote Icon */}
-                      <Quote className="w-8 h-8 text-afrikoni-gold/30 mb-4" />
+                      <Quote className="w-8 h-8 text-os-accent/30 mb-4" />
 
                       {/* Review Text */}
                       <p className="text-afrikoni-deep mb-6 leading-relaxed italic">
@@ -162,7 +162,7 @@ export default function TestimonialsSection() {
                             key={i}
                             className={`w-4 h-4 ${
                               i < (testimonial.rating || 5)
-                                ? 'fill-afrikoni-gold text-afrikoni-gold'
+                                ? 'fill-os-accent text-os-accent'
                                 : 'text-gray-300'
                             }`}
                           />
@@ -170,11 +170,11 @@ export default function TestimonialsSection() {
                       </div>
 
                       {/* Author Info */}
-                      <div className="border-t border-afrikoni-gold/20 pt-4">
+                      <div className="border-t border-os-accent/20 pt-4">
                         <div className="flex items-start gap-3">
                           {/* Avatar */}
-                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-afrikoni-gold/20 to-afrikoni-chestnut/20 flex items-center justify-center flex-shrink-0">
-                            <span className="text-afrikoni-chestnut font-bold text-lg">
+                          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-os-accent/20 to-afrikoni-chestnut/20 flex items-center justify-center flex-shrink-0">
+                            <span className="text-afrikoni-chestnut font-bold text-os-lg">
                               {(testimonial.seller_name || testimonial.name || 'C')[0].toUpperCase()}
                             </span>
                           </div>
@@ -187,12 +187,12 @@ export default function TestimonialsSection() {
                                 <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
                               )}
                             </div>
-                            <p className="text-xs text-afrikoni-gold font-medium mb-1">
+                            <p className="text-os-xs text-os-accent font-medium mb-1">
                               {testimonial.type === 'buyer' ? 'Verified Buyer' : 
                                testimonial.type === 'supplier' ? 'Verified Supplier' :
                                testimonial.type === 'logistics' ? 'Logistics Partner' : ''}
                             </p>
-                            <div className="flex items-center gap-1 text-sm text-afrikoni-deep/70">
+                            <div className="flex items-center gap-1 text-os-sm text-afrikoni-deep/70">
                               <span className="truncate">{testimonial.company || ''}</span>
                               {testimonial.location && (
                                 <>
@@ -215,10 +215,10 @@ export default function TestimonialsSection() {
           </AnimatePresence>
         </div>
         ) : (
-          <Card className="border-afrikoni-gold/20 max-w-2xl mx-auto">
+          <Card className="border-os-accent/20 max-w-2xl mx-auto">
             <CardContent className="p-8 md:p-12 text-center">
-              <Quote className="w-16 h-16 text-afrikoni-gold/30 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-afrikoni-chestnut mb-2">
+              <Quote className="w-16 h-16 text-os-accent/30 mx-auto mb-4" />
+              <h3 className="text-os-xl font-semibold text-afrikoni-chestnut mb-2">
                 Be the First to Share Your Story
               </h3>
               <p className="text-afrikoni-deep/70 mb-6">
@@ -226,7 +226,7 @@ export default function TestimonialsSection() {
               </p>
               <Button
                 onClick={() => window.location.href = '/signup'}
-                className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut"
+                className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut"
               >
                 Get Started
               </Button>

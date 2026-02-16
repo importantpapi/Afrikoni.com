@@ -70,13 +70,13 @@ export const LogisticsDispatchStatus: React.FC<LogisticsDispatchStatusProps> = (
       case 'idle':
         return <Clock className="w-5 h-5 text-gray-400" />;
       case 'searching':
-        return <Search className="w-5 h-5 text-blue-500 animate-pulse" />;
+        return <Search className="w-5 h-5 text-os-blue animate-pulse" />;
       case 'assigned':
         return <Package className="w-5 h-5 text-yellow-500" />;
       case 'in_transit':
         return <Truck className="w-5 h-5 text-orange-500" />;
       case 'delivered':
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
+        return <CheckCircle className="w-5 h-5 text-os-green" />;
       default:
         return <Package className="w-5 h-5 text-gray-400" />;
     }
@@ -106,26 +106,26 @@ export const LogisticsDispatchStatus: React.FC<LogisticsDispatchStatusProps> = (
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-medium text-gray-900">Logistics Status</h4>
+            <h4 className="text-os-sm font-medium text-gray-900">Logistics Status</h4>
             {status.status === 'searching' && (
-              <span className="text-xs text-blue-600 font-medium">Finding providers...</span>
+              <span className="text-os-xs text-blue-600 font-medium">Finding providers...</span>
             )}
           </div>
           
-          <p className="text-sm text-gray-600 mt-1">{status.message}</p>
+          <p className="text-os-sm text-gray-600 mt-1">{status.message}</p>
 
           {status.provider && (
             <div className="mt-3 p-3 bg-white rounded border border-gray-200">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-gray-500">Assigned Provider</p>
-                  <p className="text-sm font-medium text-gray-900 mt-0.5">
+                  <p className="text-os-xs text-gray-500">Assigned Provider</p>
+                  <p className="text-os-sm font-medium text-gray-900 mt-0.5">
                     {status.provider.company_id}
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-xs text-gray-500">Location</p>
-                  <p className="text-sm font-medium text-gray-900 mt-0.5">
+                  <p className="text-os-xs text-gray-500">Location</p>
+                  <p className="text-os-sm font-medium text-gray-900 mt-0.5">
                     {status.provider.city}
                   </p>
                 </div>
@@ -136,7 +136,7 @@ export const LogisticsDispatchStatus: React.FC<LogisticsDispatchStatusProps> = (
                   {status.provider.vehicle_types.map((vehicle) => (
                     <span
                       key={vehicle}
-                      className="inline-flex items-center px-2 py-1 rounded text-xs bg-gray-100 text-gray-700"
+                      className="inline-flex items-center px-2 py-1 rounded text-os-xs bg-gray-100 text-gray-700"
                     >
                       {vehicle}
                     </span>
@@ -146,7 +146,7 @@ export const LogisticsDispatchStatus: React.FC<LogisticsDispatchStatusProps> = (
 
               {status.provider.response_score && (
                 <div className="mt-2">
-                  <div className="flex items-center justify-between text-xs text-gray-500">
+                  <div className="flex items-center justify-between text-os-xs text-gray-500">
                     <span>Response Score</span>
                     <span className="font-medium text-gray-900">
                       {(status.provider.response_score * 100).toFixed(0)}%
@@ -166,9 +166,9 @@ export const LogisticsDispatchStatus: React.FC<LogisticsDispatchStatusProps> = (
           {/* Event Timeline (Optional - show last 3 events) */}
           {status.events.length > 0 && (
             <div className="mt-3 space-y-1">
-              <p className="text-xs text-gray-500 font-medium">Recent Activity</p>
+              <p className="text-os-xs text-gray-500 font-medium">Recent Activity</p>
               {status.events.slice(0, 3).map((event, idx) => (
-                <div key={event.id} className="flex items-center gap-2 text-xs">
+                <div key={event.id} className="flex items-center gap-2 text-os-xs">
                   <div className="w-1.5 h-1.5 rounded-full bg-gray-400" />
                   <span className="text-gray-600">
                     {formatEventType(event.event_type)}

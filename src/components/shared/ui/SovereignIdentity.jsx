@@ -56,7 +56,7 @@ export function SovereignIdentity({ size = "md", className = "" }) {
 
                 {/* Core Token */}
                 <motion.div
-                    className="relative w-full h-full rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl overflow-hidden flex items-center justify-center"
+                    className="relative w-full h-full rounded-os-md border border-white/10 bg-black/40 backdrop-blur-xl overflow-hidden flex items-center justify-center"
                     animate={{ rotateY: 360 }}
                     transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
                 >
@@ -79,7 +79,7 @@ export function SovereignIdentity({ size = "md", className = "" }) {
                     ))}
 
                     {/* Center Symbol */}
-                    <div className="relative z-10 font-black text-white/80 tracking-tighter text-[10px] md:text-[12px] uppercase">
+                    <div className="relative z-10 font-black text-white/80 tracking-tighter text-os-xs md:text-os-xs uppercase">
                         {user?.id ? 'OS' : '??'}
                     </div>
                 </motion.div>
@@ -91,10 +91,10 @@ export function SovereignIdentity({ size = "md", className = "" }) {
                     animate={{ opacity: 1 }}
                     className="mt-4 text-center"
                 >
-                    <span className="text-[10px] font-mono text-os-text-secondary/60 uppercase tracking-[0.3em]">
+                    <span className="text-os-xs font-mono text-os-text-secondary/60 uppercase tracking-[0.3em]">
                         Sovereign Node
                     </span>
-                    <div className="text-[12px] font-black text-os-text-primary tracking-widest mt-1">
+                    <div className="text-os-xs font-black text-os-text-primary tracking-widest mt-1">
                         {fingerprint.nodeId}
                     </div>
                 </motion.div>

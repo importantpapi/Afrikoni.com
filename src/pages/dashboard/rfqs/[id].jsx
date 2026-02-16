@@ -106,7 +106,7 @@ export default function RFQDetail() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="space-y-2">
             <div className="os-label">RFQ Detail</div>
-            <h1 className="text-2xl font-semibold text-foreground">{rfq.title}</h1>
+            <h1 className="text-os-2xl font-semibold text-foreground">{rfq.title}</h1>
             <div className="flex flex-wrap gap-2">
               <StatusBadge label={rfq.status?.toUpperCase() || 'OPEN'} tone="neutral" />
               {rfq.categories?.name && <Badge variant="outline">{rfq.categories.name}</Badge>}
@@ -138,13 +138,13 @@ export default function RFQDetail() {
 
       <div className="grid lg:grid-cols-[2fr_1fr] gap-6">
         <Surface variant="panel" className="p-5 space-y-4">
-          <div className="flex items-center gap-2 text-sm text-os-muted">
+          <div className="flex items-center gap-2 text-os-sm text-os-muted">
             <FileText className="w-4 h-4" />
             RFQ Details
           </div>
-          <p className="text-sm leading-6 whitespace-pre-line">{rfq.description}</p>
+          <p className="text-os-sm leading-6 whitespace-pre-line">{rfq.description}</p>
 
-          <div className="grid sm:grid-cols-2 gap-3 text-sm">
+          <div className="grid sm:grid-cols-2 gap-3 text-os-sm">
             <InfoRow label="Quantity" value={rfq.quantity ? rfq.quantity.toLocaleString() : '—'} />
             <InfoRow label="Unit" value={rfq.unit || '—'} />
             <InfoRow label="Target Price" value={rfq.target_price ? `$${rfq.target_price}` : 'N/A'} />
@@ -163,7 +163,7 @@ export default function RFQDetail() {
         </Surface>
 
         <Surface variant="panel" className="p-5 space-y-3">
-          <div className="flex items-center gap-2 text-sm text-os-muted">
+          <div className="flex items-center gap-2 text-os-sm text-os-muted">
             <DollarSign className="w-4 h-4" />
             Quotes
           </div>
@@ -180,11 +180,11 @@ export default function RFQDetail() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="font-semibold text-foreground">${quote.total_price?.toLocaleString() || '—'}</p>
-                      <p className="text-xs text-os-muted">Unit: {quote.price_per_unit || '—'} | Lead: {quote.lead_time || '—'}</p>
+                      <p className="text-os-xs text-os-muted">Unit: {quote.price_per_unit || '—'} | Lead: {quote.lead_time || '—'}</p>
                     </div>
                     {quote.currency && <Badge variant="outline">{quote.currency}</Badge>}
                   </div>
-                  {quote.notes && <p className="text-sm text-os-muted mt-2">{quote.notes}</p>}
+                  {quote.notes && <p className="text-os-sm text-os-muted mt-2">{quote.notes}</p>}
                 </Surface>
               ))}
             </div>
@@ -199,8 +199,8 @@ function InfoRow({ label, value, icon: Icon }) {
   return (
     <div className="flex items-center gap-2">
       {Icon ? <Icon className="w-4 h-4 text-os-muted" /> : null}
-      <span className="text-[var(--os-text-secondary)] text-xs uppercase tracking-wide">{label}</span>
-      <span className="text-sm font-semibold text-foreground">{value}</span>
+      <span className="text-[var(--os-text-secondary)] text-os-xs uppercase tracking-wide">{label}</span>
+      <span className="text-os-sm font-semibold text-foreground">{value}</span>
     </div>
   );
 }

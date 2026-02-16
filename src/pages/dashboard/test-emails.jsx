@@ -373,8 +373,8 @@ export default function TestEmails() {
                 <div className="flex items-start gap-2">
                   <AlertCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
-                    <p className="text-sm font-semibold mb-2">⚠️ Configuration Missing or Not Deployed</p>
-                    <div className="text-xs space-y-2">
+                    <p className="text-os-sm font-semibold mb-2">⚠️ Configuration Missing or Not Deployed</p>
+                    <div className="text-os-xs space-y-2">
                       <p><strong>If you just updated Vercel environment variables:</strong></p>
                       <ol className="list-decimal list-inside ml-2 space-y-1">
                         <li>Environment variables are only available after redeployment</li>
@@ -448,18 +448,18 @@ export default function TestEmails() {
                         }`}>
                           {diagnosticResult.success ? '✓ API Connection Successful' : '✗ API Connection Failed'}
                         </p>
-                        <p className={`text-sm mt-1 ${
+                        <p className={`text-os-sm mt-1 ${
                           diagnosticResult.success ? 'text-green-700' : 'text-red-700'
                         }`}>
                           {diagnosticResult.error || 'Connection test passed'}
                         </p>
                         {diagnosticResult.details && (
-                          <pre className="text-xs mt-2 p-2 rounded overflow-auto">
+                          <pre className="text-os-xs mt-2 p-2 rounded overflow-auto">
                             {JSON.stringify(diagnosticResult.details, null, 2)}
                           </pre>
                         )}
                         {!diagnosticResult.success && (
-                          <div className="mt-2 text-xs space-y-1">
+                          <div className="mt-2 text-os-xs space-y-1">
                             <p><strong>Possible causes:</strong></p>
                             <ul className="list-disc list-inside ml-2 space-y-1">
                               <li>Domain <code>afrikoni.com</code> not verified in Resend</li>
@@ -508,7 +508,7 @@ export default function TestEmails() {
                 </Button>
               </div>
             </div>
-            <p className="text-sm mt-2">
+            <p className="text-os-sm mt-2">
               All test emails will be sent to this address from <strong>hello@afrikoni.com</strong>. Check your inbox (and spam folder) after sending.
             </p>
           </CardContent>
@@ -521,10 +521,10 @@ export default function TestEmails() {
               <Card key={test.name} className={detail?.status === 'success' ? 'border-green-200' : detail?.status === 'error' ? 'border-red-200' : ''}>
                 <CardHeader>
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{test.name}</CardTitle>
+                    <CardTitle className="text-os-lg">{test.name}</CardTitle>
                     {getStatusIcon(results[test.name])}
                   </div>
-                  <p className="text-sm mt-1">{test.description}</p>
+                  <p className="text-os-sm mt-1">{test.description}</p>
                 </CardHeader>
                 <CardContent>
                   <Button
@@ -538,10 +538,10 @@ export default function TestEmails() {
                   </Button>
                   {detail && (
                     <div className="mt-3 p-3 rounded-lg border">
-                      <div className="text-xs space-y-1">
+                      <div className="text-os-xs space-y-1">
                         <div className="flex items-center justify-between">
                           <span className="">From:</span>
-                          <span className={`font-mono text-xs ${detail.usesOfficialEmail ? 'text-green-600' : 'text-red-600'}`}>
+                          <span className={`font-mono text-os-xs ${detail.usesOfficialEmail ? 'text-green-600' : 'text-red-600'}`}>
                             {detail.from}
                           </span>
                         </div>
@@ -556,11 +556,11 @@ export default function TestEmails() {
                         {detail.messageId && (
                           <div className="flex items-center justify-between">
                             <span className="">Message ID:</span>
-                            <span className="font-mono text-xs">{detail.messageId}</span>
+                            <span className="font-mono text-os-xs">{detail.messageId}</span>
                           </div>
                         )}
                         {detail.error && (
-                          <div className="mt-2 p-2 rounded text-xs">
+                          <div className="mt-2 p-2 rounded text-os-xs">
                             Error: {detail.error}
                           </div>
                         )}
@@ -576,10 +576,10 @@ export default function TestEmails() {
           <Card className={detailedResults['Newsletter Subscription']?.status === 'success' ? 'border-green-200' : detailedResults['Newsletter Subscription']?.status === 'error' ? 'border-red-200' : ''}>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">Newsletter Subscription</CardTitle>
+                <CardTitle className="text-os-lg">Newsletter Subscription</CardTitle>
                 {getStatusIcon(results['Newsletter Subscription'])}
               </div>
-              <p className="text-sm mt-1">Tests the actual newsletter subscription flow (same as homepage popup)</p>
+              <p className="text-os-sm mt-1">Tests the actual newsletter subscription flow (same as homepage popup)</p>
             </CardHeader>
             <CardContent>
               <Button
@@ -593,10 +593,10 @@ export default function TestEmails() {
               </Button>
               {detailedResults['Newsletter Subscription'] && (
                 <div className="mt-3 p-3 rounded-lg border">
-                  <div className="text-xs space-y-1">
+                  <div className="text-os-xs space-y-1">
                     <div className="flex items-center justify-between">
                       <span className="">From:</span>
-                      <span className={`font-mono text-xs ${detailedResults['Newsletter Subscription'].usesOfficialEmail ? 'text-green-600' : 'text-red-600'}`}>
+                      <span className={`font-mono text-os-xs ${detailedResults['Newsletter Subscription'].usesOfficialEmail ? 'text-green-600' : 'text-red-600'}`}>
                         {detailedResults['Newsletter Subscription'].from}
                       </span>
                     </div>
@@ -609,7 +609,7 @@ export default function TestEmails() {
                       </div>
                     )}
                     {detailedResults['Newsletter Subscription'].error && (
-                      <div className="mt-2 p-2 rounded text-xs">
+                      <div className="mt-2 p-2 rounded text-os-xs">
                         Error: {detailedResults['Newsletter Subscription'].error}
                       </div>
                     )}
@@ -646,7 +646,7 @@ export default function TestEmails() {
                         <span className="font-semibold">Sending...</span>
                       )}
                     </div>
-                    <div className="text-sm space-y-1">
+                    <div className="text-os-sm space-y-1">
                       <div>From: <span className="font-mono">{detail.from}</span></div>
                       {detail.usesOfficialEmail !== undefined && (
                         <div>
@@ -655,9 +655,9 @@ export default function TestEmails() {
                           </span>
                         </div>
                       )}
-                      {detail.messageId && <div>Message ID: <span className="font-mono text-xs">{detail.messageId}</span></div>}
+                      {detail.messageId && <div>Message ID: <span className="font-mono text-os-xs">{detail.messageId}</span></div>}
                       {detail.error && <div className="">Error: {detail.error}</div>}
-                      {detail.timestamp && <div className="text-xs opacity-60">Sent: {new Date(detail.timestamp).toLocaleString()}</div>}
+                      {detail.timestamp && <div className="text-os-xs opacity-60">Sent: {new Date(detail.timestamp).toLocaleString()}</div>}
                     </div>
                   </div>
                 ))}

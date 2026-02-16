@@ -382,8 +382,8 @@ export default function SmartImageUploader({
         className={`
           relative border-2 border-dashed rounded-lg p-8 text-center transition-all
           ${dragOver 
-            ? 'border-afrikoni-gold bg-afrikoni-gold/5' 
-            : 'border-afrikoni-gold/30 hover:border-afrikoni-gold/50'
+            ? 'border-os-accent bg-os-accent/5' 
+            : 'border-os-accent/30 hover:border-os-accent/50'
           }
           ${uploading ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}
         `}
@@ -408,21 +408,21 @@ export default function SmartImageUploader({
               className="absolute inset-0 flex items-center justify-center bg-white/80 rounded-lg"
             >
               <div className="text-center">
-                <Sparkles className="w-8 h-8 text-afrikoni-gold animate-pulse mx-auto mb-2" />
-                <p className="text-sm text-afrikoni-deep">Uploading...</p>
+                <Sparkles className="w-8 h-8 text-os-accent animate-pulse mx-auto mb-2" />
+                <p className="text-os-sm text-afrikoni-deep">Uploading...</p>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        <Upload className="w-12 h-12 text-afrikoni-gold/70 mx-auto mb-3" />
+        <Upload className="w-12 h-12 text-os-accent/70 mx-auto mb-3" />
         <p className="text-afrikoni-chestnut font-medium mb-1">
           {images.length >= maxImages 
             ? `Maximum ${maxImages} images reached`
             : `Drag & drop or click to upload (${maxImages - images.length} remaining)`
           }
         </p>
-        <p className="text-xs text-afrikoni-deep/70">
+        <p className="text-os-xs text-afrikoni-deep/70">
           JPEG, PNG, WebP, GIF • Max {maxSizeMB}MB each • AI will auto-enhance
         </p>
       </div>
@@ -443,7 +443,7 @@ export default function SmartImageUploader({
                 onDragOver={(e) => handleDragOverItem(e, index)}
                 className={`
                   relative group aspect-square rounded-lg overflow-hidden border-2
-                  ${img.is_primary ? 'border-afrikoni-gold ring-2 ring-afrikoni-gold/20' : 'border-afrikoni-gold/20'}
+                  ${img.is_primary ? 'border-os-accent ring-2 ring-os-accent/20' : 'border-os-accent/20'}
                   ${draggedIndex === index ? 'opacity-50' : ''}
                   cursor-move
                 `}
@@ -472,7 +472,7 @@ export default function SmartImageUploader({
                     e.preventDefault();
                     removeImage(index);
                   }}
-                  className="absolute top-1 right-1 z-20 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 shadow-lg transition-all hover:scale-110"
+                  className="absolute top-1 right-1 z-20 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 shadow-os-md transition-all hover:scale-110"
                   title="Remove image"
                   aria-label="Remove image"
                 >
@@ -481,7 +481,7 @@ export default function SmartImageUploader({
 
                 {/* Primary badge */}
                 {img.is_primary && (
-                  <div className="absolute top-1 left-1 bg-afrikoni-gold text-white text-xs px-2 py-1 rounded font-semibold z-10">
+                  <div className="absolute top-1 left-1 bg-os-accent text-white text-os-xs px-2 py-1 rounded font-semibold z-10">
                     Main
                   </div>
                 )}
@@ -497,7 +497,7 @@ export default function SmartImageUploader({
                           e.stopPropagation();
                           setPrimary(index);
                         }}
-                        className="h-8 text-xs bg-white hover:bg-gray-100"
+                        className="h-8 text-os-xs bg-white hover:bg-gray-100"
                       >
                         Set Main
                       </Button>
@@ -520,9 +520,9 @@ export default function SmartImageUploader({
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
           <div className="flex gap-2">
             <AlertCircle className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <div className="text-sm text-blue-800">
+            <div className="text-os-sm text-blue-800">
               <p className="font-semibold mb-1">Image Tips:</p>
-              <ul className="list-disc list-inside space-y-1 text-xs">
+              <ul className="list-disc list-inside space-y-1 text-os-xs">
                 <li>Use high-resolution images (min 800x800px)</li>
                 <li>First image will be the main product photo</li>
                 <li>Show product from multiple angles</li>

@@ -176,7 +176,7 @@ export default function NewsletterPopup() {
             className="fixed inset-0 z-[201] flex items-center justify-center p-4"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="bg-white rounded-2xl shadow-afrikoni-xl max-w-md w-full relative overflow-hidden border-2 border-afrikoni-gold/20">
+            <div className="bg-white rounded-os-md shadow-os-gold-xl max-w-md w-full relative overflow-hidden border-2 border-os-accent/20">
               {/* Close Button */}
               <button
                 onClick={handleDismiss}
@@ -200,16 +200,16 @@ export default function NewsletterPopup() {
                   transition={{ duration: 0.3, delay: 0.2 }}
                 >
                   <motion.div 
-                    className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-afrikoni-gold/20 mb-4"
+                    className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-os-accent/20 mb-4"
                     whileHover={{ scale: 1.1, rotate: 5 }}
                     transition={{ type: "spring", stiffness: 300 }}
                   >
-                    <Gift className="w-8 h-8 text-afrikoni-gold" />
+                    <Gift className="w-8 h-8 text-os-accent" />
                   </motion.div>
-                  <h3 className="text-2xl font-bold text-afrikoni-chestnut mb-2">
+                  <h3 className="text-os-2xl font-bold text-afrikoni-chestnut mb-2">
                     Stay Updated with Afrikoni
                   </h3>
-                  <p className="text-afrikoni-deep/80 text-sm">
+                  <p className="text-afrikoni-deep/80 text-os-sm">
                     Get the latest B2B trade insights, supplier updates, and exclusive offers delivered to your inbox.
                   </p>
                 </motion.div>
@@ -243,7 +243,7 @@ export default function NewsletterPopup() {
                   >
                     <Button
                       type="submit"
-                      className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut h-12"
+                      className="w-full bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut h-12"
                       disabled={isSubmitting}
                     >
                       {isSubmitting ? 'Subscribing...' : 'Subscribe Now'}
@@ -251,7 +251,7 @@ export default function NewsletterPopup() {
                   </motion.div>
                   
                   <motion.p 
-                    className="text-xs text-afrikoni-deep/60 text-center"
+                    className="text-os-xs text-afrikoni-deep/60 text-center"
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.3, delay: 0.4 }}

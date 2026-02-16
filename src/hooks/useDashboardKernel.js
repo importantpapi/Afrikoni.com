@@ -27,7 +27,7 @@ import { supabase } from '@/api/supabaseClient';
  */
 export function useDashboardKernel() {
   // FIX: Use authReady (not authResolutionComplete) to match CapabilityContext
-  const { user, profile, authReady, loading: authLoading } = useAuth();
+  const { user, profile, authReady, loading: authLoading, handshakeData } = useAuth();
   const capabilities = useCapability();
   const navigate = useNavigate();
 
@@ -146,8 +146,13 @@ export function useDashboardKernel() {
     return () => clearTimeout(timer);
   }, [result.isSystemReady, result.isPreWarming, authReady, authLoading, capabilities.ready, user, profile]);
 
-  // ✅ KERNEL RECOVERY: Fetch Organization data when company ID becomes available
+  // ✅ KERNEL RECOVERY: Use handshakeData for Organization/Company state if available
   useEffect(() => {
+    if (handshakeData?.company) {
+      setOrganization(handshakeData.company);
+      return;
+    }
+
     if (!result.profileCompanyId) return;
 
     const fetchOrg = async () => {
@@ -175,9 +180,11 @@ export function useDashboardKernel() {
     const handleRefresh = () => fetchOrg();
     window.addEventListener('refresh-data', handleRefresh);
     return () => window.removeEventListener('refresh-data', handleRefresh);
-  }, [result.profileCompanyId]);
+  }, [result.profileCompanyId, handshakeData]);
 
-  // ✅ FINAL CLEANUP: Return result object (isPreWarming is already included)
-  // Removed duplicate preWarming state return - use isPreWarming from result object
-  return result;
+  // ✅ FINAL CLEANUP: Return result object with counts from handshake
+  return {
+    ...result,
+    stats: handshakeData?.counts || { active_trades: 0, pending_quotes: 0, unread_notifications: 0 }
+  };
 }

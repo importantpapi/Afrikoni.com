@@ -181,7 +181,7 @@ export default function RFQMarketplace() {
 
       <div className="min-h-screen bg-afrikoni-offwhite">
         {/* Header */}
-        <div className="bg-afrikoni-offwhite border-b border-afrikoni-gold/20 sticky top-0 z-30">
+        <div className="bg-afrikoni-offwhite border-b border-os-accent/20 sticky top-0 z-30">
           <div className="max-w-7xl mx-auto px-4 py-6 space-y-4">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div>
@@ -193,7 +193,7 @@ export default function RFQMarketplace() {
                 </p>
               </div>
               <Link to="/dashboard/rfqs/new">
-                <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream">
+                <Button className="bg-os-accent hover:bg-os-accentDark text-afrikoni-cream">
                   <FileText className="w-4 h-4 mr-2" />
                   Post an RFQ
                 </Button>
@@ -201,11 +201,11 @@ export default function RFQMarketplace() {
             </div>
 
             {/* Short explainer for suppliers */}
-            <div className="bg-white/90 border border-afrikoni-gold/30 rounded-lg p-4">
-              <p className="text-xs md:text-sm font-semibold text-afrikoni-chestnut uppercase tracking-wide mb-2">
+            <div className="bg-white/90 border border-os-accent/30 rounded-lg p-4">
+              <p className="text-os-xs md:text-os-sm font-semibold text-afrikoni-chestnut uppercase tracking-wide mb-2">
                 How to use this page as a supplier
               </p>
-              <div className="grid md:grid-cols-4 gap-3 text-xs md:text-sm text-afrikoni-deep">
+              <div className="grid md:grid-cols-4 gap-3 text-os-xs md:text-os-sm text-afrikoni-deep">
                 <div>
                   <p className="font-semibold text-afrikoni-chestnut mb-1">1. Find good RFQs</p>
                   <p>Use search and filters to focus on products, quantities and countries you can really serve well.</p>
@@ -307,10 +307,10 @@ export default function RFQMarketplace() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: idx * 0.05 }}
                 >
-                  <Card className="h-full hover:shadow-lg transition-shadow">
+                  <Card className="h-full hover:shadow-os-md transition-shadow">
                     <CardHeader>
                       <div className="flex items-start justify-between mb-2">
-                        <CardTitle className="text-xl">{rfq.title}</CardTitle>
+                        <CardTitle className="text-os-xl">{rfq.title}</CardTitle>
                         <div className="flex items-center gap-2">
                           <Badge className={getStatusBadge(rfq.status)}>
                             {rfq.status}
@@ -322,13 +322,13 @@ export default function RFQMarketplace() {
                       {rfq?.companies && (
                         <div className="flex items-center gap-2 mb-2">
                           <MapPin className="w-4 h-4 text-afrikoni-deep/70" />
-                          <span className="text-sm text-afrikoni-deep">{rfq.companies?.country || 'N/A'}</span>
+                          <span className="text-os-sm text-afrikoni-deep">{rfq.companies?.country || 'N/A'}</span>
                           {rfq.companies?.verified && (
-                            <Badge variant="verified" className="text-xs">Verified Buyer</Badge>
+                            <Badge variant="verified" className="text-os-xs">Verified Buyer</Badge>
                           )}
                         </div>
                       )}
-                      <div className="flex items-center gap-4 text-sm text-afrikoni-deep">
+                      <div className="flex items-center gap-4 text-os-sm text-afrikoni-deep">
                         <div className="flex items-center gap-1">
                           <Package className="w-4 h-4" />
                           <span>{rfq.categories?.name || 'Uncategorized'}</span>
@@ -366,7 +366,7 @@ export default function RFQMarketplace() {
                           }}
                         />
                         {aiSummaries[rfq.id]?.suggested_price_min != null && (
-                          <span className="text-[11px] text-afrikoni-deep/80">
+                          <span className="text-os-xs text-afrikoni-deep/80">
                             Suggested range:{' '}
                             <span className="font-semibold">
                               $
@@ -384,21 +384,21 @@ export default function RFQMarketplace() {
                         </AISummaryBox>
                       )}
                       
-                      <div className="grid grid-cols-2 gap-4 pt-4 border-t border-afrikoni-gold/20">
+                      <div className="grid grid-cols-2 gap-4 pt-4 border-t border-os-accent/20">
                         <div>
-                          <p className="text-xs text-afrikoni-deep/70 mb-1">Quantity</p>
+                          <p className="text-os-xs text-afrikoni-deep/70 mb-1">Quantity</p>
                           <p className="font-semibold text-afrikoni-chestnut">
                             {rfq?.quantity ?? 0} {rfq?.unit || 'pieces'}
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-afrikoni-deep/70 mb-1">Target Price</p>
+                          <p className="text-os-xs text-afrikoni-deep/70 mb-1">Target Price</p>
                           <p className="font-semibold text-afrikoni-chestnut">
                             {rfq?.target_price ? `$${parseFloat(rfq.target_price).toLocaleString()}` : 'Negotiable'}
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-afrikoni-deep/70 mb-1">Deadline</p>
+                          <p className="text-os-xs text-afrikoni-deep/70 mb-1">Deadline</p>
                           <p className="font-semibold text-afrikoni-chestnut">
                             {rfq?.timeRemaining ? (
                               <span className={rfq.timeRemaining.urgent ? 'text-red-600' : ''}>
@@ -410,11 +410,11 @@ export default function RFQMarketplace() {
                           </p>
                         </div>
                         <div>
-                          <p className="text-xs text-afrikoni-deep/70 mb-1">Responses</p>
+                          <p className="text-os-xs text-afrikoni-deep/70 mb-1">Responses</p>
                           <p className="font-semibold text-afrikoni-chestnut">
                             {rfq?.quote_count ?? 0} quotes
                             {rfq?.avg_quote_price && typeof rfq.avg_quote_price === 'number' && (
-                              <span className="text-xs text-afrikoni-deep/70 block mt-1">
+                              <span className="text-os-xs text-afrikoni-deep/70 block mt-1">
                                 Avg: ${rfq.avg_quote_price.toFixed(2)}
                               </span>
                             )}
@@ -422,7 +422,7 @@ export default function RFQMarketplace() {
                           {rfq?.competition_level && (
                             <Badge 
                               variant={rfq.competition_level === 'Low' ? 'default' : rfq.competition_level === 'Medium' ? 'secondary' : 'destructive'} 
-                              className="text-xs mt-1"
+                              className="text-os-xs mt-1"
                             >
                               {rfq.competition_level} Competition
                             </Badge>
@@ -439,7 +439,7 @@ export default function RFQMarketplace() {
                           View Details
                         </Button>
                         <Button
-                          className="flex-1 bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream"
+                          className="flex-1 bg-os-accent hover:bg-os-accentDark text-afrikoni-cream"
                           onClick={() => navigate(`/rfq/detail?id=${rfq.id}&action=quote`)}
                         >
                           Send Quote

@@ -191,7 +191,7 @@ export default function IntakeEngine() {
               Intake Engine
             </div>
             <h1 className="text-3xl font-light mt-2 text-white">Initialize Trade</h1>
-            <p className="text-sm text-os-muted mt-1">Describe your intent. The Kernel structures it.</p>
+            <p className="text-os-sm text-os-muted mt-1">Describe your intent. The Kernel structures it.</p>
           </div>
           <Link to="/dashboard/rfqs">
             <Button variant="outline" className="border-white/10 hover:bg-white/5">Cancel</Button>
@@ -211,12 +211,12 @@ export default function IntakeEngine() {
           >
             <Surface variant="panel" className="p-10 flex flex-col items-center justify-center min-h-[400px] border border-[#D4A937]/30 bg-[#D4A937]/5 relative">
               <div className="w-full max-w-2xl space-y-4">
-                <Label className="text-lg text-[#D4A937] font-medium">What do you want to source?</Label>
+                <Label className="text-os-lg text-[#D4A937] font-medium">What do you want to source?</Label>
                 <Textarea
                   value={magicInput}
                   onChange={(e) => setMagicInput(e.target.value)}
                   placeholder="e.g. I need 200 tons of Shea Butter delivered to Tema Port by next month. Target price is $1200 per ton."
-                  className="min-h-[160px] text-xl bg-black/50 border-white/10 focus:border-[#D4A937] p-6 resize-none leading-relaxed"
+                  className="min-h-[160px] text-os-xl bg-black/50 border-white/10 focus:border-[#D4A937] p-6 resize-none leading-relaxed"
                   autoFocus
                 />
                 <div className="flex justify-end">
@@ -224,7 +224,7 @@ export default function IntakeEngine() {
                     size="lg"
                     onClick={analyzeIntent}
                     disabled={!magicInput.trim() || isAnalyzing}
-                    className="bg-[#D4A937] text-black hover:bg-[#C09830] font-bold text-lg px-8 h-14 rounded-xl"
+                    className="bg-[#D4A937] text-black hover:bg-[#C09830] font-bold text-os-lg px-8 h-14 rounded-os-sm"
                   >
                     {isAnalyzing ? (
                       <>
@@ -238,7 +238,7 @@ export default function IntakeEngine() {
                   </Button>
                 </div>
                 <div className="text-center">
-                  <button onClick={() => setMode('form')} className="text-sm text-white/40 hover:text-white mt-4 underline decoration-white/20">
+                  <button onClick={() => setMode('form')} className="text-os-sm text-white/40 hover:text-white mt-4 underline decoration-white/20">
                     Skip AI, use manual form
                   </button>
                 </div>
@@ -255,7 +255,7 @@ export default function IntakeEngine() {
             transition={{ duration: 0.3 }}
           >
             <Surface variant="panel" className="p-6 md:p-8 space-y-8">
-              <div className="flex items-center gap-3 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-sm">
+              <div className="flex items-center gap-3 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-os-sm text-emerald-400 text-os-sm">
                 <CheckCircle2 className="w-5 h-5" />
                 AI successfully extracted intent. Please verify the details below.
               </div>
@@ -341,12 +341,12 @@ export default function IntakeEngine() {
                     <Label className="mb-2 block">Attachments</Label>
                     <div className="border-2 border-dashed border-white/10 rounded-lg p-4 text-center hover:border-[#D4A937] transition cursor-pointer bg-black/20">
                       <Upload className="w-5 h-5 mx-auto mb-2 text-os-muted" />
-                      <div className="text-xs text-os-muted">Drag files or click</div>
+                      <div className="text-os-xs text-os-muted">Drag files or click</div>
                     </div>
                   </div>
                 </div>
 
-                {error && <p className="text-sm text-red-400 bg-red-400/10 p-3 rounded">{error}</p>}
+                {error && <p className="text-os-sm text-red-400 bg-red-400/10 p-3 rounded">{error}</p>}
 
                 <div className="flex flex-wrap gap-4 justify-end pt-4 border-t border-white/5">
                   <Button type="button" variant="ghost" onClick={() => setMode('magic')}>
@@ -368,7 +368,7 @@ export default function IntakeEngine() {
 function Field({ label, value, onChange, placeholder, type = 'text', required }) {
   return (
     <div className="flex flex-col gap-2">
-      <Label className="text-os-muted uppercase text-xs tracking-wider">{label}{required ? ' *' : ''}</Label>
+      <Label className="text-os-muted uppercase text-os-xs tracking-wider">{label}{required ? ' *' : ''}</Label>
       <Input
         type={type}
         value={value}

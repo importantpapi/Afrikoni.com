@@ -19,8 +19,8 @@ export default function TrustScoreCard({ trustData }) {
             {/* Header */}
             <div className="p-4 border-b border-white/5 bg-white/5 flex items-center justify-between">
                 <div>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Trust Score</h3>
-                    <p className="text-xs text-white/50">Afrikoni Verified™</p>
+                    <h3 className="text-os-sm font-bold text-white uppercase tracking-wider">Trust Score</h3>
+                    <p className="text-os-xs text-white/50">Afrikoni Verified™</p>
                 </div>
                 <TrustBadge score={total_score} level={level} size="lg" />
             </div>
@@ -29,7 +29,7 @@ export default function TrustScoreCard({ trustData }) {
             <div className="p-4 space-y-4">
                 {pillars.map((pillar) => (
                     <div key={pillar.label} className="space-y-1">
-                        <div className="flex justify-between text-xs">
+                        <div className="flex justify-between text-os-xs">
                             <span className="flex items-center gap-1.5 text-white/80">
                                 <pillar.icon className="w-3 h-3 text-[#D4A937]" />
                                 {pillar.label}
@@ -50,7 +50,7 @@ export default function TrustScoreCard({ trustData }) {
             </div>
 
             {/* Footer */}
-            <div className="px-4 py-3 bg-white/5 border-t border-white/5 text-[10px] text-center text-white/40">
+            <div className="px-4 py-3 bg-white/5 border-t border-white/5 text-os-xs text-center text-white/40">
                 Score updated dynamically based on real-time trade data.
             </div>
         </Surface>

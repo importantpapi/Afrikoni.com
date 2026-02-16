@@ -284,7 +284,7 @@ export default function KoniAIChat({ mode = 'floating', className = '' }) {
       >
         {/* Avatar */}
         <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-          isUser ? 'bg-afrikoni-gold' : 'bg-gradient-to-br from-amber-500 to-orange-600'
+          isUser ? 'bg-os-accent' : 'bg-gradient-to-br from-amber-500 to-orange-600'
         }`}>
           {isUser ? (
             <User className="w-4 h-4 text-white" />
@@ -295,14 +295,14 @@ export default function KoniAIChat({ mode = 'floating', className = '' }) {
 
         {/* Message Content */}
         <div className={`flex-1 max-w-[80%] ${isUser ? 'text-right' : ''}`}>
-          <div className={`inline-block px-4 py-3 rounded-2xl ${
+          <div className={`inline-block px-4 py-3 rounded-os-md ${
             isUser
-              ? 'bg-afrikoni-gold text-white rounded-br-md'
+              ? 'bg-os-accent text-white rounded-br-md'
               : message.isError
                 ? 'bg-red-50 text-red-700 border border-red-200 rounded-bl-md'
                 : 'bg-stone-100 text-afrikoni-chestnut rounded-bl-md'
           }`}>
-            <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+            <p className="text-os-sm whitespace-pre-wrap">{message.content}</p>
           </div>
 
           {/* Action Buttons */}
@@ -312,7 +312,7 @@ export default function KoniAIChat({ mode = 'floating', className = '' }) {
                 <button
                   key={idx}
                   onClick={() => handleActionClick(action)}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-afrikoni-gold bg-amber-50 hover:bg-amber-100 rounded-full transition-colors"
+                  className="inline-flex items-center gap-1 px-3 py-1.5 text-os-xs font-medium text-os-accent bg-amber-50 hover:bg-amber-100 rounded-full transition-colors"
                 >
                   {action.label}
                   <ArrowRight className="w-3 h-3" />
@@ -328,7 +328,7 @@ export default function KoniAIChat({ mode = 'floating', className = '' }) {
                 <button
                   key={idx}
                   onClick={() => handleSuggestionClick(suggestion)}
-                  className="px-3 py-1.5 text-xs text-afrikoni-deep bg-white border border-stone-200 hover:border-afrikoni-gold hover:text-afrikoni-gold rounded-full transition-colors"
+                  className="px-3 py-1.5 text-os-xs text-afrikoni-deep bg-white border border-stone-200 hover:border-os-accent hover:text-os-accent rounded-full transition-colors"
                 >
                   {suggestion}
                 </button>
@@ -337,7 +337,7 @@ export default function KoniAIChat({ mode = 'floating', className = '' }) {
           )}
 
           {/* Timestamp */}
-          <p className={`text-[10px] text-stone-400 mt-1 ${isUser ? 'text-right' : ''}`}>
+          <p className={`text-os-xs text-stone-400 mt-1 ${isUser ? 'text-right' : ''}`}>
             {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
@@ -358,14 +358,14 @@ export default function KoniAIChat({ mode = 'floating', className = '' }) {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setIsOpen(true)}
-              className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-br from-afrikoni-gold to-amber-600 rounded-full shadow-lg hover:shadow-xl flex items-center justify-center group"
+              className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-br from-os-accent to-amber-600 rounded-full shadow-os-md hover:shadow-os-lg flex items-center justify-center group"
               aria-label="Open KoniAI+ Chat"
             >
               <Sparkles className="w-6 h-6 text-white" />
               {/* Pulse animation */}
-              <span className="absolute inset-0 rounded-full bg-afrikoni-gold animate-ping opacity-25" />
+              <span className="absolute inset-0 rounded-full bg-os-accent animate-ping opacity-25" />
               {/* Tooltip */}
-              <span className="absolute right-full mr-3 px-3 py-1.5 bg-afrikoni-chestnut text-white text-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+              <span className="absolute right-full mr-3 px-3 py-1.5 bg-afrikoni-chestnut text-white text-os-sm rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
                 Ask KoniAI+
               </span>
             </motion.button>
@@ -388,20 +388,20 @@ export default function KoniAIChat({ mode = 'floating', className = '' }) {
             transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className={[
               isEmbedded
-                ? 'w-full max-w-full bg-white rounded-2xl shadow-premium-lg overflow-hidden flex flex-col border border-stone-200'
-                : 'fixed bottom-6 right-6 z-50 w-[380px] max-w-[calc(100vw-48px)] bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-stone-200',
+                ? 'w-full max-w-full bg-white rounded-os-md shadow-os-md-lg overflow-hidden flex flex-col border border-stone-200'
+                : 'fixed bottom-6 right-6 z-50 w-[380px] max-w-[calc(100vw-48px)] bg-white rounded-os-md shadow-2xl overflow-hidden flex flex-col border border-stone-200',
               className,
             ].join(' ')}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-afrikoni-gold to-amber-500">
+            <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-os-accent to-amber-500">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
                   <Sparkles className="w-5 h-5 text-white" />
                 </div>
                 <div>
                   <h3 className="font-semibold text-white">KoniAI+</h3>
-                  <p className="text-xs text-white/80">Your Trade Assistant</p>
+                  <p className="text-os-xs text-white/80">Your Trade Assistant</p>
                 </div>
               </div>
               {!isEmbedded && (
@@ -445,11 +445,11 @@ export default function KoniAIChat({ mode = 'floating', className = '' }) {
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center">
                         <Sparkles className="w-4 h-4 text-white" />
                       </div>
-                      <div className="bg-stone-100 rounded-2xl rounded-bl-md px-4 py-3">
+                      <div className="bg-stone-100 rounded-os-md rounded-bl-md px-4 py-3">
                         <div className="flex gap-1">
-                          <span className="w-2 h-2 bg-afrikoni-gold rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                          <span className="w-2 h-2 bg-afrikoni-gold rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                          <span className="w-2 h-2 bg-afrikoni-gold rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                          <span className="w-2 h-2 bg-os-accent rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                          <span className="w-2 h-2 bg-os-accent rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                          <span className="w-2 h-2 bg-os-accent rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                         </div>
                       </div>
                     </motion.div>
@@ -463,15 +463,15 @@ export default function KoniAIChat({ mode = 'floating', className = '' }) {
                   <div className="px-4 py-3 border-t border-stone-200 bg-white space-y-3">
                     {kernelSuggestions.length > 0 && (
                       <div>
-                        <p className="text-xs text-stone-500 mb-2">Kernel Suggestions</p>
+                        <p className="text-os-xs text-stone-500 mb-2">Kernel Suggestions</p>
                         <div className="grid grid-cols-2 gap-2">
                           {kernelSuggestions.map((action) => (
                             <button
                               key={action.id}
                               onClick={() => sendMessage(action.prompt)}
-                              className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-afrikoni-deep bg-amber-50 hover:bg-afrikoni-gold/15 hover:text-afrikoni-gold rounded-lg transition-colors text-left"
+                              className="flex items-center gap-2 px-3 py-2 text-os-xs font-medium text-afrikoni-deep bg-amber-50 hover:bg-os-accent/15 hover:text-os-accent rounded-lg transition-colors text-left"
                             >
-                              <Sparkles className="w-4 h-4 flex-shrink-0 text-afrikoni-gold" />
+                              <Sparkles className="w-4 h-4 flex-shrink-0 text-os-accent" />
                               {action.label}
                             </button>
                           ))}
@@ -479,7 +479,7 @@ export default function KoniAIChat({ mode = 'floating', className = '' }) {
                       </div>
                     )}
                     <div>
-                      <p className="text-xs text-stone-500 mb-2">Quick Actions</p>
+                      <p className="text-os-xs text-stone-500 mb-2">Quick Actions</p>
                       <div className="grid grid-cols-2 gap-2">
                         {QuickActions.slice(0, 4).map((action) => {
                           const Icon = IconMap[action.icon] || MessageCircle;
@@ -487,7 +487,7 @@ export default function KoniAIChat({ mode = 'floating', className = '' }) {
                             <button
                               key={action.id}
                               onClick={() => handleQuickAction(action)}
-                              className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-afrikoni-deep bg-stone-50 hover:bg-afrikoni-gold/10 hover:text-afrikoni-gold rounded-lg transition-colors text-left"
+                              className="flex items-center gap-2 px-3 py-2 text-os-xs font-medium text-afrikoni-deep bg-stone-50 hover:bg-os-accent/10 hover:text-os-accent rounded-lg transition-colors text-left"
                             >
                               <Icon className="w-4 h-4 flex-shrink-0" />
                               {action.label}
@@ -508,13 +508,13 @@ export default function KoniAIChat({ mode = 'floating', className = '' }) {
                       value={inputValue}
                       onChange={(e) => setInputValue(e.target.value)}
                       placeholder="Ask about trade, RFQs, suppliers..."
-                      className="flex-1 px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-xl text-sm focus:outline-none focus:border-afrikoni-gold focus:ring-1 focus:ring-afrikoni-gold/20 placeholder:text-stone-400"
+                      className="flex-1 px-4 py-2.5 bg-stone-50 border border-stone-200 rounded-os-sm text-os-sm focus:outline-none focus:border-os-accent focus:ring-1 focus:ring-os-accent/20 placeholder:text-stone-400"
                       disabled={isLoading}
                     />
                     <button
                       type="submit"
                       disabled={!inputValue.trim() || isLoading}
-                      className="px-4 py-2.5 bg-afrikoni-gold text-white rounded-xl hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      className="px-4 py-2.5 bg-os-accent text-white rounded-os-sm hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       {isLoading ? (
                         <Loader2 className="w-5 h-5 animate-spin" />
@@ -523,7 +523,7 @@ export default function KoniAIChat({ mode = 'floating', className = '' }) {
                       )}
                     </button>
                   </div>
-                  <p className="text-[10px] text-stone-400 mt-2 text-center">
+                  <p className="text-os-xs text-stone-400 mt-2 text-center">
                     Powered by KoniAI+ | Afrikoni Trade Intelligence
                   </p>
                 </form>

@@ -148,8 +148,8 @@ export function getHealthStatusColor(score) {
 
     if (score >= HEALTH_STATUS.GOOD) {
         return {
-            bg: 'bg-blue-500/10',
-            border: 'border-blue-500/20',
+            bg: 'bg-os-blue/10',
+            border: 'border-os-blue/20',
             text: 'text-blue-400',
             gradient: 'from-blue-500 to-blue-600',
         };
@@ -165,8 +165,8 @@ export function getHealthStatusColor(score) {
     }
 
     return {
-        bg: 'bg-red-500/10',
-        border: 'border-red-500/20',
+        bg: 'bg-os-red/10',
+        border: 'border-os-red/20',
         text: 'text-red-400',
         gradient: 'from-red-500 to-red-600',
     };
@@ -191,8 +191,8 @@ export function getRiskLevelColor(risk) {
             };
         case 'high':
             return {
-                bg: 'bg-red-500/10',
-                border: 'border-red-500/20',
+                bg: 'bg-os-red/10',
+                border: 'border-os-red/20',
                 text: 'text-red-400',
             };
     }

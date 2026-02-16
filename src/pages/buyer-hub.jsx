@@ -117,10 +117,10 @@ export default function BuyerHub() {
         <SystemPageSection>
           <div className="grid md:grid-cols-2 gap-8 mb-12">
             {/* Verified Suppliers Program */}
-            <Card className="border-afrikoni-gold/30 bg-afrikoni-cream">
+            <Card className="border-os-accent/30 bg-afrikoni-cream">
               <CardHeader>
                 <CardTitle className="text-h3 font-semibold leading-[1.3] text-afrikoni-chestnut flex items-center gap-3">
-                  <Users className="w-8 h-8 text-afrikoni-gold" />
+                  <Users className="w-8 h-8 text-os-accent" />
                   Verified Suppliers Program
                 </CardTitle>
               </CardHeader>
@@ -131,13 +131,13 @@ export default function BuyerHub() {
                 <ul className="space-y-2">
                   {['Business registration verification', 'Identity verification (KYC)', 'Bank account verification', 'Trade history review', 'Quality certifications'].map((item, idx) => (
                     <li key={idx} className="flex items-start gap-2">
-                      <CheckCircle className="w-5 h-5 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+                      <CheckCircle className="w-5 h-5 text-os-accent flex-shrink-0 mt-0.5" />
                       <span className="text-body font-normal leading-[1.6] text-afrikoni-chestnut/80">{item}</span>
                     </li>
                   ))}
                 </ul>
                 <Link to="/suppliers">
-                  <Button className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white">
+                  <Button className="w-full bg-os-accent hover:bg-os-accentDark text-white">
                     Browse Verified Suppliers
                   </Button>
                 </Link>
@@ -145,10 +145,10 @@ export default function BuyerHub() {
             </Card>
 
             {/* RFQ Marketplace */}
-            <Card className="border-afrikoni-gold/30 bg-afrikoni-cream">
+            <Card className="border-os-accent/30 bg-afrikoni-cream">
               <CardHeader>
                 <CardTitle className="text-h3 font-semibold leading-[1.3] text-afrikoni-chestnut flex items-center gap-3">
-                  <FileText className="w-8 h-8 text-afrikoni-gold" />
+                  <FileText className="w-8 h-8 text-os-accent" />
                   RFQ Marketplace
                 </CardTitle>
               </CardHeader>
@@ -159,13 +159,13 @@ export default function BuyerHub() {
                 <ul className="space-y-2">
                   {['Specify your requirements', 'Receive multiple quotes', 'Compare prices and terms', 'Choose the best supplier'].map((item, idx) => (
                     <li key={idx} className="flex items-start gap-2">
-                      <CheckCircle className="w-5 h-5 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+                      <CheckCircle className="w-5 h-5 text-os-accent flex-shrink-0 mt-0.5" />
                       <span className="text-body font-normal leading-[1.6] text-afrikoni-chestnut/80">{item}</span>
                     </li>
                   ))}
                 </ul>
                 <Link to="/rfq/create">
-                  <Button className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white">
+                  <Button className="w-full bg-os-accent hover:bg-os-accentDark text-white">
                     Post an RFQ
                   </Button>
                 </Link>

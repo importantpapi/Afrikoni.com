@@ -101,8 +101,8 @@ export default function BuyerCentral() {
       title: 'Verified Suppliers',
       description: 'Connect with pre-verified suppliers who have passed KYC, business registration, and trade history checks.',
       features: ['KYC verified', 'Business verified', 'Trade history', 'Quality ratings'],
-      color: 'bg-afrikoni-gold/20 text-afrikoni-gold',
-      iconBg: 'bg-afrikoni-gold/30',
+      color: 'bg-os-accent/20 text-os-accent',
+      iconBg: 'bg-os-accent/30',
       link: '/suppliers'
     },
     {
@@ -224,10 +224,10 @@ export default function BuyerCentral() {
       
       <div className="min-h-screen bg-gradient-to-b from-afrikoni-offwhite to-white">
         {/* Breadcrumb */}
-        <div className="bg-white border-b border-afrikoni-gold/20">
+        <div className="bg-white border-b border-os-accent/20">
           <div className="max-w-7xl mx-auto px-4 py-3">
-            <div className="flex items-center gap-2 text-sm text-afrikoni-deep">
-              <Link to="/" className="hover:text-afrikoni-gold flex items-center gap-1 transition-colors">
+            <div className="flex items-center gap-2 text-os-sm text-afrikoni-deep">
+              <Link to="/" className="hover:text-os-accent flex items-center gap-1 transition-colors">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                 </svg>
@@ -248,24 +248,24 @@ export default function BuyerCentral() {
               transition={{ duration: 0.6 }}
               className="text-center mb-12"
             >
-              <Badge className="mb-4 bg-afrikoni-gold/20 text-afrikoni-gold border-afrikoni-gold/30">
+              <Badge className="mb-4 bg-os-accent/20 text-os-accent border-os-accent/30">
                 Buyer Resource Center
               </Badge>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6">
                 Source Products from Africa with Confidence
               </h1>
-              <p className="text-xl md:text-2xl text-afrikoni-cream/90 mb-8 max-w-3xl mx-auto">
+              <p className="text-os-xl md:text-os-2xl text-afrikoni-cream/90 mb-8 max-w-3xl mx-auto">
                 Your one-stop destination for sourcing quality products from verified African suppliers. Access tools, services, and resources designed specifically for buyers.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Link to="/signup">
-                  <Button size="lg" className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut text-lg px-8 py-6">
+                  <Button size="lg" className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut text-os-lg px-8 py-6">
                     Get Started Free
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>
                 </Link>
                 <Link to="/marketplace">
-                  <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-6">
+                  <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white/10 text-os-lg px-8 py-6">
                     Browse Products
                   </Button>
                 </Link>
@@ -278,7 +278,7 @@ export default function BuyerCentral() {
                 { label: 'Products', value: `${(stats.products / 1000000).toFixed(1)}M+`, icon: Package, color: 'bg-blue-500' },
                 { label: 'Suppliers', value: `${(stats.suppliers / 1000).toFixed(0)}K+`, icon: Users, color: 'bg-green-500' },
                 { label: 'Countries', value: stats.countries, icon: Globe, color: 'bg-purple-500' },
-                { label: 'Success Rate', value: `${stats.successRate}%`, icon: Award, color: 'bg-afrikoni-gold' },
+                { label: 'Success Rate', value: `${stats.successRate}%`, icon: Award, color: 'bg-os-accent' },
                 { label: 'Active Buyers', value: `${(stats.activeBuyers / 1000).toFixed(1)}K+`, icon: ShoppingCart, color: 'bg-orange-500' },
                 { label: 'Orders', value: `${(stats.ordersCompleted / 1000).toFixed(0)}K+`, icon: CheckCircle, color: 'bg-indigo-500' }
               ].map((stat, idx) => {
@@ -295,8 +295,8 @@ export default function BuyerCentral() {
                         <div className={`w-10 h-10 ${stat.color} rounded-lg flex items-center justify-center mx-auto mb-2`}>
                           <Icon className="w-5 h-5 text-white" />
                         </div>
-                        <div className="text-2xl md:text-3xl font-bold text-white mb-1">{stat.value}</div>
-                        <div className="text-xs md:text-sm text-afrikoni-cream/80">{stat.label}</div>
+                        <div className="text-os-2xl md:text-3xl font-bold text-white mb-1">{stat.value}</div>
+                        <div className="text-os-xs md:text-os-sm text-afrikoni-cream/80">{stat.label}</div>
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -319,7 +319,7 @@ export default function BuyerCentral() {
               <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
                 Everything You Need to Source Successfully
               </h2>
-              <p className="text-lg text-afrikoni-deep/80 max-w-2xl mx-auto">
+              <p className="text-os-lg text-afrikoni-deep/80 max-w-2xl mx-auto">
                 Comprehensive tools and services designed to make your sourcing journey smooth and secure
               </p>
             </motion.div>
@@ -335,25 +335,25 @@ export default function BuyerCentral() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: idx * 0.1 }}
                   >
-                    <Card className="h-full border-afrikoni-gold/20 hover:border-afrikoni-gold hover:shadow-xl transition-all group">
+                    <Card className="h-full border-os-accent/20 hover:border-os-accent hover:shadow-os-lg transition-all group">
                       <CardHeader>
-                        <div className={`w-14 h-14 ${service.iconBg} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                        <div className={`w-14 h-14 ${service.iconBg} rounded-os-sm flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
                           <Icon className={`w-7 h-7 ${service.color.split(' ')[1]}`} />
                         </div>
-                        <CardTitle className="text-xl mb-2">{service.title}</CardTitle>
-                        <CardDescription className="text-base">{service.description}</CardDescription>
+                        <CardTitle className="text-os-xl mb-2">{service.title}</CardTitle>
+                        <CardDescription className="text-os-base">{service.description}</CardDescription>
                       </CardHeader>
                       <CardContent>
                         <ul className="space-y-2 mb-6">
                           {service.features.map((feature, fIdx) => (
-                            <li key={fIdx} className="flex items-center gap-2 text-sm text-afrikoni-deep/80">
+                            <li key={fIdx} className="flex items-center gap-2 text-os-sm text-afrikoni-deep/80">
                               <CheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
                               {feature}
                             </li>
                           ))}
                         </ul>
                         <Link to={service.link}>
-                          <Button className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut">
+                          <Button className="w-full bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut">
                             Learn More
                             <ArrowRight className="ml-2 w-4 h-4" />
                           </Button>
@@ -380,7 +380,7 @@ export default function BuyerCentral() {
               <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
                 How Sourcing Works on Afrikoni
               </h2>
-              <p className="text-lg text-afrikoni-deep/80 max-w-2xl mx-auto">
+              <p className="text-os-lg text-afrikoni-deep/80 max-w-2xl mx-auto">
                 A simple 4-step process from search to delivery
               </p>
             </motion.div>
@@ -397,17 +397,17 @@ export default function BuyerCentral() {
                     transition={{ duration: 0.5, delay: idx * 0.1 }}
                     className="relative"
                   >
-                    <Card className="h-full border-afrikoni-gold/20 hover:shadow-lg transition-all">
+                    <Card className="h-full border-os-accent/20 hover:shadow-os-md transition-all">
                       <CardHeader>
                         <div className="flex items-center justify-between mb-4">
-                          <div className={`w-12 h-12 ${step.color} rounded-xl flex items-center justify-center`}>
+                          <div className={`w-12 h-12 ${step.color} rounded-os-sm flex items-center justify-center`}>
                             <Icon className="w-6 h-6 text-white" />
                           </div>
-                          <Badge className="bg-afrikoni-gold/20 text-afrikoni-gold border-afrikoni-gold/30">
+                          <Badge className="bg-os-accent/20 text-os-accent border-os-accent/30">
                             Step {step.step}
                           </Badge>
                         </div>
-                        <CardTitle className="text-xl">{step.title}</CardTitle>
+                        <CardTitle className="text-os-xl">{step.title}</CardTitle>
                       </CardHeader>
                       <CardContent>
                         <p className="text-afrikoni-deep/80">{step.description}</p>
@@ -415,7 +415,7 @@ export default function BuyerCentral() {
                     </Card>
                     {idx < howItWorks.length - 1 && (
                       <div className="hidden lg:block absolute top-1/2 -right-3 transform -translate-y-1/2 z-10">
-                        <ArrowRight className="w-6 h-6 text-afrikoni-gold/50" />
+                        <ArrowRight className="w-6 h-6 text-os-accent/50" />
                       </div>
                     )}
                   </motion.div>
@@ -451,16 +451,16 @@ export default function BuyerCentral() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: idx * 0.1 }}
                   >
-                    <Card className="h-full border-afrikoni-gold/20 text-center hover:shadow-lg transition-all">
+                    <Card className="h-full border-os-accent/20 text-center hover:shadow-os-md transition-all">
                       <CardContent className="p-6">
-                        <div className="w-16 h-16 bg-afrikoni-gold/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <Icon className="w-8 h-8 text-afrikoni-gold" />
+                        <div className="w-16 h-16 bg-os-accent/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <Icon className="w-8 h-8 text-os-accent" />
                         </div>
-                        <Badge className="mb-3 bg-afrikoni-gold/20 text-afrikoni-gold border-afrikoni-gold/30">
+                        <Badge className="mb-3 bg-os-accent/20 text-os-accent border-os-accent/30">
                           {benefit.stat}
                         </Badge>
-                        <h3 className="text-lg font-bold text-afrikoni-chestnut mb-2">{benefit.title}</h3>
-                        <p className="text-sm text-afrikoni-deep/80">{benefit.description}</p>
+                        <h3 className="text-os-lg font-bold text-afrikoni-chestnut mb-2">{benefit.title}</h3>
+                        <p className="text-os-sm text-afrikoni-deep/80">{benefit.description}</p>
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -483,7 +483,7 @@ export default function BuyerCentral() {
               <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
                 Buyer Resources & Guides
               </h2>
-              <p className="text-lg text-afrikoni-deep/80 max-w-2xl mx-auto">
+              <p className="text-os-lg text-afrikoni-deep/80 max-w-2xl mx-auto">
                 Access free guides, best practices, and support resources
               </p>
             </motion.div>
@@ -499,20 +499,20 @@ export default function BuyerCentral() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: idx * 0.1 }}
                   >
-                    <Card className="h-full border-afrikoni-gold/20 hover:border-afrikoni-gold hover:shadow-lg transition-all group">
+                    <Card className="h-full border-os-accent/20 hover:border-os-accent hover:shadow-os-md transition-all group">
                       <CardHeader>
                         <div className="flex items-start justify-between mb-2">
-                          <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-lg flex items-center justify-center group-hover:bg-afrikoni-gold/30 transition-colors">
-                            <Icon className="w-6 h-6 text-afrikoni-gold" />
+                          <div className="w-12 h-12 bg-os-accent/20 rounded-lg flex items-center justify-center group-hover:bg-os-accent/30 transition-colors">
+                            <Icon className="w-6 h-6 text-os-accent" />
                           </div>
-                          <Badge variant="outline" className="text-xs">{resource.badge}</Badge>
+                          <Badge variant="outline" className="text-os-xs">{resource.badge}</Badge>
                         </div>
-                        <CardTitle className="text-lg">{resource.title}</CardTitle>
+                        <CardTitle className="text-os-lg">{resource.title}</CardTitle>
                       </CardHeader>
                       <CardContent>
-                        <p className="text-sm text-afrikoni-deep/80 mb-4">{resource.description}</p>
+                        <p className="text-os-sm text-afrikoni-deep/80 mb-4">{resource.description}</p>
                         <Link to={resource.link}>
-                          <Button variant="outline" className="w-full border-afrikoni-gold text-afrikoni-gold hover:bg-afrikoni-gold/10">
+                          <Button variant="outline" className="w-full border-os-accent text-os-accent hover:bg-os-accent/10">
                             Read More
                             <ArrowRight className="ml-2 w-4 h-4" />
                           </Button>
@@ -538,23 +538,23 @@ export default function BuyerCentral() {
               <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
                 Ready to Start Sourcing from Africa?
               </h2>
-              <p className="text-xl text-afrikoni-cream/90 mb-8">
+              <p className="text-os-xl text-afrikoni-cream/90 mb-8">
                 Join {stats.activeBuyers.toLocaleString()}+ buyers who trust Afrikoni for their sourcing needs
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Link to="/signup">
-                  <Button size="lg" className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut text-lg px-8 py-6">
+                  <Button size="lg" className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut text-os-lg px-8 py-6">
                     Create Free Account
                     <ArrowRight className="ml-2 w-5 h-5" />
                   </Button>
                 </Link>
                 <Link to="/contact">
-                  <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-6">
+                  <Button size="lg" variant="outline" className="border-2 border-white text-white hover:bg-white/10 text-os-lg px-8 py-6">
                     Contact Sales Team
                   </Button>
                 </Link>
               </div>
-              <p className="text-sm text-afrikoni-cream/70 mt-6">
+              <p className="text-os-sm text-afrikoni-cream/70 mt-6">
                 No credit card required • Free to join • Start sourcing today
               </p>
             </motion.div>

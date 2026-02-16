@@ -11,9 +11,9 @@ export const RISK_LEVEL = {
 
 const LEVEL_CONFIG = {
     [RISK_LEVEL.CRITICAL]: {
-        color: 'text-red-500',
-        bg: 'bg-red-500/10',
-        border: 'border-red-500/20',
+        color: 'text-os-red',
+        bg: 'bg-os-red/10',
+        border: 'border-os-red/20',
         icon: ShieldAlert,
         label: 'Critical Risk'
     },
@@ -32,9 +32,9 @@ const LEVEL_CONFIG = {
         label: 'Medium Risk'
     },
     [RISK_LEVEL.LOW]: {
-        color: 'text-blue-500',
-        bg: 'bg-blue-500/10',
-        border: 'border-blue-500/20',
+        color: 'text-os-blue',
+        bg: 'bg-os-blue/10',
+        border: 'border-os-blue/20',
         icon: Info,
         label: 'Low Risk'
     },
@@ -55,10 +55,10 @@ export default function RiskFlag({ level = RISK_LEVEL.MEDIUM, label, children, c
         <div className={`flex items-start gap-3 p-3 rounded-lg border ${config.bg} ${config.border} ${className}`}>
             <Icon className={`w-5 h-5 mt-0.5 ${config.color}`} />
             <div className="flex-1">
-                <div className={`text-xs font-bold uppercase tracking-wider mb-0.5 ${config.color}`}>
+                <div className={`text-os-xs font-bold uppercase tracking-wider mb-0.5 ${config.color}`}>
                     {label || config.label}
                 </div>
-                <div className="text-sm text-white/90 leading-relaxed">
+                <div className="text-os-sm text-white/90 leading-relaxed">
                     {children}
                 </div>
             </div>

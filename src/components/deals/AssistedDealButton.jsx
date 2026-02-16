@@ -110,7 +110,7 @@ export function AssistedDealButton({
               <h4 className="font-semibold text-blue-900 mb-2">
                 How We Help Close Deals:
               </h4>
-              <ul className="text-sm text-blue-800 space-y-1.5">
+              <ul className="text-os-sm text-blue-800 space-y-1.5">
                 <li>✓ Direct supplier vetting and negotiation</li>
                 <li>✓ Timeline coordination and follow-up</li>
                 <li>✓ Documentation and compliance support</li>
@@ -124,10 +124,10 @@ export function AssistedDealButton({
               <div className="flex items-start gap-2">
                 <CheckCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="text-sm text-amber-900 font-medium">
+                  <p className="text-os-sm text-amber-900 font-medium">
                     Assisted Deal Commission: 12%
                   </p>
-                  <p className="text-xs text-amber-800 mt-1">
+                  <p className="text-os-xs text-amber-800 mt-1">
                     Higher service fee for hands-on support. Only charged on successful completion.
                   </p>
                 </div>
@@ -136,7 +136,7 @@ export function AssistedDealButton({
 
             {/* Message Input */}
             <div>
-              <label className="block text-sm font-medium text-afrikoni-chestnut mb-2">
+              <label className="block text-os-sm font-medium text-afrikoni-chestnut mb-2">
                 What do you need help with?
               </label>
               <Textarea
@@ -146,7 +146,7 @@ export function AssistedDealButton({
                 rows={4}
                 className="resize-none"
               />
-              <p className="text-xs text-afrikoni-deep/60 mt-1 italic">
+              <p className="text-os-xs text-afrikoni-deep/60 mt-1 italic">
                 Be specific so we can help faster
               </p>
             </div>
@@ -172,7 +172,7 @@ export function AssistedDealButton({
             </div>
 
             {/* Response Time */}
-            <p className="text-xs text-afrikoni-deep/60 text-center">
+            <p className="text-os-xs text-afrikoni-deep/60 text-center">
               Our team typically responds within 24 hours
             </p>
           </div>
@@ -192,7 +192,7 @@ export function AssistedDealLink({ rfqId, orderId, dealValue, userCompanyId, con
     <>
       <button
         onClick={() => setIsOpen(true)}
-        className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
+        className="text-os-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center gap-1"
       >
         <Headphones className="w-3.5 h-3.5" />
         Need help?

@@ -21,7 +21,7 @@ export default function ProductStatsBar({ stats }) {
       label: 'Total Views',
       value: stats.totalViews || 0,
       icon: Eye,
-      color: 'text-blue-500 dark:text-blue-400'
+      color: 'text-os-blue dark:text-blue-400'
     },
     {
       label: 'Inquiries',
@@ -42,12 +42,12 @@ export default function ProductStatsBar({ stats }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2, delay: idx * 0.05 }}
           >
-            <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-xl hover:border-[#D4A937]/20 transition-all">
+            <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-os-sm hover:border-[#D4A937]/20 transition-all">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-[11px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{item.label}</p>
-                    <p className="text-2xl font-bold font-mono text-gray-900 dark:text-[#F5F0E8]">
+                    <p className="text-os-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">{item.label}</p>
+                    <p className="text-os-2xl font-bold font-mono text-gray-900 dark:text-[#F5F0E8]">
                       {typeof item.value === 'number' ? item.value.toLocaleString() : item.value}
                     </p>
                   </div>

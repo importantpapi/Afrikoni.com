@@ -152,7 +152,7 @@ export default function OrderDetail() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-os-accent" />
       </div>
     );
   }
@@ -191,7 +191,7 @@ export default function OrderDetail() {
 
         <div className="grid md:grid-cols-3 gap-6">
           <div className="md:col-span-2 space-y-6">
-            <Card className="border-afrikoni-gold/20">
+            <Card className="border-os-accent/20">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <CardTitle>Order #{order.id.slice(0, 8)}</CardTitle>
@@ -208,43 +208,43 @@ export default function OrderDetail() {
               <CardContent className="space-y-4">
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <div className="text-sm text-afrikoni-deep mb-1">Quantity</div>
+                    <div className="text-os-sm text-afrikoni-deep mb-1">Quantity</div>
                     <div className="font-semibold text-afrikoni-chestnut">{order.quantity} units</div>
                   </div>
                   <div>
-                    <div className="text-sm text-afrikoni-deep mb-1">Unit Price</div>
+                    <div className="text-os-sm text-afrikoni-deep mb-1">Unit Price</div>
                     <div className="font-semibold text-afrikoni-chestnut">${order.unit_price}</div>
                   </div>
                   <div>
-                    <div className="text-sm text-afrikoni-deep mb-1">Total Amount</div>
-                    <div className="text-2xl font-bold text-amber-600">${order.total_amount}</div>
+                    <div className="text-os-sm text-afrikoni-deep mb-1">Total Amount</div>
+                    <div className="text-os-2xl font-bold text-amber-600">${order.total_amount}</div>
                   </div>
                   <div>
-                    <div className="text-sm text-afrikoni-deep mb-1">Currency</div>
+                    <div className="text-os-sm text-afrikoni-deep mb-1">Currency</div>
                     <div className="font-semibold text-afrikoni-chestnut">{order.currency}</div>
                   </div>
                 </div>
-                <div className="mt-4 pt-4 border-t-2 border-afrikoni-gold/30 space-y-3 bg-afrikoni-cream/30 p-4 rounded-lg">
+                <div className="mt-4 pt-4 border-t-2 border-os-accent/30 space-y-3 bg-afrikoni-cream/30 p-4 rounded-lg">
                   <div className="flex items-center justify-between">
-                    <span className="text-base font-semibold text-afrikoni-chestnut">Afrikoni Fee (8%):</span>
-                    <span className="text-xl font-bold text-afrikoni-chestnut">
+                    <span className="text-os-base font-semibold text-afrikoni-chestnut">Afrikoni Fee (8%):</span>
+                    <span className="text-os-xl font-bold text-afrikoni-chestnut">
                       ${platformFeeAmount.toFixed(2)}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-base font-semibold text-afrikoni-deep">Estimated Supplier Payout:</span>
-                    <span className="text-xl font-bold text-green-700">
+                    <span className="text-os-base font-semibold text-afrikoni-deep">Estimated Supplier Payout:</span>
+                    <span className="text-os-xl font-bold text-green-700">
                       ${supplierPayoutEstimate.toFixed(2)}
                     </span>
                   </div>
-                  <p className="text-xs text-afrikoni-deep/70 mt-2 pt-2 border-t border-afrikoni-gold/20">
+                  <p className="text-os-xs text-afrikoni-deep/70 mt-2 pt-2 border-t border-os-accent/20">
                     This breakdown is indicative. Final payouts may differ slightly after payment
                     processor fees or special agreements.
                   </p>
                 </div>
                 {order.shipping_address && (
                   <div>
-                    <div className="text-sm text-afrikoni-deep mb-1 flex items-center gap-2">
+                    <div className="text-os-sm text-afrikoni-deep mb-1 flex items-center gap-2">
                       <MapPin className="w-4 h-4" /> Shipping Address
                     </div>
                     <div className="font-semibold text-afrikoni-chestnut">{order.shipping_address}</div>
@@ -252,7 +252,7 @@ export default function OrderDetail() {
                 )}
                 {order.delivery_date && (
                   <div>
-                    <div className="text-sm text-afrikoni-deep mb-1 flex items-center gap-2">
+                    <div className="text-os-sm text-afrikoni-deep mb-1 flex items-center gap-2">
                       <Calendar className="w-4 h-4" /> Expected Delivery
                     </div>
                     <div className="font-semibold text-afrikoni-chestnut">
@@ -264,7 +264,7 @@ export default function OrderDetail() {
             </Card>
 
             {isBuyer && order.status === 'completed' && !hasReviewed && (
-              <Card className="border-afrikoni-gold/20">
+              <Card className="border-os-accent/20">
                 <CardHeader>
                   <CardTitle>Leave a Review</CardTitle>
                 </CardHeader>
@@ -283,7 +283,7 @@ export default function OrderDetail() {
             )}
 
             {isSeller && (
-              <Card className="border-afrikoni-gold/20">
+              <Card className="border-os-accent/20">
                 <CardHeader>
                   <CardTitle>Update Order Status</CardTitle>
                 </CardHeader>
@@ -307,39 +307,39 @@ export default function OrderDetail() {
 
           <div className="space-y-6">
             {buyer && (
-              <Card className="border-afrikoni-gold/20">
+              <Card className="border-os-accent/20">
                 <CardHeader>
                   <CardTitle>Buyer</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="font-semibold text-afrikoni-chestnut">{buyer.company_name}</div>
-                  <div className="text-sm text-afrikoni-deep">{buyer.country}</div>
+                  <div className="text-os-sm text-afrikoni-deep">{buyer.country}</div>
                 </CardContent>
               </Card>
             )}
 
             {seller && (
-              <Card className="border-afrikoni-gold/20">
+              <Card className="border-os-accent/20">
                 <CardHeader>
                   <CardTitle>Seller</CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="font-semibold text-afrikoni-chestnut">{seller.company_name}</div>
-                  <div className="text-sm text-afrikoni-deep">{seller.country}</div>
+                  <div className="text-os-sm text-afrikoni-deep">{seller.country}</div>
                 </CardContent>
               </Card>
             )}
 
             {isBuyer && order.payment_status === 'pending' && (
-              <Card className="border-afrikoni-gold/20">
+              <Card className="border-os-accent/20">
                 <CardHeader>
                   <CardTitle>Payment</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <Button onClick={handlePayment} className="w-full bg-afrikoni-gold hover:bg-amber-700">
+                  <Button onClick={handlePayment} className="w-full bg-os-accent hover:bg-amber-700">
                     Mark as Paid
                   </Button>
-                  <p className="text-xs text-afrikoni-deep/70 mt-2">Or proceed to payment gateway</p>
+                  <p className="text-os-xs text-afrikoni-deep/70 mt-2">Or proceed to payment gateway</p>
                   <Link to={createPageUrl('PaymentGateway') + '?order=' + order.id}>
                     <Button variant="outline" className="w-full mt-2">
                       Go to Payment Gateway

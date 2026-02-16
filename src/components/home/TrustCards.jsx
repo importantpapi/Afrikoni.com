@@ -15,27 +15,27 @@ export default function TrustCards() {
       title: t('trust.verified.title'),
       description: t('trust.verified.description'),
       link: '/suppliers',
-      color: 'from-afrikoni-gold to-afrikoni-goldDark',
-      iconBg: 'bg-afrikoni-gold/20',
-      iconColor: 'text-afrikoni-gold'
+      color: 'from-os-accent to-os-accentDark',
+      iconBg: 'bg-os-accent/20',
+      iconColor: 'text-os-accent'
     },
     {
       icon: Shield,
       title: t('trust.shield.title'),
       description: t('trust.shield.description'),
       link: '/order-protection',
-      color: 'from-afrikoni-gold to-afrikoni-goldDark',
-      iconBg: 'bg-afrikoni-gold/20',
-      iconColor: 'text-afrikoni-gold'
+      color: 'from-os-accent to-os-accentDark',
+      iconBg: 'bg-os-accent/20',
+      iconColor: 'text-os-accent'
     },
     {
       icon: Truck,
       title: t('trust.logistics.title'),
       description: t('trust.logistics.description'),
       link: '/logistics',
-      color: 'from-afrikoni-gold to-afrikoni-goldDark',
-      iconBg: 'bg-afrikoni-gold/20',
-      iconColor: 'text-afrikoni-gold'
+      color: 'from-os-accent to-os-accentDark',
+      iconBg: 'bg-os-accent/20',
+      iconColor: 'text-os-accent'
     }
   ];
 
@@ -52,7 +52,7 @@ export default function TrustCards() {
           <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-afrikoni-chestnut mb-4 tracking-tight">
             {t('trust.title') || 'Trade with Confidence'}
           </h2>
-          <p className="text-lg md:text-xl text-afrikoni-deep/80 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-os-lg md:text-os-xl text-afrikoni-deep/80 max-w-3xl mx-auto leading-relaxed">
             {t('trust.subtitle') || 'Everything you need for safe and successful B2B trading across Africa'}
           </p>
         </motion.div>
@@ -69,19 +69,19 @@ export default function TrustCards() {
                 transition={{ duration: 0.6, delay: idx * 0.1 }}
                 whileHover={{ y: -4 }}
               >
-                <Card className="h-full hover:shadow-afrikoni-lg transition-all duration-300 border-2 border-afrikoni-gold/20 hover:border-afrikoni-gold/40 bg-white group">
+                <Card className="h-full hover:shadow-os-gold-lg transition-all duration-300 border-2 border-os-accent/20 hover:border-os-accent/40 bg-white group">
                   <CardContent className="p-8">
-                    <div className={`w-20 h-20 ${card.iconBg} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
+                    <div className={`w-20 h-20 ${card.iconBg} rounded-os-md flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 shadow-os-md`}>
                       <Icon className={`w-10 h-10 ${card.iconColor}`} />
                     </div>
-                    <h3 className="text-2xl font-bold text-afrikoni-chestnut mb-3 leading-tight">
+                    <h3 className="text-os-2xl font-bold text-afrikoni-chestnut mb-3 leading-tight">
                       {card.title}
                     </h3>
-                    <p className="text-afrikoni-deep/80 mb-6 leading-relaxed text-base">
+                    <p className="text-afrikoni-deep/80 mb-6 leading-relaxed text-os-base">
                       {card.description}
                     </p>
                     <Link to={card.link}>
-                      <Button variant="secondary" className="w-full border-2 border-afrikoni-gold/30 hover:border-afrikoni-gold hover:bg-afrikoni-gold/5 font-semibold">
+                      <Button variant="secondary" className="w-full border-2 border-os-accent/30 hover:border-os-accent hover:bg-os-accent/5 font-semibold">
                         {t('common.learnMore') || 'Learn More'}
                       </Button>
                     </Link>

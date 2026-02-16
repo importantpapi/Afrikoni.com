@@ -9,10 +9,10 @@ export default function ErrorState({
   className = '' 
 }) {
   return (
-    <Card className={`border-afrikoni-gold/20 shadow-afrikoni bg-afrikoni-offwhite ${className}`}>
+    <Card className={`border-os-accent/20 shadow-os-gold bg-afrikoni-offwhite ${className}`}>
       <CardContent className="p-5 md:p-6 text-center">
-        <AlertCircle className="w-12 h-12 text-afrikoni-gold mx-auto mb-4" />
-        <h3 className="text-lg font-semibold text-afrikoni-chestnut mb-2">
+        <AlertCircle className="w-12 h-12 text-os-accent mx-auto mb-4" />
+        <h3 className="text-os-lg font-semibold text-afrikoni-chestnut mb-2">
           Error
         </h3>
         <p className="text-afrikoni-deep/70 mb-4">

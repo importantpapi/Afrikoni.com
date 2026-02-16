@@ -38,7 +38,7 @@ export default function SupplierHub() {
       icon: TrendingUp,
       title: 'Business Tools',
       description: 'Analytics, inventory management, and marketing tools',
-      color: 'bg-afrikoni-offwhite text-afrikoni-gold'
+      color: 'bg-afrikoni-offwhite text-os-accent'
     }
   ];
 
@@ -90,12 +90,12 @@ export default function SupplierHub() {
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-afrikoni-creammb-4">
                 Supplier Hub
               </h1>
-              <p className="text-xl md:text-2xl text-afrikoni-cream-100 max-w-3xl mx-auto mb-8">
+              <p className="text-os-xl md:text-os-2xl text-afrikoni-cream-100 max-w-3xl mx-auto mb-8">
                 Sell your products to buyers across Africa. Get verified, list products, respond to RFQs, and grow your business.
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Link to="/signup">
-                  <Button size="lg" className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream">
+                  <Button size="lg" className="bg-os-accent hover:bg-os-accentDark text-afrikoni-cream">
                     Start Selling
                   </Button>
                 </Link>
@@ -122,7 +122,7 @@ export default function SupplierHub() {
               <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
                 Why Sell on Afrikoni?
               </h2>
-              <p className="text-lg text-afrikoni-deep max-w-2xl mx-auto">
+              <p className="text-os-lg text-afrikoni-deep max-w-2xl mx-auto">
                 Everything you need to grow your business and reach new customers
               </p>
             </motion.div>
@@ -138,12 +138,12 @@ export default function SupplierHub() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.6, delay: idx * 0.1 }}
                   >
-                    <Card className="h-full hover:shadow-lg transition-shadow">
+                    <Card className="h-full hover:shadow-os-md transition-shadow">
                       <CardContent className="p-6">
                         <div className={`w-12 h-12 rounded-lg ${feature.color} flex items-center justify-center mb-4`}>
                           <Icon className="w-6 h-6" />
                         </div>
-                        <h3 className="text-xl font-bold text-afrikoni-chestnut mb-2">{feature.title}</h3>
+                        <h3 className="text-os-xl font-bold text-afrikoni-chestnut mb-2">{feature.title}</h3>
                         <p className="text-afrikoni-deep">{feature.description}</p>
                       </CardContent>
                     </Card>
@@ -165,7 +165,7 @@ export default function SupplierHub() {
               <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
                 How Selling Works
               </h2>
-              <p className="text-lg text-afrikoni-deep max-w-2xl mx-auto">
+              <p className="text-os-lg text-afrikoni-deep max-w-2xl mx-auto">
                 A simple 4-step process to start selling on Afrikoni
               </p>
             </motion.div>
@@ -181,17 +181,17 @@ export default function SupplierHub() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.6, delay: idx * 0.1 }}
                   >
-                    <Card className="h-full hover:shadow-lg transition-shadow">
+                    <Card className="h-full hover:shadow-os-md transition-shadow">
                       <CardHeader>
                         <div className="flex items-center justify-between mb-2">
-                          <div className="w-12 h-12 rounded-full bg-afrikoni-gold/20 flex items-center justify-center">
-                            <Icon className="w-6 h-6 text-afrikoni-gold" />
+                          <div className="w-12 h-12 rounded-full bg-os-accent/20 flex items-center justify-center">
+                            <Icon className="w-6 h-6 text-os-accent" />
                           </div>
-                          <Badge variant="outline" className="text-afrikoni-gold border-afrikoni-gold">
+                          <Badge variant="outline" className="text-os-accent border-os-accent">
                             Step {step.step}
                           </Badge>
                         </div>
-                        <CardTitle className="text-xl">{step.title}</CardTitle>
+                        <CardTitle className="text-os-xl">{step.title}</CardTitle>
                       </CardHeader>
                       <CardContent>
                         <p className="text-afrikoni-deep">{step.description}</p>
@@ -208,8 +208,8 @@ export default function SupplierHub() {
             {/* Verification Process */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-2xl flex items-center gap-3">
-                  <Award className="w-8 h-8 text-afrikoni-gold" />
+                <CardTitle className="text-os-2xl flex items-center gap-3">
+                  <Award className="w-8 h-8 text-os-accent" />
                   Verification Process
                 </CardTitle>
               </CardHeader>
@@ -226,7 +226,7 @@ export default function SupplierHub() {
                   ))}
                 </ul>
                 <Link to="/dashboard/verification-center">
-                  <Button className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream">
+                  <Button className="w-full bg-os-accent hover:bg-os-accentDark text-afrikoni-cream">
                     Start Verification
                   </Button>
                 </Link>
@@ -236,8 +236,8 @@ export default function SupplierHub() {
             {/* RFQ Responses */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-2xl flex items-center gap-3">
-                  <FileText className="w-8 h-8 text-afrikoni-gold" />
+                <CardTitle className="text-os-2xl flex items-center gap-3">
+                  <FileText className="w-8 h-8 text-os-accent" />
                   Respond to RFQs
                 </CardTitle>
               </CardHeader>
@@ -254,7 +254,7 @@ export default function SupplierHub() {
                   ))}
                 </ul>
                 <Link to="/dashboard/rfqs">
-                  <Button className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream">
+                  <Button className="w-full bg-os-accent hover:bg-os-accentDark text-afrikoni-cream">
                     View RFQs
                   </Button>
                 </Link>
@@ -273,17 +273,17 @@ export default function SupplierHub() {
               <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
                 Ready to Start Selling?
               </h2>
-              <p className="text-lg text-afrikoni-deep mb-8 max-w-2xl mx-auto">
+              <p className="text-os-lg text-afrikoni-deep mb-8 max-w-2xl mx-auto">
                 Join thousands of suppliers growing their business on Afrikoni
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Link to="/signup">
-                  <Button size="lg" className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-cream">
+                  <Button size="lg" className="bg-os-accent hover:bg-os-accentDark text-afrikoni-cream">
                     Create Free Account
                   </Button>
                 </Link>
                 <Link to="/dashboard/products">
-                  <Button size="lg" variant="outline" className="border-afrikoni-gold text-afrikoni-gold hover:bg-afrikoni-gold/10">
+                  <Button size="lg" variant="outline" className="border-os-accent text-os-accent hover:bg-os-accent/10">
                     List Products
                   </Button>
                 </Link>

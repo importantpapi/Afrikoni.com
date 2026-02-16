@@ -69,10 +69,10 @@ export function LiteModeToggle({ className }) {
                     )}
                 </div>
                 <div className="flex-1">
-                    <div className="text-sm font-medium text-white">
+                    <div className="text-os-sm font-medium text-white">
                         {interfaceMode === 'simple' ? 'Lite Mode' : 'Power Mode'}
                     </div>
-                    <div className="text-xs text-white/60">
+                    <div className="text-os-xs text-white/60">
                         {interfaceMode === 'simple' ? 'Simplified interface' : 'Full Trade OS'}
                     </div>
                 </div>

@@ -129,7 +129,7 @@ export default function InspectionServices() {
                   <ul className="space-y-2">
                     {service.features.map((feature, fIdx) => (
                       <li key={fIdx} className="flex items-start gap-2">
-                        <CheckCircle className="w-5 h-5 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+                        <CheckCircle className="w-5 h-5 text-os-accent flex-shrink-0 mt-0.5" />
                         <span className="text-meta font-medium text-afrikoni-chestnut/70">{feature}</span>
                       </li>
                     ))}
@@ -178,7 +178,7 @@ export default function InspectionServices() {
                     <p className="text-meta font-medium text-afrikoni-chestnut/70 mb-2">Countries:</p>
                     <div className="flex flex-wrap gap-2">
                       {area.countries.map((country, cIdx) => (
-                        <Badge key={cIdx} variant="outline" className="text-xs border-afrikoni-gold/30">
+                        <Badge key={cIdx} variant="outline" className="text-os-xs border-os-accent/30">
                           {country}
                         </Badge>
                       ))}
@@ -186,7 +186,7 @@ export default function InspectionServices() {
                   </div>
                   <div>
                     <p className="text-meta font-medium text-afrikoni-chestnut/70 mb-1">Products:</p>
-                    <p className="text-body font-normal leading-[1.6] text-afrikoni-chestnut/80 text-sm">
+                    <p className="text-body font-normal leading-[1.6] text-afrikoni-chestnut/80 text-os-sm">
                       {area.products.join(', ')}
                     </p>
                   </div>

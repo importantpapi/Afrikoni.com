@@ -25,7 +25,7 @@ export default function RecommendedBadge({ type = 'recommended' }) {
       <TooltipProvider delayDuration={100}>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Badge className="bg-gradient-to-r from-afrikoni-gold/90 to-afrikoni-goldLight text-afrikoni-deep border-afrikoni-gold shadow-lg px-3 py-1.5 flex items-center gap-1.5 cursor-help">
+            <Badge className="bg-gradient-to-r from-os-accent/90 to-os-accentLight text-afrikoni-deep border-os-accent shadow-os-md px-3 py-1.5 flex items-center gap-1.5 cursor-help">
               <Sparkles className="w-3.5 h-3.5" />
               <span className="font-semibold">Recommended</span>
               <Info className="w-3 h-3 opacity-70" />
@@ -33,9 +33,9 @@ export default function RecommendedBadge({ type = 'recommended' }) {
           </TooltipTrigger>
           <TooltipContent 
             side="bottom" 
-            className="max-w-xs bg-afrikoni-deep text-afrikoni-offwhite border-afrikoni-gold/30 shadow-xl"
+            className="max-w-xs bg-afrikoni-deep text-afrikoni-offwhite border-os-accent/30 shadow-os-lg"
           >
-            <p className="text-sm leading-relaxed">
+            <p className="text-os-sm leading-relaxed">
               Recommended based on verified trade history, relevance, and responsiveness.
             </p>
           </TooltipContent>

@@ -168,7 +168,7 @@ export default function ProductImageUploader({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-afrikoni-chestnut">
+        <label className="text-os-sm font-medium text-afrikoni-chestnut">
           Product Images ({images.length})
         </label>
         <div>
@@ -195,10 +195,10 @@ export default function ProductImageUploader({
       </div>
 
       {images.length === 0 ? (
-        <div className="border-2 border-dashed border-afrikoni-gold/30 rounded-lg p-12 text-center">
+        <div className="border-2 border-dashed border-os-accent/30 rounded-lg p-12 text-center">
           <ImageIcon className="w-12 h-12 text-afrikoni-deep/50 mx-auto mb-4" />
-          <p className="text-sm text-afrikoni-deep/70 mb-2">No images uploaded</p>
-          <p className="text-xs text-afrikoni-deep/50">Upload at least one image for your product</p>
+          <p className="text-os-sm text-afrikoni-deep/70 mb-2">No images uploaded</p>
+          <p className="text-os-xs text-afrikoni-deep/50">Upload at least one image for your product</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -211,7 +211,7 @@ export default function ProductImageUploader({
                 exit={{ opacity: 0, scale: 0.9 }}
                 className="relative group"
               >
-                <div className="aspect-square rounded-lg overflow-hidden border-2 border-afrikoni-gold/20 bg-afrikoni-cream">
+                <div className="aspect-square rounded-lg overflow-hidden border-2 border-os-accent/20 bg-afrikoni-cream">
                   <img
                     src={image.url}
                     alt={image.alt_text || `Product image ${index + 1}`}
@@ -219,7 +219,7 @@ export default function ProductImageUploader({
                   />
                   {image.is_primary && (
                     <div className="absolute top-2 left-2">
-                      <span className="bg-afrikoni-gold text-afrikoni-chestnut text-xs px-2 py-1 rounded font-semibold">
+                      <span className="bg-os-accent text-afrikoni-chestnut text-os-xs px-2 py-1 rounded font-semibold">
                         Primary
                       </span>
                     </div>
@@ -234,7 +234,7 @@ export default function ProductImageUploader({
                     size="sm"
                     onClick={() => handleSetPrimary(index)}
                     disabled={image.is_primary}
-                    className="text-afrikoni-cream hover:text-afrikoni-gold"
+                    className="text-afrikoni-cream hover:text-os-accent"
                   >
                     Set Primary
                   </Button>
@@ -244,7 +244,7 @@ export default function ProductImageUploader({
                     size="sm"
                     onClick={() => handleMoveImage(index, -1)}
                     disabled={index === 0}
-                    className="text-afrikoni-cream hover:text-afrikoni-gold"
+                    className="text-afrikoni-cream hover:text-os-accent"
                   >
                     <ArrowUp className="w-4 h-4" />
                   </Button>
@@ -254,7 +254,7 @@ export default function ProductImageUploader({
                     size="sm"
                     onClick={() => handleMoveImage(index, 1)}
                     disabled={index === images.length - 1}
-                    className="text-afrikoni-cream hover:text-afrikoni-gold"
+                    className="text-afrikoni-cream hover:text-os-accent"
                   >
                     <ArrowDown className="w-4 h-4" />
                   </Button>
@@ -263,7 +263,7 @@ export default function ProductImageUploader({
                     variant="ghost"
                     size="sm"
                     onClick={() => handleRemoveImage(index)}
-                    className="text-red-400 hover:text-red-500"
+                    className="text-red-400 hover:text-os-red"
                   >
                     <X className="w-4 h-4" />
                   </Button>

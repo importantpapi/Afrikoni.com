@@ -77,7 +77,7 @@ export default function CategoryChips() {
       {canScrollLeft && (
         <button
           onClick={() => scroll('left')}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/95 backdrop-blur-sm rounded-full p-2 shadow-md border border-afrikoni-gold/20 hover:bg-white transition-colors"
+          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-white/95 backdrop-blur-sm rounded-full p-2 shadow-md border border-os-accent/20 hover:bg-white transition-colors"
           aria-label="Scroll left"
         >
           <span className="text-afrikoni-chestnut">‹</span>
@@ -109,14 +109,14 @@ export default function CategoryChips() {
                 flex flex-col items-center gap-1 min-w-[80px] max-w-[80px] px-3 py-2 rounded-lg
                 transition-all duration-200 touch-manipulation
                 ${isActive 
-                  ? 'bg-afrikoni-gold/20 border-2 border-afrikoni-gold shadow-sm' 
+                  ? 'bg-os-accent/20 border-2 border-os-accent shadow-sm' 
                   : 'bg-white/60 border border-afrikoni-chestnut/10 hover:bg-white/80 active:scale-95'
                 }
               `}
             >
-              <Icon className={`w-5 h-5 ${isActive ? 'text-afrikoni-gold' : category.color}`} />
+              <Icon className={`w-5 h-5 ${isActive ? 'text-os-accent' : category.color}`} />
               <span className={`
-                text-xs font-medium text-center leading-tight
+                text-os-xs font-medium text-center leading-tight
                 ${isActive ? 'text-afrikoni-chestnut font-semibold' : 'text-afrikoni-chestnut/80'}
               `}>
                 {category.name.split(' ')[0]}
@@ -130,7 +130,7 @@ export default function CategoryChips() {
       {canScrollRight && (
         <button
           onClick={() => scroll('right')}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/95 backdrop-blur-sm rounded-full p-2 shadow-md border border-afrikoni-gold/20 hover:bg-white transition-colors"
+          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-white/95 backdrop-blur-sm rounded-full p-2 shadow-md border border-os-accent/20 hover:bg-white transition-colors"
           aria-label="Scroll right"
         >
           <span className="text-afrikoni-chestnut">›</span>

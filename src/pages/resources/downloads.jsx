@@ -115,7 +115,7 @@ export default function Downloads() {
       />
       <div className="min-h-screen bg-afrikoni-offwhite">
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-afrikoni-gold/20 via-afrikoni-cream to-afrikoni-offwhite border-b border-afrikoni-gold/20">
+        <section className="bg-gradient-to-br from-os-accent/20 via-afrikoni-cream to-afrikoni-offwhite border-b border-os-accent/20">
           <div className="max-w-7xl mx-auto px-4 py-12 md:py-16">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -124,18 +124,18 @@ export default function Downloads() {
               className="text-center max-w-3xl mx-auto"
             >
               <motion.div 
-                className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-afrikoni-gold/20 mb-4"
+                className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-os-accent/20 mb-4"
                 initial={{ scale: 0, rotate: -180 }}
                 animate={{ scale: 1, rotate: 0 }}
                 transition={{ type: "spring", stiffness: 200, delay: 0.2 }}
                 whileHover={{ scale: 1.1, rotate: 5 }}
               >
-                <Download className="w-8 h-8 text-afrikoni-gold" />
+                <Download className="w-8 h-8 text-os-accent" />
               </motion.div>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-serif text-afrikoni-chestnut mb-6">
                 Downloads & Resources
               </h1>
-              <p className="text-lg md:text-xl text-afrikoni-deep mb-8">
+              <p className="text-os-lg md:text-os-xl text-afrikoni-deep mb-8">
                 Access guides, policies, templates, and helpful resources for your B2B trade journey
               </p>
             </motion.div>
@@ -143,7 +143,7 @@ export default function Downloads() {
         </section>
 
         {/* Category Filter */}
-        <section className="py-6 bg-white border-b border-afrikoni-gold/20">
+        <section className="py-6 bg-white border-b border-os-accent/20">
           <div className="max-w-7xl mx-auto px-4">
             <motion.div 
               className="flex flex-wrap gap-2 justify-center"
@@ -160,10 +160,10 @@ export default function Downloads() {
                   transition={{ duration: 0.2, delay: idx * 0.05 }}
                   whileHover={{ scale: 1.05, y: -2 }}
                   whileTap={{ scale: 0.95 }}
-                  className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  className={`px-4 py-2 rounded-full text-os-sm font-medium transition-all ${
                     selectedCategory === cat.id
-                      ? 'bg-afrikoni-gold text-afrikoni-chestnut shadow-md'
-                      : 'bg-afrikoni-cream text-afrikoni-deep hover:bg-afrikoni-gold/20'
+                      ? 'bg-os-accent text-afrikoni-chestnut shadow-md'
+                      : 'bg-afrikoni-cream text-afrikoni-deep hover:bg-os-accent/20'
                   }`}
                 >
                   {cat.label}
@@ -183,7 +183,7 @@ export default function Downloads() {
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.3 }}
               >
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-os-accent" />
               </motion.div>
             ) : filteredResources.length === 0 ? (
               <motion.div 
@@ -197,7 +197,7 @@ export default function Downloads() {
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ duration: 0.3, delay: 0.1 }}
                 >
-                  <Download className="w-16 h-16 text-afrikoni-gold/50 mx-auto mb-4" />
+                  <Download className="w-16 h-16 text-os-accent/50 mx-auto mb-4" />
                 </motion.div>
                 <p className="text-afrikoni-deep/70">No resources available in this category yet.</p>
               </motion.div>
@@ -214,23 +214,23 @@ export default function Downloads() {
                       transition={{ duration: 0.5, delay: idx * 0.1 }}
                       whileHover={{ y: -5 }}
                     >
-                      <Card className="h-full border-afrikoni-gold/20 hover:border-afrikoni-gold transition-all flex flex-col">
+                      <Card className="h-full border-os-accent/20 hover:border-os-accent transition-all flex flex-col">
                         <CardContent className="p-6 flex-1 flex flex-col">
                           <motion.div 
-                            className="w-12 h-12 rounded-full bg-afrikoni-gold/20 flex items-center justify-center mb-4"
+                            className="w-12 h-12 rounded-full bg-os-accent/20 flex items-center justify-center mb-4"
                             whileHover={{ scale: 1.1, rotate: 5 }}
                             transition={{ type: "spring", stiffness: 300 }}
                           >
-                            <Icon className="w-6 h-6 text-afrikoni-gold" />
+                            <Icon className="w-6 h-6 text-os-accent" />
                           </motion.div>
-                          <h3 className="font-bold text-afrikoni-chestnut text-xl mb-2">
+                          <h3 className="font-bold text-afrikoni-chestnut text-os-xl mb-2">
                             {resource.title}
                           </h3>
                           <p className="text-afrikoni-deep leading-relaxed mb-4 flex-1">
                             {resource.description}
                           </p>
-                          <div className="flex items-center justify-between pt-4 border-t border-afrikoni-gold/20">
-                            <span className="text-xs text-afrikoni-deep/70">
+                          <div className="flex items-center justify-between pt-4 border-t border-os-accent/20">
+                            <span className="text-os-xs text-afrikoni-deep/70">
                               {resource.file_type?.toUpperCase()} • {resource.file_size}
                             </span>
                             <motion.div
@@ -240,7 +240,7 @@ export default function Downloads() {
                               <Button
                                 asChild
                                 variant="outline"
-                                className="border-afrikoni-gold text-afrikoni-chestnut hover:bg-afrikoni-gold/10"
+                                className="border-os-accent text-afrikoni-chestnut hover:bg-os-accent/10"
                               >
                                 <a
                                   href={resource.file_url}

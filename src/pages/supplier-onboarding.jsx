@@ -113,7 +113,7 @@ export default function SupplierOnboarding() {
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="inline-flex p-4 bg-os-accent/10 border border-os-accent/20 rounded-3xl backdrop-blur-xl"
+            className="inline-flex p-4 bg-os-accent/10 border border-os-accent/20 rounded-os-lg backdrop-blur-xl"
           >
             <Logo type="symbol" size="md" />
           </motion.div>
@@ -122,7 +122,7 @@ export default function SupplierOnboarding() {
             <h1 className="text-3xl font-black uppercase tracking-[0.4em] text-os-text-primary">
               OS <span className="text-os-accent">Initialization</span>
             </h1>
-            <p className="text-[10px] font-bold text-os-text-secondary/40 uppercase tracking-[0.3em]">
+            <p className="text-os-xs font-bold text-os-text-secondary/40 uppercase tracking-[0.3em]">
               Sequence {step} of {totalSteps} &bull; Horizon Protocol 2026
             </p>
           </div>
@@ -150,23 +150,23 @@ export default function SupplierOnboarding() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div className="space-y-6">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-os-text-secondary/60 ml-1 flex items-center gap-2">
+                        <label className="text-os-xs font-black uppercase tracking-widest text-os-text-secondary/60 ml-1 flex items-center gap-2">
                           <Building className="w-3 h-3" /> Corporate Entity
                         </label>
                         <Input
                           placeholder="Legal Business Name"
-                          className="bg-white/5 border-white/10 h-14 rounded-xl text-lg px-6 focus:ring-os-accent/20"
+                          className="bg-white/5 border-white/10 h-14 rounded-os-sm text-os-lg px-6 focus:ring-os-accent/20"
                           value={formData.company_name}
                           onChange={e => setFormData({ ...formData, company_name: e.target.value })}
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-os-text-secondary/60 ml-1 flex items-center gap-2">
+                        <label className="text-os-xs font-black uppercase tracking-widest text-os-text-secondary/60 ml-1 flex items-center gap-2">
                           <Globe className="w-3 h-3" /> Industry Vertical
                         </label>
                         <Input
                           placeholder="e.g. Agri-Tech, Logistics"
-                          className="bg-white/5 border-white/10 h-14 rounded-xl text-lg px-6"
+                          className="bg-white/5 border-white/10 h-14 rounded-os-sm text-os-lg px-6"
                           value={formData.industry}
                           onChange={e => setFormData({ ...formData, industry: e.target.value })}
                         />
@@ -174,29 +174,29 @@ export default function SupplierOnboarding() {
                     </div>
                     <div className="space-y-6">
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-os-text-secondary/60 ml-1 flex items-center gap-2">
+                        <label className="text-os-xs font-black uppercase tracking-widest text-os-text-secondary/60 ml-1 flex items-center gap-2">
                           <MapPin className="w-3 h-3" /> Operational Hub
                         </label>
                         <div className="grid grid-cols-2 gap-4">
                           <Input
                             placeholder="Country"
-                            className="bg-white/5 border-white/10 h-14 rounded-xl text-lg px-6"
+                            className="bg-white/5 border-white/10 h-14 rounded-os-sm text-os-lg px-6"
                             value={formData.country}
                             onChange={e => setFormData({ ...formData, country: e.target.value })}
                           />
                           <Input
                             placeholder="City"
-                            className="bg-white/5 border-white/10 h-14 rounded-xl text-lg px-6"
+                            className="bg-white/5 border-white/10 h-14 rounded-os-sm text-os-lg px-6"
                             value={formData.city}
                             onChange={e => setFormData({ ...formData, city: e.target.value })}
                           />
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-os-text-secondary/60 ml-1">Company Website</label>
+                        <label className="text-os-xs font-black uppercase tracking-widest text-os-text-secondary/60 ml-1">Company Website</label>
                         <Input
                           placeholder="https://..."
-                          className="bg-white/5 border-white/10 h-14 rounded-xl text-lg px-6"
+                          className="bg-white/5 border-white/10 h-14 rounded-os-sm text-os-lg px-6"
                           value={formData.website}
                           onChange={e => setFormData({ ...formData, website: e.target.value })}
                         />
@@ -210,21 +210,21 @@ export default function SupplierOnboarding() {
               {step === 2 && isSeller && (
                 <div className="space-y-8">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-os-text-secondary/60 ml-1 flex items-center gap-2">
+                    <label className="text-os-xs font-black uppercase tracking-widest text-os-text-secondary/60 ml-1 flex items-center gap-2">
                       <Zap className="w-3 h-3" /> Business Narrative
                     </label>
                     <textarea
                       placeholder="Describe your trade capabilities..."
-                      className="w-full h-40 bg-white/5 border-white/10 rounded-xl text-lg px-6 py-4 focus:outline-none focus:ring-1 focus:ring-os-accent/20 resize-none text-white border-white/10"
+                      className="w-full h-40 bg-white/5 border-white/10 rounded-os-sm text-os-lg px-6 py-4 focus:outline-none focus:ring-1 focus:ring-os-accent/20 resize-none text-white border-white/10"
                       value={formData.description}
                       onChange={e => setFormData({ ...formData, description: e.target.value })}
                     />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {['verified_source', 'trade_bonded', 'secure_escrow'].map(feature => (
-                      <div key={feature} className="p-4 bg-white/5 rounded-2xl border border-white/5 flex items-center gap-3">
+                      <div key={feature} className="p-4 bg-white/5 rounded-os-md border border-white/5 flex items-center gap-3">
                         <ShieldCheck className="w-4 h-4 text-os-accent" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-os-text-primary">
+                        <span className="text-os-xs font-black uppercase tracking-widest text-os-text-primary">
                           {feature.replace('_', ' ')}
                         </span>
                       </div>
@@ -239,10 +239,10 @@ export default function SupplierOnboarding() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
                     <div className="space-y-8">
                       <div className="space-y-2">
-                        <h3 className="text-xl font-black uppercase tracking-widest text-os-text-primary flex items-center gap-3">
+                        <h3 className="text-os-xl font-black uppercase tracking-widest text-os-text-primary flex items-center gap-3">
                           <Palette className="w-5 h-5 text-os-accent" /> Aesthetic Calibration
                         </h3>
-                        <p className="text-[10px] text-os-text-secondary/60 uppercase tracking-widest leading-relaxed">
+                        <p className="text-os-xs text-os-text-secondary/60 uppercase tracking-widest leading-relaxed">
                           Choose the digital personality of your sovereign environment.
                         </p>
                       </div>
@@ -252,16 +252,16 @@ export default function SupplierOnboarding() {
                           <button
                             key={p.id}
                             onClick={() => setPalette(p.id)}
-                            className={`p-4 rounded-2xl border text-left transition-all group ${palette === p.id
+                            className={`p-4 rounded-os-md border text-left transition-all group ${palette === p.id
                               ? 'bg-os-accent/10 border-os-accent ring-4 ring-os-accent/20'
                               : 'bg-white/5 border-white/10 hover:border-white/30'
                               }`}
                           >
                             <div className="w-8 h-8 rounded-lg mb-3 shadow-glow" style={{ backgroundColor: p.color }} />
-                            <h4 className="text-[10px] font-black uppercase tracking-widest text-os-text-primary group-hover:text-os-accent transition-colors">
+                            <h4 className="text-os-xs font-black uppercase tracking-widest text-os-text-primary group-hover:text-os-accent transition-colors">
                               {p.name}
                             </h4>
-                            <p className="text-[8px] text-os-text-secondary/40 uppercase tracking-tighter mt-1 leading-normal">
+                            <p className="text-os-xs text-os-text-secondary/40 uppercase tracking-tighter mt-1 leading-normal">
                               {p.desc}
                             </p>
                           </button>
@@ -282,7 +282,7 @@ export default function SupplierOnboarding() {
                   onClick={handleBack}
                   disabled={step === 1 || loading}
                   variant="ghost"
-                  className="h-14 px-8 text-[10px] font-black uppercase tracking-widest text-os-text-secondary/40 hover:text-os-text-primary disabled:opacity-0"
+                  className="h-14 px-8 text-os-xs font-black uppercase tracking-widest text-os-text-secondary/40 hover:text-os-text-primary disabled:opacity-0"
                 >
                   <ChevronLeft className="mr-2 w-4 h-4" /> Go Back
                 </Button>
@@ -291,7 +291,7 @@ export default function SupplierOnboarding() {
                   <Button
                     onClick={handleComplete}
                     disabled={loading}
-                    className="h-16 px-12 bg-os-accent hover:bg-os-accent/90 text-black font-black uppercase tracking-[0.4em] text-[10px] rounded-2xl shadow-glow animate-pulse hover:animate-none"
+                    className="h-16 px-12 bg-os-accent hover:bg-os-accent/90 text-black font-black uppercase tracking-[0.4em] text-os-xs rounded-os-md shadow-glow animate-pulse hover:animate-none"
                   >
                     {loading ? 'CALIBRATING...' : 'Identity Genesis'}
                     {!loading && <CheckCircle2 className="ml-3 w-4 h-4" />}
@@ -299,7 +299,7 @@ export default function SupplierOnboarding() {
                 ) : (
                   <Button
                     onClick={handleNext}
-                    className="h-16 px-12 bg-os-accent hover:bg-os-accent/90 text-black font-black uppercase tracking-[0.4em] text-[10px] rounded-2xl"
+                    className="h-16 px-12 bg-os-accent hover:bg-os-accent/90 text-black font-black uppercase tracking-[0.4em] text-os-xs rounded-os-md"
                   >
                     Next Sequence
                     <ChevronRight className="ml-3 w-4 h-4" />
@@ -311,7 +311,7 @@ export default function SupplierOnboarding() {
         </AnimatePresence>
       </div>
 
-      <footer className="mt-12 text-center text-os-text-secondary/10 text-[8px] font-black uppercase tracking-[0.5em]">
+      <footer className="mt-12 text-center text-os-text-secondary/10 text-os-xs font-black uppercase tracking-[0.5em]">
         <Lock className="inline-block w-2 H-2 mr-2" />
         Sovereign Handshake Protected &bull; Protocol V2026 Edition
       </footer>

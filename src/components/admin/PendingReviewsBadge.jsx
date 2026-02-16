@@ -20,7 +20,7 @@ export default function PendingReviewsBadge({ className = '' }) {
   const getBadgeColor = (count) => {
     if (count >= 10) return 'bg-red-600 text-white'; // Urgent
     if (count >= 5) return 'bg-orange-500 text-white'; // Warning
-    return 'bg-afrikoni-gold text-white'; // Normal
+    return 'bg-os-accent text-white'; // Normal
   };
 
   return (

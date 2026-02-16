@@ -70,26 +70,26 @@ export default function ProductLimitGuard({ companyId, onUpgrade, variant = 'mod
         animate={{ opacity: 1, y: 0 }}
         className="mb-6"
       >
-        <Card className="border-2 border-afrikoni-gold bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-purple/10">
+        <Card className="border-2 border-os-accent bg-gradient-to-r from-os-accent/10 to-afrikoni-purple/10">
           <CardContent className="p-6">
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-3 mb-2">
-                  <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-xl flex items-center justify-center">
-                    <Crown className="w-6 h-6 text-afrikoni-gold" />
+                  <div className="w-12 h-12 bg-os-accent/20 rounded-os-sm flex items-center justify-center">
+                    <Crown className="w-6 h-6 text-os-accent" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold text-afrikoni-chestnut mb-1">
+                    <h3 className="text-os-lg font-bold text-afrikoni-chestnut mb-1">
                       Product Limit Reached
                     </h3>
-                    <p className="text-sm text-afrikoni-text-dark/80">
+                    <p className="text-os-sm text-afrikoni-text-dark/80">
                       You've used all {limitInfo.limit} products on your {plan.name} plan. Upgrade to {upgradePlan.name} for unlimited products.
                     </p>
                   </div>
                 </div>
                 <div className="mt-4 flex flex-wrap gap-2">
                   {upgradePlan.features.slice(0, 3).map((feature, idx) => (
-                    <Badge key={idx} variant="outline" className="bg-white/50 border-afrikoni-gold/30 text-xs">
+                    <Badge key={idx} variant="outline" className="bg-white/50 border-os-accent/30 text-os-xs">
                       <CheckCircle className="w-3 h-3 mr-1" />
                       {feature}
                     </Badge>
@@ -105,7 +105,7 @@ export default function ProductLimitGuard({ companyId, onUpgrade, variant = 'mod
                       navigate('/dashboard/subscriptions');
                     }
                   }}
-                  className="bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-white shadow-lg px-6"
+                  className="bg-os-accent hover:bg-os-accent/90 text-white shadow-os-md px-6"
                 >
                   <Crown className="w-4 h-4 mr-2" />
                   Upgrade to {upgradePlan.name}
@@ -114,7 +114,7 @@ export default function ProductLimitGuard({ companyId, onUpgrade, variant = 'mod
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsOpen(false)}
-                  className="text-xs"
+                  className="text-os-xs"
                 >
                   Dismiss
                 </Button>
@@ -137,15 +137,15 @@ export default function ProductLimitGuard({ companyId, onUpgrade, variant = 'mod
             exit={{ opacity: 0, scale: 0.95 }}
             className="w-full max-w-2xl"
           >
-            <Card className="border-2 border-afrikoni-gold shadow-2xl">
+            <Card className="border-2 border-os-accent shadow-2xl">
               <CardContent className="p-8">
                 <div className="flex items-start justify-between mb-6">
                   <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 bg-gradient-to-br from-afrikoni-gold to-afrikoni-purple rounded-2xl flex items-center justify-center shadow-lg">
+                    <div className="w-16 h-16 bg-gradient-to-br from-os-accent to-afrikoni-purple rounded-os-md flex items-center justify-center shadow-os-md">
                       <Crown className="w-8 h-8 text-white" />
                     </div>
                     <div>
-                      <h2 className="text-2xl font-bold text-afrikoni-chestnut mb-1">
+                      <h2 className="text-os-2xl font-bold text-afrikoni-chestnut mb-1">
                         Product Limit Reached
                       </h2>
                       <p className="text-afrikoni-text-dark/70">
@@ -163,52 +163,52 @@ export default function ProductLimitGuard({ companyId, onUpgrade, variant = 'mod
                   </Button>
                 </div>
 
-                <div className="mb-6 p-4 bg-afrikoni-cream/30 rounded-xl">
+                <div className="mb-6 p-4 bg-afrikoni-cream/30 rounded-os-sm">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-medium text-afrikoni-text-dark">Current Usage</span>
+                    <span className="text-os-sm font-medium text-afrikoni-text-dark">Current Usage</span>
                     <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
                       {limitInfo.currentCount} / {limitInfo.limit === Infinity ? '∞' : limitInfo.limit} products
                     </Badge>
                   </div>
                   <div className="w-full bg-afrikoni-sand/50 rounded-full h-2 overflow-hidden">
                     <div 
-                      className="bg-afrikoni-gold h-full transition-all"
+                      className="bg-os-accent h-full transition-all"
                       style={{ width: `${Math.min(100, (limitInfo.currentCount / (limitInfo.limit || 1)) * 100)}%` }}
                     />
                   </div>
                 </div>
 
                 <div className="grid md:grid-cols-2 gap-4 mb-6">
-                  <div className="p-4 border border-afrikoni-gold/20 rounded-xl bg-white">
+                  <div className="p-4 border border-os-accent/20 rounded-os-sm bg-white">
                     <div className="flex items-center gap-2 mb-2">
-                      <Package className="w-5 h-5 text-afrikoni-gold" />
+                      <Package className="w-5 h-5 text-os-accent" />
                       <h3 className="font-semibold text-afrikoni-chestnut">Current Plan: {plan.name}</h3>
                     </div>
-                    <ul className="text-sm text-afrikoni-text-dark/70 space-y-1">
+                    <ul className="text-os-sm text-afrikoni-text-dark/70 space-y-1">
                       {plan.features.slice(0, 3).map((feature, idx) => (
                         <li key={idx} className="flex items-center gap-2">
-                          <CheckCircle className="w-4 h-4 text-green-500" />
+                          <CheckCircle className="w-4 h-4 text-os-green" />
                           {feature}
                         </li>
                       ))}
                     </ul>
                   </div>
 
-                  <div className="p-4 border-2 border-afrikoni-gold rounded-xl bg-gradient-to-br from-afrikoni-gold/5 to-afrikoni-purple/5">
+                  <div className="p-4 border-2 border-os-accent rounded-os-sm bg-gradient-to-br from-os-accent/5 to-afrikoni-purple/5">
                     <div className="flex items-center gap-2 mb-2">
-                      <Crown className="w-5 h-5 text-afrikoni-gold" />
+                      <Crown className="w-5 h-5 text-os-accent" />
                       <h3 className="font-semibold text-afrikoni-chestnut">Upgrade to {upgradePlan.name}</h3>
                     </div>
-                    <ul className="text-sm text-afrikoni-text-dark/80 space-y-1 mb-3">
+                    <ul className="text-os-sm text-afrikoni-text-dark/80 space-y-1 mb-3">
                       {upgradePlan.features.slice(0, 4).map((feature, idx) => (
                         <li key={idx} className="flex items-center gap-2">
-                          <Zap className="w-4 h-4 text-afrikoni-gold" />
+                          <Zap className="w-4 h-4 text-os-accent" />
                           {feature}
                         </li>
                       ))}
                     </ul>
-                    <div className="text-2xl font-bold text-afrikoni-chestnut">
-                      ${upgradePrice}<span className="text-sm font-normal text-afrikoni-text-dark/70">/month</span>
+                    <div className="text-os-2xl font-bold text-afrikoni-chestnut">
+                      ${upgradePrice}<span className="text-os-sm font-normal text-afrikoni-text-dark/70">/month</span>
                     </div>
                   </div>
                 </div>
@@ -216,7 +216,7 @@ export default function ProductLimitGuard({ companyId, onUpgrade, variant = 'mod
                 <div className="flex gap-3">
                   <Link to="/dashboard/subscriptions" className="flex-1">
                     <Button
-                      className="w-full bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-white shadow-lg h-12 text-base font-semibold"
+                      className="w-full bg-os-accent hover:bg-os-accent/90 text-white shadow-os-md h-12 text-os-base font-semibold"
                       onClick={() => {
                         if (onUpgrade) onUpgrade();
                       }}

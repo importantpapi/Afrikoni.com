@@ -137,39 +137,39 @@ export default function RFQStart() {
           <h1 className="text-3xl sm:text-4xl font-bold text-afrikoni-chestnut mb-3">
             What are you looking to source?
           </h1>
-          <p className="text-base sm:text-lg text-afrikoni-deep">
+          <p className="text-os-base sm:text-os-lg text-afrikoni-deep">
             Tell us briefly what you need, and we'll guide you through the rest
           </p>
         </div>
 
         {/* Intent Check Form */}
-        <Card className="border-afrikoni-gold/30 shadow-lg">
+        <Card className="border-os-accent/30 shadow-os-md">
           <CardContent className="p-6 sm:p-8 space-y-6">
             {/* Product/Service Name */}
             <div>
-              <Label htmlFor="productName" className="text-base font-semibold text-afrikoni-chestnut mb-2 block">
-                Product / Service name <span className="text-red-500">*</span>
+              <Label htmlFor="productName" className="text-os-base font-semibold text-afrikoni-chestnut mb-2 block">
+                Product / Service name <span className="text-os-red">*</span>
               </Label>
               <Input
                 id="productName"
                 value={formData.productName}
                 onChange={(e) => handleChange('productName', e.target.value)}
                 placeholder="e.g., Cocoa beans, Shea butter, Mobile phones..."
-                className="text-base min-h-[48px]"
+                className="text-os-base min-h-[48px]"
                 autoFocus
               />
             </div>
 
             {/* Destination Country */}
             <div>
-              <Label htmlFor="destinationCountry" className="text-base font-semibold text-afrikoni-chestnut mb-2 block">
-                Destination country <span className="text-red-500">*</span>
+              <Label htmlFor="destinationCountry" className="text-os-base font-semibold text-afrikoni-chestnut mb-2 block">
+                Destination country <span className="text-os-red">*</span>
               </Label>
               <Select 
                 value={formData.destinationCountry} 
                 onValueChange={(v) => handleChange('destinationCountry', v)}
               >
-                <SelectTrigger className="text-base min-h-[48px]">
+                <SelectTrigger className="text-os-base min-h-[48px]">
                   <SelectValue placeholder="Select destination country" />
                 </SelectTrigger>
                 <SelectContent className="max-h-[300px]">
@@ -184,8 +184,8 @@ export default function RFQStart() {
 
             {/* Estimated Quantity (Optional) */}
             <div>
-              <Label htmlFor="estimatedQuantity" className="text-base font-semibold text-afrikoni-chestnut mb-2 block">
-                Estimated quantity <span className="text-sm font-normal text-afrikoni-deep/70">(optional)</span>
+              <Label htmlFor="estimatedQuantity" className="text-os-base font-semibold text-afrikoni-chestnut mb-2 block">
+                Estimated quantity <span className="text-os-sm font-normal text-afrikoni-deep/70">(optional)</span>
               </Label>
               <Input
                 id="estimatedQuantity"
@@ -193,9 +193,9 @@ export default function RFQStart() {
                 value={formData.estimatedQuantity}
                 onChange={(e) => handleChange('estimatedQuantity', e.target.value)}
                 placeholder="e.g., 1000 kg, 500 pieces, 10 containers..."
-                className="text-base min-h-[48px]"
+                className="text-os-base min-h-[48px]"
               />
-              <p className="text-sm text-afrikoni-deep/70 mt-1">
+              <p className="text-os-sm text-afrikoni-deep/70 mt-1">
                 This helps us match you with the right suppliers
               </p>
             </div>
@@ -204,7 +204,7 @@ export default function RFQStart() {
             <Button
               onClick={handleContinue}
               disabled={isLoading || !formData.productName.trim() || !formData.destinationCountry}
-              className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut font-semibold text-base min-h-[52px] mt-6"
+              className="w-full bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut font-semibold text-os-base min-h-[52px] mt-6"
             >
               Continue
             </Button>
@@ -213,30 +213,30 @@ export default function RFQStart() {
 
         {/* Trust Reassurance (if not logged in) */}
         {!user && (
-          <Card className="border-afrikoni-gold/20 bg-afrikoni-cream/30 mt-6">
+          <Card className="border-os-accent/20 bg-afrikoni-cream/30 mt-6">
             <CardContent className="p-6">
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
-                  <Shield className="w-6 h-6 text-afrikoni-gold" />
+                  <Shield className="w-6 h-6 text-os-accent" />
                 </div>
                 <div className="space-y-3">
                   <h3 className="font-semibold text-afrikoni-chestnut">
                     Create a free account to submit your RFQ
                   </h3>
-                  <p className="text-sm text-afrikoni-deep">
+                  <p className="text-os-sm text-afrikoni-deep">
                     You'll need an account to receive verified offers and manage your requests.
                   </p>
-                  <div className="space-y-2 text-sm text-afrikoni-deep">
+                  <div className="space-y-2 text-os-sm text-afrikoni-deep">
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-afrikoni-gold flex-shrink-0" />
+                      <CheckCircle className="w-4 h-4 text-os-accent flex-shrink-0" />
                       <span>No obligation</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Lock className="w-4 h-4 text-afrikoni-gold flex-shrink-0" />
+                      <Lock className="w-4 h-4 text-os-accent flex-shrink-0" />
                       <span>No spam</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Shield className="w-4 h-4 text-afrikoni-gold flex-shrink-0" />
+                      <Shield className="w-4 h-4 text-os-accent flex-shrink-0" />
                       <span>Verified suppliers only</span>
                     </div>
                   </div>

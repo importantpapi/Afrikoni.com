@@ -312,7 +312,7 @@ export default function TradeWorkspace() {
                   <h1 className="text-3xl font-light mt-2 tracking-tight text-white">
                     {tradeType === 'order' ? 'Order' : 'RFQ'} <span className="font-mono text-white/50">#{trade?.id?.slice?.(-8) || trade?.id}</span>
                   </h1>
-                  <p className="text-sm text-os-muted mt-2 font-mono">
+                  <p className="text-os-sm text-os-muted mt-2 font-mono">
                     {trade?.title || trade?.product_name || trade?.product || 'Trade mission via ' + (trade?.corridor?.originCountry || 'Origin') + ' -> ' + (trade?.corridor?.destinationCountry || 'Destination')}
                   </p>
                 </div>
@@ -338,7 +338,7 @@ export default function TradeWorkspace() {
                         className={`flex flex-col items-center gap-2`}
                       >
                         <div className={`w-3 h-3 rounded-full border-2 transition-all duration-300 ${isActive ? 'bg-[#D4A937] border-[#D4A937] shadow-[0_0_10px_#D4A937]' : isComplete ? 'bg-[#D4A937] border-transparent' : 'bg-transparent border-white/20'}`} />
-                        <span className={`text-[9px] uppercase font-bold tracking-wider text-center ${isActive ? 'text-[#D4A937]' : 'text-white/30'}`}>{stage.label}</span>
+                        <span className={`text-os-xs uppercase font-bold tracking-wider text-center ${isActive ? 'text-[#D4A937]' : 'text-white/30'}`}>{stage.label}</span>
                       </div>
                     );
                   })}
@@ -351,11 +351,11 @@ export default function TradeWorkspace() {
               {/* Next Action Driver */}
               <div className="grid md:grid-cols-[1.5fr_1fr] gap-6 mt-6 pt-6 border-t border-white/5">
                 <div>
-                  <div className="text-xs uppercase tracking-widest text-[#D4A937] mb-2 font-bold">Recommended Action</div>
-                  <h3 className="text-xl font-medium text-white mb-2">{nextAction.title}</h3>
+                  <div className="text-os-xs uppercase tracking-widest text-[#D4A937] mb-2 font-bold">Recommended Action</div>
+                  <h3 className="text-os-xl font-medium text-white mb-2">{nextAction.title}</h3>
                   <div className="space-y-1">
                     {nextAction.consequences.map((item, i) => (
-                      <div key={i} className="text-sm text-white/60 flex items-center gap-2">
+                      <div key={i} className="text-os-sm text-white/60 flex items-center gap-2">
                         <ArrowRight className="w-3 h-3 text-[#D4A937]" /> {item}
                       </div>
                     ))}
@@ -374,16 +374,16 @@ export default function TradeWorkspace() {
                 {/* Mini Metrics */}
                 <div className="grid grid-cols-2 gap-3">
                   <div className="p-3 bg-white/5 rounded-lg border border-white/5">
-                    <div className="text-[10px] uppercase text-white/40 mb-1">Value</div>
-                    <div className="text-lg font-mono text-white">${tradeValue.toLocaleString()}</div>
+                    <div className="text-os-xs uppercase text-white/40 mb-1">Value</div>
+                    <div className="text-os-lg font-mono text-white">${tradeValue.toLocaleString()}</div>
                   </div>
                   <div className="p-3 bg-white/5 rounded-lg border border-white/5">
-                    <div className="text-[10px] uppercase text-white/40 mb-1">ETA</div>
-                    <div className="text-lg font-mono text-white">{trade?.delivery_date || 'TBD'}</div>
+                    <div className="text-os-xs uppercase text-white/40 mb-1">ETA</div>
+                    <div className="text-os-lg font-mono text-white">{trade?.delivery_date || 'TBD'}</div>
                   </div>
                   <div className="p-3 bg-white/5 rounded-lg border border-white/5 col-span-2">
-                    <div className="text-[10px] uppercase text-white/40 mb-1">Compliance</div>
-                    <div className={`text-sm font-bold ${tradeKernel.afcftaReady ? 'text-emerald-400' : 'text-amber-400'}`}>
+                    <div className="text-os-xs uppercase text-white/40 mb-1">Compliance</div>
+                    <div className={`text-os-sm font-bold ${tradeKernel.afcftaReady ? 'text-emerald-400' : 'text-amber-400'}`}>
                       {tradeKernel.afcftaReady ? 'AfCFTA CERTIFIED' : 'DOCUMENT PENDING'}
                     </div>
                   </div>
@@ -398,14 +398,14 @@ export default function TradeWorkspace() {
               <Surface variant="panel" className="p-5">
                 <div className="flex items-center gap-2 mb-4">
                   <FileCheck className="w-4 h-4 text-blue-400" />
-                  <span className="text-sm font-bold">Trade Documents</span>
+                  <span className="text-os-sm font-bold">Trade Documents</span>
                 </div>
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between p-3 bg-white/5 rounded border border-white/5 text-sm">
+                  <div className="flex items-center justify-between p-3 bg-white/5 rounded border border-white/5 text-os-sm">
                     <span className="text-white/70">Commercial Invoice</span>
                     <StatusBadge label="VERIFIED" tone="good" />
                   </div>
-                  <div className="flex items-center justify-between p-3 bg-white/5 rounded border border-white/5 text-sm">
+                  <div className="flex items-center justify-between p-3 bg-white/5 rounded border border-white/5 text-os-sm">
                     <span className="text-white/70">Bill of Lading</span>
                     <StatusBadge label="PENDING" tone="neutral" />
                   </div>
@@ -417,7 +417,7 @@ export default function TradeWorkspace() {
               <Surface variant="panel" className="p-5">
                 <div className="flex items-center gap-2 mb-4">
                   <Timer className="w-4 h-4 text-emerald-400" />
-                  <span className="text-sm font-bold">Escrow Release</span>
+                  <span className="text-os-sm font-bold">Escrow Release</span>
                 </div>
                 <EscrowMilestoneProgress
                   totalAmount={tradeValue || 64000}
@@ -444,12 +444,12 @@ export default function TradeWorkspace() {
             {/* Kernel Ledger */}
             <TradeOSErrorBoundary>
               <Surface variant="glass" className="p-4 border border-os-stroke/40">
-                <div className="text-[10px] uppercase tracking-widest text-os-muted mb-3 font-bold border-b border-os-stroke/40 pb-2">Kernel Ledger</div>
+                <div className="text-os-xs uppercase tracking-widest text-os-muted mb-3 font-bold border-b border-os-stroke/40 pb-2">Kernel Ledger</div>
                 <div className="space-y-3">
                   {kernelConsole.audit.map((item, i) => (
                     <div key={i} className="flex flex-col gap-0.5">
-                      <div className="text-xs text-[var(--os-text-primary)]">{item.label}</div>
-                      <div className="text-[10px] font-mono text-os-muted">{item.time}</div>
+                      <div className="text-os-xs text-[var(--os-text-primary)]">{item.label}</div>
+                      <div className="text-os-xs font-mono text-os-muted">{item.time}</div>
                     </div>
                   ))}
                 </div>

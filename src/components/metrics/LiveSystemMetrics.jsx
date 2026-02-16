@@ -124,7 +124,7 @@ export function LiveSystemMetrics({ variant = 'full', className = '' }) {
 
   if (variant === 'compact') {
     return (
-      <div className={cn('flex flex-wrap items-center gap-4 text-xs text-afrikoni-deep/70', className)}>
+      <div className={cn('flex flex-wrap items-center gap-4 text-os-xs text-afrikoni-deep/70', className)}>
         <div className="flex items-center gap-1.5">
           <Package className="w-3.5 h-3.5" />
           <span><strong>{metrics.rfqsThisMonth}</strong> RFQs this month</span>
@@ -146,12 +146,12 @@ export function LiveSystemMetrics({ variant = 'full', className = '' }) {
   }
 
   return (
-    <Card className={cn('border-afrikoni-gold/30 bg-gradient-to-br from-white to-blue-50/30', className)}>
+    <Card className={cn('border-os-accent/30 bg-gradient-to-br from-white to-blue-50/30', className)}>
       <CardContent className="p-6">
         <div className="flex items-center gap-2 mb-4">
           <TrendingUp className="w-5 h-5" />
           <h3 className="font-semibold">Live Platform Metrics</h3>
-          <span className="ml-auto text-xs italic">Real-time data</span>
+          <span className="ml-auto text-os-xs italic">Real-time data</span>
         </div>
 
         <div className="grid md:grid-cols-3 gap-4">
@@ -205,7 +205,7 @@ export function LiveSystemMetrics({ variant = 'full', className = '' }) {
         </div>
 
         <div className="mt-4 pt-4 border-t">
-          <p className="text-xs text-center italic">
+          <p className="text-os-xs text-center italic">
             All metrics are live system data. Updated every 5 minutes.
           </p>
         </div>
@@ -221,10 +221,10 @@ function MetricItem({ icon: Icon, label, value, color, loading }) {
         <Icon className={`w-4 h-4 text-${color}-600`} />
       </div>
       <div>
-        <p className="text-sm font-medium">
+        <p className="text-os-sm font-medium">
           {loading ? '...' : value}
         </p>
-        <p className="text-xs">{label}</p>
+        <p className="text-os-xs">{label}</p>
       </div>
     </div>
   );
@@ -263,20 +263,20 @@ export function LiveMetricsHero({ className = '' }) {
   };
 
   return (
-    <div className={cn('flex items-center justify-center gap-8 text-sm text-afrikoni-deep/70', className)}>
+    <div className={cn('flex items-center justify-center gap-8 text-os-sm text-afrikoni-deep/70', className)}>
       <div className="text-center">
-        <p className="text-2xl font-bold">{metrics.rfqsThisMonth}</p>
-        <p className="text-xs">RFQs this month</p>
+        <p className="text-os-2xl font-bold">{metrics.rfqsThisMonth}</p>
+        <p className="text-os-xs">RFQs this month</p>
       </div>
       <div className="h-8 w-px" />
       <div className="text-center">
-        <p className="text-2xl font-bold">{metrics.activeSuppliers}</p>
-        <p className="text-xs">Verified suppliers</p>
+        <p className="text-os-2xl font-bold">{metrics.activeSuppliers}</p>
+        <p className="text-os-xs">Verified suppliers</p>
       </div>
       <div className="h-8 w-px" />
       <div className="text-center">
-        <p className="text-2xl font-bold">{metrics.dealsCompleted}</p>
-        <p className="text-xs">Deals completed</p>
+        <p className="text-os-2xl font-bold">{metrics.dealsCompleted}</p>
+        <p className="text-os-xs">Deals completed</p>
       </div>
     </div>
   );

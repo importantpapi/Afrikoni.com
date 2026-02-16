@@ -23,9 +23,9 @@ const toneClasses: Record<SignalTone, { border: string; bg: string; text: string
     text: 'text-os-accent',
   },
   blue: {
-    border: 'border-blue-500/20',
+    border: 'border-os-blue/20',
     bg: 'bg-blue-500/5',
-    text: 'text-blue-500',
+    text: 'text-os-blue',
   },
   neutral: {
     border: 'border-os-stroke',
@@ -48,11 +48,11 @@ export function SignalChip({ label, value, icon: Icon, tone = 'neutral', classNa
   return (
     <div className={cn('relative group flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all duration-300', styles.border, styles.bg, className)}>
       {Icon && <Icon className={cn('h-3.5 w-3.5', styles.text)} />}
-      <span className={cn('text-[11px] font-semibold tracking-tight', styles.text)}>
+      <span className={cn('text-os-xs font-semibold tracking-tight', styles.text)}>
         {label}
       </span>
       {value !== undefined && (
-        <span className={cn('text-[11px] font-bold px-1.5 bg-os-stroke/20 rounded', styles.text)}>
+        <span className={cn('text-os-xs font-bold px-1.5 bg-os-stroke/20 rounded', styles.text)}>
           {value}
         </span>
       )}

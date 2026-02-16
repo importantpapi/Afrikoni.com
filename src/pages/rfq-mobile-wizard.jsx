@@ -367,17 +367,17 @@ We're matching your RFQ with verified suppliers. You'll receive notifications wh
   return (
     <div className="min-h-screen bg-afrikoni-offwhite pb-24 md:pb-0">
       {/* Progress Indicator */}
-      <div className="sticky top-0 z-30 bg-white border-b border-afrikoni-gold/20 px-4 py-3">
+      <div className="sticky top-0 z-30 bg-white border-b border-os-accent/20 px-4 py-3">
         <div className="flex items-center justify-between mb-2">
           <button
             onClick={handleBack}
             disabled={currentStep === 0}
-            className="text-afrikoni-gold disabled:text-afrikoni-deep/30 disabled:cursor-not-allowed min-h-[44px] min-w-[44px] flex items-center"
+            className="text-os-accent disabled:text-afrikoni-deep/30 disabled:cursor-not-allowed min-h-[44px] min-w-[44px] flex items-center"
             aria-label="Go back"
           >
             {currentStep > 0 && '← Back'}
           </button>
-          <span className="text-sm font-medium text-afrikoni-deep">
+          <span className="text-os-sm font-medium text-afrikoni-deep">
             Step {currentStep + 1} of {STEPS.length}
           </span>
           <div className="w-12" /> {/* Spacer for centering */}
@@ -387,8 +387,8 @@ We're matching your RFQ with verified suppliers. You'll receive notifications wh
             <div
               key={idx}
               className={`h-1 flex-1 rounded-full transition-colors ${idx <= currentStep
-                  ? 'bg-afrikoni-gold'
-                  : 'bg-afrikoni-gold/20'
+                  ? 'bg-os-accent'
+                  : 'bg-os-accent/20'
                 }`}
             />
           ))}

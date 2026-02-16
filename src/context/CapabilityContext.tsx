@@ -49,12 +49,11 @@ const SUPER_USER_CAPS: CapabilityData = {
 };
 
 export function CapabilityProvider({ children }: { children: ReactNode }) {
-  const { user, profile, authReady } = useAuth();
+  const { user, profile, authReady, handshakeData } = useAuth() as any;
   const isMounted = useRef(true);
   const hasFetchedRef = useRef(false);
   const fetchedCompanyIdRef = useRef<string | null>(null);
   const isFetchingRef = useRef(false);
-  const timeoutIdRef = useRef<NodeJS.Timeout | null>(null);
 
   const [capabilities, setCapabilities] = useState<CapabilityData>({
     can_buy: true,
@@ -70,25 +69,9 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
     isSlowConnection: false,
   });
 
-  // ✅ SOVEREIGN SYNC: Safety Handshake Timeout
-  // If the kernel fails to hydrate within 5s, we force 'ready: true' to allow boot
-  useEffect(() => {
-    if (!capabilities.ready) {
-      const timer = setTimeout(() => {
-        if (!capabilities.ready && isMounted.current) {
-          console.warn('[Capability] ⚠️ Hydration taking too long. Forcing READY state for boot resilience.');
-          setCapabilities(prev => ({ ...prev, ready: true, kernelError: 'Hydration Timeout (Recovered)' }));
-        }
-      }, 5000);
-      return () => clearTimeout(timer);
-    }
-  }, [capabilities.ready]);
-
   const [lastInvalidatedAt, setLastInvalidatedAt] = useState<number>(0);
   const [invalidatedTags, setInvalidatedTags] = useState<Set<string>>(new Set());
   const [isSlowConnection, setIsSlowConnection] = useState(false);
-
-  // ✅ INSTRUMENTATION: Unique Instance ID
   const [instanceId] = useState(() => Math.random().toString(36).substring(2, 9));
 
   // ✅ INSTRUMENTATION: Boot Trace Logger
@@ -110,6 +93,19 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
     isMounted.current = true;
     return () => { isMounted.current = false; };
   }, []);
+
+  // ✅ SOVEREIGN SYNC: Safety Handshake Timeout
+  useEffect(() => {
+    if (!capabilities.ready) {
+      const timer = setTimeout(() => {
+        if (!capabilities.ready && isMounted.current) {
+          console.warn('[Capability] ⚠️ Hydration taking too long. Forcing READY state for boot resilience.');
+          setCapabilities(prev => ({ ...prev, ready: true, kernelError: 'Hydration Timeout (Recovered)' }));
+        }
+      }, 25000);
+      return () => clearTimeout(timer);
+    }
+  }, [capabilities.ready]);
 
   const fetchCapabilities = useCallback(async (forceRefresh = false) => {
     const targetCompanyId = profile?.company_id;
@@ -137,13 +133,24 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
       fetchedCompanyIdRef.current = null;
     }
 
-    if (!authReady || !user || !targetCompanyId) {
+    if (!authReady || !user) {
       if (hasFetchedRef.current && capabilities?.ready) return;
       setCapabilities(prev => ({
         ...prev,
         loading: false,
         ready: false,
-        company_id: prev?.company_id ?? null,
+        company_id: null,
+        isSlowConnection: false,
+      }));
+      return;
+    }
+
+    if (!targetCompanyId) {
+      setCapabilities(prev => ({
+        ...prev,
+        loading: false,
+        ready: true,
+        company_id: null,
         isSlowConnection: false,
       }));
       return;
@@ -152,33 +159,16 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
     if (isFetchingRef.current) return;
     isFetchingRef.current = true;
 
-    const fetchResolved = { current: false };
-
     try {
-      if (!hasFetchedRef.current) {
-        // ✅ ENTERPRISE SWR: Keep 'ready' state if previously true
-        // Don't flip ready=false which triggers "Flash of Skeleton"
-        setCapabilities(prev => ({ ...prev, loading: true, error: null }));
-      }
-
-      const fetchTimer = setTimeout(() => {
-        if (!fetchResolved.current && isMounted.current) {
-          setIsSlowConnection(true);
-        }
-      }, 2500); // FIX: Reduced to 2.5s for faster user feedback
-
       const { data, error } = await supabase
         .from('company_capabilities')
         .select('*')
         .eq('company_id', targetCompanyId)
         .maybeSingle();
 
-      fetchResolved.current = true;
-      clearTimeout(fetchTimer);
-
       if (error) throw error;
 
-      if (data) {
+      if (data && isMounted.current) {
         setCapabilities({
           can_buy: data.can_buy,
           can_sell: data.can_sell,
@@ -192,79 +182,64 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
           kernelError: null,
           isSlowConnection: false,
         });
-        setIsSlowConnection(false);
         hasFetchedRef.current = true;
         fetchedCompanyIdRef.current = targetCompanyId;
-      } else {
-        // Create defaults if missing
-        const { data: newData, error: insertError } = await supabase
-          .from('company_capabilities')
-          .upsert({
-            company_id: targetCompanyId,
-            can_buy: true,
-            can_sell: false,
-            can_logistics: false,
-            sell_status: 'disabled',
-            logistics_status: 'disabled',
-          }, { onConflict: 'company_id' })
-          .select()
-          .single();
-
-        if (insertError) throw insertError;
-        if (newData) {
-          setCapabilities({
-            can_buy: newData.can_buy,
-            can_sell: newData.can_sell,
-            can_logistics: newData.can_logistics,
-            sell_status: newData.sell_status as CapabilityStatus,
-            logistics_status: newData.logistics_status as CapabilityStatus,
-            company_id: targetCompanyId,
-            loading: false,
-            ready: true,
-            error: null,
-            kernelError: null,
-            isSlowConnection: false,
-          });
-          hasFetchedRef.current = true;
-          fetchedCompanyIdRef.current = targetCompanyId;
-        }
       }
     } catch (err: any) {
       console.error('[CapabilityContext] Error fetching capabilities:', err);
-      // ✅ FIX FAIL-OPEN: Set ready:false on error to prevent incomplete auth state
       setCapabilities(prev => ({
         ...prev,
         loading: false,
-        ready: false, // CRITICAL: Don't pass gate on error
+        ready: false,
         kernelError: err.message || 'Sync error',
         isSlowConnection: false,
       }));
     } finally {
-      if (isMounted.current) {
-        hasFetchedRef.current = true;
-        fetchedCompanyIdRef.current = targetCompanyId;
-      }
+      isFetchingRef.current = false;
       bootTrace('Fetch Concluded');
     }
   }, [profile?.company_id, profile?.is_admin, authReady, user, capabilities.ready, bootTrace]);
 
   useEffect(() => {
     if (!authReady) {
-      setCapabilities(prev => ({ ...prev, ready: false, isSlowConnection: false }));
+      setCapabilities(prev => ({ ...prev, ready: false }));
       return;
     }
+
+    // ⚡ PERFORMANCE: Instant Hydration from Handshake
+    if (handshakeData?.capabilities) {
+      const data = handshakeData.capabilities;
+      setCapabilities({
+        can_buy: data.can_buy,
+        can_sell: data.can_sell,
+        can_logistics: data.can_logistics,
+        sell_status: data.sell_status as CapabilityStatus,
+        logistics_status: data.logistics_status as CapabilityStatus,
+        company_id: handshakeData.profile?.company_id || null,
+        loading: false,
+        ready: true,
+        error: null,
+        kernelError: null,
+        isSlowConnection: false,
+      });
+      hasFetchedRef.current = true;
+      fetchedCompanyIdRef.current = handshakeData.profile?.company_id || null;
+      return;
+    }
+
     if (!profile?.company_id) {
-      setCapabilities(prev => ({ ...prev, ready: true, company_id: null, isSlowConnection: false }));
+      setCapabilities(prev => ({ ...prev, ready: true, company_id: null }));
       return;
     }
+
     if (!hasFetchedRef.current || !capabilities.ready) {
       fetchCapabilities();
     }
-  }, [authReady, profile?.company_id, fetchCapabilities, capabilities.ready]);
+  }, [authReady, profile?.company_id, fetchCapabilities, capabilities.ready, handshakeData]);
 
   const resetKernel = useCallback(() => {
     setCapabilities({
-      can_buy: false,
+      can_buy: true,
       can_sell: false,
       can_logistics: false,
       sell_status: 'disabled',
@@ -317,7 +292,6 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
     </CapabilityContext.Provider>
   );
 }
-
 
 export function useCapability(): CapabilityContextValue {
   const ctx = useContext(CapabilityContext);

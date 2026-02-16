@@ -31,13 +31,13 @@ async function fetchTrades(profileCompanyId) {
   // Step 2: Fetch products for enrichment
   let productsMap = {};
   const productIds = Array.from(new Set(tradesData.filter(t => t.product_id).map(t => t.product_id)));
-  
+
   if (productIds.length > 0) {
     const { data: productsData, error: productsError } = await supabase
       .from('products')
       .select('id, name')
       .in('id', productIds);
-    
+
     if (!productsError && Array.isArray(productsData)) {
       productsMap = Object.fromEntries(productsData.map(p => [p.id, p.name]));
     }
@@ -48,7 +48,7 @@ async function fetchTrades(profileCompanyId) {
     ...trade,
     productName: (trade.product_id && productsMap[trade.product_id])
       ? productsMap[trade.product_id]
-      : trade.product_name || 'Unknown Product',
+      : trade.product_name || 'Pending Verification',
     corridor: {
       originCountry: trade.origin_country || 'Unknown',
       destinationCountry: trade.destination_country || 'Unknown',

@@ -118,13 +118,13 @@ export default function LogisticsHubPage() {
               animate={{ opacity: 1, y: 0 }}
               className="text-center mb-12"
             >
-              <Badge className="mb-4 bg-afrikoni-gold text-afrikoni-chestnut">
+              <Badge className="mb-4 bg-os-accent text-afrikoni-chestnut">
                 {getMarketingContent('logistics')}
               </Badge>
               <h1 className="text-5xl md:text-6xl font-bold text-afrikoni-text-dark mb-6">
                 Logistics & Shipping from {config.name}
               </h1>
-              <p className="text-xl text-afrikoni-text-dark/70 max-w-3xl mx-auto mb-8">
+              <p className="text-os-xl text-afrikoni-text-dark/70 max-w-3xl mx-auto mb-8">
                 Reliable shipping solutions from {config.name} to destinations worldwide. 
                 Verified logistics partners, competitive rates, and full tracking.
               </p>
@@ -144,13 +144,13 @@ export default function LogisticsHubPage() {
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: idx * 0.1 }}
                 >
-                  <Card className="border-afrikoni-gold/20">
+                  <Card className="border-os-accent/20">
                     <CardContent className="p-6 text-center">
-                      <stat.icon className="w-8 h-8 text-afrikoni-gold mx-auto mb-2" />
+                      <stat.icon className="w-8 h-8 text-os-accent mx-auto mb-2" />
                       <div className="text-3xl font-bold text-afrikoni-text-dark mb-1">
                         {stat.value}
                       </div>
-                      <div className="text-sm text-afrikoni-text-dark/70">{stat.label}</div>
+                      <div className="text-os-sm text-afrikoni-text-dark/70">{stat.label}</div>
                     </CardContent>
                   </Card>
                 </motion.div>
@@ -170,26 +170,26 @@ export default function LogisticsHubPage() {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: idx * 0.1 }}
                   >
-                    <Card className="h-full border-afrikoni-gold/20 hover:border-afrikoni-gold/40 transition-colors">
+                    <Card className="h-full border-os-accent/20 hover:border-os-accent/40 transition-colors">
                       <CardHeader>
                         <div className="flex items-center gap-3 mb-2">
-                          <div className="w-12 h-12 bg-afrikoni-gold/10 rounded-lg flex items-center justify-center">
-                            <option.icon className="w-6 h-6 text-afrikoni-gold" />
+                          <div className="w-12 h-12 bg-os-accent/10 rounded-lg flex items-center justify-center">
+                            <option.icon className="w-6 h-6 text-os-accent" />
                           </div>
                           <CardTitle>{option.type}</CardTitle>
                         </div>
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-3">
-                          <div className="flex items-center gap-2 text-sm">
+                          <div className="flex items-center gap-2 text-os-sm">
                             <MapPin className="w-4 h-4 text-afrikoni-text-dark/50" />
                             <span>{option.from} → {option.to}</span>
                           </div>
-                          <div className="flex items-center gap-2 text-sm">
+                          <div className="flex items-center gap-2 text-os-sm">
                             <Clock className="w-4 h-4 text-afrikoni-text-dark/50" />
                             <span>{option.time}</span>
                           </div>
-                          <div className="flex items-center gap-2 text-sm">
+                          <div className="flex items-center gap-2 text-os-sm">
                             <DollarSign className="w-4 h-4 text-afrikoni-text-dark/50" />
                             <span>{option.cost}</span>
                           </div>
@@ -209,7 +209,7 @@ export default function LogisticsHubPage() {
                 </h2>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {logisticsPartners.map((partner, idx) => (
-                    <Card key={idx} className="border-afrikoni-gold/20">
+                    <Card key={idx} className="border-os-accent/20">
                       <CardContent className="p-6">
                         <div className="flex items-center justify-between mb-3">
                           <h3 className="font-semibold text-afrikoni-text-dark">{partner.company_name}</h3>
@@ -220,7 +220,7 @@ export default function LogisticsHubPage() {
                             </Badge>
                           )}
                         </div>
-                        <div className="text-sm text-afrikoni-text-dark/70">
+                        <div className="text-os-sm text-afrikoni-text-dark/70">
                           <div className="flex items-center gap-2 mb-1">
                             <MapPin className="w-4 h-4" />
                             {partner.city}, {partner.country}
@@ -235,7 +235,7 @@ export default function LogisticsHubPage() {
 
             {/* CTA Section */}
             <div className="text-center">
-              <Card className="border-afrikoni-gold/30 bg-gradient-to-r from-afrikoni-gold/5 to-afrikoni-green/5">
+              <Card className="border-os-accent/30 bg-gradient-to-r from-os-accent/5 to-afrikoni-green/5">
                 <CardContent className="p-8">
                   <h2 className="text-3xl font-bold text-afrikoni-text-dark mb-4">
                     Need Shipping from {config.name}?
@@ -250,7 +250,7 @@ export default function LogisticsHubPage() {
                       </Button>
                     </Link>
                     <Link to="/dashboard/logistics-quote">
-                      <Button className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut" size="lg">
+                      <Button className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut" size="lg">
                         Request Quote
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>

@@ -155,7 +155,7 @@ export function DealMilestoneTracker({
                   )} />
                 </div>
                 <span className={cn(
-                  'text-xs font-medium',
+                  'text-os-xs font-medium',
                   state === 'completed' && 'text-green-700',
                   state === 'current' && 'text-blue-700',
                   state === 'pending' && 'text-gray-500'
@@ -177,18 +177,18 @@ export function DealMilestoneTracker({
   }
 
   return (
-    <Card className={cn('border-afrikoni-gold/30', className)}>
+    <Card className={cn('border-os-accent/30', className)}>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg text-afrikoni-chestnut">Deal Progress</CardTitle>
+          <CardTitle className="text-os-lg text-afrikoni-chestnut">Deal Progress</CardTitle>
           {orderNumber && (
-            <Badge variant="outline" className="text-xs">
+            <Badge variant="outline" className="text-os-xs">
               Order #{orderNumber}
             </Badge>
           )}
         </div>
         {estimatedDelivery && (
-          <p className="text-xs text-afrikoni-deep/60 mt-1">
+          <p className="text-os-xs text-afrikoni-deep/60 mt-1">
             Estimated delivery: {new Date(estimatedDelivery).toLocaleDateString()}
           </p>
         )}
@@ -231,7 +231,7 @@ export function DealMilestoneTracker({
                 <div className="flex-1 pb-4">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className={cn(
-                      'font-semibold text-sm',
+                      'font-semibold text-os-sm',
                       state === 'completed' && 'text-green-700',
                       state === 'current' && 'text-blue-700',
                       state === 'pending' && 'text-gray-500'
@@ -239,13 +239,13 @@ export function DealMilestoneTracker({
                       {definition.label}
                     </h3>
                     {state === 'current' && (
-                      <Badge variant="default" className="text-xs bg-blue-100 text-blue-700">
+                      <Badge variant="default" className="text-os-xs bg-blue-100 text-blue-700">
                         In Progress
                       </Badge>
                     )}
                   </div>
                   <p className={cn(
-                    'text-xs',
+                    'text-os-xs',
                     state === 'completed' && 'text-green-600',
                     state === 'current' && 'text-blue-600',
                     state === 'pending' && 'text-gray-500'
@@ -253,12 +253,12 @@ export function DealMilestoneTracker({
                     {definition.description}
                   </p>
                   {milestone?.timestamp && (
-                    <p className="text-xs text-afrikoni-deep/50 mt-1">
+                    <p className="text-os-xs text-afrikoni-deep/50 mt-1">
                       {new Date(milestone.timestamp).toLocaleString()}
                     </p>
                   )}
                   {milestone?.notes && (
-                    <p className="text-xs text-afrikoni-deep/70 mt-2 italic">
+                    <p className="text-os-xs text-afrikoni-deep/70 mt-2 italic">
                       Note: {milestone.notes}
                     </p>
                   )}
@@ -270,11 +270,11 @@ export function DealMilestoneTracker({
 
         {/* What's Next Section */}
         {currentStatus !== 'completed' && (
-          <div className="mt-6 pt-6 border-t border-afrikoni-gold/20">
-            <h4 className="text-sm font-semibold text-afrikoni-chestnut mb-2">
+          <div className="mt-6 pt-6 border-t border-os-accent/20">
+            <h4 className="text-os-sm font-semibold text-afrikoni-chestnut mb-2">
               What happens next?
             </h4>
-            <p className="text-xs text-afrikoni-deep/70">
+            <p className="text-os-xs text-afrikoni-deep/70">
               {getNextStepDescription(currentStatus)}
             </p>
           </div>
@@ -311,7 +311,7 @@ export function DealMilestoneCompact({ currentStatus, className = '' }) {
   return (
     <div className={cn('flex items-center gap-2 px-2 py-1 rounded-md bg-blue-50 border border-blue-200', className)}>
       <Icon className="w-3.5 h-3.5 text-blue-600" />
-      <span className="text-xs font-medium text-blue-700">{definition.label}</span>
+      <span className="text-os-xs font-medium text-blue-700">{definition.label}</span>
     </div>
   );
 }

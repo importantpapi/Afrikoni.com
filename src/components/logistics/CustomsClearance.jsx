@@ -167,20 +167,20 @@ export default function CustomsClearance({ shipmentId, orderId, isLogistics = fa
 
   if (isLoading) {
     return (
-      <Card className="border-afrikoni-gold/20">
+      <Card className="border-os-accent/20">
         <CardContent className="p-6">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-afrikoni-gold mx-auto" />
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-os-accent mx-auto" />
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="border-afrikoni-gold/20">
+    <Card className="border-os-accent/20">
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
-            <Globe className="w-5 h-5 text-afrikoni-gold" />
+            <Globe className="w-5 h-5 text-os-accent" />
             Customs Clearance
           </CardTitle>
           {isLogistics && (
@@ -296,7 +296,7 @@ export default function CustomsClearance({ shipmentId, orderId, isLogistics = fa
                     <Button variant="outline" onClick={() => setShowEditDialog(false)}>
                       Cancel
                     </Button>
-                    <Button onClick={handleSave} disabled={isUpdating} className="bg-afrikoni-gold hover:bg-afrikoni-goldDark">
+                    <Button onClick={handleSave} disabled={isUpdating} className="bg-os-accent hover:bg-os-accentDark">
                       {isUpdating ? 'Saving...' : 'Save'}
                     </Button>
                   </div>
@@ -309,8 +309,8 @@ export default function CustomsClearance({ shipmentId, orderId, isLogistics = fa
       <CardContent>
         {!customs ? (
           <div className="text-center py-8">
-            <Globe className="w-12 h-12 text-afrikoni-gold/50 mx-auto mb-3" />
-            <p className="text-sm text-afrikoni-text-dark/70 mb-4">
+            <Globe className="w-12 h-12 text-os-accent/50 mx-auto mb-3" />
+            <p className="text-os-sm text-afrikoni-text-dark/70 mb-4">
               No customs clearance information yet
             </p>
             {isLogistics && (
@@ -326,13 +326,13 @@ export default function CustomsClearance({ shipmentId, orderId, isLogistics = fa
                 {customs.status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
               </Badge>
               {customs.cleared_at && (
-                <span className="text-xs text-afrikoni-text-dark/70">
+                <span className="text-os-xs text-afrikoni-text-dark/70">
                   Cleared: {format(new Date(customs.cleared_at), 'MMM d, yyyy')}
                 </span>
               )}
             </div>
 
-            <div className="grid md:grid-cols-2 gap-4 text-sm">
+            <div className="grid md:grid-cols-2 gap-4 text-os-sm">
               {customs.border_crossing_point && (
                 <div>
                   <span className="text-afrikoni-text-dark/70">Border Point</span>
@@ -366,9 +366,9 @@ export default function CustomsClearance({ shipmentId, orderId, isLogistics = fa
             </div>
 
             {customs.customs_notes && (
-              <div className="pt-4 border-t border-afrikoni-gold/20">
-                <span className="text-xs text-afrikoni-text-dark/70">Notes</span>
-                <p className="text-sm text-afrikoni-text-dark mt-1">{customs.customs_notes}</p>
+              <div className="pt-4 border-t border-os-accent/20">
+                <span className="text-os-xs text-afrikoni-text-dark/70">Notes</span>
+                <p className="text-os-sm text-afrikoni-text-dark mt-1">{customs.customs_notes}</p>
               </div>
             )}
           </div>

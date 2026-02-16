@@ -188,8 +188,8 @@ function PerformanceDashboardInner() {
       value: performance?.average_rating?.toFixed(1) || '0',
       unit: '/5',
       icon: Star,
-      color: 'text-afrikoni-gold',
-      bgColor: 'bg-afrikoni-gold/20'
+      color: 'text-os-accent',
+      bgColor: 'bg-os-accent/20'
     }
   ];
 
@@ -221,7 +221,7 @@ function PerformanceDashboardInner() {
                       <metric.icon className={`w-6 h-6 ${metric.color}`} />
                     </div>
                   </div>
-                  <p className="text-sm mb-1">{metric.label}</p>
+                  <p className="text-os-sm mb-1">{metric.label}</p>
                   <p className={`text-3xl font-bold ${metric.color}`}>
                     {metric.value}{metric.unit}
                   </p>
@@ -245,26 +245,26 @@ function PerformanceDashboardInner() {
                 <h3 className="font-semibold mb-4">Key Performance Indicators</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <p className="text-sm mb-2">On-Time Delivery</p>
+                    <p className="text-os-sm mb-2">On-Time Delivery</p>
                     <div className="w-full rounded-full h-4">
                       <div
                         className="h-4 rounded-full"
                         style={{ width: `${performance?.on_time_delivery_rate || 0}%` }}
                       />
                     </div>
-                    <p className="text-xs mt-1">
+                    <p className="text-os-xs mt-1">
                       {performance?.on_time_delivery_rate?.toFixed(1) || 0}% of orders delivered on time
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm mb-2">Average Rating</p>
+                    <p className="text-os-sm mb-2">Average Rating</p>
                     <div className="w-full rounded-full h-4">
                       <div
                         className="h-4 rounded-full"
                         style={{ width: `${((performance?.average_rating || 0) / 5) * 100}%` }}
                       />
                     </div>
-                    <p className="text-xs mt-1">
+                    <p className="text-os-xs mt-1">
                       {performance?.average_rating?.toFixed(1) || 0} / 5.0 average rating
                     </p>
                   </div>
@@ -273,7 +273,7 @@ function PerformanceDashboardInner() {
 
               {performance?.last_calculated_at && (
                 <div className="pt-4 border-t">
-                  <p className="text-xs">
+                  <p className="text-os-xs">
                     Last calculated: {new Date(performance.last_calculated_at).toLocaleString()}
                   </p>
                 </div>

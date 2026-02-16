@@ -17,7 +17,7 @@ export default function FilterChip({ label, onRemove, active = true }) {
   return (
     <button
       onClick={onRemove}
-      className="inline-flex items-center gap-1 px-3 py-1 rounded-full cursor-pointer hover:bg-afrikoni-gold/20 focus:outline-none focus:ring-2 focus:ring-afrikoni-gold focus:ring-offset-2 transition-colors"
+      className="inline-flex items-center gap-1 px-3 py-1 rounded-full cursor-pointer hover:bg-os-accent/20 focus:outline-none focus:ring-2 focus:ring-os-accent focus:ring-offset-2 transition-colors"
       aria-label={`Remove filter: ${label}`}
     >
       <Badge

@@ -71,20 +71,20 @@ export const TRADE_STATE = {
  * Trade state labels for UI
  */
 export const TRADE_STATE_LABELS = {
-  [TRADE_STATE.DRAFT]: 'Draft',
-  [TRADE_STATE.RFQ_OPEN]: 'RFQ Open',
-  [TRADE_STATE.QUOTED]: 'Quoted',
-  [TRADE_STATE.CONTRACTED]: 'Contracted',
-  [TRADE_STATE.ESCROW_REQUIRED]: 'Escrow Funding',
-  [TRADE_STATE.ESCROW_FUNDED]: 'Escrow Funded',
-  [TRADE_STATE.PRODUCTION]: 'Production',
-  [TRADE_STATE.PICKUP_SCHEDULED]: 'Pickup Scheduled',
-  [TRADE_STATE.IN_TRANSIT]: 'In Transit',
-  [TRADE_STATE.DELIVERED]: 'Delivered',
-  [TRADE_STATE.ACCEPTED]: 'Accepted',
-  [TRADE_STATE.SETTLED]: 'Settled',
-  [TRADE_STATE.DISPUTED]: 'Disputed',
-  [TRADE_STATE.CLOSED]: 'Closed'
+  [TRADE_STATE.DRAFT]: 'Preparing Request',
+  [TRADE_STATE.RFQ_OPEN]: 'Looking for Sellers',
+  [TRADE_STATE.QUOTED]: 'Quote Received',
+  [TRADE_STATE.CONTRACTED]: 'Order Confirmed',
+  [TRADE_STATE.ESCROW_REQUIRED]: 'Payment Needed',
+  [TRADE_STATE.ESCROW_FUNDED]: 'Payment Secured',
+  [TRADE_STATE.PRODUCTION]: 'Order in Production',
+  [TRADE_STATE.PICKUP_SCHEDULED]: 'Preparing for Shipment',
+  [TRADE_STATE.IN_TRANSIT]: 'On the Way',
+  [TRADE_STATE.DELIVERED]: 'Arrived at Destination',
+  [TRADE_STATE.ACCEPTED]: 'Order Accepted',
+  [TRADE_STATE.SETTLED]: 'Trade Completed',
+  [TRADE_STATE.DISPUTED]: 'Under Review',
+  [TRADE_STATE.CLOSED]: 'Finished'
 };
 
 /**

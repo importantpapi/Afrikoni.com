@@ -19,7 +19,7 @@ const PIPELINE_STAGES = [
   { id: 'rfq_open', label: 'RFQ', icon: FileText, color: 'bg-purple-500' },
   { id: 'quoted', label: 'Quote', icon: DollarSign, color: 'bg-blue-500' },
   { id: 'contracted', label: 'Contract', icon: FileCheck, color: 'bg-sky-500' },
-  { id: 'escrow_funded', label: 'Escrow', icon: ShieldCheck, color: 'bg-afrikoni-gold' },
+  { id: 'escrow_funded', label: 'Escrow', icon: ShieldCheck, color: 'bg-os-accent' },
   { id: 'production', label: 'Production', icon: Factory, color: 'bg-orange-500' },
   { id: 'pickup_scheduled', label: 'Pickup', icon: Package, color: 'bg-indigo-500' },
   { id: 'in_transit', label: 'Transit', icon: Ship, color: 'bg-cyan-500' },
@@ -53,7 +53,7 @@ function StageNode({ stage, count, isActive, index }) {
           w-12 h-12 rounded-full flex items-center justify-center relative
           transition-all duration-300
           ${count > 0
-            ? `${stage.color} text-white shadow-lg shadow-black/30`
+            ? `${stage.color} text-white shadow-os-md shadow-black/30`
             : 'bg-white/5 text-os-muted border border-white/10'
           }
           ${isActive ? 'ring-2 ring-offset-2 ring-[#D4A937] ring-offset-[#0b0a08]' : ''}
@@ -64,13 +64,13 @@ function StageNode({ stage, count, isActive, index }) {
           <motion.span
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute -top-1 -right-1 w-5 h-5 text-[10px] font-bold bg-white text-black rounded-full flex items-center justify-center shadow"
+            className="absolute -top-1 -right-1 w-5 h-5 text-os-xs font-bold bg-white text-black rounded-full flex items-center justify-center shadow"
           >
             {count}
           </motion.span>
         )}
       </div>
-      <span className={`text-[11px] font-medium mt-1.5 text-center leading-tight ${count > 0 ? 'text-[var(--os-text-primary)]' : 'text-os-muted'
+      <span className={`text-os-xs font-medium mt-1.5 text-center leading-tight ${count > 0 ? 'text-[var(--os-text-primary)]' : 'text-os-muted'
         }`}>
         {stage.label}
       </span>
@@ -104,16 +104,16 @@ function TradeCard({ trade, stageLabel, onClick }) {
             <Package className="w-4 h-4 text-os-gold" />
           </div>
           <div className="min-w-0">
-            <p className="text-sm font-semibold truncate">
+            <p className="text-os-sm font-semibold truncate">
               {trade.title || trade.productName || trade.product_name || `Trade #${trade.id?.slice(-8)}`}
             </p>
-            <p className="text-xs text-os-muted">
+            <p className="text-os-xs text-os-muted">
               {trade.created_at ? format(new Date(trade.created_at), 'MMM dd, yyyy') : 'N/A'}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
-          <span className="text-sm font-bold tabular-nums">
+          <span className="text-os-sm font-bold tabular-nums">
             ${parseFloat(trade.target_price || trade.price_max || trade.price_min || trade.total_amount || 0).toLocaleString()}
           </span>
           <StatusBadge label={stageLabel} tone="info" />
@@ -168,12 +168,12 @@ export default function TradePipeline() {
           <div>
             <div className="os-label">Infrastructure Monitoring</div>
             <h1 className="os-title mt-2">Trade Pipeline Ledger</h1>
-            <p className="text-sm text-os-muted mt-2">
+            <p className="text-os-sm text-os-muted mt-2">
               Real-time monitoring of all active contracts and supply chain events.
             </p>
           </div>
-          <div className="text-right p-4 rounded-xl bg-black/20 border border-white/5 backdrop-blur">
-            <p className="text-xs text-os-muted uppercase tracking-widest font-mono">Live Pipeline Value</p>
+          <div className="text-right p-4 rounded-os-sm bg-black/20 border border-white/5 backdrop-blur">
+            <p className="text-os-xs text-os-muted uppercase tracking-widest font-mono">Live Pipeline Value</p>
             <p className="text-3xl font-bold text-os-gold tabular-nums mt-1">
               ${pipelineValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
             </p>
@@ -216,8 +216,8 @@ export default function TradePipeline() {
               <stat.icon className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xl font-bold tabular-nums">${stat.value}</p>
-              <p className="text-[10px] uppercase text-os-muted font-medium tracking-wider">${stat.label}</p>
+              <p className="text-os-xl font-bold tabular-nums">${stat.value}</p>
+              <p className="text-os-xs uppercase text-os-muted font-medium tracking-wider">${stat.label}</p>
             </div>
           </Surface>
         ))}
@@ -227,7 +227,7 @@ export default function TradePipeline() {
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
              <div className="w-1.5 h-1.5 rounded-full bg-os-gold animate-pulse" />
-             <h2 className="text-base font-semibold">
+             <h2 className="text-os-base font-semibold">
               {selectedStage
                 ? `${PIPELINE_STAGES.find(s => s.id === selectedStage)?.label || ''} Trades`
                 : 'Recent Ledger Activity'

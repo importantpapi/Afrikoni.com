@@ -114,16 +114,16 @@ function SupportChatInner() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
           <div className="flex items-center gap-3 mb-2">
-            <div className="p-2.5 bg-afrikoni-gold/10 rounded-xl border border-afrikoni-gold/30">
-              <Terminal className="w-6 h-6 text-afrikoni-gold" />
+            <div className="p-2.5 bg-os-accent/10 rounded-os-sm border border-os-accent/30">
+              <Terminal className="w-6 h-6 text-os-accent" />
             </div>
             <h1 className="text-4xl font-black tracking-tighter">Support Terminal</h1>
           </div>
-          <p className="text-os-muted text-lg max-w-xl italic opacity-80">Direct encrypted transmission to Afrikoni infrastructure leads.</p>
+          <p className="text-os-muted text-os-lg max-w-xl italic opacity-80">Direct encrypted transmission to Afrikoni infrastructure leads.</p>
         </div>
 
         <div className="flex items-center gap-4">
-          <Button variant="ghost" onClick={() => navigate(-1)} className="text-os-muted hover:text-white font-black text-[10px] uppercase tracking-widest gap-2 bg-white/5 px-6 rounded-xl border border-white/5">
+          <Button variant="ghost" onClick={() => navigate(-1)} className="text-os-muted hover:text-white font-black text-os-xs uppercase tracking-widest gap-2 bg-white/5 px-6 rounded-os-sm border border-white/5">
             <ArrowLeft className="w-4 h-4" /> Disconnect
           </Button>
         </div>
@@ -134,20 +134,20 @@ function SupportChatInner() {
         <aside className="w-full lg:w-80 flex flex-col gap-6 shrink-0">
           <Surface variant="glass" className="p-6 space-y-8 h-full flex flex-col">
             <div className="flex items-center gap-4 pb-6 border-b border-white/5">
-              <div className="w-12 h-12 rounded-[1rem] bg-afrikoni-gold/10 border border-afrikoni-gold/20 flex items-center justify-center text-afrikoni-gold group shadow-lg shadow-afrikoni-gold/5">
+              <div className="w-12 h-12 rounded-[1rem] bg-os-accent/10 border border-os-accent/20 flex items-center justify-center text-os-accent group shadow-os-md shadow-os-accent/5">
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <div className="space-y-0.5">
-                <h3 className="text-sm font-black uppercase tracking-[0.2em] text-white">Secure Channel</h3>
-                <p className="text-[10px] text-os-muted font-mono uppercase opacity-50">Horizon-X Protocol</p>
+                <h3 className="text-os-sm font-black uppercase tracking-[0.2em] text-white">Secure Channel</h3>
+                <p className="text-os-xs text-os-muted font-mono uppercase opacity-50">Horizon-X Protocol</p>
               </div>
             </div>
 
             <div className="space-y-6 flex-1">
               <div className="space-y-2">
-                <label className="text-[10px] uppercase font-black tracking-widest text-os-muted block opacity-40">Session Identifier</label>
-                <div className="flex items-center justify-between bg-white/5 p-3 rounded-2xl border border-white/10 group hover:border-afrikoni-gold/30 transition-all">
-                  <code className="text-[11px] font-mono text-afrikoni-gold font-black">{ticketNumber ? ticketNumber.slice(0, 16) + '...' : 'PENDING...'}</code>
+                <label className="text-os-xs uppercase font-black tracking-widest text-os-muted block opacity-40">Session Identifier</label>
+                <div className="flex items-center justify-between bg-white/5 p-3 rounded-os-md border border-white/10 group hover:border-os-accent/30 transition-all">
+                  <code className="text-os-xs font-mono text-os-accent font-black">{ticketNumber ? ticketNumber.slice(0, 16) + '...' : 'PENDING...'}</code>
                   <Copy className="w-3.5 h-3.5 text-os-muted cursor-pointer hover:text-white transition-colors" onClick={() => {
                     navigator.clipboard.writeText(ticketNumber);
                     toast.success('Session ID copied to secure clipboard');
@@ -157,18 +157,18 @@ function SupportChatInner() {
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between py-3 border-y border-white/5">
-                  <span className="text-[10px] uppercase font-black tracking-widest text-os-muted">Status</span>
-                  <div className="flex items-center gap-2 text-emerald-500 text-[10px] font-black uppercase tracking-tighter bg-emerald-500/10 px-3 py-1 rounded-full shadow-lg shadow-emerald-500/5">
+                  <span className="text-os-xs uppercase font-black tracking-widest text-os-muted">Status</span>
+                  <div className="flex items-center gap-2 text-emerald-500 text-os-xs font-black uppercase tracking-tighter bg-emerald-500/10 px-3 py-1 rounded-full shadow-os-md shadow-emerald-500/5">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     Live Link
                   </div>
                 </div>
 
                 <div className="flex items-center justify-between py-1">
-                  <span className="text-[10px] uppercase font-black tracking-widest text-os-muted">Authorized Nodes</span>
+                  <span className="text-os-xs uppercase font-black tracking-widest text-os-muted">Authorized Nodes</span>
                   <div className="flex -space-x-2">
-                    <div className="w-7 h-7 rounded-xl bg-afrikoni-gold/20 border-2 border-os-surface-1 flex items-center justify-center text-[10px] font-black text-afrikoni-gold">ME</div>
-                    <div className="w-7 h-7 rounded-xl bg-white/10 border-2 border-os-surface-1 flex items-center justify-center text-[10px] font-black text-os-muted">AD</div>
+                    <div className="w-7 h-7 rounded-os-sm bg-os-accent/20 border-2 border-os-surface-1 flex items-center justify-center text-os-xs font-black text-os-accent">ME</div>
+                    <div className="w-7 h-7 rounded-os-sm bg-white/10 border-2 border-os-surface-1 flex items-center justify-center text-os-xs font-black text-os-muted">AD</div>
                   </div>
                 </div>
               </div>
@@ -178,11 +178,11 @@ function SupportChatInner() {
               <Surface variant="panel" className="p-4 bg-emerald-500/[0.02] border-emerald-500/10 flex items-center gap-4">
                 <Activity className="w-5 h-5 text-emerald-500" />
                 <div className="space-y-0.5">
-                  <div className="text-[10px] font-black uppercase tracking-widest text-white">Network Health</div>
-                  <div className="text-[9px] font-medium text-emerald-500/70 italic">Optimized Pathing</div>
+                  <div className="text-os-xs font-black uppercase tracking-widest text-white">Network Health</div>
+                  <div className="text-os-xs font-medium text-emerald-500/70 italic">Optimized Pathing</div>
                 </div>
               </Surface>
-              <Button variant="outline" className="w-full text-[10px] font-black uppercase tracking-widest border-white/10 hover:bg-white/5 rounded-2xl h-12 gap-2">
+              <Button variant="outline" className="w-full text-os-xs font-black uppercase tracking-widest border-white/10 hover:bg-white/5 rounded-os-md h-12 gap-2">
                 <Settings className="w-3.5 h-3.5" /> Channel Config
               </Button>
             </div>
@@ -193,7 +193,7 @@ function SupportChatInner() {
         <main className="flex-1 flex flex-col min-w-0">
           <Surface variant="glass" className="flex-1 flex flex-col overflow-hidden relative border-white/10">
             {/* Terminal Glow */}
-            <div className="absolute top-0 right-0 w-64 h-64 bg-afrikoni-gold/5 blur-[100px] pointer-events-none" />
+            <div className="absolute top-0 right-0 w-64 h-64 bg-os-accent/5 blur-[100px] pointer-events-none" />
 
             {/* Terminal Header */}
             <div className="px-8 py-5 border-b border-white/5 flex items-center justify-between bg-white/[0.02] backdrop-blur-xl z-20">
@@ -202,15 +202,15 @@ function SupportChatInner() {
                   <ShieldCheck className="w-4 h-4 text-emerald-500" />
                 </div>
                 <div className="space-y-0.5">
-                  <h2 className="font-black text-lg tracking-tight uppercase">Support Tunnel <span className="text-os-muted font-normal text-xs font-mono ml-4 opacity-40">/ AES-256 ENCRYPTED</span></h2>
+                  <h2 className="font-black text-os-lg tracking-tight uppercase">Support Tunnel <span className="text-os-muted font-normal text-os-xs font-mono ml-4 opacity-40">/ AES-256 ENCRYPTED</span></h2>
                   <div className="flex items-center gap-2">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-[10px] font-bold text-emerald-500 tracking-widest uppercase">Encryption Active</span>
+                    <span className="text-os-xs font-bold text-emerald-500 tracking-widest uppercase">Encryption Active</span>
                   </div>
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10"><MoreHorizontal className="w-4 h-4 text-os-muted" /></Button>
+                <Button variant="ghost" size="icon" className="h-10 w-10 rounded-os-sm bg-white/5 border border-white/5 hover:bg-white/10"><MoreHorizontal className="w-4 h-4 text-os-muted" /></Button>
               </div>
             </div>
 
@@ -218,9 +218,9 @@ function SupportChatInner() {
             <div className="flex-1 overflow-y-auto px-8 py-10 space-y-10 scrollbar-none relative z-10">
               {messages.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center opacity-40 animate-pulse">
-                  <MessageSquare className="w-20 h-20 mb-6 text-afrikoni-gold stroke-[0.5]" />
-                  <p className="text-xl font-black italic tracking-tighter">Awaiting Initial Uplink...</p>
-                  <p className="text-xs font-bold uppercase tracking-widest text-os-muted mt-2">Initialize transmission below</p>
+                  <MessageSquare className="w-20 h-20 mb-6 text-os-accent stroke-[0.5]" />
+                  <p className="text-os-xl font-black italic tracking-tighter">Awaiting Initial Uplink...</p>
+                  <p className="text-os-xs font-bold uppercase tracking-widest text-os-muted mt-2">Initialize transmission below</p>
                 </div>
               ) : (
                 <AnimatePresence>
@@ -233,16 +233,16 @@ function SupportChatInner() {
                     >
                       <div className={`flex flex-col max-w-[70%] ${message.sender_type === 'user' ? 'items-end' : 'items-start'} space-y-2`}>
                         <div className={cn(
-                          "p-5 rounded-3xl text-sm leading-relaxed shadow-xl",
+                          "p-5 rounded-os-lg text-os-sm leading-relaxed shadow-os-lg",
                           message.sender_type === 'user'
-                            ? "bg-afrikoni-gold text-black rounded-tr-none font-black shadow-afrikoni-gold/10"
+                            ? "bg-os-accent text-black rounded-tr-none font-black shadow-os-accent/10"
                             : "bg-white/5 border border-white/10 rounded-tl-none font-medium backdrop-blur-md"
                         )}>
                           {message.message}
                         </div>
                         <div className="flex items-center gap-3 px-1">
-                          {message.sender_type === 'admin' && <div className="text-[9px] font-black uppercase text-afrikoni-gold tracking-widest">Support Node</div>}
-                          <span className="text-[10px] text-os-muted font-bold uppercase tracking-tighter opacity-40">
+                          {message.sender_type === 'admin' && <div className="text-os-xs font-black uppercase text-os-accent tracking-widest">Support Node</div>}
+                          <span className="text-os-xs text-os-muted font-bold uppercase tracking-tighter opacity-40">
                             {format(new Date(message.created_at), 'HH:mm:ss')} • {message.sender_type === 'user' ? 'SENT' : 'RECV'}
                           </span>
                         </div>
@@ -262,17 +262,17 @@ function SupportChatInner() {
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }}
                   placeholder="Transmit command or request details..."
-                  className="w-full bg-white/[0.03] border border-white/10 rounded-3xl p-6 pr-20 text-sm min-h-[100px] focus:outline-none focus:ring-1 focus:ring-afrikoni-gold/30 focus:border-afrikoni-gold/30 transition-all placeholder:text-os-muted/40 font-medium resize-none shadow-inner"
+                  className="w-full bg-white/[0.03] border border-white/10 rounded-os-lg p-6 pr-20 text-os-sm min-h-[100px] focus:outline-none focus:ring-1 focus:ring-os-accent/30 focus:border-os-accent/30 transition-all placeholder:text-os-muted/40 font-medium resize-none shadow-inner"
                 />
                 <Button
                   onClick={handleSendMessage}
                   disabled={!newMessage.trim() || isSending}
-                  className="absolute bottom-6 right-6 h-12 w-12 p-0 rounded-2xl bg-afrikoni-gold text-black hover:scale-105 active:scale-95 transition-all shadow-lg shadow-afrikoni-gold/20"
+                  className="absolute bottom-6 right-6 h-12 w-12 p-0 rounded-os-md bg-os-accent text-black hover:scale-105 active:scale-95 transition-all shadow-os-md shadow-os-accent/20"
                 >
                   {isSending ? <Clock className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />}
                 </Button>
               </div>
-              <div className="mt-5 flex items-center justify-between text-[9px] font-black uppercase tracking-[0.2em] text-os-muted opacity-40">
+              <div className="mt-5 flex items-center justify-between text-os-xs font-black uppercase tracking-[0.2em] text-os-muted opacity-40">
                 <div className="flex items-center gap-6">
                   <span className="flex items-center gap-2"><Users className="w-3 h-3" /> System Linked</span>
                   <span className="flex items-center gap-2"><Zap className="w-3 h-3" /> Instant Sync</span>

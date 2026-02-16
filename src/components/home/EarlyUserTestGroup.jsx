@@ -65,12 +65,12 @@ export default function EarlyUserTestGroup() {
             whileInView={{ scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="w-14 h-14 md:w-16 md:h-16 bg-afrikoni-gold rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg"
+            className="w-14 h-14 md:w-16 md:h-16 bg-os-accent rounded-full flex items-center justify-center mx-auto mb-4 shadow-os-md"
           >
             <Users className="w-7 h-7 md:w-8 md:h-8 text-afrikoni-cream" />
           </motion.div>
           <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-3 md:mb-4">Join Our Early User Test Group</h2>
-          <p className="text-base md:text-lg text-afrikoni-deep max-w-2xl mx-auto">
+          <p className="text-os-base md:text-os-lg text-afrikoni-deep max-w-2xl mx-auto">
             Be among the first to experience new features and help shape the future of African B2B trade
           </p>
         </motion.div>
@@ -81,7 +81,7 @@ export default function EarlyUserTestGroup() {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
-          <Card className="border-2 border-blue-300 shadow-2xl rounded-xl">
+          <Card className="border-2 border-blue-300 shadow-2xl rounded-os-sm">
             <CardContent className="p-6 md:p-8">
               <form onSubmit={handleSubmit} className="space-y-5 md:space-y-6">
                 <div>
@@ -97,7 +97,7 @@ export default function EarlyUserTestGroup() {
                     onBlur={() => setFocusedField(null)}
                     placeholder="Enter your full name"
                     required
-                    className={`transition-all ${focusedField === 'name' ? 'ring-2 ring-blue-500 ring-opacity-50 shadow-lg' : ''}`}
+                    className={`transition-all ${focusedField === 'name' ? 'ring-2 ring-blue-500 ring-opacity-50 shadow-os-md' : ''}`}
                   />
                 </div>
 
@@ -115,7 +115,7 @@ export default function EarlyUserTestGroup() {
                     onBlur={() => setFocusedField(null)}
                     placeholder="your@business.com"
                     required
-                    className={`transition-all ${focusedField === 'email' ? 'ring-2 ring-blue-500 ring-opacity-50 shadow-lg' : ''}`}
+                    className={`transition-all ${focusedField === 'email' ? 'ring-2 ring-blue-500 ring-opacity-50 shadow-os-md' : ''}`}
                   />
                 </div>
 
@@ -141,7 +141,7 @@ export default function EarlyUserTestGroup() {
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                   <Button 
                     type="submit" 
-                    className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-creampy-5 md:py-6 text-base md:text-lg shadow-lg hover:shadow-xl transition-shadow"
+                    className="w-full bg-os-accent hover:bg-os-accentDark text-afrikoni-creampy-5 md:py-6 text-os-base md:text-os-lg shadow-os-md hover:shadow-os-lg transition-shadow"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? 'Joining...' : 'Join Waitlist'}
@@ -150,7 +150,7 @@ export default function EarlyUserTestGroup() {
               </form>
 
               <div className="flex items-center justify-center gap-2 mt-4">
-                <p className="text-xs md:text-sm text-afrikoni-deep/70 text-center">
+                <p className="text-os-xs md:text-os-sm text-afrikoni-deep/70 text-center">
                   By joining, you'll receive early access to new features and exclusive updates
                 </p>
               </div>
@@ -159,7 +159,7 @@ export default function EarlyUserTestGroup() {
                 whileInView={{ opacity: 1 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: 0.5 }}
-                className="text-xs md:text-sm text-blue-600 font-semibold text-center mt-2"
+                className="text-os-xs md:text-os-sm text-blue-600 font-semibold text-center mt-2"
               >
                 120+ joined this week
               </motion.p>

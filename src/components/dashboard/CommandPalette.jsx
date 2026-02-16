@@ -131,7 +131,7 @@ export default function CommandPalette({ open, onClose }) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: -20 }}
           transition={{ duration: 0.15 }}
-          className="relative w-full max-w-xl dark:bg-[#0F0F0F] rounded-xl shadow-2xl shadow-black/20 dark:shadow-black/60 border dark:border-[#2A2A2A] overflow-hidden backdrop-blur-xl"
+          className="relative w-full max-w-xl dark:bg-[#0F0F0F] rounded-os-sm shadow-2xl shadow-black/20 dark:shadow-black/60 border dark:border-[#2A2A2A] overflow-hidden backdrop-blur-xl"
         >
           {/* Search Input */}
           <div className="flex items-center gap-3 px-4 py-3 border-b dark:border-[#1E1E1E]">
@@ -145,9 +145,9 @@ export default function CommandPalette({ open, onClose }) {
               }}
               onKeyDown={handleKeyDown}
               placeholder="Search actions, pages, or type a command..."
-              className="flex-1 text-base outline-none bg-transparent dark:text-[#F5F0E8] placeholder:text-gray-400 dark:placeholder:text-gray-600"
+              className="flex-1 text-os-base outline-none bg-transparent dark:text-[#F5F0E8] placeholder:text-gray-400 dark:placeholder:text-gray-600"
             />
-            <kbd className="hidden sm:inline-flex items-center px-2 py-0.5 text-xs font-medium dark:text-gray-500 dark:bg-[#1A1A1A] rounded border dark:border-[#2A2A2A]">
+            <kbd className="hidden sm:inline-flex items-center px-2 py-0.5 text-os-xs font-medium dark:text-gray-500 dark:bg-[#1A1A1A] rounded border dark:border-[#2A2A2A]">
               ESC
             </kbd>
           </div>
@@ -155,13 +155,13 @@ export default function CommandPalette({ open, onClose }) {
           {/* Results */}
           <div ref={listRef} className="max-h-[50vh] overflow-y-auto py-2">
             {flatList.length === 0 ? (
-              <div className="px-4 py-8 text-center dark:text-gray-500 text-sm">
+              <div className="px-4 py-8 text-center dark:text-gray-500 text-os-sm">
                 No results for &ldquo;{query}&rdquo;
               </div>
             ) : (
               Object.entries(grouped).map(([group, items]) => (
                 <div key={group}>
-                  <div className="px-4 py-1.5 text-[10px] font-bold dark:text-gray-600 uppercase tracking-[0.1em]">
+                  <div className="px-4 py-1.5 text-os-xs font-bold dark:text-gray-600 uppercase tracking-[0.1em]">
                     {group}
                   </div>
                   {(items || []).map((action) => {
@@ -181,7 +181,7 @@ export default function CommandPalette({ open, onClose }) {
                       >
                         <Icon className={`w-4 h-4 flex-shrink-0 ${isSelected ? 'text-[#D4A937]' : 'text-gray-400 dark:text-gray-600'
                           }`} />
-                        <span className="flex-1 text-sm font-medium">{action.label}</span>
+                        <span className="flex-1 text-os-sm font-medium">{action.label}</span>
                         {isSelected && (
                           <ArrowRight className="w-4 h-4" />
                         )}
@@ -194,17 +194,17 @@ export default function CommandPalette({ open, onClose }) {
           </div>
 
           {/* Footer hint */}
-          <div className="px-4 py-2 border-t dark:border-[#1E1E1E] flex items-center gap-4 text-xs dark:text-gray-600">
+          <div className="px-4 py-2 border-t dark:border-[#1E1E1E] flex items-center gap-4 text-os-xs dark:text-gray-600">
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 dark:bg-[#1A1A1A] rounded border dark:border-[#2A2A2A] text-[10px]">&uarr;&darr;</kbd>
+              <kbd className="px-1.5 py-0.5 dark:bg-[#1A1A1A] rounded border dark:border-[#2A2A2A] text-os-xs">&uarr;&darr;</kbd>
               Navigate
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 dark:bg-[#1A1A1A] rounded border dark:border-[#2A2A2A] text-[10px]">Enter</kbd>
+              <kbd className="px-1.5 py-0.5 dark:bg-[#1A1A1A] rounded border dark:border-[#2A2A2A] text-os-xs">Enter</kbd>
               Open
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 dark:bg-[#1A1A1A] rounded border dark:border-[#2A2A2A] text-[10px]">Esc</kbd>
+              <kbd className="px-1.5 py-0.5 dark:bg-[#1A1A1A] rounded border dark:border-[#2A2A2A] text-os-xs">Esc</kbd>
               Close
             </span>
           </div>

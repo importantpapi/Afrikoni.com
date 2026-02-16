@@ -83,19 +83,19 @@ export default function TrendingProductsSection() {
       <section className="py-8 md:py-12 bg-white">
         <div className="max-w-[1440px] mx-auto px-4">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut flex items-center gap-2">
+            <h2 className="text-os-xl md:text-os-2xl font-bold text-afrikoni-chestnut flex items-center gap-2">
               📈 Trending Products
             </h2>
             <button
               onClick={() => navigate('/marketplace')}
-              className="text-sm md:text-base text-afrikoni-gold font-medium hover:underline"
+              className="text-os-sm md:text-os-base text-os-accent font-medium hover:underline"
             >
               View All →
             </button>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="border border-afrikoni-gold/10 bg-white rounded-lg animate-pulse">
+              <div key={i} className="border border-os-accent/10 bg-white rounded-lg animate-pulse">
                 <div className="aspect-square bg-gray-200" />
                 <div className="p-3">
                   <div className="h-4 bg-gray-200 rounded mb-2" />
@@ -117,12 +117,12 @@ export default function TrendingProductsSection() {
     <section className="py-6 md:py-12 bg-white">
       <div className="max-w-[1440px] mx-auto px-4">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl md:text-2xl font-bold text-afrikoni-chestnut flex items-center gap-2">
+          <h2 className="text-os-xl md:text-os-2xl font-bold text-afrikoni-chestnut flex items-center gap-2">
             📈 Trending Products
           </h2>
           <button
             onClick={() => navigate('/marketplace')}
-            className="text-sm md:text-base text-afrikoni-gold font-medium hover:underline"
+            className="text-os-sm md:text-os-base text-os-accent font-medium hover:underline"
           >
             View All →
           </button>

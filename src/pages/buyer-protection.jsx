@@ -14,7 +14,7 @@ export default function BuyerProtectionAgreement() {
           <h1 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
             Buyer Protection Policy
           </h1>
-          <p className="text-sm text-afrikoni-deep/80">
+          <p className="text-os-sm text-afrikoni-deep/80">
             This policy will describe the protections Afrikoni offers to buyers, including escrow,
             quality assurance, refunds, and dispute resolution processes.
           </p>

@@ -149,7 +149,7 @@ export default function InvoiceDetailPage() {
           <div className="flex gap-2">
             {userRole === 'buyer' && invoice.status === 'issued' && (
               <Button
-                className="hover:bg-afrikoni-gold/90"
+                className="hover:bg-os-accent/90"
                 onClick={handlePayInvoice}
               >
                 <DollarSign className="w-4 h-4 mr-2" />
@@ -173,19 +173,19 @@ export default function InvoiceDetailPage() {
               {/* Company Info */}
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <p className="text-sm mb-2">From</p>
+                  <p className="text-os-sm mb-2">From</p>
                   <p className="font-semibold">{invoice.seller_company?.name || 'Seller'}</p>
                   {invoice.seller_company?.address && (
-                    <p className="text-sm mt-1">
+                    <p className="text-os-sm mt-1">
                       {invoice.seller_company.address}
                     </p>
                   )}
                 </div>
                 <div>
-                  <p className="text-sm mb-2">To</p>
+                  <p className="text-os-sm mb-2">To</p>
                   <p className="font-semibold">{invoice.buyer_company?.name || 'Buyer'}</p>
                   {invoice.buyer_company?.address && (
-                    <p className="text-sm mt-1">
+                    <p className="text-os-sm mt-1">
                       {invoice.buyer_company.address}
                     </p>
                   )}
@@ -195,7 +195,7 @@ export default function InvoiceDetailPage() {
               {/* Order Info */}
               {invoice.orders && (
                 <div>
-                  <p className="text-sm mb-2">Related Order</p>
+                  <p className="text-os-sm mb-2">Related Order</p>
                   <Link to={`/dashboard/orders/${invoice.orders.id}`}>
                     <p className="hover:underline">
                       Order #{invoice.orders.order_number || invoice.orders.id.slice(0, 8)}
@@ -221,8 +221,8 @@ export default function InvoiceDetailPage() {
                   </div>
                 )}
                 <div className="flex justify-between pt-2 border-t mt-2">
-                  <p className="text-lg font-bold">Total</p>
-                  <p className="text-2xl font-bold">
+                  <p className="text-os-lg font-bold">Total</p>
+                  <p className="text-os-2xl font-bold">
                     {invoice.currency} {parseFloat(invoice.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </p>
                 </div>
@@ -239,7 +239,7 @@ export default function InvoiceDetailPage() {
               <div>
                 <Badge
                   variant={invoice.status === 'paid' ? 'success' : invoice.status === 'overdue' ? 'destructive' : 'default'}
-                  className="text-lg px-4 py-2"
+                  className="text-os-lg px-4 py-2"
                 >
                   {invoice.status === 'paid' && <CheckCircle className="w-5 h-5 mr-2" />}
                   {invoice.status === 'issued' && <Clock className="w-5 h-5 mr-2" />}
@@ -247,14 +247,14 @@ export default function InvoiceDetailPage() {
                 </Badge>
               </div>
               <div>
-                <p className="text-sm mb-1">Issue Date</p>
+                <p className="text-os-sm mb-1">Issue Date</p>
                 <p className="font-semibold">
                   {format(new Date(invoice.issue_date), 'MMM dd, yyyy')}
                 </p>
               </div>
               {invoice.due_date && (
                 <div>
-                  <p className="text-sm mb-1">Due Date</p>
+                  <p className="text-os-sm mb-1">Due Date</p>
                   <p className="font-semibold">
                     {format(new Date(invoice.due_date), 'MMM dd, yyyy')}
                   </p>

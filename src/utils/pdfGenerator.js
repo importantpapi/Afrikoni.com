@@ -1,11 +1,14 @@
-import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
-
 /**
  * PDF Generator Service
  * Converts Forensic HTML into an Institutional-Grade Digital Certificate.
  */
 export async function generateForensicPDF(reportHtml, fileName = 'Forensic_Audit_Report.pdf') {
+    // ✅ PERFORMANCE OPTIMIZATION: Dynamic imports for heavy libraries
+    const [{ jsPDF }, html2canvas] = await Promise.all([
+        import('jspdf'),
+        import('html2canvas').then(m => m.default)
+    ]);
+
     return new Promise(async (resolve, reject) => {
         try {
             // Create a hidden container for rendering the HTML

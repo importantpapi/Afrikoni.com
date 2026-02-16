@@ -141,13 +141,13 @@ export default function SupplierAcquisitionPage() {
               animate={{ opacity: 1, y: 0 }}
               className="text-center mb-12"
             >
-              <Badge className="mb-4 bg-afrikoni-gold text-afrikoni-chestnut">
+              <Badge className="mb-4 bg-os-accent text-afrikoni-chestnut">
                 Join {config.name}'s Export Network
               </Badge>
               <h1 className="text-5xl md:text-6xl font-bold text-afrikoni-text-dark mb-6">
                 {getMarketingContent('supplier')}
               </h1>
-              <p className="text-xl text-afrikoni-text-dark/70 max-w-3xl mx-auto mb-8">
+              <p className="text-os-xl text-afrikoni-text-dark/70 max-w-3xl mx-auto mb-8">
                 Join Afrikoni's verified supplier network and access global buyers with secure escrow payments, 
                 export-ready logistics, and AI-powered support.
               </p>
@@ -160,10 +160,10 @@ export default function SupplierAcquisitionPage() {
                     transition={{ delay: idx * 0.1 }}
                     className="flex items-center gap-2 px-4 py-2 bg-white rounded-lg shadow-sm"
                   >
-                    <stat.icon className="w-5 h-5 text-afrikoni-gold" />
+                    <stat.icon className="w-5 h-5 text-os-accent" />
                     <div className="text-left">
-                      <div className="text-2xl font-bold text-afrikoni-text-dark">{stat.value}</div>
-                      <div className="text-xs text-afrikoni-text-dark/70">{stat.label}</div>
+                      <div className="text-os-2xl font-bold text-afrikoni-text-dark">{stat.value}</div>
+                      <div className="text-os-xs text-afrikoni-text-dark/70">{stat.label}</div>
                     </div>
                   </motion.div>
                 ))}
@@ -177,9 +177,9 @@ export default function SupplierAcquisitionPage() {
               transition={{ delay: 0.2 }}
               className="max-w-2xl mx-auto"
             >
-              <Card className="border-afrikoni-gold/20 shadow-premium-lg">
+              <Card className="border-os-accent/20 shadow-os-md-lg">
                 <CardHeader>
-                  <CardTitle className="text-2xl">Get Started Today</CardTitle>
+                  <CardTitle className="text-os-2xl">Get Started Today</CardTitle>
                   <p className="text-afrikoni-text-dark/70">
                     Limited time: Free Verified Supplier Upgrade for first 50 suppliers from {config.name}
                   </p>
@@ -224,7 +224,7 @@ export default function SupplierAcquisitionPage() {
                         onChange={(e) => setFormData({ ...formData, product_categories: e.target.value })}
                         placeholder="e.g., Cocoa, Shea Butter, Coffee"
                       />
-                      <p className="text-xs text-afrikoni-text-dark/60 mt-1">
+                      <p className="text-os-xs text-afrikoni-text-dark/60 mt-1">
                         Popular in {config.name}: {config.popularProducts.slice(0, 3).join(', ')}
                       </p>
                     </div>
@@ -239,13 +239,13 @@ export default function SupplierAcquisitionPage() {
                     <Button
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut"
+                      className="w-full bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut"
                       size="lg"
                     >
                       {isSubmitting ? 'Submitting...' : 'Apply Now — Free Verified Upgrade'}
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </Button>
-                    <p className="text-xs text-center text-afrikoni-text-dark/60">
+                    <p className="text-os-xs text-center text-afrikoni-text-dark/60">
                       By applying, you agree to our terms. We'll contact you within 24 hours.
                     </p>
                   </form>
@@ -270,12 +270,12 @@ export default function SupplierAcquisitionPage() {
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.1 }}
                 >
-                  <Card className="h-full border-afrikoni-gold/20 hover:border-afrikoni-gold/40 transition-colors">
+                  <Card className="h-full border-os-accent/20 hover:border-os-accent/40 transition-colors">
                     <CardContent className="p-6">
-                      <div className="w-12 h-12 bg-afrikoni-gold/10 rounded-lg flex items-center justify-center mb-4">
-                        <benefit.icon className="w-6 h-6 text-afrikoni-gold" />
+                      <div className="w-12 h-12 bg-os-accent/10 rounded-lg flex items-center justify-center mb-4">
+                        <benefit.icon className="w-6 h-6 text-os-accent" />
                       </div>
-                      <h3 className="text-xl font-semibold text-afrikoni-text-dark mb-2">
+                      <h3 className="text-os-xl font-semibold text-afrikoni-text-dark mb-2">
                         {benefit.title}
                       </h3>
                       <p className="text-afrikoni-text-dark/70">{benefit.description}</p>
@@ -288,40 +288,40 @@ export default function SupplierAcquisitionPage() {
         </section>
 
         {/* Special Offers */}
-        <section className="py-20 px-4 bg-gradient-to-r from-afrikoni-gold/5 to-afrikoni-green/5">
+        <section className="py-20 px-4 bg-gradient-to-r from-os-accent/5 to-afrikoni-green/5">
           <div className="max-w-7xl mx-auto">
             <h2 className="text-4xl font-bold text-center text-afrikoni-text-dark mb-12">
               Limited-Time Offers for {config.name} Suppliers
             </h2>
             <div className="grid md:grid-cols-3 gap-6">
-              <Card className="border-afrikoni-gold/30 bg-white">
+              <Card className="border-os-accent/30 bg-white">
                 <CardContent className="p-6">
-                  <Gift className="w-8 h-8 text-afrikoni-gold mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">Founding Supplier Status</h3>
+                  <Gift className="w-8 h-8 text-os-accent mb-4" />
+                  <h3 className="text-os-xl font-semibold mb-2">Founding Supplier Status</h3>
                   <p className="text-afrikoni-text-dark/70 mb-4">
                     First 50 suppliers get lifetime reduced commission (6% instead of 8%)
                   </p>
-                  <Badge className="bg-afrikoni-gold text-afrikoni-chestnut">Limited Time</Badge>
+                  <Badge className="bg-os-accent text-afrikoni-chestnut">Limited Time</Badge>
                 </CardContent>
               </Card>
-              <Card className="border-afrikoni-gold/30 bg-white">
+              <Card className="border-os-accent/30 bg-white">
                 <CardContent className="p-6">
-                  <Award className="w-8 h-8 text-afrikoni-gold mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">Free Verification</h3>
+                  <Award className="w-8 h-8 text-os-accent mb-4" />
+                  <h3 className="text-os-xl font-semibold mb-2">Free Verification</h3>
                   <p className="text-afrikoni-text-dark/70 mb-4">
                     List 3+ products in first month → Free Verified Supplier Badge ($99 value)
                   </p>
                   <Badge className="bg-afrikoni-green text-white">Active</Badge>
                 </CardContent>
               </Card>
-              <Card className="border-afrikoni-gold/30 bg-white">
+              <Card className="border-os-accent/30 bg-white">
                 <CardContent className="p-6">
-                  <Users className="w-8 h-8 text-afrikoni-gold mb-4" />
-                  <h3 className="text-xl font-semibold mb-2">Referral Rewards</h3>
+                  <Users className="w-8 h-8 text-os-accent mb-4" />
+                  <h3 className="text-os-xl font-semibold mb-2">Referral Rewards</h3>
                   <p className="text-afrikoni-text-dark/70 mb-4">
                     Refer a supplier → Both get 1 month free Growth subscription
                   </p>
-                  <Badge className="bg-afrikoni-gold text-afrikoni-chestnut">Ongoing</Badge>
+                  <Badge className="bg-os-accent text-afrikoni-chestnut">Ongoing</Badge>
                 </CardContent>
               </Card>
             </div>
@@ -334,13 +334,13 @@ export default function SupplierAcquisitionPage() {
             <h2 className="text-4xl font-bold text-afrikoni-text-dark mb-6">
               Ready to Start Exporting?
             </h2>
-            <p className="text-xl text-afrikoni-text-dark/70 mb-8">
+            <p className="text-os-xl text-afrikoni-text-dark/70 mb-8">
               Join {config.name}'s leading exporters on Afrikoni today
             </p>
             <div className="flex flex-wrap justify-center gap-4">
               <Button
                 onClick={() => document.getElementById('apply-form')?.scrollIntoView({ behavior: 'smooth' })}
-                className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut"
+                className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut"
                 size="lg"
               >
                 Apply Now

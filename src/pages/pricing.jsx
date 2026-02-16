@@ -122,7 +122,7 @@ export default function Pricing() {
         'Priority RFQ matching',
         'Email support'
       ],
-      color: 'border-afrikoni-gold',
+      color: 'border-os-accent',
       bgColor: 'bg-afrikoni-cream/30',
       popular: true
     },
@@ -183,7 +183,7 @@ export default function Pricing() {
         'Supplier comparison tools',
         'Email support'
       ],
-      color: 'border-afrikoni-gold',
+      color: 'border-os-accent',
       popular: true
     },
     {
@@ -227,18 +227,18 @@ export default function Pricing() {
         <div className="max-w-7xl mx-auto px-4 py-10 md:py-16">
           {/* Header */}
           <header className="text-center mb-12">
-            <Badge className="bg-afrikoni-gold/20 text-afrikoni-chestnut mb-4 px-4 py-2">
+            <Badge className="bg-os-accent/20 text-afrikoni-chestnut mb-4 px-4 py-2">
               <Shield className="w-4 h-4 inline mr-2" />
               Designed for African Business Realities
             </Badge>
             <h1 className="text-4xl md:text-5xl font-bold text-afrikoni-chestnut mb-4">
               We Only Win When You Win
             </h1>
-            <p className="text-lg text-afrikoni-deep/80 max-w-3xl mx-auto mb-6">
+            <p className="text-os-lg text-afrikoni-deep/80 max-w-3xl mx-auto mb-6">
               Zero upfront costs. Success fees only when your deal completes.
               Africa's fairest B2B marketplace pricing — designed for SME margins and cash flow realities.
             </p>
-            <div className="flex flex-wrap justify-center gap-4 text-sm">
+            <div className="flex flex-wrap justify-center gap-4 text-os-sm">
               <div className="flex items-center gap-2 bg-green-100 px-3 py-1.5 rounded-full">
                 <Check className="w-5 h-5 text-green-600" />
                 <span className="font-medium">No hidden fees — ever</span>
@@ -255,40 +255,40 @@ export default function Pricing() {
           </header>
 
           {/* Fee Calculator */}
-          <Card ref={calculatorRef} className="mb-12 border-afrikoni-gold/30 shadow-lg">
-            <CardHeader className="bg-gradient-to-r from-afrikoni-gold/10 to-afrikoni-cream">
+          <Card ref={calculatorRef} className="mb-12 border-os-accent/30 shadow-os-md">
+            <CardHeader className="bg-gradient-to-r from-os-accent/10 to-afrikoni-cream">
               <CardTitle className="flex items-center gap-2">
-                <Calculator className="w-5 h-5 text-afrikoni-gold" />
+                <Calculator className="w-5 h-5 text-os-accent" />
                 See How Much You Keep
               </CardTitle>
-              <p className="text-sm text-afrikoni-deep/70 mt-1">
+              <p className="text-os-sm text-afrikoni-deep/70 mt-1">
                 Calculate your success fee — we only charge when your deal completes
               </p>
             </CardHeader>
             <CardContent>
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-base font-semibold text-afrikoni-chestnut mb-3">
+                  <label className="block text-os-base font-semibold text-afrikoni-chestnut mb-3">
                     Order Value (USD)
                   </label>
                   <input
                     type="number"
                     value={orderValue}
                     onChange={(e) => setOrderValue(Number(e.target.value))}
-                    className="w-full px-4 py-3 bg-white border-2 border-afrikoni-gold/50 rounded-lg text-afrikoni-deep font-medium text-lg focus:ring-2 focus:ring-afrikoni-gold focus:border-afrikoni-gold shadow-sm"
+                    className="w-full px-4 py-3 bg-white border-2 border-os-accent/50 rounded-lg text-afrikoni-deep font-medium text-os-lg focus:ring-2 focus:ring-os-accent focus:border-os-accent shadow-sm"
                     min="0"
                     step="100"
                     placeholder="Enter order value"
                   />
                 </div>
                 <div>
-                  <label className="block text-base font-semibold text-afrikoni-chestnut mb-3">
+                  <label className="block text-os-base font-semibold text-afrikoni-chestnut mb-3">
                     Seller Tier
                   </label>
                   <select
                     value={selectedTier}
                     onChange={(e) => setSelectedTier(e.target.value)}
-                    className="w-full px-4 py-3 bg-white border-2 border-afrikoni-gold/50 rounded-lg text-afrikoni-deep font-medium text-lg focus:ring-2 focus:ring-afrikoni-gold focus:border-afrikoni-gold shadow-sm"
+                    className="w-full px-4 py-3 bg-white border-2 border-os-accent/50 rounded-lg text-afrikoni-deep font-medium text-os-lg focus:ring-2 focus:ring-os-accent focus:border-os-accent shadow-sm"
                   >
                     {sellerTiers.map(tier => (
                       <option key={tier.id} value={tier.id}>
@@ -299,24 +299,24 @@ export default function Pricing() {
                 </div>
               </div>
               {selectedTierData && selectedTierData.transactionFee && (
-                <div className="mt-6 p-6 bg-gradient-to-br from-afrikoni-cream/80 to-afrikoni-gold/20 rounded-lg border-2 border-afrikoni-gold/30 shadow-md">
-                  <div className="flex justify-between items-center mb-4 pb-4 border-b-2 border-afrikoni-gold/20">
+                <div className="mt-6 p-6 bg-gradient-to-br from-afrikoni-cream/80 to-os-accent/20 rounded-lg border-2 border-os-accent/30 shadow-md">
+                  <div className="flex justify-between items-center mb-4 pb-4 border-b-2 border-os-accent/20">
                     <div>
-                      <span className="text-lg font-semibold text-afrikoni-chestnut">Success Fee ({selectedTierData.transactionFee}%)</span>
-                      <p className="text-xs text-afrikoni-deep/60">Only charged when deal completes</p>
+                      <span className="text-os-lg font-semibold text-afrikoni-chestnut">Success Fee ({selectedTierData.transactionFee}%)</span>
+                      <p className="text-os-xs text-afrikoni-deep/60">Only charged when deal completes</p>
                     </div>
                     <span className="text-3xl font-bold text-afrikoni-chestnut">
                       ${feeAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                   </div>
                   <div className="flex justify-between items-center mb-4">
-                    <span className="text-lg font-semibold text-afrikoni-deep">You Keep:</span>
-                    <span className="text-2xl font-bold text-green-700">
+                    <span className="text-os-lg font-semibold text-afrikoni-deep">You Keep:</span>
+                    <span className="text-os-2xl font-bold text-green-700">
                       ${(orderValue - feeAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </span>
                   </div>
                   <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
-                    <p className="text-sm text-green-800 flex items-start gap-2">
+                    <p className="text-os-sm text-green-800 flex items-start gap-2">
                       <Shield className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
                       <span>
                         <strong>Your fee includes Afrikoni Shield protection:</strong> Secure escrow, fraud prevention,
@@ -348,17 +348,17 @@ export default function Pricing() {
                 return (
                 <Card
                   key={tier.id}
-                  className={`${tier.color} ${tier.bgColor} ${tier.popular || isSelectedFromQuery ? 'ring-2 ring-afrikoni-gold' : ''} ${isSelectedFromQuery ? 'ring-4 shadow-lg' : ''} relative transition-all`}
+                  className={`${tier.color} ${tier.bgColor} ${tier.popular || isSelectedFromQuery ? 'ring-2 ring-os-accent' : ''} ${isSelectedFromQuery ? 'ring-4 shadow-os-md' : ''} relative transition-all`}
                 >
                   {(tier.popular || isSelectedFromQuery) && (
-                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-afrikoni-gold text-white">
+                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-os-accent text-white">
                       {isSelectedFromQuery ? 'Selected' : 'Most Popular'}
                     </Badge>
                   )}
                   <CardHeader>
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-3xl">{tier.emoji}</span>
-                      <CardTitle className="text-xl">{tier.name}</CardTitle>
+                      <CardTitle className="text-os-xl">{tier.name}</CardTitle>
                     </div>
                     <div className="mb-2">
                       <span className="text-3xl font-bold text-afrikoni-chestnut">
@@ -369,16 +369,16 @@ export default function Pricing() {
                       )}
                     </div>
                     {tier.transactionFee && typeof tier.transactionFee === 'number' && (
-                      <p className="text-sm text-afrikoni-deep/70">
+                      <p className="text-os-sm text-afrikoni-deep/70">
                         OR {tier.transactionFee}% per transaction
                       </p>
                     )}
-                    <p className="text-sm text-afrikoni-deep/80 mt-2">{tier.description}</p>
+                    <p className="text-os-sm text-afrikoni-deep/80 mt-2">{tier.description}</p>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2 mb-6">
                       {tier.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-sm">
+                        <li key={idx} className="flex items-start gap-2 text-os-sm">
                           <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                           <span>{feature}</span>
                         </li>
@@ -415,15 +415,15 @@ export default function Pricing() {
               {buyerTiers.map((tier) => (
                 <Card
                   key={tier.id}
-                  className={`${tier.color} ${tier.popular ? 'ring-2 ring-afrikoni-gold' : ''} relative`}
+                  className={`${tier.color} ${tier.popular ? 'ring-2 ring-os-accent' : ''} relative`}
                 >
                   {tier.popular && (
-                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-afrikoni-gold text-white">
+                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-os-accent text-white">
                       Most Popular
                     </Badge>
                   )}
                   <CardHeader>
-                    <CardTitle className="text-xl mb-2">{tier.name}</CardTitle>
+                    <CardTitle className="text-os-xl mb-2">{tier.name}</CardTitle>
                     <div className="mb-2">
                       <span className="text-3xl font-bold text-afrikoni-chestnut">
                         {tier.price}
@@ -432,12 +432,12 @@ export default function Pricing() {
                         <span className="text-afrikoni-deep/70">/{tier.period}</span>
                       )}
                     </div>
-                    <p className="text-sm text-afrikoni-deep/80">{tier.description}</p>
+                    <p className="text-os-sm text-afrikoni-deep/80">{tier.description}</p>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2 mb-6">
                       {tier.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-sm">
+                        <li key={idx} className="flex items-start gap-2 text-os-sm">
                           <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                           <span>{feature}</span>
                         </li>
@@ -462,7 +462,7 @@ export default function Pricing() {
           <section ref={transactionFeesRef} className="mb-16">
             <div className="text-center mb-8">
               <h2 className="text-3xl font-bold text-afrikoni-chestnut mb-2 flex items-center justify-center gap-2">
-                <Shield className="w-8 h-8 text-afrikoni-gold" />
+                <Shield className="w-8 h-8 text-os-accent" />
                 Afrikoni Shield Protection
               </h2>
               <p className="text-afrikoni-deep/80 max-w-2xl mx-auto">
@@ -471,56 +471,56 @@ export default function Pricing() {
               </p>
             </div>
             <div className="grid md:grid-cols-2 gap-6">
-              <Card className={`border-2 ${searchParams.get('type') === 'rfq' ? 'border-afrikoni-gold ring-4 ring-afrikoni-gold/20' : 'border-afrikoni-gold/30'}`}>
+              <Card className={`border-2 ${searchParams.get('type') === 'rfq' ? 'border-os-accent ring-4 ring-os-accent/20' : 'border-os-accent/30'}`}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-afrikoni-gold" />
+                    <FileText className="w-5 h-5 text-os-accent" />
                     RFQ-Based Commission
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl font-bold text-afrikoni-chestnut mb-2">2-3%</p>
+                  <p className="text-os-2xl font-bold text-afrikoni-chestnut mb-2">2-3%</p>
                   <p className="text-afrikoni-deep/80 mb-4">
                     Fee charged on successful trades facilitated through our RFQ (Request for Quotation) system.
                   </p>
                   <ul className="space-y-2 mb-4">
-                    <li className="flex items-start gap-2 text-sm">
+                    <li className="flex items-start gap-2 text-os-sm">
                       <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                       <span>Applied only on completed transactions</span>
                     </li>
-                    <li className="flex items-start gap-2 text-sm">
+                    <li className="flex items-start gap-2 text-os-sm">
                       <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                       <span>Includes escrow protection and dispute resolution</span>
                     </li>
-                    <li className="flex items-start gap-2 text-sm">
+                    <li className="flex items-start gap-2 text-os-sm">
                       <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                       <span>No upfront costs or monthly fees</span>
                     </li>
                   </ul>
                 </CardContent>
               </Card>
-              <Card className={`border-2 ${searchParams.get('type') === 'deal' ? 'border-afrikoni-gold ring-4 ring-afrikoni-gold/20' : 'border-afrikoni-gold/30'}`}>
+              <Card className={`border-2 ${searchParams.get('type') === 'deal' ? 'border-os-accent ring-4 ring-os-accent/20' : 'border-os-accent/30'}`}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-afrikoni-gold" />
+                    <TrendingUp className="w-5 h-5 text-os-accent" />
                     Deal-Based Commission
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-2xl font-bold text-afrikoni-chestnut mb-2">1-2%</p>
+                  <p className="text-os-2xl font-bold text-afrikoni-chestnut mb-2">1-2%</p>
                   <p className="text-afrikoni-deep/80 mb-4">
                     Success fee on completed trades. Lower rate for high-volume sellers.
                   </p>
                   <ul className="space-y-2 mb-4">
-                    <li className="flex items-start gap-2 text-sm">
+                    <li className="flex items-start gap-2 text-os-sm">
                       <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                       <span>Volume discounts available</span>
                     </li>
-                    <li className="flex items-start gap-2 text-sm">
+                    <li className="flex items-start gap-2 text-os-sm">
                       <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                       <span>Negotiable for enterprise clients</span>
                     </li>
-                    <li className="flex items-start gap-2 text-sm">
+                    <li className="flex items-start gap-2 text-os-sm">
                       <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                       <span>Transparent pricing, no hidden fees</span>
                     </li>
@@ -542,19 +542,19 @@ export default function Pricing() {
               </p>
             </div>
             <div className="grid md:grid-cols-3 gap-6">
-              <Card className={`border-2 ${searchParams.get('service') === 'logistics' ? 'border-afrikoni-gold ring-4 ring-afrikoni-gold/20' : 'border-afrikoni-gold/30'}`}>
+              <Card className={`border-2 ${searchParams.get('service') === 'logistics' ? 'border-os-accent ring-4 ring-os-accent/20' : 'border-os-accent/30'}`}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Package className="w-5 h-5 text-afrikoni-gold" />
+                    <Package className="w-5 h-5 text-os-accent" />
                     Logistics Coordination
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-xl font-bold text-afrikoni-chestnut mb-2">Commission-based</p>
+                  <p className="text-os-xl font-bold text-afrikoni-chestnut mb-2">Commission-based</p>
                   <p className="text-afrikoni-deep/80 mb-4">
                     End-to-end shipping support across 54 African countries.
                   </p>
-                  <ul className="space-y-2 text-sm">
+                  <ul className="space-y-2 text-os-sm">
                     <li className="flex items-start gap-2">
                       <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                       <span>Customs clearance assistance</span>
@@ -570,19 +570,19 @@ export default function Pricing() {
                   </ul>
                 </CardContent>
               </Card>
-              <Card className={`border-2 ${searchParams.get('service') === 'verification' ? 'border-afrikoni-gold ring-4 ring-afrikoni-gold/20' : 'border-afrikoni-gold/30'}`}>
+              <Card className={`border-2 ${searchParams.get('service') === 'verification' ? 'border-os-accent ring-4 ring-os-accent/20' : 'border-os-accent/30'}`}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Shield className="w-5 h-5 text-afrikoni-gold" />
+                    <Shield className="w-5 h-5 text-os-accent" />
                     Supplier Verification
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-xl font-bold text-afrikoni-chestnut mb-2">One-time fee</p>
+                  <p className="text-os-xl font-bold text-afrikoni-chestnut mb-2">One-time fee</p>
                   <p className="text-afrikoni-deep/80 mb-4">
                     KYC & business verification to build buyer trust.
                   </p>
-                  <ul className="space-y-2 text-sm">
+                  <ul className="space-y-2 text-os-sm">
                     <li className="flex items-start gap-2">
                       <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                       <span>Business document review</span>
@@ -598,19 +598,19 @@ export default function Pricing() {
                   </ul>
                 </CardContent>
               </Card>
-              <Card className={`border-2 ${searchParams.get('service') === 'assistance' ? 'border-afrikoni-gold ring-4 ring-afrikoni-gold/20' : 'border-afrikoni-gold/30'}`}>
+              <Card className={`border-2 ${searchParams.get('service') === 'assistance' ? 'border-os-accent ring-4 ring-os-accent/20' : 'border-os-accent/30'}`}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Zap className="w-5 h-5 text-afrikoni-gold" />
+                    <Zap className="w-5 h-5 text-os-accent" />
                     Trade Assistance
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-xl font-bold text-afrikoni-chestnut mb-2">Custom pricing</p>
+                  <p className="text-os-xl font-bold text-afrikoni-chestnut mb-2">Custom pricing</p>
                   <p className="text-afrikoni-deep/80 mb-4">
                     Dedicated trade coordination and support.
                   </p>
-                  <ul className="space-y-2 text-sm">
+                  <ul className="space-y-2 text-os-sm">
                     <li className="flex items-start gap-2">
                       <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                       <span>Personal account manager</span>
@@ -641,19 +641,19 @@ export default function Pricing() {
               </p>
             </div>
             <div className="grid md:grid-cols-2 gap-6">
-              <Card className={`border-2 ${searchParams.get('feature') === 'featured' ? 'border-afrikoni-gold ring-4 ring-afrikoni-gold/20' : 'border-afrikoni-gold/30'}`}>
+              <Card className={`border-2 ${searchParams.get('feature') === 'featured' ? 'border-os-accent ring-4 ring-os-accent/20' : 'border-os-accent/30'}`}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Star className="w-5 h-5 text-afrikoni-gold" />
+                    <Star className="w-5 h-5 text-os-accent" />
                     Featured Listings
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-xl font-bold text-afrikoni-chestnut mb-2">$29/month per product</p>
+                  <p className="text-os-xl font-bold text-afrikoni-chestnut mb-2">$29/month per product</p>
                   <p className="text-afrikoni-deep/80 mb-4">
                     Boost product visibility with featured placement in search results.
                   </p>
-                  <ul className="space-y-2 text-sm">
+                  <ul className="space-y-2 text-os-sm">
                     <li className="flex items-start gap-2">
                       <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                       <span>Top placement in search results</span>
@@ -669,19 +669,19 @@ export default function Pricing() {
                   </ul>
                 </CardContent>
               </Card>
-              <Card className={`border-2 ${searchParams.get('feature') === 'premium' ? 'border-afrikoni-gold ring-4 ring-afrikoni-gold/20' : 'border-afrikoni-gold/30'}`}>
+              <Card className={`border-2 ${searchParams.get('feature') === 'premium' ? 'border-os-accent ring-4 ring-os-accent/20' : 'border-os-accent/30'}`}>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Award className="w-5 h-5 text-afrikoni-gold" />
+                    <Award className="w-5 h-5 text-os-accent" />
                     Premium Visibility
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-xl font-bold text-afrikoni-chestnut mb-2">$99/month</p>
+                  <p className="text-os-xl font-bold text-afrikoni-chestnut mb-2">$99/month</p>
                   <p className="text-afrikoni-deep/80 mb-4">
                     Priority placement and promotion across the platform.
                   </p>
-                  <ul className="space-y-2 text-sm">
+                  <ul className="space-y-2 text-os-sm">
                     <li className="flex items-start gap-2">
                       <Check className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                       <span>Homepage feature spots</span>
@@ -712,9 +712,9 @@ export default function Pricing() {
               </p>
             </div>
             <div className="overflow-x-auto">
-              <table className="w-full bg-white rounded-lg shadow-lg border-2 border-afrikoni-gold/30">
+              <table className="w-full bg-white rounded-lg shadow-os-md border-2 border-os-accent/30">
                 <thead>
-                  <tr className="bg-gradient-to-r from-afrikoni-gold/20 to-afrikoni-cream">
+                  <tr className="bg-gradient-to-r from-os-accent/20 to-afrikoni-cream">
                     <th className="px-4 py-4 text-left font-bold text-afrikoni-chestnut">Protection</th>
                     <th className="px-4 py-4 text-center font-bold text-afrikoni-chestnut">
                       <span className="flex items-center justify-center gap-1">
@@ -726,7 +726,7 @@ export default function Pricing() {
                     <th className="px-4 py-4 text-center font-semibold text-afrikoni-deep">Local Platforms</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-afrikoni-gold/20">
+                <tbody className="divide-y divide-os-accent/20">
                   <tr>
                     <td className="px-4 py-3 font-medium">Success Fee</td>
                     <td className="px-4 py-3 text-center text-green-600 font-bold">2-4%</td>
@@ -739,7 +739,7 @@ export default function Pricing() {
                       <Check className="w-5 h-5 text-green-600 mx-auto" />
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <X className="w-5 h-5 text-red-500 mx-auto" />
+                      <X className="w-5 h-5 text-os-red mx-auto" />
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span className="text-yellow-600">⚠ Limited</span>
@@ -751,7 +751,7 @@ export default function Pricing() {
                       <Check className="w-5 h-5 text-green-600 mx-auto" />
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <X className="w-5 h-5 text-red-500 mx-auto" />
+                      <X className="w-5 h-5 text-os-red mx-auto" />
                     </td>
                     <td className="px-4 py-3 text-center">
                       <span className="text-yellow-600">⚠ Basic</span>
@@ -769,10 +769,10 @@ export default function Pricing() {
                       <Check className="w-5 h-5 text-green-600 mx-auto" />
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <X className="w-5 h-5 text-red-500 mx-auto" />
+                      <X className="w-5 h-5 text-os-red mx-auto" />
                     </td>
                     <td className="px-4 py-3 text-center">
-                      <X className="w-5 h-5 text-red-500 mx-auto" />
+                      <X className="w-5 h-5 text-os-red mx-auto" />
                     </td>
                   </tr>
                 </tbody>
@@ -786,10 +786,10 @@ export default function Pricing() {
               Common Questions
             </h2>
             <div className="grid md:grid-cols-2 gap-6">
-              <Card className="border-afrikoni-gold/20">
+              <Card className="border-os-accent/20">
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Shield className="w-5 h-5 text-afrikoni-gold" />
+                  <CardTitle className="text-os-lg flex items-center gap-2">
+                    <Shield className="w-5 h-5 text-os-accent" />
                     Why pay fees when WhatsApp is "free"?
                   </CardTitle>
                 </CardHeader>
@@ -801,10 +801,10 @@ export default function Pricing() {
                   </p>
                 </CardContent>
               </Card>
-              <Card className="border-afrikoni-gold/20">
+              <Card className="border-os-accent/20">
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <DollarSign className="w-5 h-5 text-afrikoni-gold" />
+                  <CardTitle className="text-os-lg flex items-center gap-2">
+                    <DollarSign className="w-5 h-5 text-os-accent" />
                     When do I pay the success fee?
                   </CardTitle>
                 </CardHeader>
@@ -816,10 +816,10 @@ export default function Pricing() {
                   </p>
                 </CardContent>
               </Card>
-              <Card className="border-afrikoni-gold/20">
+              <Card className="border-os-accent/20">
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <Users className="w-5 h-5 text-afrikoni-gold" />
+                  <CardTitle className="text-os-lg flex items-center gap-2">
+                    <Users className="w-5 h-5 text-os-accent" />
                     Is this pricing fair for African businesses?
                   </CardTitle>
                 </CardHeader>
@@ -831,10 +831,10 @@ export default function Pricing() {
                   </p>
                 </CardContent>
               </Card>
-              <Card className="border-afrikoni-gold/20">
+              <Card className="border-os-accent/20">
                 <CardHeader>
-                  <CardTitle className="text-lg flex items-center gap-2">
-                    <TrendingUp className="w-5 h-5 text-afrikoni-gold" />
+                  <CardTitle className="text-os-lg flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-os-accent" />
                     How do I get lower rates?
                   </CardTitle>
                 </CardHeader>
@@ -842,7 +842,7 @@ export default function Pricing() {
                   <p className="text-afrikoni-deep/80">
                     Upgrade your plan! Growth members pay 3% (save 25%), Elite members pay 2% (save 50%).
                     High-volume traders can contact us for custom enterprise rates.
-                    Email <a href="mailto:hello@afrikoni.com" className="text-afrikoni-gold hover:underline">hello@afrikoni.com</a>.
+                    Email <a href="mailto:hello@afrikoni.com" className="text-os-accent hover:underline">hello@afrikoni.com</a>.
                   </p>
                 </CardContent>
               </Card>
@@ -851,7 +851,7 @@ export default function Pricing() {
 
           {/* CTA */}
           <section className="text-center bg-afrikoni-cream/50 rounded-lg p-8">
-            <h2 className="text-2xl font-bold text-afrikoni-chestnut mb-4">
+            <h2 className="text-os-2xl font-bold text-afrikoni-chestnut mb-4">
               Ready to Start Trading?
             </h2>
             <p className="text-afrikoni-deep/80 mb-6 max-w-2xl mx-auto">

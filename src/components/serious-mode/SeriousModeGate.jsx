@@ -139,14 +139,14 @@ export default function SeriousModeGate({
             animate={{ opacity: 1, y: 0 }}
             className="mb-4"
           >
-            <div className="bg-gradient-to-r from-afrikoni-gold/20 to-afrikoni-purple/10 border border-afrikoni-gold/30 rounded-lg p-3 flex items-center justify-between">
+            <div className="bg-gradient-to-r from-os-accent/20 to-afrikoni-purple/10 border border-os-accent/30 rounded-lg p-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Star className="w-5 h-5 text-afrikoni-gold" />
-                <span className="text-sm text-afrikoni-chestnut font-medium">
+                <Star className="w-5 h-5 text-os-accent" />
+                <span className="text-os-sm text-afrikoni-chestnut font-medium">
                   Beta Access: You have free access during our launch period
                 </span>
               </div>
-              <Badge className="bg-afrikoni-gold/20 text-afrikoni-chestnut text-xs">
+              <Badge className="bg-os-accent/20 text-afrikoni-chestnut text-os-xs">
                 {status.tier === 'FREE' ? `${status.rfqQuota - status.rfqUsed} RFQs left` : 'Unlimited'}
               </Badge>
             </div>
@@ -165,16 +165,16 @@ export default function SeriousModeGate({
       animate={{ opacity: 1, scale: 1 }}
       className="max-w-2xl mx-auto py-8"
     >
-      <Card className="border-2 border-afrikoni-gold/30 shadow-xl overflow-hidden">
+      <Card className="border-2 border-os-accent/30 shadow-os-lg overflow-hidden">
         {/* Decorative Header */}
         <div className="bg-gradient-to-r from-afrikoni-chestnut via-afrikoni-chestnut to-afrikoni-deep p-6 text-white">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-12 h-12 bg-afrikoni-gold/20 rounded-full flex items-center justify-center">
-              <Lock className="w-6 h-6 text-afrikoni-gold" />
+            <div className="w-12 h-12 bg-os-accent/20 rounded-full flex items-center justify-center">
+              <Lock className="w-6 h-6 text-os-accent" />
             </div>
             <div>
-              <h2 className="text-xl font-bold">Serious Mode Required</h2>
-              <p className="text-afrikoni-cream/80 text-sm">
+              <h2 className="text-os-xl font-bold">Serious Mode Required</h2>
+              <p className="text-afrikoni-cream/80 text-os-sm">
                 Unlock this feature to start trading
               </p>
             </div>
@@ -183,14 +183,14 @@ export default function SeriousModeGate({
 
         <CardContent className="p-6">
           {/* Why We Gate */}
-          <div className="bg-afrikoni-gold/10 border border-afrikoni-gold/20 rounded-lg p-4 mb-6">
+          <div className="bg-os-accent/10 border border-os-accent/20 rounded-lg p-4 mb-6">
             <div className="flex items-start gap-3">
-              <Shield className="w-5 h-5 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+              <Shield className="w-5 h-5 text-os-accent flex-shrink-0 mt-0.5" />
               <div>
                 <h3 className="font-semibold text-afrikoni-chestnut mb-1">
                   Why do we require this?
                 </h3>
-                <p className="text-sm text-afrikoni-deep/80">
+                <p className="text-os-sm text-afrikoni-deep/80">
                   Serious Mode ensures our marketplace stays spam-free and trustworthy.
                   It helps us match you with verified suppliers who are ready to do business.
                   Your small investment shows suppliers you're a committed buyer.
@@ -201,7 +201,7 @@ export default function SeriousModeGate({
 
           {/* Plans */}
           <h3 className="font-bold text-afrikoni-chestnut mb-4 flex items-center gap-2">
-            <Zap className="w-5 h-5 text-afrikoni-gold" />
+            <Zap className="w-5 h-5 text-os-accent" />
             Choose Your Plan
           </h3>
 
@@ -211,26 +211,26 @@ export default function SeriousModeGate({
                 key={key}
                 className={`p-4 rounded-lg border-2 transition-all ${
                   plan.popular
-                    ? 'border-afrikoni-gold bg-afrikoni-gold/5'
-                    : 'border-afrikoni-gold/20 hover:border-afrikoni-gold/40'
+                    ? 'border-os-accent bg-os-accent/5'
+                    : 'border-os-accent/20 hover:border-os-accent/40'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-afrikoni-chestnut">{plan.name}</span>
                     {plan.popular && (
-                      <Badge className="bg-afrikoni-gold text-white text-xs">
+                      <Badge className="bg-os-accent text-white text-os-xs">
                         Best Value
                       </Badge>
                     )}
                   </div>
-                  <span className="text-xl font-bold text-afrikoni-chestnut">
+                  <span className="text-os-xl font-bold text-afrikoni-chestnut">
                     {plan.price === 0 ? 'Free' : `$${plan.price}/mo`}
                   </span>
                 </div>
                 <ul className="grid grid-cols-2 gap-1">
                   {plan.features.map((feature, idx) => (
-                    <li key={idx} className="flex items-center gap-1 text-sm text-afrikoni-deep/80">
+                    <li key={idx} className="flex items-center gap-1 text-os-sm text-afrikoni-deep/80">
                       <CheckCircle className="w-3 h-3 text-green-600" />
                       {feature}
                     </li>
@@ -243,7 +243,7 @@ export default function SeriousModeGate({
           {/* Action Buttons */}
           <div className="space-y-3">
             <Link to="/pricing?plan=pro" className="block">
-              <Button className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white font-bold py-6">
+              <Button className="w-full bg-os-accent hover:bg-os-accentDark text-white font-bold py-6">
                 <Zap className="w-5 h-5 mr-2" />
                 Unlock Serious Mode — Start at $29/month
               </Button>
@@ -252,7 +252,7 @@ export default function SeriousModeGate({
             <Link to="/pricing" className="block">
               <Button
                 variant="outline"
-                className="w-full border-afrikoni-gold/40 hover:bg-afrikoni-gold/10"
+                className="w-full border-os-accent/40 hover:bg-os-accent/10"
               >
                 Compare All Plans
               </Button>
@@ -260,8 +260,8 @@ export default function SeriousModeGate({
           </div>
 
           {/* Trust Message */}
-          <div className="mt-6 pt-6 border-t border-afrikoni-gold/20 text-center">
-            <div className="flex items-center justify-center gap-4 text-sm text-afrikoni-deep/70">
+          <div className="mt-6 pt-6 border-t border-os-accent/20 text-center">
+            <div className="flex items-center justify-center gap-4 text-os-sm text-afrikoni-deep/70">
               <span className="flex items-center gap-1">
                 <Shield className="w-4 h-4 text-green-600" />
                 Secure Payment

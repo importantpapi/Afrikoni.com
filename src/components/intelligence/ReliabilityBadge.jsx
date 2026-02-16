@@ -44,7 +44,7 @@ export default function ReliabilityBadge({
 
   const { className, icon: Icon, label } = getBadgeStyle();
   const iconSize = size === 'small' ? 'w-3 h-3' : 'w-4 h-4';
-  const textSize = size === 'small' ? 'text-xs' : 'text-sm';
+  const textSize = size === 'small' ? 'text-os-xs' : 'text-os-sm';
 
   const badge = (
     <Badge className={`${className} ${textSize} flex items-center gap-1`}>
@@ -61,10 +61,10 @@ export default function ReliabilityBadge({
             {badge}
           </TooltipTrigger>
           <TooltipContent>
-            <div className="text-sm">
+            <div className="text-os-sm">
               <div className="font-semibold mb-1">{label}</div>
               <div>Reliability Score: {score}/100</div>
-              <div className="text-xs text-gray-500 mt-1">
+              <div className="text-os-xs text-gray-500 mt-1">
                 Based on trust, completion rate, response time, and disputes
               </div>
             </div>

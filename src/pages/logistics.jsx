@@ -277,13 +277,13 @@ function LogisticsContent() {
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4">
                 Logistics & Shipping Partners
               </h1>
-              <p className="text-xl md:text-2xl text-afrikoni-cream/90 max-w-3xl mx-auto mb-8">
+              <p className="text-os-xl md:text-os-2xl text-afrikoni-cream/90 max-w-3xl mx-auto mb-8">
                 Connect with Afrikoni-approved logistics partners for reliable shipping across Africa
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Button 
                   size="lg" 
-                  className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut text-lg px-8 py-6"
+                  className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut text-os-lg px-8 py-6"
                   onClick={handleRequestQuote}
                 >
                   Request Shipping Quote
@@ -292,7 +292,7 @@ function LogisticsContent() {
                 <Button 
                   size="lg" 
                   variant="outline" 
-                  className="border-2 border-white text-white hover:bg-white/10 text-lg px-8 py-6"
+                  className="border-2 border-white text-white hover:bg-white/10 text-os-lg px-8 py-6"
                   onClick={handleBecomePartner}
                 >
                   {user && isLogistics(userRole) ? 'Go to Dashboard' : 'Become a Partner'}
@@ -306,7 +306,7 @@ function LogisticsContent() {
                 { label: 'Verified Partners', value: stats?.totalPartners || 0, icon: Users, color: 'bg-blue-500' },
                 { label: 'Total Shipments', value: (typeof stats?.totalShipments === 'number' ? stats.totalShipments.toLocaleString() : '0'), icon: Package, color: 'bg-green-500' },
                 { label: 'Countries', value: stats?.countriesCovered || 15, icon: Globe, color: 'bg-purple-500' },
-                { label: 'Avg Rating', value: (stats?.avgRating > 0 ? `${stats.avgRating}⭐` : '4.8⭐'), icon: Star, color: 'bg-afrikoni-gold' }
+                { label: 'Avg Rating', value: (stats?.avgRating > 0 ? `${stats.avgRating}⭐` : '4.8⭐'), icon: Star, color: 'bg-os-accent' }
               ].map((stat, idx) => {
                 const Icon = stat.icon;
                 return (
@@ -321,8 +321,8 @@ function LogisticsContent() {
                         <div className={`w-10 h-10 ${stat.color} rounded-lg flex items-center justify-center mx-auto mb-2`}>
                           <Icon className="w-5 h-5 text-white" />
                         </div>
-                        <div className="text-2xl md:text-3xl font-bold text-white mb-1">{stat.value}</div>
-                        <div className="text-xs md:text-sm text-afrikoni-cream/80">{stat.label}</div>
+                        <div className="text-os-2xl md:text-3xl font-bold text-white mb-1">{stat.value}</div>
+                        <div className="text-os-xs md:text-os-sm text-afrikoni-cream/80">{stat.label}</div>
                       </CardContent>
                     </Card>
                   </motion.div>
@@ -345,14 +345,14 @@ function LogisticsContent() {
               <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
                 Afrikoni Approved Partners
               </h2>
-              <p className="text-lg text-afrikoni-deep max-w-2xl mx-auto">
+              <p className="text-os-lg text-afrikoni-deep max-w-2xl mx-auto">
                 Verified logistics partners providing reliable shipping services across Africa
               </p>
             </motion.div>
 
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-os-accent" />
               </div>
             ) : !logisticsPartners || logisticsPartners.length === 0 ? (
               <div className="text-center py-12">
@@ -364,7 +364,7 @@ function LogisticsContent() {
                 <div className="mt-8">
                   <Button 
                     size="lg" 
-                    className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut"
+                    className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut"
                     onClick={handleBecomePartner}
                   >
                     Become a Logistics Partner
@@ -382,14 +382,14 @@ function LogisticsContent() {
                   viewport={{ once: true }}
                   transition={{ duration: 0.6, delay: idx * 0.1 }}
                 >
-                    <Card className="h-full hover:shadow-xl transition-all border-afrikoni-gold/20">
+                    <Card className="h-full hover:shadow-os-lg transition-all border-os-accent/20">
                     <CardHeader>
                       <div className="flex items-start justify-between mb-2">
                           <div className="flex-1">
-                            <CardTitle className="text-xl mb-1">{partner?.company_name || 'Logistics Partner'}</CardTitle>
+                            <CardTitle className="text-os-xl mb-1">{partner?.company_name || 'Logistics Partner'}</CardTitle>
                           <div className="flex items-center gap-2 text-afrikoni-deep">
                             <MapPin className="w-4 h-4" />
-                              <span className="text-sm">{partner?.city || ''}, {partner?.country || ''}</span>
+                              <span className="text-os-sm">{partner?.city || ''}, {partner?.country || ''}</span>
                             </div>
                           </div>
                           {partner?.verified && (
@@ -403,12 +403,12 @@ function LogisticsContent() {
                     <CardContent className="space-y-4">
                       {/* Services */}
                       <div>
-                        <p className="text-sm font-semibold text-afrikoni-deep mb-2">Services:</p>
+                        <p className="text-os-sm font-semibold text-afrikoni-deep mb-2">Services:</p>
                         <div className="flex flex-wrap gap-2">
                           {(partner?.services || []).map((service, sIdx) => {
                             const ServiceIcon = getServiceIcon(service);
                             return (
-                                <Badge key={sIdx} variant="outline" className="flex items-center gap-1 border-afrikoni-gold/30">
+                                <Badge key={sIdx} variant="outline" className="flex items-center gap-1 border-os-accent/30">
                                 <ServiceIcon className="w-3 h-3" />
                                 {service}
                               </Badge>
@@ -419,24 +419,24 @@ function LogisticsContent() {
 
                       {/* Coverage */}
                       <div>
-                        <p className="text-sm font-semibold text-afrikoni-deep mb-1">Coverage:</p>
-                          <p className="text-sm text-afrikoni-deep/80">{partner?.coverage || 'Regional'}</p>
+                        <p className="text-os-sm font-semibold text-afrikoni-deep mb-1">Coverage:</p>
+                          <p className="text-os-sm text-afrikoni-deep/80">{partner?.coverage || 'Regional'}</p>
                       </div>
 
                       {/* Stats */}
-                      <div className="flex items-center justify-between pt-2 border-t border-afrikoni-gold/20">
+                      <div className="flex items-center justify-between pt-2 border-t border-os-accent/20">
                         <div>
-                          <p className="text-xs text-afrikoni-deep/70">Rating</p>
+                          <p className="text-os-xs text-afrikoni-deep/70">Rating</p>
                             <div className="flex items-center gap-1">
-                              <p className="text-sm font-semibold text-afrikoni-gold">
+                              <p className="text-os-sm font-semibold text-os-accent">
                                 {typeof partner?.rating === 'number' ? partner.rating.toFixed(1) : '4.5'}
                               </p>
-                              <Star className="w-4 h-4 text-afrikoni-gold fill-afrikoni-gold" />
+                              <Star className="w-4 h-4 text-os-accent fill-os-accent" />
                             </div>
                         </div>
                         <div>
-                          <p className="text-xs text-afrikoni-deep/70">Shipments</p>
-                            <p className="text-sm font-semibold text-afrikoni-deep">
+                          <p className="text-os-xs text-afrikoni-deep/70">Shipments</p>
+                            <p className="text-os-sm font-semibold text-afrikoni-deep">
                               {typeof partner?.shipments === 'number' ? partner.shipments.toLocaleString() : '0'}+
                             </p>
                         </div>
@@ -444,7 +444,7 @@ function LogisticsContent() {
 
                       {/* CTA */}
                         <Button 
-                          className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut"
+                          className="w-full bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut"
                           onClick={handleRequestQuote}
                         >
                         Request Quote
@@ -460,10 +460,10 @@ function LogisticsContent() {
 
           {/* Why Use Afrikoni Logistics */}
           <section className="mb-16">
-            <Card className="bg-gradient-to-br from-afrikoni-gold/10 to-afrikoni-goldDark/10 border-afrikoni-gold/20">
+            <Card className="bg-gradient-to-br from-os-accent/10 to-os-accentDark/10 border-os-accent/20">
               <CardHeader>
-                <CardTitle className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut flex items-center gap-3">
-                  <Truck className="w-8 h-8 text-afrikoni-gold" />
+                <CardTitle className="text-os-2xl md:text-3xl font-bold text-afrikoni-chestnut flex items-center gap-3">
+                  <Truck className="w-8 h-8 text-os-accent" />
                   Why Use Afrikoni Logistics Partners?
                 </CardTitle>
               </CardHeader>
@@ -495,17 +495,17 @@ function LogisticsContent() {
             <section className="mb-16">
               <Card className="bg-gradient-to-r from-afrikoni-chestnut to-afrikoni-deep border-0">
                 <CardContent className="p-8 md:p-12 text-center">
-                  <Truck className="w-16 h-16 text-afrikoni-gold mx-auto mb-6" />
+                  <Truck className="w-16 h-16 text-os-accent mx-auto mb-6" />
                   <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
                     Become a Logistics Partner
                   </h2>
-                  <p className="text-xl text-afrikoni-cream/90 mb-8 max-w-2xl mx-auto">
+                  <p className="text-os-xl text-afrikoni-cream/90 mb-8 max-w-2xl mx-auto">
                     Join Afrikoni's logistics network and help facilitate trade across Africa. 
                     Get verified, access our platform, and grow your business.
                   </p>
                   <Button 
                     size="lg" 
-                    className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut text-lg px-8 py-6"
+                    className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut text-os-lg px-8 py-6"
                     onClick={handleBecomePartner}
                   >
                     Apply to Join Network
@@ -528,35 +528,35 @@ function LogisticsContent() {
               <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
                 Logistics Plans & Pricing
               </h2>
-              <p className="text-lg text-afrikoni-deep max-w-2xl mx-auto">
+              <p className="text-os-lg text-afrikoni-deep max-w-2xl mx-auto">
                 Choose the shipping option that works best for your business
               </p>
             </motion.div>
 
             <div className="grid md:grid-cols-3 gap-6">
               {/* Standard Plan */}
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold transition-all">
+              <Card className="border-os-accent/20 hover:border-os-accent transition-all">
                 <CardHeader>
-                  <CardTitle className="text-xl font-bold text-afrikoni-chestnut">Standard</CardTitle>
+                  <CardTitle className="text-os-xl font-bold text-afrikoni-chestnut">Standard</CardTitle>
                   <CardDescription>Buyer arranges shipping</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="mb-6">
-                    <div className="text-3xl font-bold text-afrikoni-gold mb-2">Free</div>
-                    <p className="text-sm text-afrikoni-deep">No platform fee</p>
+                    <div className="text-3xl font-bold text-os-accent mb-2">Free</div>
+                    <p className="text-os-sm text-afrikoni-deep">No platform fee</p>
                   </div>
                   <ul className="space-y-3 mb-6">
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm text-afrikoni-deep">Buyer handles shipping directly</span>
+                      <span className="text-os-sm text-afrikoni-deep">Buyer handles shipping directly</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm text-afrikoni-deep">Full control over logistics</span>
+                      <span className="text-os-sm text-afrikoni-deep">Full control over logistics</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm text-afrikoni-deep">No escrow protection for shipping</span>
+                      <span className="text-os-sm text-afrikoni-deep">No escrow protection for shipping</span>
                     </li>
                   </ul>
                   <Button className="w-full" variant="outline">Select Standard</Button>
@@ -564,68 +564,68 @@ function LogisticsContent() {
               </Card>
 
               {/* Afrikoni Logistics Plan */}
-              <Card className="border-afrikoni-gold hover:border-afrikoni-gold transition-all shadow-lg relative">
+              <Card className="border-os-accent hover:border-os-accent transition-all shadow-os-md relative">
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <Badge className="bg-afrikoni-gold text-afrikoni-chestnut">Recommended</Badge>
+                  <Badge className="bg-os-accent text-afrikoni-chestnut">Recommended</Badge>
                 </div>
                 <CardHeader>
-                  <CardTitle className="text-xl font-bold text-afrikoni-chestnut">Afrikoni Logistics</CardTitle>
+                  <CardTitle className="text-os-xl font-bold text-afrikoni-chestnut">Afrikoni Logistics</CardTitle>
                   <CardDescription>Escrow-protected shipping</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="mb-6">
-                    <div className="text-3xl font-bold text-afrikoni-gold mb-2">2-5%</div>
-                    <p className="text-sm text-afrikoni-deep">Of shipping cost</p>
+                    <div className="text-3xl font-bold text-os-accent mb-2">2-5%</div>
+                    <p className="text-os-sm text-afrikoni-deep">Of shipping cost</p>
                   </div>
                   <ul className="space-y-3 mb-6">
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm text-afrikoni-deep">Escrow protection for shipping</span>
+                      <span className="text-os-sm text-afrikoni-deep">Escrow protection for shipping</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm text-afrikoni-deep">Verified logistics partners</span>
+                      <span className="text-os-sm text-afrikoni-deep">Verified logistics partners</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm text-afrikoni-deep">Real-time tracking</span>
+                      <span className="text-os-sm text-afrikoni-deep">Real-time tracking</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm text-afrikoni-deep">Insurance coverage</span>
+                      <span className="text-os-sm text-afrikoni-deep">Insurance coverage</span>
                     </li>
                   </ul>
-                  <Button className="w-full bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut">Select Afrikoni Logistics</Button>
+                  <Button className="w-full bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut">Select Afrikoni Logistics</Button>
                 </CardContent>
               </Card>
 
               {/* Verified Express Plan */}
-              <Card className="border-afrikoni-gold/20 hover:border-afrikoni-gold transition-all">
+              <Card className="border-os-accent/20 hover:border-os-accent transition-all">
                 <CardHeader>
-                  <CardTitle className="text-xl font-bold text-afrikoni-chestnut">Verified Express</CardTitle>
+                  <CardTitle className="text-os-xl font-bold text-afrikoni-chestnut">Verified Express</CardTitle>
                   <CardDescription>Premium fast shipping</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="mb-6">
-                    <div className="text-3xl font-bold text-afrikoni-gold mb-2">5-8%</div>
-                    <p className="text-sm text-afrikoni-deep">Of shipping cost</p>
+                    <div className="text-3xl font-bold text-os-accent mb-2">5-8%</div>
+                    <p className="text-os-sm text-afrikoni-deep">Of shipping cost</p>
                   </div>
                   <ul className="space-y-3 mb-6">
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm text-afrikoni-deep">Priority shipping lanes</span>
+                      <span className="text-os-sm text-afrikoni-deep">Priority shipping lanes</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm text-afrikoni-deep">Faster delivery times</span>
+                      <span className="text-os-sm text-afrikoni-deep">Faster delivery times</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm text-afrikoni-deep">Premium support</span>
+                      <span className="text-os-sm text-afrikoni-deep">Premium support</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm text-afrikoni-deep">Enhanced insurance</span>
+                      <span className="text-os-sm text-afrikoni-deep">Enhanced insurance</span>
                     </li>
                   </ul>
                   <Button className="w-full" variant="outline">Select Express</Button>
@@ -636,10 +636,10 @@ function LogisticsContent() {
 
           {/* Incoterms Selection Guide */}
           <section className="mb-16">
-            <Card className="border-afrikoni-gold/20">
+            <Card className="border-os-accent/20">
               <CardHeader>
-                <CardTitle className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut flex items-center gap-3">
-                  <Package className="w-8 h-8 text-afrikoni-gold" />
+                <CardTitle className="text-os-2xl md:text-3xl font-bold text-afrikoni-chestnut flex items-center gap-3">
+                  <Package className="w-8 h-8 text-os-accent" />
                   Incoterms Selection Guide
                 </CardTitle>
                 <CardDescription>
@@ -650,28 +650,28 @@ function LogisticsContent() {
                 <div className="grid md:grid-cols-3 gap-6">
                   <div>
                     <h4 className="font-semibold text-afrikoni-chestnut mb-3">EXW (Ex Works)</h4>
-                    <p className="text-sm text-afrikoni-deep mb-2">
+                    <p className="text-os-sm text-afrikoni-deep mb-2">
                       Buyer collects goods from seller's premises. Buyer responsible for all shipping costs and risks.
                     </p>
-                    <Badge variant="outline" className="text-xs">Buyer Pays All</Badge>
+                    <Badge variant="outline" className="text-os-xs">Buyer Pays All</Badge>
                   </div>
                   <div>
                     <h4 className="font-semibold text-afrikoni-chestnut mb-3">FOB (Free On Board)</h4>
-                    <p className="text-sm text-afrikoni-deep mb-2">
+                    <p className="text-os-sm text-afrikoni-deep mb-2">
                       Seller delivers goods to port. Buyer pays shipping from port to destination.
                     </p>
-                    <Badge variant="outline" className="text-xs">Shared Responsibility</Badge>
+                    <Badge variant="outline" className="text-os-xs">Shared Responsibility</Badge>
                   </div>
                   <div>
                     <h4 className="font-semibold text-afrikoni-chestnut mb-3">CIF (Cost, Insurance, Freight)</h4>
-                    <p className="text-sm text-afrikoni-deep mb-2">
+                    <p className="text-os-sm text-afrikoni-deep mb-2">
                       Seller pays shipping and insurance to destination port. Buyer handles customs and final delivery.
                     </p>
-                    <Badge variant="outline" className="text-xs">Seller Pays Shipping</Badge>
+                    <Badge variant="outline" className="text-os-xs">Seller Pays Shipping</Badge>
                   </div>
                 </div>
-                <div className="mt-6 p-4 bg-afrikoni-gold/10 rounded-lg border border-afrikoni-gold/20">
-                  <p className="text-sm text-afrikoni-deep">
+                <div className="mt-6 p-4 bg-os-accent/10 rounded-lg border border-os-accent/20">
+                  <p className="text-os-sm text-afrikoni-deep">
                     <strong>Tip:</strong> Select your preferred Incoterms when creating an RFQ or during checkout. This helps suppliers provide accurate quotes.
                   </p>
                 </div>
@@ -690,13 +690,13 @@ function LogisticsContent() {
               <h2 className="text-3xl md:text-4xl font-bold text-afrikoni-chestnut mb-4">
                 Need Shipping Services?
               </h2>
-              <p className="text-lg text-afrikoni-deep mb-8 max-w-2xl mx-auto">
+              <p className="text-os-lg text-afrikoni-deep mb-8 max-w-2xl mx-auto">
                 Request a quote from our verified logistics partners or join our network
               </p>
               <div className="flex flex-wrap justify-center gap-4">
                 <Button 
                   size="lg" 
-                  className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-afrikoni-chestnut text-lg px-8 py-6"
+                  className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut text-os-lg px-8 py-6"
                   onClick={handleRequestQuote}
                 >
                     Request Quote
@@ -705,7 +705,7 @@ function LogisticsContent() {
                 <Button 
                   size="lg" 
                   variant="outline" 
-                  className="border-afrikoni-gold text-afrikoni-gold hover:bg-afrikoni-gold/10 text-lg px-8 py-6"
+                  className="border-os-accent text-os-accent hover:bg-os-accent/10 text-os-lg px-8 py-6"
                   onClick={handleBecomePartner}
                 >
                   {user && isLogistics(userRole) ? 'Go to Dashboard' : 'Become a Partner'}
@@ -730,14 +730,14 @@ export default function Logistics() {
     console.error('Error rendering Logistics component:', error);
     return (
       <div className="min-h-screen flex items-center justify-center bg-afrikoni-offwhite p-4">
-        <div className="max-w-md w-full text-center bg-white rounded-lg shadow-lg p-8 border border-afrikoni-gold/20">
-          <h1 className="text-2xl font-bold text-afrikoni-chestnut mb-2">Something went wrong</h1>
+        <div className="max-w-md w-full text-center bg-white rounded-lg shadow-os-md p-8 border border-os-accent/20">
+          <h1 className="text-os-2xl font-bold text-afrikoni-chestnut mb-2">Something went wrong</h1>
           <p className="text-afrikoni-deep mb-6">
             Failed to load logistics partners page. Please try refreshing.
           </p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-afrikoni-gold text-afrikoni-chestnut rounded hover:bg-afrikoni-goldDark"
+            className="px-4 py-2 bg-os-accent text-afrikoni-chestnut rounded hover:bg-os-accentDark"
           >
             Retry
           </button>

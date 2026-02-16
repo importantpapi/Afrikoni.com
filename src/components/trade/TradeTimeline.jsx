@@ -84,22 +84,22 @@ export default function TradeTimeline({ tradeId, currentState, onStateChange }) 
   const nextLabel = nextState ? (TRADE_STATE_LABELS[nextState] || nextState) : 'None';
 
   return (
-    <div className="w-full bg-gradient-to-br from-[#0E1016] to-[#141B24] rounded-2xl border shadow-[0_24px_80px_rgba(0,0,0,0.35)] p-6 relative overflow-hidden">
+    <div className="w-full bg-gradient-to-br from-[#0E1016] to-[#141B24] rounded-os-md border shadow-[0_24px_80px_rgba(0,0,0,0.35)] p-6 relative overflow-hidden">
       <div className="absolute inset-0 pointer-events-none opacity-25 bg-[radial-gradient(circle_at_top_left,rgba(201,156,78,0.25),transparent_55%)]" />
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h2 className="text-xl font-semibold">
+            <h2 className="text-os-xl font-semibold">
               Kernel Rail
             </h2>
-            <p className="text-sm mt-1">
+            <p className="text-os-sm mt-1">
               Current state: <span className="font-semibold">{RAILROAD_TRACK[currentIndex]?.label || currentState}</span>
             </p>
           </div>
           <div className="text-right">
-            <p className="text-xs uppercase tracking-[0.2em]">Next Action</p>
-            <p className="text-sm font-semibold">{nextLabel}</p>
+            <p className="text-os-xs uppercase tracking-[0.2em]">Next Action</p>
+            <p className="text-os-sm font-semibold">{nextLabel}</p>
           </div>
         </div>
       </div>
@@ -127,9 +127,9 @@ export default function TradeTimeline({ tradeId, currentState, onStateChange }) 
                       w-10 h-10 rounded-full flex items-center justify-center
                       transition-all duration-300 ring-2
                       ${isCompleted ? 'bg-emerald-400/10 ring-emerald-400/40' : ''}
-                      ${isCurrent ? 'bg-afrikoni-gold/20 ring-afrikoni-gold shadow-lg scale-125' : ''}
+                      ${isCurrent ? 'bg-os-accent/20 ring-os-accent shadow-os-md scale-125' : ''}
                       ${isLocked && !isCurrent ? 'bg-white/5 ring-white/20' : ''}
-                      ${isDisput ? 'ring-red-500 bg-red-500/10' : ''}
+                      ${isDisput ? 'ring-red-500 bg-os-red/10' : ''}
                     `}
                   >
                     {isCompleted && <CheckCircle2 className="w-5 h-5" />}
@@ -140,9 +140,9 @@ export default function TradeTimeline({ tradeId, currentState, onStateChange }) 
 
                   {/* LABEL */}
                   <span
-                    className={`text-xs font-medium text-center w-20
+                    className={`text-os-xs font-medium text-center w-20
                       ${isCompleted ? 'text-emerald-200' : ''}
-                      ${isCurrent ? 'text-afrikoni-gold font-bold' : ''}
+                      ${isCurrent ? 'text-os-accent font-bold' : ''}
                       ${isLocked && !isCurrent ? 'text-white/45' : ''}
                     `}
                   >
@@ -171,14 +171,14 @@ export default function TradeTimeline({ tradeId, currentState, onStateChange }) 
 
       {/* TIMELINE EVENTS (Detailed history in reverse chronological order) */}
       <div className="mt-8 pt-6 border-t">
-        <h3 className="text-sm font-semibold mb-4">
+        <h3 className="text-os-sm font-semibold mb-4">
           Event Stream
         </h3>
 
         {loading ? (
           <div className="text-center py-8">Loading timeline...</div>
         ) : events.length === 0 ? (
-          <div className="text-center py-8 text-sm">
+          <div className="text-center py-8 text-os-sm">
             No events yet. RFQ will begin when published.
           </div>
         ) : (
@@ -189,7 +189,7 @@ export default function TradeTimeline({ tradeId, currentState, onStateChange }) 
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.05 }}
-                className="flex gap-4 p-3 rounded-xl border cv-auto"
+                className="flex gap-4 p-3 rounded-os-sm border cv-auto"
               >
                 {/* Event Icon */}
                 <div className="flex-shrink-0 mt-1">
@@ -198,14 +198,14 @@ export default function TradeTimeline({ tradeId, currentState, onStateChange }) 
 
                 {/* Event Details */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">
+                  <p className="text-os-sm font-medium">
                     {formatEventLabel(event.event_type)}
                   </p>
-                  <p className="text-xs mt-0.5">
+                  <p className="text-os-xs mt-0.5">
                     {new Date(event.created_at).toLocaleString()}
                   </p>
                   {event.metadata && Object.keys(event.metadata).length > 0 && (
-                    <p className="text-xs mt-1">
+                    <p className="text-os-xs mt-1">
                       {JSON.stringify(event.metadata).substring(0, 100)}...
                     </p>
                   )}
@@ -217,7 +217,7 @@ export default function TradeTimeline({ tradeId, currentState, onStateChange }) 
       </div>
 
       {/* KERNEL STATUS INDICATOR */}
-      <div className="mt-8 pt-6 border-t flex items-center gap-3 text-xs">
+      <div className="mt-8 pt-6 border-t flex items-center gap-3 text-os-xs">
         <div
           className={`w-2 h-2 rounded-full ${currentState === TRADE_STATE.DISPUTED
               ? 'bg-red-500 animate-pulse'

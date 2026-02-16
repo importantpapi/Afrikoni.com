@@ -92,14 +92,14 @@ export function IdentityLayer({
                 <div
                     ref={userMenuButtonRef}
                     onClick={handleUserMenuClick}
-                    className="flex items-center gap-3 cursor-pointer p-1.5 px-2 hover:bg-os-stroke rounded-xl transition-colors"
+                    className="flex items-center gap-3 cursor-pointer p-1.5 px-2 hover:bg-os-stroke rounded-os-sm transition-colors"
                 >
-                    <div className="w-8 h-8 rounded-full bg-os-accent/10 border border-os-accent/20 flex items-center justify-center text-os-accent text-xs font-semibold">
+                    <div className="w-8 h-8 rounded-full bg-os-accent/10 border border-os-accent/20 flex items-center justify-center text-os-accent text-os-xs font-semibold">
                         {getInitial()}
                     </div>
                     <div className="flex flex-col">
-                        <span className="text-sm font-semibold tracking-tight">{userName}</span>
-                        <span className="text-[11px] text-os-text-secondary font-medium">{orgName}</span>
+                        <span className="text-os-sm font-semibold tracking-tight">{userName}</span>
+                        <span className="text-os-xs text-os-text-secondary font-medium">{orgName}</span>
                     </div>
                 </div>
             </div>
@@ -112,7 +112,7 @@ export function IdentityLayer({
                     className="health-capsule mr-4 cursor-pointer hover:bg-os-success/5 transition-colors"
                 >
                     <div className="health-dot" />
-                    <span className="text-os-text-primary text-[11px] font-semibold">Trade is Active</span>
+                    <span className="text-os-text-primary text-os-xs font-semibold">Trade is Active</span>
                 </div>
 
                 {/* Search / Command */}
@@ -134,7 +134,7 @@ export function IdentityLayer({
                     onClick={onToggleMode}
                     className="hidden md:flex items-center gap-2 px-3 text-os-text-secondary hover:text-os-text-primary"
                 >
-                    <span className="text-xs font-medium">
+                    <span className="text-os-xs font-medium">
                         {workspaceMode === 'simple' ? 'Simple' : 'Operator'}
                     </span>
                     <ChevronDown className="w-3 h-3" />
@@ -158,7 +158,7 @@ export function IdentityLayer({
                     variant="ghost"
                     size="sm"
                     onClick={onToggleCopilot}
-                    className="flex h-9 px-4 rounded-full bg-os-accent/10 text-os-accent hover:bg-os-accent/20 transition-all font-semibold text-xs gap-2 ml-2"
+                    className="flex h-9 px-4 rounded-full bg-os-accent/10 text-os-accent hover:bg-os-accent/20 transition-all font-semibold text-os-xs gap-2 ml-2"
                 >
                     <Sparkles className="w-3.5 h-3.5" />
                     <span className="hidden lg:inline">Assistant</span>
@@ -171,7 +171,7 @@ export function IdentityLayer({
                     onClick={onToggleLiteMode}
                     className={cn(
                         "w-10 h-10 rounded-full transition-all",
-                        isLiteMode ? "bg-afrikoni-gold text-black" : "text-os-text-secondary hover:text-os-text-primary"
+                        isLiteMode ? "bg-os-accent text-black" : "text-os-text-secondary hover:text-os-text-primary"
                     )}
                     title={isLiteMode ? "Disable Lite Mode" : "Enable Lite Mode (Low Data)"}
                 >
@@ -192,7 +192,7 @@ export function IdentityLayer({
                             initial={{ opacity: 0, y: -10, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                            className="fixed w-56 bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#2A2A2A] rounded-xl shadow-2xl z-[1002] overflow-hidden"
+                            className="fixed w-56 bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#2A2A2A] rounded-os-sm shadow-2xl z-[1002] overflow-hidden"
                             style={{
                                 top: `${menuPosition.top}px`,
                                 right: `${menuPosition.right}px`,
@@ -200,10 +200,10 @@ export function IdentityLayer({
                         >
                             <div className="py-1">
                                 <div className="px-4 py-3 border-b border-gray-200 dark:border-[#1E1E1E]">
-                                    <div className="font-bold text-gray-900 dark:text-[#F5F0E8] text-sm truncate">
+                                    <div className="font-bold text-gray-900 dark:text-[#F5F0E8] text-os-sm truncate">
                                         {user?.email || 'user@example.com'}
                                     </div>
-                                    <div className="text-[10px] text-gray-500 uppercase mt-0.5 font-bold tracking-tighter">
+                                    <div className="text-os-xs text-gray-500 uppercase mt-0.5 font-bold tracking-tighter">
                                         {orgName}
                                     </div>
                                 </div>
@@ -219,7 +219,7 @@ export function IdentityLayer({
                                     <Link
                                         key={item.to}
                                         to={item.to}
-                                        className="flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-[#F5F0E8] transition-colors"
+                                        className="flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] text-os-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-[#F5F0E8] transition-colors"
                                         onClick={() => setUserMenuOpen(false)}
                                     >
                                         <item.icon className="w-4 h-4 text-gray-500" />
@@ -229,7 +229,7 @@ export function IdentityLayer({
                                 <div className="border-t border-gray-200 dark:border-[#1E1E1E] my-1"></div>
                                 <button
                                     onClick={handleLogout}
-                                    className="flex items-center gap-3 w-full text-left px-4 py-2 hover:bg-red-950/30 text-sm text-red-400 transition-colors"
+                                    className="flex items-center gap-3 w-full text-left px-4 py-2 hover:bg-red-950/30 text-os-sm text-red-400 transition-colors"
                                 >
                                     <LogOut className="w-4 h-4" />
                                     Logout

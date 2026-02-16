@@ -169,21 +169,21 @@ export default function VerificationStatus() {
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <h2 className="text-xl font-semibold">
+                    <h2 className="text-os-xl font-semibold">
                       {status.label}
                     </h2>
                     <Badge variant={status.color === 'green' ? 'success' : 'secondary'}>
                       {status.label}
                     </Badge>
                   </div>
-                  <p className="text-sm mb-3">
+                  <p className="text-os-sm mb-3">
                     {company?.verified
                       ? 'Your business is verified. Buyers see you as a trusted supplier.'
                       : 'Complete the steps below to become a verified supplier and build buyer trust.'
                     }
                   </p>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">
+                    <span className="text-os-sm font-medium">
                       Profile Strength: {profileStrength}%
                     </span>
                   </div>
@@ -194,7 +194,7 @@ export default function VerificationStatus() {
               {!company?.verified && (
                 <Button
                   onClick={() => navigate('/dashboard/verification-center')}
-                  className="hover:bg-afrikoni-gold/90"
+                  className="hover:bg-os-accent/90"
                 >
                   {verificationData ? 'Continue Verification' : 'Start Verification'}
                   <ChevronRight className="w-4 h-4 ml-1" />
@@ -207,27 +207,27 @@ export default function VerificationStatus() {
         {/* Why Verification Matters */}
         <Card className="mb-6 bg-gradient-to-br">
           <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
+            <CardTitle className="text-os-lg flex items-center gap-2">
               <TrendingUp className="w-5 h-5" />
               Why Verification Matters
             </CardTitle>
           </CardHeader>
           <CardContent className="grid md:grid-cols-3 gap-4">
             <div>
-              <p className="text-2xl font-bold mb-1">3x</p>
-              <p className="text-sm">
+              <p className="text-os-2xl font-bold mb-1">3x</p>
+              <p className="text-os-sm">
                 More buyer inquiries for verified suppliers
               </p>
             </div>
             <div>
-              <p className="text-2xl font-bold mb-1">Priority</p>
-              <p className="text-sm">
+              <p className="text-os-2xl font-bold mb-1">Priority</p>
+              <p className="text-os-sm">
                 Shown first in search and RFQ matches
               </p>
             </div>
             <div>
-              <p className="text-2xl font-bold mb-1">Trust</p>
-              <p className="text-sm">
+              <p className="text-os-2xl font-bold mb-1">Trust</p>
+              <p className="text-os-sm">
                 Verified badge builds institutional confidence
               </p>
             </div>
@@ -249,7 +249,7 @@ export default function VerificationStatus() {
                   key={step.id}
                   className={`flex items-start gap-4 p-4 rounded-lg border-2 transition-colors ${isCompleted
                     ? 'bg-green-50 border-green-200'
-                    : 'bg-white border-afrikoni-gold/20 hover:border-afrikoni-gold/40'
+                    : 'bg-white border-os-accent/20 hover:border-os-accent/40'
                     }`}
                 >
                   <div className={`p-2 rounded-lg ${isCompleted ? 'bg-green-100' : 'bg-gray-100'}`}>
@@ -263,26 +263,26 @@ export default function VerificationStatus() {
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-semibold">{step.title}</h3>
                       {step.required && !isCompleted && (
-                        <Badge variant="outline" className="text-xs">Required</Badge>
+                        <Badge variant="outline" className="text-os-xs">Required</Badge>
                       )}
                       {isCompleted && (
-                        <Badge variant="success" className="text-xs">Completed</Badge>
+                        <Badge variant="success" className="text-os-xs">Completed</Badge>
                       )}
                     </div>
-                    <p className="text-sm mb-3">{step.description}</p>
+                    <p className="text-os-sm mb-3">{step.description}</p>
                     {!isCompleted && (
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => navigate('/dashboard/verification-center')}
-                        className="text-xs"
+                        className="text-os-xs"
                       >
                         <Upload className="w-3 h-3 mr-1" />
                         Upload Documents
                       </Button>
                     )}
                   </div>
-                  <div className="text-sm font-medium">
+                  <div className="text-os-sm font-medium">
                     +{step.weight}%
                   </div>
                 </div>
@@ -296,7 +296,7 @@ export default function VerificationStatus() {
           <Card className="mt-6">
             <CardContent className="p-6">
               <h3 className="font-semibold mb-3">Next Steps</h3>
-              <ol className="list-decimal list-inside space-y-2 text-sm">
+              <ol className="list-decimal list-inside space-y-2 text-os-sm">
                 <li>Upload all required documents in the Verification Center</li>
                 <li>Afrikoni team reviews your submission (typically 24-48 hours)</li>
                 <li>You receive verification status update via email and dashboard notification</li>
@@ -304,7 +304,7 @@ export default function VerificationStatus() {
               </ol>
               <Button
                 onClick={() => navigate('/dashboard/verification-center')}
-                className="mt-4 hover:bg-afrikoni-gold/90"
+                className="mt-4 hover:bg-os-accent/90"
               >
                 Go to Verification Center
                 <ChevronRight className="w-4 h-4 ml-1" />

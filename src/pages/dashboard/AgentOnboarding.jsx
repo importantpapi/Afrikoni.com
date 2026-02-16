@@ -10,7 +10,7 @@ export default function AgentOnboarding() {
     const navigate = useNavigate();
 
     return (
-        <div className="min-h-screen bg-[#0A0A0B] relative overflow-hidden flex flex-col">
+        <div className="min-h-screen bg-afrikoni-offwhite relative overflow-hidden flex flex-col">
             {/* 🎬 CINEMATIC DEPTH */}
             <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-os-accent/5 rounded-full blur-[120px] animate-pulse" />
             <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#D4A937]/5 rounded-full blur-[100px] animate-pulse delay-700" />
@@ -29,7 +29,7 @@ export default function AgentOnboarding() {
                             <div className="absolute bottom-0 left-0 w-[1px] h-24 bg-gradient-to-t from-os-accent to-transparent" />
 
                             <div className="text-center space-y-10">
-                                <div className="inline-flex p-4 bg-os-accent/10 border border-os-accent/20 rounded-3xl mb-4 backdrop-blur-xl">
+                                <div className="inline-flex p-4 bg-os-accent/10 border border-os-accent/20 rounded-os-lg mb-4 backdrop-blur-xl">
                                     <Logo type="symbol" size="md" />
                                 </div>
 
@@ -37,7 +37,7 @@ export default function AgentOnboarding() {
                                     <h1 className="text-4xl font-black uppercase tracking-[0.4em] text-os-text-primary leading-tight">
                                         Agent <span className="text-os-accent">Initialization</span>
                                     </h1>
-                                    <p className="text-[10px] font-bold text-os-text-secondary/40 uppercase tracking-[0.3em] max-w-md mx-auto leading-loose">
+                                    <p className="text-os-xs font-bold text-os-text-secondary/40 uppercase tracking-[0.3em] max-w-md mx-auto leading-loose">
                                         Your node is pending verification by the Afrikoni Network Authority. Secure handshake in progress.
                                     </p>
                                 </div>
@@ -46,16 +46,16 @@ export default function AgentOnboarding() {
                                     <Surface variant="panel" className="p-6 border-white/5 space-y-4">
                                         <Shield className="w-5 h-5 text-os-accent" />
                                         <div className="space-y-1">
-                                            <h3 className="text-[10px] font-black uppercase tracking-widest text-os-text-primary">Identity Bond</h3>
-                                            <p className="text-[8px] text-os-text-secondary/40 uppercase tracking-tighter leading-relaxed">Verification of sovereign credentials and domain expertise.</p>
+                                            <h3 className="text-os-xs font-black uppercase tracking-widest text-os-text-primary">Identity Bond</h3>
+                                            <p className="text-os-xs text-os-text-secondary/40 uppercase tracking-tighter leading-relaxed">Verification of sovereign credentials and domain expertise.</p>
                                         </div>
                                     </Surface>
 
                                     <Surface variant="panel" className="p-6 border-white/5 space-y-4">
                                         <Zap className="w-5 h-5 text-os-accent" />
                                         <div className="space-y-1">
-                                            <h3 className="text-[10px] font-black uppercase tracking-widest text-os-text-primary">Protocol Access</h3>
-                                            <p className="text-[8px] text-os-text-secondary/40 uppercase tracking-tighter leading-relaxed">Initialization of trade matching and settlement protocols.</p>
+                                            <h3 className="text-os-xs font-black uppercase tracking-widest text-os-text-primary">Protocol Access</h3>
+                                            <p className="text-os-xs text-os-text-secondary/40 uppercase tracking-tighter leading-relaxed">Initialization of trade matching and settlement protocols.</p>
                                         </div>
                                     </Surface>
                                 </div>
@@ -63,7 +63,7 @@ export default function AgentOnboarding() {
                                 <div className="pt-8 border-t border-white/[0.05]">
                                     <Button
                                         onClick={() => navigate('/dashboard')}
-                                        className="h-16 px-12 bg-os-accent hover:bg-os-accent/90 text-black font-black uppercase tracking-[0.4em] text-[10px] rounded-2xl shadow-glow transition-all active:scale-95"
+                                        className="h-16 px-12 bg-os-accent hover:bg-os-accent/90 text-black font-black uppercase tracking-[0.4em] text-os-xs rounded-os-md shadow-glow transition-all active:scale-95"
                                     >
                                         Enter Mission Control
                                         <ArrowRight className="ml-3 w-4 h-4" />
@@ -73,7 +73,7 @@ export default function AgentOnboarding() {
                         </Surface>
                     </motion.div>
 
-                    <footer className="mt-12 text-center text-os-text-secondary/10 text-[8px] font-black uppercase tracking-[0.5em] animate-pulse">
+                    <footer className="mt-12 text-center text-os-text-secondary/10 text-os-xs font-black uppercase tracking-[0.5em] animate-pulse">
                         Afrikoni Autonomous Network &bull; Agent Genesis Signal
                     </footer>
                 </div>

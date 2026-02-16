@@ -55,7 +55,7 @@ export function SupplierPerformanceCard({
   if (!showDetailed) {
     // Compact version for product cards and listings
     return (
-      <div className={cn('flex items-center gap-3 text-xs', className)}>
+      <div className={cn('flex items-center gap-3 text-os-xs', className)}>
         <div className="flex items-center gap-1.5">
           <PerformanceIcon className={`w-4 h-4 text-${performanceLevel.color}-600`} />
           <span className={`font-medium text-${performanceLevel.color}-700`}>
@@ -82,11 +82,11 @@ export function SupplierPerformanceCard({
 
   // Detailed version for supplier profiles
   return (
-    <Card className={cn('border-afrikoni-gold/30', className)}>
+    <Card className={cn('border-os-accent/30', className)}>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-lg text-afrikoni-chestnut flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-afrikoni-gold" />
+          <CardTitle className="text-os-lg text-afrikoni-chestnut flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-os-accent" />
             Supplier Performance
           </CardTitle>
           <Badge 
@@ -101,44 +101,44 @@ export function SupplierPerformanceCard({
         {/* Key Metrics Grid */}
         <div className="grid md:grid-cols-3 gap-4">
           <div className="space-y-1">
-            <div className="flex items-center gap-2 text-afrikoni-deep/60 text-xs">
+            <div className="flex items-center gap-2 text-afrikoni-deep/60 text-os-xs">
               <Package className="w-4 h-4" />
               <span>Total Orders</span>
             </div>
-            <p className="text-2xl font-bold text-afrikoni-chestnut">{totalOrders}</p>
-            <p className="text-xs text-afrikoni-deep/60">
+            <p className="text-os-2xl font-bold text-afrikoni-chestnut">{totalOrders}</p>
+            <p className="text-os-xs text-afrikoni-deep/60">
               {completedOrders} completed successfully
             </p>
           </div>
 
           <div className="space-y-1">
-            <div className="flex items-center gap-2 text-afrikoni-deep/60 text-xs">
+            <div className="flex items-center gap-2 text-afrikoni-deep/60 text-os-xs">
               <Clock className="w-4 h-4" />
               <span>On-Time Delivery</span>
             </div>
-            <p className="text-2xl font-bold text-afrikoni-chestnut">{onTimeDeliveryRate}%</p>
+            <p className="text-os-2xl font-bold text-afrikoni-chestnut">{onTimeDeliveryRate}%</p>
             <Progress value={onTimeDeliveryRate} className="h-2" />
           </div>
 
           <div className="space-y-1">
-            <div className="flex items-center gap-2 text-afrikoni-deep/60 text-xs">
+            <div className="flex items-center gap-2 text-afrikoni-deep/60 text-os-xs">
               <Star className="w-4 h-4" />
               <span>Buyer Satisfaction</span>
             </div>
-            <p className="text-2xl font-bold text-afrikoni-chestnut">{buyerSatisfactionRate}%</p>
+            <p className="text-os-2xl font-bold text-afrikoni-chestnut">{buyerSatisfactionRate}%</p>
             <Progress value={buyerSatisfactionRate} className="h-2" />
           </div>
         </div>
 
         {/* Additional Metrics */}
-        <div className="grid md:grid-cols-2 gap-4 pt-4 border-t border-afrikoni-gold/20">
+        <div className="grid md:grid-cols-2 gap-4 pt-4 border-t border-os-accent/20">
           <div className="flex items-start gap-3">
             <div className="p-2 rounded-lg bg-blue-50">
               <Clock className="w-4 h-4 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm font-medium text-afrikoni-chestnut">Response Time</p>
-              <p className="text-xs text-afrikoni-deep/70">
+              <p className="text-os-sm font-medium text-afrikoni-chestnut">Response Time</p>
+              <p className="text-os-xs text-afrikoni-deep/70">
                 {getResponseTimeLabel(averageResponseTime)}
               </p>
             </div>
@@ -149,8 +149,8 @@ export function SupplierPerformanceCard({
               <TrendingUp className="w-4 h-4 text-green-600" />
             </div>
             <div>
-              <p className="text-sm font-medium text-afrikoni-chestnut">Repeat Buyers</p>
-              <p className="text-xs text-afrikoni-deep/70">
+              <p className="text-os-sm font-medium text-afrikoni-chestnut">Repeat Buyers</p>
+              <p className="text-os-xs text-afrikoni-deep/70">
                 {repeatBuyerRate}% return for more orders
               </p>
             </div>
@@ -159,11 +159,11 @@ export function SupplierPerformanceCard({
 
         {/* Verification & Badges */}
         {(badges.length > 0 || activeCountries > 0) && (
-          <div className="pt-4 border-t border-afrikoni-gold/20 space-y-3">
+          <div className="pt-4 border-t border-os-accent/20 space-y-3">
             {activeCountries > 0 && (
               <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-afrikoni-deep/70">Active in:</span>
-                <Badge variant="outline" className="text-xs">
+                <span className="text-os-xs font-medium text-afrikoni-deep/70">Active in:</span>
+                <Badge variant="outline" className="text-os-xs">
                   {activeCountries} {activeCountries === 1 ? 'country' : 'countries'}
                 </Badge>
               </div>
@@ -171,13 +171,13 @@ export function SupplierPerformanceCard({
 
             {badges.length > 0 && (
               <div>
-                <p className="text-xs font-medium text-afrikoni-deep/70 mb-2">Achievements:</p>
+                <p className="text-os-xs font-medium text-afrikoni-deep/70 mb-2">Achievements:</p>
                 <div className="flex flex-wrap gap-2">
                   {badges.map((badge, index) => (
                     <Badge 
                       key={index}
                       variant="outline" 
-                      className="text-xs bg-amber-50 text-amber-700 border-amber-200"
+                      className="text-os-xs bg-amber-50 text-amber-700 border-amber-200"
                     >
                       <Award className="w-3 h-3 mr-1" />
                       {badge}
@@ -190,7 +190,7 @@ export function SupplierPerformanceCard({
         )}
 
         {/* Performance Explanation */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-os-xs">
           <div className="flex items-start gap-2">
             <CheckCircle className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
             <div>
@@ -209,7 +209,7 @@ export function SupplierPerformanceCard({
 
         {/* Trust Note */}
         {totalOrders < 5 && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs">
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-os-xs">
             <div className="flex items-start gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
               <p className="text-amber-800">

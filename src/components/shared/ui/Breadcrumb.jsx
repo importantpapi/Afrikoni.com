@@ -18,7 +18,7 @@ export default function Breadcrumb({ items = null, className = '' }) {
   return (
     <nav 
       aria-label="Breadcrumb" 
-      className={`flex items-center gap-2 text-sm text-afrikoni-deep mb-4 md:mb-6 ${className}`}
+      className={`flex items-center gap-2 text-os-sm text-afrikoni-deep mb-4 md:mb-6 ${className}`}
     >
       <ol className="flex items-center gap-2 flex-wrap" itemScope itemType="https://schema.org/BreadcrumbList">
         {breadcrumbs.map((crumb, idx) => {
@@ -50,7 +50,7 @@ export default function Breadcrumb({ items = null, className = '' }) {
               ) : (
                 <Link
                   to={crumb.path}
-                  className="hover:text-afrikoni-gold transition-colors flex items-center gap-1"
+                  className="hover:text-os-accent transition-colors flex items-center gap-1"
                   itemProp="item"
                 >
                   {isHome && <Home className="w-4 h-4" aria-hidden="true" />}

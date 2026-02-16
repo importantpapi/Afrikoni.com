@@ -26,9 +26,9 @@ export const AFRIKONI_COLORS = {
 
 export const KPI_ICON_COLORS = {
   orders: {
-    bg: 'bg-afrikoni-gold/15',
-    text: 'text-afrikoni-gold',
-    iconBg: 'bg-afrikoni-gold/20',
+    bg: 'bg-os-accent/15',
+    text: 'text-os-accent',
+    iconBg: 'bg-os-accent/20',
   },
   rfqs: {
     bg: 'bg-afrikoni-purple/15',
@@ -118,22 +118,22 @@ export const TYPOGRAPHY = {
   meta: 'text-meta font-medium leading-[1.5] tracking-[0.02em] text-afrikoni-text-dark/70',
   
   // Legacy support (deprecated - use above)
-  sectionTitle: 'text-h2-mobile md:text-h2 font-semibold text-afrikoni-text-dark mb-4 pb-3 border-b-2 border-afrikoni-gold',
+  sectionTitle: 'text-h2-mobile md:text-h2 font-semibold text-afrikoni-text-dark mb-4 pb-3 border-b-2 border-os-accent',
   kpiNumber: 'text-h1-mobile md:text-h1 font-bold text-afrikoni-text-dark',
   kpiLabel: 'text-meta font-medium text-afrikoni-text-dark/70',
 };
 
 export const SHADOWS = {
-  card: 'shadow-premium',
-  cardHover: 'shadow-premium-lg',
-  gold: 'shadow-afrikoni-gold',
+  card: 'shadow-os-md',
+  cardHover: 'shadow-os-md-lg',
+  gold: 'shadow-os-accent',
 };
 
 export const BORDERS = {
-  card: 'border border-afrikoni-gold/20',
-  cardHover: 'border-afrikoni-gold/40',
-  gold: 'border-afrikoni-gold',
-  goldUnderline: 'border-b-2 border-afrikoni-gold',
+  card: 'border border-os-accent/20',
+  cardHover: 'border-os-accent/40',
+  gold: 'border-os-accent',
+  goldUnderline: 'border-b-2 border-os-accent',
 };
 
 export const BACKGROUND_PATTERN = {

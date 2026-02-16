@@ -174,7 +174,7 @@ export default function SupplierQuoteSubmission() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-afrikoni-gold" />
+        <Loader2 className="w-8 h-8 animate-spin text-os-accent" />
       </div>
     );
   }
@@ -185,7 +185,7 @@ export default function SupplierQuoteSubmission() {
         <Card className="border-green-200 bg-green-50/50">
           <CardContent className="p-12 text-center">
             <CheckCircle2 className="w-12 h-12 text-green-600 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-green-900 mb-2">Quote Submitted!</h2>
+            <h2 className="text-os-2xl font-bold text-green-900 mb-2">Quote Submitted!</h2>
             <p className="text-green-700">The buyer will review your quote and respond shortly.</p>
           </CardContent>
         </Card>
@@ -245,7 +245,7 @@ export default function SupplierQuoteSubmission() {
               filteredRfqs.map((rfq) => (
                 <Card
                   key={rfq.id}
-                  className="border-afrikoni-gold/20 hover:border-afrikoni-gold/40 cursor-pointer transition-colors"
+                  className="border-os-accent/20 hover:border-os-accent/40 cursor-pointer transition-colors"
                   onClick={() => {
                     setSelectedRfq(rfq);
                     setShowQuoteForm(true);
@@ -254,14 +254,14 @@ export default function SupplierQuoteSubmission() {
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h3 className="text-lg font-bold text-gray-900 dark:text-[#F5F0E8] mb-2">
+                        <h3 className="text-os-lg font-bold text-gray-900 dark:text-[#F5F0E8] mb-2">
                           {rfq.title}
                         </h3>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
+                        <p className="text-os-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2">
                           {rfq.description}
                         </p>
 
-                        <div className="grid grid-cols-4 gap-4 text-sm">
+                        <div className="grid grid-cols-4 gap-4 text-os-sm">
                           <div>
                             <p className="text-gray-500">Quantity</p>
                             <p className="font-semibold text-gray-900 dark:text-[#F5F0E8]">
@@ -270,7 +270,7 @@ export default function SupplierQuoteSubmission() {
                           </div>
                           <div>
                             <p className="text-gray-500">Budget</p>
-                            <p className="font-semibold text-afrikoni-gold">
+                            <p className="font-semibold text-os-accent">
                               ${rfq.target_price?.toLocaleString()}
                             </p>
                           </div>
@@ -292,7 +292,7 @@ export default function SupplierQuoteSubmission() {
                         </div>
                       </div>
 
-                      <ChevronRight className="w-6 h-6 text-afrikoni-gold mt-1 flex-shrink-0" />
+                      <ChevronRight className="w-6 h-6 text-os-accent mt-1 flex-shrink-0" />
                     </div>
                   </CardContent>
                 </Card>
@@ -302,7 +302,7 @@ export default function SupplierQuoteSubmission() {
         </>
       ) : (
         /* Quote Submission Form */
-        <Card className="border-afrikoni-gold/20 shadow-premium rounded-afrikoni-lg">
+        <Card className="border-os-accent/20 shadow-os-md rounded-afrikoni-lg">
           <CardContent className="p-8">
             <div className="mb-6">
               <Button
@@ -316,7 +316,7 @@ export default function SupplierQuoteSubmission() {
                 ← Back to RFQs
               </Button>
 
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-[#F5F0E8]">
+              <h2 className="text-os-2xl font-bold text-gray-900 dark:text-[#F5F0E8]">
                 Submit Quote
               </h2>
               <p className="text-gray-600 dark:text-gray-400 mt-1">
@@ -325,7 +325,7 @@ export default function SupplierQuoteSubmission() {
             </div>
 
             {/* RFQ Summary */}
-            <div className="bg-gray-50 dark:bg-gray-900/30 p-4 rounded-lg mb-6 grid grid-cols-3 gap-4 text-sm">
+            <div className="bg-gray-50 dark:bg-gray-900/30 p-4 rounded-lg mb-6 grid grid-cols-3 gap-4 text-os-sm">
               <div>
                 <p className="text-gray-600">Required Quantity</p>
                 <p className="font-bold text-gray-900 dark:text-[#F5F0E8]">
@@ -334,7 +334,7 @@ export default function SupplierQuoteSubmission() {
               </div>
               <div>
                 <p className="text-gray-600">Budget</p>
-                <p className="font-bold text-afrikoni-gold">
+                <p className="font-bold text-os-accent">
                   ${selectedRfq?.target_price?.toLocaleString()}
                 </p>
               </div>
@@ -359,7 +359,7 @@ export default function SupplierQuoteSubmission() {
                     onChange={(e) => setQuoteForm({ ...quoteForm, unitPrice: e.target.value })}
                     className={formErrors.unitPrice ? 'border-red-500' : ''}
                   />
-                  {formErrors.unitPrice && <p className="text-red-600 text-sm mt-1">{formErrors.unitPrice}</p>}
+                  {formErrors.unitPrice && <p className="text-red-600 text-os-sm mt-1">{formErrors.unitPrice}</p>}
                 </div>
                 <div>
                   <Label>Total Price *</Label>
@@ -370,7 +370,7 @@ export default function SupplierQuoteSubmission() {
                     onChange={(e) => setQuoteForm({ ...quoteForm, totalPrice: e.target.value })}
                     className={formErrors.totalPrice ? 'border-red-500' : ''}
                   />
-                  {formErrors.totalPrice && <p className="text-red-600 text-sm mt-1">{formErrors.totalPrice}</p>}
+                  {formErrors.totalPrice && <p className="text-red-600 text-os-sm mt-1">{formErrors.totalPrice}</p>}
                 </div>
                 <div>
                   <Label>Currency</Label>
@@ -398,7 +398,7 @@ export default function SupplierQuoteSubmission() {
                     onChange={(e) => setQuoteForm({ ...quoteForm, leadTime: e.target.value })}
                     className={formErrors.leadTime ? 'border-red-500' : ''}
                   />
-                  {formErrors.leadTime && <p className="text-red-600 text-sm mt-1">{formErrors.leadTime}</p>}
+                  {formErrors.leadTime && <p className="text-red-600 text-os-sm mt-1">{formErrors.leadTime}</p>}
                 </div>
                 <div>
                   <Label>Incoterms</Label>
@@ -438,7 +438,7 @@ export default function SupplierQuoteSubmission() {
                   onChange={(e) => setQuoteForm({ ...quoteForm, deliveryLocation: e.target.value })}
                   className={formErrors.deliveryLocation ? 'border-red-500' : ''}
                 />
-                {formErrors.deliveryLocation && <p className="text-red-600 text-sm mt-1">{formErrors.deliveryLocation}</p>}
+                {formErrors.deliveryLocation && <p className="text-red-600 text-os-sm mt-1">{formErrors.deliveryLocation}</p>}
               </div>
 
               {/* Notes */}
@@ -468,7 +468,7 @@ export default function SupplierQuoteSubmission() {
                 <Button
                   onClick={handleSubmitQuote}
                   disabled={submitting}
-                  className="flex-1 bg-afrikoni-gold hover:bg-afrikoni-gold/90 text-white font-bold"
+                  className="flex-1 bg-os-accent hover:bg-os-accent/90 text-white font-bold"
                 >
                   {submitting ? (
                     <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Submitting...</>

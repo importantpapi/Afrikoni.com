@@ -57,17 +57,17 @@ export default function RFQStep2QuantityDestination({ formData, updateFormData }
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-2">
+        <h1 className="text-os-2xl md:text-3xl font-bold text-afrikoni-chestnut mb-2">
           Quantity & Destination
         </h1>
-        <p className="text-afrikoni-deep/70 text-base">
+        <p className="text-afrikoni-deep/70 text-os-base">
           How much do you need and where should it be delivered?
         </p>
       </div>
 
       {/* Quantity Input */}
       <div>
-        <Label className="text-sm font-semibold text-afrikoni-deep mb-2 block">
+        <Label className="text-os-sm font-semibold text-afrikoni-deep mb-2 block">
           Quantity *
         </Label>
         <Input
@@ -76,14 +76,14 @@ export default function RFQStep2QuantityDestination({ formData, updateFormData }
           value={formData.quantity || ''}
           onChange={handleQuantityChange}
           placeholder="e.g., 1000"
-          className="text-base min-h-[52px] px-4"
+          className="text-os-base min-h-[52px] px-4"
           autoFocus
         />
       </div>
 
       {/* Unit Selection (Chips) */}
       <div>
-        <Label className="text-sm font-semibold text-afrikoni-deep mb-3 block">
+        <Label className="text-os-sm font-semibold text-afrikoni-deep mb-3 block">
           Unit *
         </Label>
         <div className="flex flex-wrap gap-2">
@@ -93,8 +93,8 @@ export default function RFQStep2QuantityDestination({ formData, updateFormData }
               variant={formData.unit === unit.value ? 'default' : 'outline'}
               className={`min-h-[44px] px-4 py-2 cursor-pointer transition-all ${
                 formData.unit === unit.value
-                  ? 'bg-afrikoni-gold text-afrikoni-chestnut'
-                  : 'border-afrikoni-gold/40 hover:bg-afrikoni-gold/10'
+                  ? 'bg-os-accent text-afrikoni-chestnut'
+                  : 'border-os-accent/40 hover:bg-os-accent/10'
               }`}
               onClick={() => handleUnitChange(unit.value)}
             >
@@ -106,7 +106,7 @@ export default function RFQStep2QuantityDestination({ formData, updateFormData }
 
       {/* Destination Country */}
       <div>
-        <Label className="text-sm font-semibold text-afrikoni-deep mb-3 block flex items-center gap-2">
+        <Label className="text-os-sm font-semibold text-afrikoni-deep mb-3 block flex items-center gap-2">
           <MapPin className="w-4 h-4" />
           Destination Country *
         </Label>
@@ -116,10 +116,10 @@ export default function RFQStep2QuantityDestination({ formData, updateFormData }
               <Badge
                 key={country}
                 variant={formData.delivery_location === country ? 'default' : 'outline'}
-                className={`min-h-[44px] px-4 py-2 cursor-pointer transition-all text-sm ${
+                className={`min-h-[44px] px-4 py-2 cursor-pointer transition-all text-os-sm ${
                   formData.delivery_location === country
-                    ? 'bg-afrikoni-gold text-afrikoni-chestnut'
-                    : 'border-afrikoni-gold/40 hover:bg-afrikoni-gold/10'
+                    ? 'bg-os-accent text-afrikoni-chestnut'
+                    : 'border-os-accent/40 hover:bg-os-accent/10'
                 }`}
                 onClick={() => handleCountrySelect(country)}
               >

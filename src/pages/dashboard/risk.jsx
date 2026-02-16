@@ -942,7 +942,7 @@ export default function RiskManagementDashboard() {
   const getStatusColor = (status) => {
     switch (status) {
       case 'done': return 'bg-afrikoni-green/20 text-afrikoni-green border-afrikoni-green/30';
-      case 'upcoming': return 'bg-afrikoni-gold/20 text-afrikoni-gold border-afrikoni-gold/30';
+      case 'upcoming': return 'bg-os-accent/20 text-os-accent border-os-accent/30';
       case 'overdue': return 'bg-afrikoni-red/20 text-afrikoni-red border-afrikoni-red/30';
       default: return 'bg-gray-100 text-gray-600 border-gray-200';
     }
@@ -977,15 +977,15 @@ export default function RiskManagementDashboard() {
                 <h1 className="text-3xl md:text-4xl font-bold mb-2 leading-tight">
                   Afrikoni Shield™
                 </h1>
-                <p className="text-sm md:text-base leading-relaxed">
+                <p className="text-os-sm md:text-os-base leading-relaxed">
                   Risk Management & Compliance Command Center
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <div className="text-right">
-                <div className="text-xs">Last updated</div>
-                <div className="text-sm font-medium">
+                <div className="text-os-xs">Last updated</div>
+                <div className="text-os-sm font-medium">
                   {lastRefresh.toLocaleTimeString()}
                 </div>
               </div>
@@ -998,7 +998,7 @@ export default function RiskManagementDashboard() {
                   setLastRefresh(new Date());
                   toast.success('Data refreshed');
                 }}
-                className="hover:bg-afrikoni-gold/10"
+                className="hover:bg-os-accent/10"
               >
                 <RefreshCw className="w-4 h-4 mr-2" />
                 Refresh
@@ -1007,7 +1007,7 @@ export default function RiskManagementDashboard() {
                 variant={autoRefresh ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setAutoRefresh(!autoRefresh)}
-                className={autoRefresh ? 'bg-afrikoni-gold hover:bg-afrikoni-gold/90' : 'border-afrikoni-gold/30'}
+                className={autoRefresh ? 'bg-os-accent hover:bg-os-accent/90' : 'border-os-accent/30'}
               >
                 <Bell className="w-4 h-4 mr-2" />
                 {autoRefresh ? 'Live' : 'Paused'}
@@ -1023,7 +1023,7 @@ export default function RiskManagementDashboard() {
           transition={{ duration: 0.3 }}
           className="mb-6"
         >
-          <Card className="bg-gradient-to-r rounded-afrikoni-lg shadow-premium">
+          <Card className="bg-gradient-to-r rounded-afrikoni-lg shadow-os-md">
             <CardContent className="p-6">
               <div className="flex items-center justify-between gap-4 mb-4">
                 <div className="flex items-center gap-4">
@@ -1031,10 +1031,10 @@ export default function RiskManagementDashboard() {
                     <UserPlus className="w-6 h-6" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold">
+                    <h3 className="text-os-lg font-bold">
                       {showAllUsers ? 'All Users' : 'Recent Registrations (Last 30 Days)'}
                     </h3>
-                    <p className="text-sm">
+                    <p className="text-os-sm">
                       {showAllUsers
                         ? `${allUsers.length} total users • Complete activity tracking`
                         : `${newRegistrations.length} recent users • Complete activity tracking`
@@ -1052,7 +1052,7 @@ export default function RiskManagementDashboard() {
                         loadAllUsers();
                       }
                     }}
-                    className={showAllUsers ? 'bg-afrikoni-gold hover:bg-afrikoni-gold/90' : 'border-afrikoni-gold/30'}
+                    className={showAllUsers ? 'bg-os-accent hover:bg-os-accent/90' : 'border-os-accent/30'}
                   >
                     <Users className="w-4 h-4 mr-2" />
                     {showAllUsers ? 'All Users' : 'Show All'}
@@ -1096,11 +1096,11 @@ export default function RiskManagementDashboard() {
                     placeholder="Search by email (e.g., binoscientific@gmail.com)..."
                     value={searchEmail}
                     onChange={(e) => setSearchEmail(e.target.value)}
-                    className="pl-10 focus:border-afrikoni-gold"
+                    className="pl-10 focus:border-os-accent"
                   />
                 </div>
                 {searchEmail && (
-                  <p className="text-xs mt-2">
+                  <p className="text-os-xs mt-2">
                     Searching for: <span className="font-semibold">{searchEmail}</span>
                     <button
                       onClick={() => setSearchEmail('')}
@@ -1131,7 +1131,7 @@ export default function RiskManagementDashboard() {
                       {searchEmail ? (
                         <div>
                           <p className="font-semibold mb-2">No users found matching "{searchEmail}"</p>
-                          <p className="text-sm">Try searching with a different email or name</p>
+                          <p className="text-os-sm">Try searching with a different email or name</p>
                           <Button
                             variant="outline"
                             size="sm"
@@ -1146,7 +1146,7 @@ export default function RiskManagementDashboard() {
                           <p className="font-semibold mb-2">
                             {showAllUsers ? 'No users in database' : 'No new registrations in the last 30 days'}
                           </p>
-                          <p className="text-sm">
+                          <p className="text-os-sm">
                             {showAllUsers
                               ? 'The database appears to be empty or users are not being created properly.'
                               : 'Click "Show All" to see all users regardless of registration date.'}
@@ -1161,7 +1161,7 @@ export default function RiskManagementDashboard() {
                   <>
                     {/* Results Count */}
                     <div className="mb-3 p-3 rounded-lg border">
-                      <p className="text-sm font-medium">
+                      <p className="text-os-sm font-medium">
                         📊 Showing <span className="font-bold">{displayUsers.length}</span> {displayUsers.length === 1 ? 'user' : 'users'}
                         {searchEmail && <span className=""> matching your search</span>}
                       </p>
@@ -1171,13 +1171,13 @@ export default function RiskManagementDashboard() {
                       {displayUsers.map((reg) => (
                         <div
                           key={reg.id}
-                          className="p-5 border rounded-lg hover:shadow-md transition-all hover:border-afrikoni-gold/40"
+                          className="p-5 border rounded-lg hover:shadow-md transition-all hover:border-os-accent/40"
                         >
                           <div className="flex items-start justify-between gap-4">
                             {/* User Info */}
                             <div className="flex items-start gap-4 flex-1">
                               <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0">
-                                <span className="text-lg font-bold">
+                                <span className="text-os-lg font-bold">
                                   {reg.fullName.charAt(0).toUpperCase()}
                                 </span>
                               </div>
@@ -1185,11 +1185,11 @@ export default function RiskManagementDashboard() {
                                 {/* Name & Status */}
                                 <div className="flex items-center gap-2 mb-2 flex-wrap">
                                   <h4 className="font-bold">{reg.fullName}</h4>
-                                  <Badge variant="outline" className="text-xs capitalize">
+                                  <Badge variant="outline" className="text-os-xs capitalize">
                                     {reg.role}
                                   </Badge>
                                   <Badge
-                                    className={`text-xs ${reg.verificationStatus === 'verified'
+                                    className={`text-os-xs ${reg.verificationStatus === 'verified'
                                       ? 'bg-green-50 text-green-700 border-green-200'
                                       : reg.verificationStatus === 'pending'
                                         ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
@@ -1199,7 +1199,7 @@ export default function RiskManagementDashboard() {
                                     {reg.verificationStatus}
                                   </Badge>
                                   {reg.isAdmin && (
-                                    <Badge className="text-xs">
+                                    <Badge className="text-os-xs">
                                       ADMIN
                                     </Badge>
                                   )}
@@ -1207,17 +1207,17 @@ export default function RiskManagementDashboard() {
 
                                 {/* Contact & Company */}
                                 <div className="space-y-1 mb-3">
-                                  <p className="text-sm font-medium">
+                                  <p className="text-os-sm font-medium">
                                     📧 {reg.email}
                                   </p>
-                                  <p className="text-sm">
+                                  <p className="text-os-sm">
                                     🏢 {reg.companyName}
                                   </p>
-                                  <p className="text-sm">
+                                  <p className="text-os-sm">
                                     🌍 {reg.country}
                                   </p>
                                   {reg.phone !== 'N/A' && (
-                                    <p className="text-sm">
+                                    <p className="text-os-sm">
                                       📱 {reg.phone}
                                     </p>
                                   )}
@@ -1225,43 +1225,43 @@ export default function RiskManagementDashboard() {
 
                                 {/* Activity Stats - WHAT THEY DO */}
                                 <div className="rounded-lg p-3 mb-3">
-                                  <p className="text-xs font-semibold mb-2 uppercase tracking-wide">
+                                  <p className="text-os-xs font-semibold mb-2 uppercase tracking-wide">
                                     Activity Summary
                                   </p>
                                   <div className="grid grid-cols-3 gap-3">
                                     <div className="text-center">
-                                      <div className="text-lg font-bold">
+                                      <div className="text-os-lg font-bold">
                                         {reg.orderCount}
                                       </div>
-                                      <div className="text-xs">Orders</div>
+                                      <div className="text-os-xs">Orders</div>
                                     </div>
                                     <div className="text-center">
-                                      <div className="text-lg font-bold">
+                                      <div className="text-os-lg font-bold">
                                         {reg.rfqCount}
                                       </div>
-                                      <div className="text-xs">RFQs</div>
+                                      <div className="text-os-xs">RFQs</div>
                                     </div>
                                     <div className="text-center">
-                                      <div className="text-lg font-bold">
+                                      <div className="text-os-lg font-bold">
                                         {reg.productCount}
                                       </div>
-                                      <div className="text-xs">Products</div>
+                                      <div className="text-os-xs">Products</div>
                                     </div>
                                   </div>
                                   {reg.totalActivity === 0 && (
-                                    <p className="text-xs text-center mt-2 italic">
+                                    <p className="text-os-xs text-center mt-2 italic">
                                       No activity yet
                                     </p>
                                   )}
                                   {reg.totalActivity > 0 && (
-                                    <p className="text-xs text-center font-medium mt-2">
+                                    <p className="text-os-xs text-center font-medium mt-2">
                                       ✓ Active user ({reg.totalActivity} total actions)
                                     </p>
                                   )}
                                 </div>
 
                                 {/* Registration Time */}
-                                <div className="text-xs">
+                                <div className="text-os-xs">
                                   📅 Registered: {new Date(reg.createdAt).toLocaleString('en-US', {
                                     weekday: 'short',
                                     year: 'numeric',
@@ -1280,7 +1280,7 @@ export default function RiskManagementDashboard() {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="whitespace-nowrap hover:bg-afrikoni-gold/10"
+                                  className="whitespace-nowrap hover:bg-os-accent/10"
                                 >
                                   <Eye className="w-4 h-4 mr-2" />
                                   View Profile
@@ -1291,7 +1291,7 @@ export default function RiskManagementDashboard() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => navigator.clipboard.writeText(reg.id)}
-                                  className="whitespace-nowrap text-xs"
+                                  className="whitespace-nowrap text-os-xs"
                                 >
                                   Copy ID
                                 </Button>
@@ -1305,7 +1305,7 @@ export default function RiskManagementDashboard() {
                     {displayUsers.length > 10 && (
                       <div className="mt-4 text-center">
                         <Link to="/dashboard/team-members">
-                          <Button className="hover:bg-afrikoni-gold/90 font-semibold">
+                          <Button className="hover:bg-os-accent/90 font-semibold">
                             View All Users in Admin Panel
                             <ArrowRight className="w-4 h-4 ml-2" />
                           </Button>
@@ -1325,7 +1325,7 @@ export default function RiskManagementDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 mb-6">
+          <h2 className="text-os-lg md:text-os-xl font-bold uppercase tracking-wider border-b-2 pb-3 mb-6">
             Real-Time Risk Overview
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -1335,7 +1335,7 @@ export default function RiskManagementDashboard() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.05 }}
             >
-              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
+              <Card className="hover:border-os-accent/40 hover:shadow-os-md-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
                     <div className="w-12 h-12 rounded-full flex items-center justify-center">
@@ -1348,8 +1348,8 @@ export default function RiskManagementDashboard() {
                   <div className="text-4xl md:text-5xl font-bold mb-2">
                     {riskKPIs.platformRiskScore}
                   </div>
-                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
-                    Platform Risk Score
+                  <div className="text-os-xs md:text-os-sm font-medium uppercase tracking-wide">
+                    Trade Safety Level
                   </div>
                 </CardContent>
               </Card>
@@ -1361,7 +1361,7 @@ export default function RiskManagementDashboard() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.1 }}
             >
-              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
+              <Card className="hover:border-os-accent/40 hover:shadow-os-md-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
                     <div className="w-12 h-12 rounded-full flex items-center justify-center">
@@ -1371,7 +1371,7 @@ export default function RiskManagementDashboard() {
                   <div className="text-4xl md:text-5xl font-bold mb-2">
                     {riskKPIs.openIncidents}
                   </div>
-                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
+                  <div className="text-os-xs md:text-os-sm font-medium uppercase tracking-wide">
                     Open Incidents
                   </div>
                 </CardContent>
@@ -1384,7 +1384,7 @@ export default function RiskManagementDashboard() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.15 }}
             >
-              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
+              <Card className="hover:border-os-accent/40 hover:shadow-os-md-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
                     <div className="w-12 h-12 rounded-full flex items-center justify-center">
@@ -1394,7 +1394,7 @@ export default function RiskManagementDashboard() {
                   <div className="text-4xl md:text-5xl font-bold mb-2">
                     {riskKPIs.complianceTasksDue}
                   </div>
-                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
+                  <div className="text-os-xs md:text-os-sm font-medium uppercase tracking-wide">
                     Compliance Tasks Due
                   </div>
                 </CardContent>
@@ -1407,7 +1407,7 @@ export default function RiskManagementDashboard() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.2 }}
             >
-              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
+              <Card className="hover:border-os-accent/40 hover:shadow-os-md-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
                     <div className="w-12 h-12 rounded-full flex items-center justify-center">
@@ -1417,7 +1417,7 @@ export default function RiskManagementDashboard() {
                   <div className="text-4xl md:text-5xl font-bold mb-2">
                     {riskKPIs.kycPending}
                   </div>
-                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
+                  <div className="text-os-xs md:text-os-sm font-medium uppercase tracking-wide">
                     KYC/AML Pending
                   </div>
                 </CardContent>
@@ -1430,7 +1430,7 @@ export default function RiskManagementDashboard() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.25 }}
             >
-              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
+              <Card className="hover:border-os-accent/40 hover:shadow-os-md-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
                     <div className="w-12 h-12 rounded-full flex items-center justify-center">
@@ -1440,7 +1440,7 @@ export default function RiskManagementDashboard() {
                   <div className="text-4xl md:text-5xl font-bold mb-2">
                     {riskKPIs.fraudAlerts24h}
                   </div>
-                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
+                  <div className="text-os-xs md:text-os-sm font-medium uppercase tracking-wide">
                     Fraud Alerts (24h)
                   </div>
                 </CardContent>
@@ -1453,7 +1453,7 @@ export default function RiskManagementDashboard() {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: 0.3 }}
             >
-              <Card className="hover:border-afrikoni-gold/40 hover:shadow-premium-lg transition-all rounded-afrikoni-lg">
+              <Card className="hover:border-os-accent/40 hover:shadow-os-md-lg transition-all rounded-afrikoni-lg">
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between mb-3">
                     <div className="w-12 h-12 rounded-full flex items-center justify-center">
@@ -1463,7 +1463,7 @@ export default function RiskManagementDashboard() {
                   <div className="text-4xl md:text-5xl font-bold mb-2">
                     {riskKPIs.shipmentsAtRisk}
                   </div>
-                  <div className="text-xs md:text-sm font-medium uppercase tracking-wide">
+                  <div className="text-os-xs md:text-os-sm font-medium uppercase tracking-wide">
                     Shipments at Risk
                   </div>
                 </CardContent>
@@ -1479,17 +1479,17 @@ export default function RiskManagementDashboard() {
           transition={{ duration: 0.4, delay: 0.2 }}
         >
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3">
+            <h2 className="text-os-lg md:text-os-xl font-bold uppercase tracking-wider border-b-2 pb-3">
               Tax & Compliance Tracking
             </h2>
             <Link to="/dashboard/compliance">
-              <Button className="hover:bg-afrikoni-gold/90 font-semibold shadow-afrikoni rounded-afrikoni">
+              <Button className="hover:bg-os-accent/90 font-semibold shadow-os-gold rounded-afrikoni">
                 View Compliance Center
                 <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </Link>
           </div>
-          <Card className="rounded-afrikoni-lg shadow-premium">
+          <Card className="rounded-afrikoni-lg shadow-os-md">
             <CardContent className="p-6">
               <div className="space-y-4">
                 {taxCompliance.map((item) => (
@@ -1499,12 +1499,12 @@ export default function RiskManagementDashboard() {
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-bold">{item.country}</span>
+                        <span className="text-os-sm font-bold">{item.country}</span>
                       </div>
                       <div>
                         <h3 className="font-semibold">{item.hub}</h3>
-                        <p className="text-sm">{item.type}</p>
-                        <p className="text-xs mt-1">
+                        <p className="text-os-sm">{item.type}</p>
+                        <p className="text-os-xs mt-1">
                           Deadline: {new Date(item.deadline).toLocaleDateString()}
                           {item.daysUntil < 0 && ` (${Math.abs(item.daysUntil)} days overdue)`}
                           {item.daysUntil >= 0 && item.daysUntil <= 7 && ` (${item.daysUntil} days remaining)`}
@@ -1516,7 +1516,7 @@ export default function RiskManagementDashboard() {
                         {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
                       </Badge>
                       {item.reminderSent && (
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-os-xs">
                           Reminder Sent
                         </Badge>
                       )}
@@ -1534,33 +1534,33 @@ export default function RiskManagementDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.3 }}
         >
-          <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 mb-6">
+          <h2 className="text-os-lg md:text-os-xl font-bold uppercase tracking-wider border-b-2 pb-3 mb-6">
             Anti-Corruption Monitoring
           </h2>
           <div className="grid md:grid-cols-2 gap-4 mb-4">
-            <Card className="rounded-afrikoni-lg shadow-premium">
+            <Card className="rounded-afrikoni-lg shadow-os-md">
               <CardContent className="p-5">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs mb-1">Whistleblower Reports</p>
-                    <p className="text-2xl font-bold">{antiCorruptionData.whistleblowerReports}</p>
+                    <p className="text-os-xs mb-1">Whistleblower Reports</p>
+                    <p className="text-os-2xl font-bold">{antiCorruptionData.whistleblowerReports}</p>
                   </div>
                   <div>
-                    <p className="text-xs mb-1">AI Flagged Anomalies</p>
-                    <p className="text-2xl font-bold">{antiCorruptionData.aiFlaggedAnomalies}</p>
+                    <p className="text-os-xs mb-1">AI Flagged Anomalies</p>
+                    <p className="text-os-2xl font-bold">{antiCorruptionData.aiFlaggedAnomalies}</p>
                   </div>
                   <div>
-                    <p className="text-xs mb-1">Attempted Bribes</p>
-                    <p className="text-2xl font-bold">{antiCorruptionData.attemptedBribeAlerts}</p>
+                    <p className="text-os-xs mb-1">Attempted Bribes</p>
+                    <p className="text-os-2xl font-bold">{antiCorruptionData.attemptedBribeAlerts}</p>
                   </div>
                   <div>
-                    <p className="text-xs mb-1">Suspicious Edits</p>
-                    <p className="text-2xl font-bold">{antiCorruptionData.suspiciousDocumentEdits}</p>
+                    <p className="text-os-xs mb-1">Suspicious Edits</p>
+                    <p className="text-os-2xl font-bold">{antiCorruptionData.suspiciousDocumentEdits}</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
-            <Card className="rounded-afrikoni-lg shadow-premium">
+            <Card className="rounded-afrikoni-lg shadow-os-md">
               <CardContent className="p-5">
                 <h3 className="font-semibold mb-4">Recent Audit Trail</h3>
                 <div className="space-y-3 max-h-64 overflow-y-auto">
@@ -1570,10 +1570,10 @@ export default function RiskManagementDashboard() {
                       className="p-3 border rounded-lg"
                     >
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-medium">{entry.action}</span>
+                        <span className="text-os-xs font-medium">{entry.action}</span>
                         <Badge
                           variant="outline"
-                          className={`text-xs ${entry.severity === 'critical' ? 'bg-red-50 text-red-700 border-red-200' :
+                          className={`text-os-xs ${entry.severity === 'critical' ? 'bg-red-50 text-red-700 border-red-200' :
                             entry.severity === 'high' ? 'bg-orange-50 text-orange-700 border-orange-200' :
                               entry.severity === 'medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
                                 'bg-gray-50 text-gray-700 border-gray-200'
@@ -1582,8 +1582,8 @@ export default function RiskManagementDashboard() {
                           {entry.severity}
                         </Badge>
                       </div>
-                      <p className="text-xs">{entry.resource}</p>
-                      <p className="text-xs mt-1">
+                      <p className="text-os-xs">{entry.resource}</p>
+                      <p className="text-os-xs mt-1">
                         {new Date(entry.timestamp).toLocaleString()}
                       </p>
                     </div>
@@ -1600,13 +1600,13 @@ export default function RiskManagementDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.4 }}
         >
-          <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 mb-6">
+          <h2 className="text-os-lg md:text-os-xl font-bold uppercase tracking-wider border-b-2 pb-3 mb-6">
             Logistics & Customs Risk
           </h2>
           <div className="grid md:grid-cols-2 gap-4">
-            <Card className="rounded-afrikoni-lg shadow-premium">
+            <Card className="rounded-afrikoni-lg shadow-os-md">
               <CardHeader className="border-b pb-4">
-                <CardTitle className="text-base font-semibold">Delayed Shipments</CardTitle>
+                <CardTitle className="text-os-base font-semibold">Delayed Shipments</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-4">
@@ -1621,10 +1621,10 @@ export default function RiskManagementDashboard() {
                           {shipment.riskLevel}
                         </Badge>
                       </div>
-                      <p className="text-sm mb-1">
+                      <p className="text-os-sm mb-1">
                         {shipment.origin} → {shipment.destination}
                       </p>
-                      <p className="text-xs">
+                      <p className="text-os-xs">
                         Delay: {shipment.delayHours}h • {shipment.reason}
                       </p>
                     </div>
@@ -1636,9 +1636,9 @@ export default function RiskManagementDashboard() {
                 </div>
               </CardContent>
             </Card>
-            <Card className="rounded-afrikoni-lg shadow-premium">
+            <Card className="rounded-afrikoni-lg shadow-os-md">
               <CardHeader className="border-b pb-4">
-                <CardTitle className="text-base font-semibold">High-Risk Routes</CardTitle>
+                <CardTitle className="text-os-base font-semibold">High-Risk Routes</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <ResponsiveContainer width="100%" height={200}>
@@ -1667,14 +1667,14 @@ export default function RiskManagementDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.5 }}
         >
-          <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 mb-6">
+          <h2 className="text-os-lg md:text-os-xl font-bold uppercase tracking-wider border-b-2 pb-3 mb-6">
             Fraud Detection & Financial Risk
           </h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* FX Exposure Card */}
-            <Card className="rounded-afrikoni-lg shadow-premium">
+            <Card className="rounded-afrikoni-lg shadow-os-md">
               <CardHeader className="border-b pb-4">
-                <CardTitle className="text-base font-semibold flex items-center justify-between">
+                <CardTitle className="text-os-base font-semibold flex items-center justify-between">
                   <span>FX Exposure Risk</span>
                   <Badge variant="outline" className={getSeverityColor(fraudData.fxRiskLevel || 'low') + " text-white border-none"}>
                     {fraudData.fxRiskLevel || 'Low'}
@@ -1686,27 +1686,27 @@ export default function RiskManagementDashboard() {
                   <div className="text-3xl font-bold mb-1">
                     {(fraudData.fxExposureRatio || 0).toFixed(1)}%
                   </div>
-                  <div className="text-xs text-muted-foreground uppercase tracking-wider">
+                  <div className="text-os-xs text-muted-foreground uppercase tracking-wider">
                     Total Exposure Ratio
                   </div>
                 </div>
                 <div className="space-y-3">
                   {Object.entries(fraudData.fxBreakdown || {}).map(([currency, amount]) => (
-                    <div key={currency} className="flex items-center justify-between text-sm">
+                    <div key={currency} className="flex items-center justify-between text-os-sm">
                       <span className="font-medium text-gray-600 dark:text-gray-400">{currency}</span>
                       <span>${amount.toLocaleString()}</span>
                     </div>
                   ))}
                   {(!fraudData.fxBreakdown || Object.keys(fraudData.fxBreakdown).length === 0) && (
-                    <p className="text-xs text-center text-muted-foreground">No active foreign currency trades</p>
+                    <p className="text-os-xs text-center text-muted-foreground">No active foreign currency trades</p>
                   )}
                 </div>
               </CardContent>
             </Card>
 
-            <Card className="rounded-afrikoni-lg shadow-premium">
+            <Card className="rounded-afrikoni-lg shadow-os-md">
               <CardHeader className="border-b pb-4">
-                <CardTitle className="text-base font-semibold">Fraud Score Trend (7 Days)</CardTitle>
+                <CardTitle className="text-os-base font-semibold">Fraud Score Trend (7 Days)</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <ResponsiveContainer width="100%" height={200}>
@@ -1738,27 +1738,27 @@ export default function RiskManagementDashboard() {
                 </ResponsiveContainer>
               </CardContent>
             </Card>
-            <Card className="rounded-afrikoni-lg shadow-premium">
+            <Card className="rounded-afrikoni-lg shadow-os-md">
               <CardHeader className="border-b pb-4">
-                <CardTitle className="text-base font-semibold">Payment Integrity Metrics</CardTitle>
+                <CardTitle className="text-os-base font-semibold">Payment Integrity Metrics</CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-xs mb-1">Chargebacks (7d)</p>
-                    <p className="text-2xl font-bold">{fraudData?.chargebacks7Days || 0}</p>
+                    <p className="text-os-xs mb-1">Chargebacks (7d)</p>
+                    <p className="text-os-2xl font-bold">{fraudData?.chargebacks7Days || 0}</p>
                   </div>
                   <div>
-                    <p className="text-xs mb-1">Suspicious Velocity</p>
-                    <p className="text-2xl font-bold">{fraudData?.suspiciousVelocity || 0}</p>
+                    <p className="text-os-xs mb-1">Suspicious Velocity</p>
+                    <p className="text-os-2xl font-bold">{fraudData?.suspiciousVelocity || 0}</p>
                   </div>
                   <div>
-                    <p className="text-xs mb-1">Stolen Card Attempts</p>
-                    <p className="text-2xl font-bold">{fraudData?.stolenCardAttempts || 0}</p>
+                    <p className="text-os-xs mb-1">Stolen Card Attempts</p>
+                    <p className="text-os-2xl font-bold">{fraudData?.stolenCardAttempts || 0}</p>
                   </div>
                   <div>
-                    <p className="text-xs mb-1">Escrow Anomalies</p>
-                    <p className="text-2xl font-bold">{fraudData?.escrowAnomalies || 0}</p>
+                    <p className="text-os-xs mb-1">Escrow Anomalies</p>
+                    <p className="text-os-2xl font-bold">{fraudData?.escrowAnomalies || 0}</p>
                   </div>
                 </div>
               </CardContent>
@@ -1773,7 +1773,7 @@ export default function RiskManagementDashboard() {
           transition={{ duration: 0.4, delay: 0.6 }}
         >
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3">
+            <h2 className="text-os-lg md:text-os-xl font-bold uppercase tracking-wider border-b-2 pb-3">
               Early-Warning Alerts
             </h2>
             <div className="flex items-center gap-2">
@@ -1781,7 +1781,7 @@ export default function RiskManagementDashboard() {
               <select
                 value={alertFilter}
                 onChange={(e) => setAlertFilter(e.target.value)}
-                className="text-sm border rounded-afrikoni px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-afrikoni-gold/20"
+                className="text-os-sm border rounded-afrikoni px-3 py-1.5 focus:outline-none focus:ring-2 focus:ring-os-accent/20"
               >
                 <option value="all">All Severities</option>
                 <option value="critical">Critical</option>
@@ -1791,7 +1791,7 @@ export default function RiskManagementDashboard() {
               </select>
             </div>
           </div>
-          <Card className="rounded-afrikoni-lg shadow-premium">
+          <Card className="rounded-afrikoni-lg shadow-os-md">
             <CardContent className="p-6">
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {filteredAlerts.map((alert) => {
@@ -1802,8 +1802,8 @@ export default function RiskManagementDashboard() {
                     <div
                       key={alert.id}
                       className={`p-5 border-2 rounded-lg transition-all ${isContactSubmission
-                        ? 'border-afrikoni-gold bg-gradient-to-r from-afrikoni-cream/50 to-afrikoni-ivory/30 hover:shadow-lg hover:border-afrikoni-gold/60'
-                        : 'border-afrikoni-gold/20 hover:bg-afrikoni-sand/10'
+                        ? 'border-os-accent bg-gradient-to-r from-afrikoni-cream/50 to-afrikoni-ivory/30 hover:shadow-os-md hover:border-os-accent/60'
+                        : 'border-os-accent/20 hover:bg-afrikoni-sand/10'
                         }`}
                     >
                       <div className="flex items-start justify-between">
@@ -1812,16 +1812,16 @@ export default function RiskManagementDashboard() {
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-2 flex-wrap">
                               {isContactSubmission && (
-                                <div className="w-10 h-10 bg-gradient-to-br rounded-full flex items-center justify-center font-bold text-lg shadow-md">
+                                <div className="w-10 h-10 bg-gradient-to-br rounded-full flex items-center justify-center font-bold text-os-lg shadow-md">
                                   📧
                                 </div>
                               )}
-                              <h3 className={`font-bold text-afrikoni-text-dark ${isContactSubmission ? 'text-lg' : ''}`}>
+                              <h3 className={`font-bold text-afrikoni-text-dark ${isContactSubmission ? 'text-os-lg' : ''}`}>
                                 {alert.title}
                               </h3>
                               <Badge
                                 variant="outline"
-                                className={`text-xs capitalize font-semibold ${alert.severity === 'critical' ? 'bg-red-100 text-red-800 border-red-300 shadow-sm' :
+                                className={`text-os-xs capitalize font-semibold ${alert.severity === 'critical' ? 'bg-red-100 text-red-800 border-red-300 shadow-sm' :
                                   alert.severity === 'high' ? 'bg-orange-100 text-orange-800 border-orange-300 shadow-sm' :
                                     alert.severity === 'medium' ? 'bg-yellow-100 text-yellow-800 border-yellow-300 shadow-sm' :
                                       'bg-blue-100 text-blue-800 border-blue-300 shadow-sm'
@@ -1831,15 +1831,15 @@ export default function RiskManagementDashboard() {
                               </Badge>
                               <Badge
                                 variant="outline"
-                                className={`text-xs font-semibold ${isContactSubmission
-                                  ? 'bg-afrikoni-gold/20 text-afrikoni-chestnut border-afrikoni-gold/40'
+                                className={`text-os-xs font-semibold ${isContactSubmission
+                                  ? 'bg-os-accent/20 text-afrikoni-chestnut border-os-accent/40'
                                   : ''
                                   }`}
                               >
                                 {alert.category}
                               </Badge>
                               {isContactSubmission && submission?.category && (
-                                <Badge className="border-0 text-xs font-bold px-3 py-1">
+                                <Badge className="border-0 text-os-xs font-bold px-3 py-1">
                                   {submission.category}
                                 </Badge>
                               )}
@@ -1850,18 +1850,18 @@ export default function RiskManagementDashboard() {
                                 <div className="rounded-lg p-4 border">
                                   <div className="grid grid-cols-2 gap-3 mb-3">
                                     <div>
-                                      <div className="text-xs font-semibold uppercase tracking-wide mb-1">Contact</div>
-                                      <div className="text-sm font-bold">{submission.name}</div>
+                                      <div className="text-os-xs font-semibold uppercase tracking-wide mb-1">Contact</div>
+                                      <div className="text-os-sm font-bold">{submission.name}</div>
                                       <a
                                         href={`mailto:${submission.email}`}
-                                        className="text-xs hover:underline font-medium"
+                                        className="text-os-xs hover:underline font-medium"
                                       >
                                         {submission.email}
                                       </a>
                                     </div>
                                     <div>
-                                      <div className="text-xs font-semibold uppercase tracking-wide mb-1">Submitted</div>
-                                      <div className="text-sm">
+                                      <div className="text-os-xs font-semibold uppercase tracking-wide mb-1">Submitted</div>
+                                      <div className="text-os-sm">
                                         {new Date(submission.created_at).toLocaleString('en-US', {
                                           dateStyle: 'medium',
                                           timeStyle: 'short'
@@ -1871,22 +1871,22 @@ export default function RiskManagementDashboard() {
                                   </div>
                                   {submission.subject && (
                                     <div className="mb-2">
-                                      <div className="text-xs font-semibold uppercase tracking-wide mb-1">Subject</div>
-                                      <div className="text-sm font-semibold">{submission.subject}</div>
+                                      <div className="text-os-xs font-semibold uppercase tracking-wide mb-1">Subject</div>
+                                      <div className="text-os-sm font-semibold">{submission.subject}</div>
                                     </div>
                                   )}
                                   <div>
-                                    <div className="text-xs font-semibold uppercase tracking-wide mb-2">Message</div>
-                                    <div className="text-sm p-3 rounded border-l-3 line-clamp-3">
+                                    <div className="text-os-xs font-semibold uppercase tracking-wide mb-2">Message</div>
+                                    <div className="text-os-sm p-3 rounded border-l-3 line-clamp-3">
                                       {submission.message}
                                     </div>
                                   </div>
                                   {submission.attachments && submission.attachments.length > 0 && (
                                     <div className="mt-3 pt-3 border-t">
-                                      <div className="text-xs font-semibold uppercase tracking-wide mb-2">Attachments</div>
+                                      <div className="text-os-xs font-semibold uppercase tracking-wide mb-2">Attachments</div>
                                       <div className="flex flex-wrap gap-2">
                                         {submission.attachments.map((att, idx) => (
-                                          <Badge key={idx} variant="outline" className="text-xs">
+                                          <Badge key={idx} variant="outline" className="text-os-xs">
                                             📎 {typeof att === 'string' ? att.split('/').pop() : att.name || 'Attachment'}
                                           </Badge>
                                         ))}
@@ -1896,10 +1896,10 @@ export default function RiskManagementDashboard() {
                                 </div>
                               </div>
                             ) : (
-                              <p className="text-sm mb-2">{alert.description}</p>
+                              <p className="text-os-sm mb-2">{alert.description}</p>
                             )}
 
-                            <div className="flex items-center gap-4 text-xs">
+                            <div className="flex items-center gap-4 text-os-xs">
                               <span className="font-medium">{new Date(alert.timestamp).toLocaleString()}</span>
                               {alert.actionRequired && (
                                 <span className="font-bold px-2 py-1 rounded">⚡ Action Required</span>
@@ -1915,7 +1915,7 @@ export default function RiskManagementDashboard() {
                             <Button
                               variant="outline"
                               size="sm"
-                              className="whitespace-nowrap hover:bg-afrikoni-gold/90 font-semibold shadow-md"
+                              className="whitespace-nowrap hover:bg-os-accent/90 font-semibold shadow-md"
                               onClick={() => {
                                 if (submission?.email) {
                                   window.location.href = `mailto:${submission.email}?subject=Re: ${submission.subject || 'Your Inquiry'}`;
@@ -1945,10 +1945,10 @@ export default function RiskManagementDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.7 }}
         >
-          <Card className="rounded-afrikoni-lg shadow-premium">
+          <Card className="rounded-afrikoni-lg shadow-os-md">
             <CardHeader className="border-b pb-4">
-              <CardTitle className="text-lg md:text-xl font-bold uppercase tracking-wider border-b-2 pb-3 inline-block">
-                Platform Risk Score Trend
+              <CardTitle className="text-os-lg md:text-os-xl font-bold uppercase tracking-wider border-b-2 pb-3 inline-block">
+                Trade Safety Trend
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">

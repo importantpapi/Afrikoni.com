@@ -95,7 +95,7 @@ export default function Troubleshooting() {
       />
       <div className="min-h-screen bg-afrikoni-offwhite">
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-afrikoni-gold/20 via-afrikoni-cream to-afrikoni-offwhite border-b border-afrikoni-gold/20">
+        <section className="bg-gradient-to-br from-os-accent/20 via-afrikoni-cream to-afrikoni-offwhite border-b border-os-accent/20">
           <div className="max-w-7xl mx-auto px-4 py-12 md:py-16">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -106,7 +106,7 @@ export default function Troubleshooting() {
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-serif text-afrikoni-chestnut mb-6">
                 Common Problems, Proven Solutions
               </h1>
-              <p className="text-lg md:text-xl text-afrikoni-deep mb-8">
+              <p className="text-os-lg md:text-os-xl text-afrikoni-deep mb-8">
                 See how Afrikoni addresses the biggest challenges in African B2B trade
               </p>
             </motion.div>
@@ -127,23 +127,23 @@ export default function Troubleshooting() {
                     viewport={{ once: true }}
                     transition={{ duration: 0.5, delay: idx * 0.1 }}
                   >
-                    <Card className="h-full border-afrikoni-gold/20 hover:border-afrikoni-gold transition-all">
+                    <Card className="h-full border-os-accent/20 hover:border-os-accent transition-all">
                       <CardContent className="p-6">
                         <div className="flex items-start gap-4 mb-4">
-                          <div className="w-12 h-12 rounded-full bg-afrikoni-gold/20 flex items-center justify-center flex-shrink-0">
-                            <Icon className="w-6 h-6 text-afrikoni-gold" />
+                          <div className="w-12 h-12 rounded-full bg-os-accent/20 flex items-center justify-center flex-shrink-0">
+                            <Icon className="w-6 h-6 text-os-accent" />
                           </div>
                           <div className="flex-1">
-                            <h3 className="font-bold text-afrikoni-chestnut text-lg mb-1">
+                            <h3 className="font-bold text-afrikoni-chestnut text-os-lg mb-1">
                               {item.problem}
                             </h3>
-                            <p className="text-sm text-afrikoni-deep/70 mb-3">
+                            <p className="text-os-sm text-afrikoni-deep/70 mb-3">
                               {item.description}
                             </p>
                           </div>
                         </div>
                         
-                        <div className="bg-afrikoni-gold/10 rounded-lg p-4 mb-4">
+                        <div className="bg-os-accent/10 rounded-lg p-4 mb-4">
                           <div className="flex items-center gap-2 mb-3">
                             <CheckCircle className="w-5 h-5 text-green-600" />
                             <span className="font-semibold text-afrikoni-chestnut">
@@ -152,8 +152,8 @@ export default function Troubleshooting() {
                           </div>
                           <ul className="space-y-2">
                             {item.details.map((detail, detailIdx) => (
-                              <li key={detailIdx} className="flex items-start gap-2 text-sm text-afrikoni-deep">
-                                <span className="text-afrikoni-gold mt-1">•</span>
+                              <li key={detailIdx} className="flex items-start gap-2 text-os-sm text-afrikoni-deep">
+                                <span className="text-os-accent mt-1">•</span>
                                 <span>{detail}</span>
                               </li>
                             ))}

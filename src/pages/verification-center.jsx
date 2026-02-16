@@ -1249,7 +1249,7 @@ export default function VerificationCenter() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-afrikoni-offwhite flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-afrikoni-gold" />
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-os-accent" />
       </div>
     );
   }
@@ -1291,14 +1291,14 @@ export default function VerificationCenter() {
 
       <div className="min-h-screen bg-afrikoni-offwhite">
         {/* Hero Section with Dominant CTA */}
-        <div className="bg-gradient-to-br from-afrikoni-chestnut via-afrikoni-brown-800 to-afrikoni-brown-700 py-16 md:py-20 rounded-b-3xl shadow-xl">
+        <div className="bg-gradient-to-br from-afrikoni-chestnut via-afrikoni-brown-800 to-afrikoni-brown-700 py-16 md:py-20 rounded-b-3xl shadow-os-lg">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <Badge className="mb-6 bg-afrikoni-gold/20 text-afrikoni-goldLight border-afrikoni-gold/30">
+              <Badge className="mb-6 bg-os-accent/20 text-os-accentLight border-os-accent/30">
                 <Shield className="w-4 h-4 mr-2" />
                 KYC Verification
               </Badge>
@@ -1319,7 +1319,7 @@ export default function VerificationCenter() {
                 >
                   <Button
                     size="lg"
-                    className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white text-lg px-8 py-6 shadow-lg"
+                    className="bg-os-accent hover:bg-os-accentDark text-white text-os-lg px-8 py-6 shadow-os-md"
                     onClick={() => {
                       const nextStep = getNextActionableStep();
                       if (nextStep !== null) {
@@ -1334,7 +1334,7 @@ export default function VerificationCenter() {
                   >
                     Continue Verification →
                   </Button>
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-white/80 text-sm">
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-4 text-white/80 text-os-sm">
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4" />
                       <span>Estimated time: 10–15 minutes</span>
@@ -1353,7 +1353,7 @@ export default function VerificationCenter() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.2 }}
                 >
-                  <div className="inline-flex items-center gap-2 bg-afrikoni-gold/20 text-afrikoni-goldLight px-6 py-3 rounded-lg border border-afrikoni-gold/30">
+                  <div className="inline-flex items-center gap-2 bg-os-accent/20 text-os-accentLight px-6 py-3 rounded-lg border border-os-accent/30">
                     <CheckCircle className="w-5 h-5" />
                     <span className="text-body font-medium">All steps complete! Your verification is under review.</span>
                   </div>
@@ -1370,17 +1370,17 @@ export default function VerificationCenter() {
           className="bg-afrikoni-offwhite"
         >
           <div className="grid md:grid-cols-2 gap-6 mb-12">
-            <Card className="border-afrikoni-gold/30 bg-afrikoni-cream">
+            <Card className="border-os-accent/30 bg-afrikoni-cream">
               <CardHeader>
                 <CardTitle className="text-h3 font-semibold leading-[1.3] text-afrikoni-chestnut flex items-center gap-2">
-                  <Shield className="w-6 h-6 text-afrikoni-gold" />
+                  <Shield className="w-6 h-6 text-os-accent" />
                   Profile Completeness
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-h1-mobile md:text-h1 font-bold text-afrikoni-gold">{profileCompleteness}%</span>
+                    <span className="text-h1-mobile md:text-h1 font-bold text-os-accent">{profileCompleteness}%</span>
                     <span className="text-meta font-medium text-afrikoni-chestnut/70">{completedCount} of {verificationSteps.length} completed</span>
                   </div>
                   <Progress value={profileCompleteness} className="h-3" />
@@ -1391,32 +1391,32 @@ export default function VerificationCenter() {
               </CardContent>
             </Card>
 
-            <Card className="border-afrikoni-gold/30 bg-afrikoni-cream">
+            <Card className="border-os-accent/30 bg-afrikoni-cream">
               <CardHeader>
                 <CardTitle className="text-h3 font-semibold leading-[1.3] text-afrikoni-chestnut flex items-center gap-2">
-                  <Lock className="w-6 h-6 text-afrikoni-gold" />
+                  <Lock className="w-6 h-6 text-os-accent" />
                   Verification Status
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="mb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-h1-mobile md:text-h1 font-bold text-afrikoni-gold">{verificationProgress}%</span>
+                    <span className="text-h1-mobile md:text-h1 font-bold text-os-accent">{verificationProgress}%</span>
                     <span className="text-meta font-medium text-afrikoni-chestnut/70">{requiredCompleted} of {requiredTotal} required</span>
                   </div>
                   <Progress value={verificationProgress} className="h-3" />
                 </div>
                 {verification?.status === 'verified' ? (
-                  <Badge className="bg-afrikoni-gold/20 text-afrikoni-gold border-afrikoni-gold/30">
+                  <Badge className="bg-os-accent/20 text-os-accent border-os-accent/30">
                     <CheckCircle className="w-3 h-3 mr-1" />
                     Fully Verified
                   </Badge>
                 ) : verification?.status === 'rejected' ? (
-                  <Badge variant="destructive" className="text-xs">Rejected - Please resubmit</Badge>
+                  <Badge variant="destructive" className="text-os-xs">Rejected - Please resubmit</Badge>
                 ) : verification?.status === 'pending' ? (
                   <Badge className="bg-amber-100 text-amber-700 border-amber-300">Pending Review</Badge>
                 ) : (
-                  <Badge variant="outline" className="text-xs">Not Started</Badge>
+                  <Badge variant="outline" className="text-os-xs">Not Started</Badge>
                 )}
               </CardContent>
             </Card>
@@ -1429,17 +1429,17 @@ export default function VerificationCenter() {
           subtitle="Provide your business registration details to complete verification"
           className="bg-afrikoni-offwhite"
         >
-          <Card className="border-afrikoni-gold/30 bg-afrikoni-cream mb-12">
+          <Card className="border-os-accent/30 bg-afrikoni-cream mb-12">
             <CardHeader>
               <CardTitle className="text-h3 font-semibold leading-[1.3] text-afrikoni-chestnut flex items-center gap-2">
-                <Building className="w-6 h-6 text-afrikoni-gold" />
+                <Building className="w-6 h-6 text-os-accent" />
                 Business Details
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
                 <Label htmlFor="business_id" className="flex items-center gap-2 mb-2 text-meta font-medium text-afrikoni-chestnut">
-                  <Hash className="w-4 h-4 text-afrikoni-gold" />
+                  <Hash className="w-4 h-4 text-os-accent" />
                   Business ID / Registration Number
                 </Label>
                 <Input
@@ -1449,7 +1449,7 @@ export default function VerificationCenter() {
                   value={businessIdNumber}
                   onChange={(e) => setBusinessIdNumber(e.target.value)}
                   onBlur={() => handleSaveBusinessInfo(true)}
-                  className="border-afrikoni-gold/30 bg-white"
+                  className="border-os-accent/30 bg-white"
                 />
                 <p className="text-meta font-medium text-afrikoni-chestnut/70 mt-1">
                   This is the official registration number from your business certificate. Your information is saved automatically.
@@ -1458,7 +1458,7 @@ export default function VerificationCenter() {
 
               <div>
                 <Label htmlFor="country_registration" className="flex items-center gap-2 mb-2 text-meta font-medium text-afrikoni-chestnut">
-                  <Globe className="w-4 h-4 text-afrikoni-gold" />
+                  <Globe className="w-4 h-4 text-os-accent" />
                   Country of Registration
                 </Label>
                 <Select
@@ -1468,7 +1468,7 @@ export default function VerificationCenter() {
                     handleSaveBusinessInfo(true);
                   }}
                 >
-                  <SelectTrigger id="country_registration" className="border-afrikoni-gold/30 bg-white">
+                  <SelectTrigger id="country_registration" className="border-os-accent/30 bg-white">
                     <SelectValue placeholder="Select country where your business is registered" />
                   </SelectTrigger>
                   <SelectContent className="max-h-[300px]">
@@ -1493,16 +1493,16 @@ export default function VerificationCenter() {
           subtitle="Test your product authenticity with our AI-powered Heritage DNA scanner"
           className="bg-afrikoni-offwhite"
         >
-          <Card className="border-afrikoni-gold/30 bg-afrikoni-cream mb-12 overflow-hidden relative">
+          <Card className="border-os-accent/30 bg-afrikoni-cream mb-12 overflow-hidden relative">
             <div className="absolute top-0 right-0 p-4 opacity-10">
-              <Shield className="w-64 h-64 text-afrikoni-gold" />
+              <Shield className="w-64 h-64 text-os-accent" />
             </div>
             <CardContent className="p-8 relative z-10">
               <div className="flex flex-col md:flex-row gap-8 items-start">
                 <div className="flex-1 space-y-4">
                   <div>
-                    <Badge variant="outline" className="border-afrikoni-gold text-afrikoni-chestnut mb-2">New Power-Up</Badge>
-                    <h3 className="text-2xl font-bold text-afrikoni-chestnut">Generate Trade DNA</h3>
+                    <Badge variant="outline" className="border-os-accent text-afrikoni-chestnut mb-2">New Power-Up</Badge>
+                    <h3 className="text-os-2xl font-bold text-afrikoni-chestnut">Generate Trade DNA</h3>
                     <p className="text-afrikoni-chestnut/70 mt-2">
                       Upload a product image to generate its unique "Visual Cryptographic Hash".
                       This DNA certifies authenticity and protects against counterfeits in the Sovereign Trade Protocol.
@@ -1512,7 +1512,7 @@ export default function VerificationCenter() {
                   <div className="flex items-center gap-4">
                     <Button
                       variant="outline"
-                      className="relative overflow-hidden border-afrikoni-gold/50 hover:bg-afrikoni-gold/10 text-afrikoni-chestnut"
+                      className="relative overflow-hidden border-os-accent/50 hover:bg-os-accent/10 text-afrikoni-chestnut"
                       disabled={isAuditing}
                     >
                       <input
@@ -1537,7 +1537,7 @@ export default function VerificationCenter() {
                 </div>
 
                 {/* RESULTS DISPLAY */}
-                <div className="flex-1 w-full bg-black/5 rounded-xl p-6 border border-afrikoni-gold/10 min-h-[200px] flex items-center justify-center">
+                <div className="flex-1 w-full bg-black/5 rounded-os-sm p-6 border border-os-accent/10 min-h-[200px] flex items-center justify-center">
                   {!auditResult && !isAuditing && (
                     <div className="text-center text-afrikoni-chestnut/40">
                       <Shield className="w-12 h-12 mx-auto mb-2 opacity-50" />
@@ -1547,43 +1547,43 @@ export default function VerificationCenter() {
 
                   {isAuditing && (
                     <div className="text-center space-y-3">
-                      <div className="w-16 h-16 border-4 border-afrikoni-gold border-t-transparent rounded-full animate-spin mx-auto" />
-                      <p className="text-sm font-mono text-afrikoni-chestnut/70 animate-pulse">Extracting Tectonic Features...</p>
+                      <div className="w-16 h-16 border-4 border-os-accent border-t-transparent rounded-full animate-spin mx-auto" />
+                      <p className="text-os-sm font-mono text-afrikoni-chestnut/70 animate-pulse">Extracting Tectonic Features...</p>
                     </div>
                   )}
 
                   {auditResult && (
                     <div className="w-full space-y-4 animate-in fade-in zoom-in duration-500">
-                      <div className="flex items-center justify-between border-b border-afrikoni-gold/20 pb-2">
-                        <span className="text-xs uppercase tracking-widest text-afrikoni-chestnut/60">Heritage DNA Score</span>
-                        <span className="text-2xl font-bold text-emerald-600">99.2/100</span>
+                      <div className="flex items-center justify-between border-b border-os-accent/20 pb-2">
+                        <span className="text-os-xs uppercase tracking-widest text-afrikoni-chestnut/60">Heritage DNA Score</span>
+                        <span className="text-os-2xl font-bold text-emerald-600">99.2/100</span>
                       </div>
 
                       <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
+                        <div className="flex justify-between text-os-sm">
                           <span className="text-afrikoni-chestnut/70">Visual Hash:</span>
-                          <span className="font-mono text-xs bg-white px-2 py-1 rounded border border-afrikoni-gold/20">
+                          <span className="font-mono text-os-xs bg-white px-2 py-1 rounded border border-os-accent/20">
                             {auditResult.hash}
                           </span>
                         </div>
-                        <div className="flex justify-between text-sm">
+                        <div className="flex justify-between text-os-sm">
                           <span className="text-afrikoni-chestnut/70">Confidence:</span>
                           <span className="font-medium">{(auditResult.confidence * 100).toFixed(1)}%</span>
                         </div>
                       </div>
 
                       <div className="bg-emerald-50 border border-emerald-100 p-3 rounded-lg">
-                        <p className="text-xs text-emerald-800 font-medium mb-1">Authenticity Markers Detected:</p>
+                        <p className="text-os-xs text-emerald-800 font-medium mb-1">Authenticity Markers Detected:</p>
                         <div className="flex flex-wrap gap-1">
                           {auditResult.features.map((f, i) => (
-                            <Badge key={i} className="bg-emerald-100 text-emerald-800 border-emerald-200 text-[10px] hover:bg-emerald-200">
+                            <Badge key={i} className="bg-emerald-100 text-emerald-800 border-emerald-200 text-os-xs hover:bg-emerald-200">
                               {f}
                             </Badge>
                           ))}
                         </div>
                       </div>
 
-                      <p className="text-[10px] text-center text-afrikoni-chestnut/40 uppercase tracking-widest mt-2">
+                      <p className="text-os-xs text-center text-afrikoni-chestnut/40 uppercase tracking-widest mt-2">
                         Certified by Forensic Sentinel
                       </p>
                     </div>
@@ -1600,7 +1600,7 @@ export default function VerificationCenter() {
           subtitle={`${requiredCompleted} of ${requiredTotal} required steps complete`}
           className="bg-afrikoni-offwhite"
         >
-          <Card className="border-afrikoni-gold/30 bg-afrikoni-cream mb-12">
+          <Card className="border-os-accent/30 bg-afrikoni-cream mb-12">
             <CardContent className="p-6">
               <div className="space-y-4">
                 {verificationSteps.map((step, idx) => {
@@ -1626,9 +1626,9 @@ export default function VerificationCenter() {
                       {!isExpanded && !isCompleted && (
                         <div
                           className={`
-                            p-4 rounded-xl border-2 transition-all cursor-pointer
+                            p-4 rounded-os-sm border-2 transition-all cursor-pointer
                             ${accessible
-                              ? 'border-afrikoni-gold/30 bg-white hover:border-afrikoni-gold/50 hover:shadow-md'
+                              ? 'border-os-accent/30 bg-white hover:border-os-accent/50 hover:shadow-md'
                               : 'border-gray-200 bg-gray-50 opacity-60'
                             }
                           `}
@@ -1641,8 +1641,8 @@ export default function VerificationCenter() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                               {accessible ? (
-                                <div className="w-8 h-8 rounded-full bg-afrikoni-gold/20 flex items-center justify-center flex-shrink-0">
-                                  <span className="text-afrikoni-gold font-bold text-sm">{idx + 1}</span>
+                                <div className="w-8 h-8 rounded-full bg-os-accent/20 flex items-center justify-center flex-shrink-0">
+                                  <span className="text-os-accent font-bold text-os-sm">{idx + 1}</span>
                                 </div>
                               ) : (
                                 <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center flex-shrink-0">
@@ -1653,7 +1653,7 @@ export default function VerificationCenter() {
                                 <h3 className={`text-h3 font-semibold leading-[1.3] ${accessible ? 'text-afrikoni-chestnut' : 'text-gray-500'}`}>
                                   {step.label}
                                   {isNextStep && accessible && (
-                                    <Badge className="ml-2 bg-afrikoni-gold/20 text-afrikoni-gold border-afrikoni-gold/30 text-xs">
+                                    <Badge className="ml-2 bg-os-accent/20 text-os-accent border-os-accent/30 text-os-xs">
                                       Next Step
                                     </Badge>
                                   )}
@@ -1669,7 +1669,7 @@ export default function VerificationCenter() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="text-afrikoni-gold hover:text-afrikoni-goldDark"
+                                className="text-os-accent hover:text-os-accentDark"
                               >
                                 Expand ↓
                               </Button>
@@ -1683,7 +1683,7 @@ export default function VerificationCenter() {
                         <>
                           {/* Improved locked step message */}
                           {!accessible && !isCompleted && (
-                            <div className="mb-4 p-3 bg-afrikoni-cream/50 rounded-lg border border-afrikoni-gold/20">
+                            <div className="mb-4 p-3 bg-afrikoni-cream/50 rounded-lg border border-os-accent/20">
                               <p className="text-meta font-medium text-afrikoni-chestnut/70">
                                 <Lock className="w-4 h-4 inline mr-2" />
                                 This step will unlock automatically once the previous one is approved.
@@ -1692,42 +1692,42 @@ export default function VerificationCenter() {
                           )}
 
                           <div className={`
-                            relative flex items-start gap-4 p-5 rounded-xl border-2 transition-all
+                            relative flex items-start gap-4 p-5 rounded-os-sm border-2 transition-all
                             ${!accessible
                               ? 'border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed'
                               : isCompleted
-                                ? 'border-afrikoni-gold bg-afrikoni-gold/10'
+                                ? 'border-os-accent bg-os-accent/10'
                                 : isRejected
                                   ? 'border-red-300 bg-red-50/50'
                                   : isPending
                                     ? 'border-amber-300 bg-amber-50/50'
                                     : isNextStep
-                                      ? 'border-afrikoni-gold bg-afrikoni-gold/5 shadow-md'
-                                      : 'border-afrikoni-gold/20 bg-white hover:border-afrikoni-gold/40 hover:shadow-md'
+                                      ? 'border-os-accent bg-os-accent/5 shadow-md'
+                                      : 'border-os-accent/20 bg-white hover:border-os-accent/40 hover:shadow-md'
                             }
                           `}>
                             <div className={`
-                              relative w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 transition-all
+                              relative w-14 h-14 rounded-os-sm flex items-center justify-center flex-shrink-0 transition-all
                               ${isCompleted
-                                ? 'bg-afrikoni-gold/20 ring-2 ring-afrikoni-gold'
+                                ? 'bg-os-accent/20 ring-2 ring-os-accent'
                                 : isRejected
                                   ? 'bg-red-100 ring-2 ring-red-300'
                                   : isPending
                                     ? 'bg-amber-100 ring-2 ring-amber-300'
-                                    : 'bg-afrikoni-gold/10 ring-2 ring-afrikoni-gold/20'
+                                    : 'bg-os-accent/10 ring-2 ring-os-accent/20'
                               }
                             `}>
                               {isCompleted ? (
-                                <CheckCircle className="w-7 h-7 text-afrikoni-gold" />
+                                <CheckCircle className="w-7 h-7 text-os-accent" />
                               ) : isRejected ? (
                                 <XCircle className="w-7 h-7 text-red-600" />
                               ) : isPending ? (
                                 <Clock className="w-7 h-7 text-amber-600" />
                               ) : (
-                                <Icon className={`w-7 h-7 ${step.required ? 'text-afrikoni-gold' : 'text-afrikoni-chestnut/50'}`} />
+                                <Icon className={`w-7 h-7 ${step.required ? 'text-os-accent' : 'text-afrikoni-chestnut/50'}`} />
                               )}
                               {!isCompleted && (
-                                <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-afrikoni-chestnut text-white text-xs font-bold flex items-center justify-center">
+                                <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-afrikoni-chestnut text-white text-os-xs font-bold flex items-center justify-center">
                                   {idx + 1}
                                 </div>
                               )}
@@ -1739,19 +1739,19 @@ export default function VerificationCenter() {
                                   <div className="flex items-center gap-2 mb-1">
                                     <h3 className="text-h3 font-semibold leading-[1.3] text-afrikoni-chestnut">{step.label}</h3>
                                     {step.required && (
-                                      <Badge className="bg-afrikoni-gold/20 text-afrikoni-gold border-afrikoni-gold/30 text-xs">
+                                      <Badge className="bg-os-accent/20 text-os-accent border-os-accent/30 text-os-xs">
                                         Required
                                       </Badge>
                                     )}
                                     {!step.required && (
-                                      <Badge variant="outline" className="text-xs">Optional</Badge>
+                                      <Badge variant="outline" className="text-os-xs">Optional</Badge>
                                     )}
                                   </div>
                                   <p className="text-body font-normal leading-[1.6] text-afrikoni-chestnut/80 mb-2">{step.description}</p>
 
                                   {/* Helpful instructions for each step */}
                                   {!isCompleted && !hasFile && step.docType && (
-                                    <div className="mt-2 p-3 bg-afrikoni-gold/5 rounded-lg border border-afrikoni-gold/20">
+                                    <div className="mt-2 p-3 bg-os-accent/5 rounded-lg border border-os-accent/20">
                                       <p className="text-meta font-medium text-afrikoni-chestnut/70">
                                         <strong>Tip:</strong> {step.docType === 'business_registration'
                                           ? 'Upload your official business registration certificate or license.'
@@ -1765,7 +1765,7 @@ export default function VerificationCenter() {
                                   )}
 
                                   {isCompleted && (
-                                    <div className="flex items-center gap-2 text-meta font-medium text-afrikoni-gold">
+                                    <div className="flex items-center gap-2 text-meta font-medium text-os-accent">
                                       <CheckCircle className="w-4 h-4" />
                                       <span>Verified and complete</span>
                                     </div>
@@ -1789,13 +1789,13 @@ export default function VerificationCenter() {
                                         <span>Document uploaded - pending review</span>
                                       </div>
                                       {verificationResults[step.docType] && (
-                                        <div className={`mt-2 p-3 rounded-lg border text-sm ${verificationResults[step.docType].verified
-                                          ? 'bg-afrikoni-gold/10 border-afrikoni-gold/30 text-afrikoni-chestnut'
+                                        <div className={`mt-2 p-3 rounded-lg border text-os-sm ${verificationResults[step.docType].verified
+                                          ? 'bg-os-accent/10 border-os-accent/30 text-afrikoni-chestnut'
                                           : 'bg-amber-50 border-amber-200 text-amber-800'
                                           }`}>
                                           <div className="flex items-start gap-2">
                                             {verificationResults[step.docType].verified ? (
-                                              <CheckCircle className="w-4 h-4 text-afrikoni-gold flex-shrink-0 mt-0.5" />
+                                              <CheckCircle className="w-4 h-4 text-os-accent flex-shrink-0 mt-0.5" />
                                             ) : (
                                               <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
                                             )}
@@ -1803,7 +1803,7 @@ export default function VerificationCenter() {
                                               <div className="font-semibold mb-1">
                                                 AI Verification: {verificationResults[step.docType].verified ? 'Verified' : 'Needs Review'}
                                               </div>
-                                              <p className="text-xs opacity-90 mb-1">
+                                              <p className="text-os-xs opacity-90 mb-1">
                                                 {verificationResults[step.docType].summary}
                                               </p>
                                             </div>
@@ -1812,7 +1812,7 @@ export default function VerificationCenter() {
                                       )}
                                       {verifying[step.id] && (
                                         <div className="flex items-center gap-2 text-meta font-medium text-afrikoni-chestnut">
-                                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-afrikoni-gold"></div>
+                                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-os-accent"></div>
                                           <span>AI is verifying document...</span>
                                         </div>
                                       )}
@@ -1825,12 +1825,12 @@ export default function VerificationCenter() {
                             <div className="mt-3 space-y-2">
                               {/* ✅ Bank Account Information Form Fields - Show for bank verification step */}
                               {!isCompleted && step.docType === 'bank_statement' && canAccessStep(idx) && (
-                                <Card className="mb-4 border-afrikoni-gold/30 bg-afrikoni-cream">
+                                <Card className="mb-4 border-os-accent/30 bg-afrikoni-cream">
                                   <CardHeader className="pb-3">
-                                    <CardTitle className="text-lg font-semibold text-afrikoni-chestnut">
+                                    <CardTitle className="text-os-lg font-semibold text-afrikoni-chestnut">
                                       Bank Account Details
                                     </CardTitle>
-                                    <p className="text-sm text-afrikoni-chestnut/70">
+                                    <p className="text-os-sm text-afrikoni-chestnut/70">
                                       Please provide your bank account information. All fields are required.
                                     </p>
                                   </CardHeader>
@@ -1838,7 +1838,7 @@ export default function VerificationCenter() {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                       <div>
                                         <Label htmlFor="bank_account_number" className="mb-2">
-                                          Account Number <span className="text-red-500">*</span>
+                                          Account Number <span className="text-os-red">*</span>
                                         </Label>
                                         <Input
                                           id="bank_account_number"
@@ -1846,13 +1846,13 @@ export default function VerificationCenter() {
                                           placeholder="Enter account number"
                                           value={bankAccountNumber}
                                           onChange={(e) => setBankAccountNumber(e.target.value)}
-                                          className="border-afrikoni-gold/30"
+                                          className="border-os-accent/30"
                                           required
                                         />
                                       </div>
                                       <div>
                                         <Label htmlFor="bank_name" className="mb-2">
-                                          Bank Name <span className="text-red-500">*</span>
+                                          Bank Name <span className="text-os-red">*</span>
                                         </Label>
                                         <Input
                                           id="bank_name"
@@ -1860,13 +1860,13 @@ export default function VerificationCenter() {
                                           placeholder="Enter bank name"
                                           value={bankName}
                                           onChange={(e) => setBankName(e.target.value)}
-                                          className="border-afrikoni-gold/30"
+                                          className="border-os-accent/30"
                                           required
                                         />
                                       </div>
                                       <div>
                                         <Label htmlFor="account_holder_name" className="mb-2">
-                                          Account Holder Name <span className="text-red-500">*</span>
+                                          Account Holder Name <span className="text-os-red">*</span>
                                         </Label>
                                         <Input
                                           id="account_holder_name"
@@ -1874,13 +1874,13 @@ export default function VerificationCenter() {
                                           placeholder="Enter account holder name"
                                           value={accountHolderName}
                                           onChange={(e) => setAccountHolderName(e.target.value)}
-                                          className="border-afrikoni-gold/30"
+                                          className="border-os-accent/30"
                                           required
                                         />
                                       </div>
                                       <div>
                                         <Label htmlFor="swift_code" className="mb-2">
-                                          SWIFT/BIC Code <span className="text-red-500">*</span>
+                                          SWIFT/BIC Code <span className="text-os-red">*</span>
                                         </Label>
                                         <Input
                                           id="swift_code"
@@ -1888,20 +1888,20 @@ export default function VerificationCenter() {
                                           placeholder="Enter SWIFT code"
                                           value={swiftCode}
                                           onChange={(e) => setSwiftCode(e.target.value.toUpperCase())}
-                                          className="border-afrikoni-gold/30"
+                                          className="border-os-accent/30"
                                           maxLength={11}
                                           required
                                         />
                                       </div>
                                       <div>
                                         <Label htmlFor="bank_country" className="mb-2">
-                                          Bank Country <span className="text-red-500">*</span>
+                                          Bank Country <span className="text-os-red">*</span>
                                         </Label>
                                         <Select
                                           value={bankCountry}
                                           onValueChange={setBankCountry}
                                         >
-                                          <SelectTrigger id="bank_country" className="border-afrikoni-gold/30">
+                                          <SelectTrigger id="bank_country" className="border-os-accent/30">
                                             <SelectValue placeholder="Select bank country" />
                                           </SelectTrigger>
                                           <SelectContent className="max-h-[300px]">
@@ -1923,7 +1923,7 @@ export default function VerificationCenter() {
                                           placeholder="Enter bank address (optional)"
                                           value={bankAddress}
                                           onChange={(e) => setBankAddress(e.target.value)}
-                                          className="border-afrikoni-gold/30"
+                                          className="border-os-accent/30"
                                         />
                                       </div>
                                     </div>
@@ -1951,7 +1951,7 @@ export default function VerificationCenter() {
                                       className={`
                                     ${isRejected
                                           ? 'bg-red-600 hover:bg-red-700'
-                                          : 'bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white'
+                                          : 'bg-os-accent hover:bg-os-accentDark text-white'
                                         }
                                     min-h-[44px] touch-manipulation
                                   `}
@@ -1987,7 +1987,7 @@ export default function VerificationCenter() {
                                         handleSubmitStep(step);
                                       }}
                                       disabled={submittingStep === step.id || !canAccessStep(idx)}
-                                      className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white ml-2 min-h-[44px] touch-manipulation"
+                                      className="bg-os-accent hover:bg-os-accentDark text-white ml-2 min-h-[44px] touch-manipulation"
                                     >
                                       {submittingStep === step.id ? (
                                         <>
@@ -2005,7 +2005,7 @@ export default function VerificationCenter() {
 
                                   {/* Show submitted status */}
                                   {isStepSubmitted(step.id) && !isCompleted && (
-                                    <div className="flex items-center gap-2 text-meta font-medium text-afrikoni-gold">
+                                    <div className="flex items-center gap-2 text-meta font-medium text-os-accent">
                                       <Clock className="w-4 h-4" />
                                       <span>Submitted - Awaiting admin review</span>
                                     </div>
@@ -2026,7 +2026,7 @@ export default function VerificationCenter() {
                                   <Button
                                     variant="default"
                                     size="sm"
-                                    className="bg-afrikoni-gold hover:bg-afrikoni-goldDark text-white min-h-[44px] touch-manipulation"
+                                    className="bg-os-accent hover:bg-os-accentDark text-white min-h-[44px] touch-manipulation"
                                     onClick={async () => {
                                       if (step.id === 'email') {
                                         await handleEmailVerification();
@@ -2050,11 +2050,11 @@ export default function VerificationCenter() {
                                       size="sm"
                                       onClick={() => handleSubmitStep(step)}
                                       disabled={submittingStep === step.id || !canAccessStep(idx)}
-                                      className="border-afrikoni-gold text-afrikoni-gold hover:bg-afrikoni-gold/10 ml-2"
+                                      className="border-os-accent text-os-accent hover:bg-os-accent/10 ml-2"
                                     >
                                       {submittingStep === step.id ? (
                                         <>
-                                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-afrikoni-gold mr-2 inline-block"></div>
+                                          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-os-accent mr-2 inline-block"></div>
                                           Submitting...
                                         </>
                                       ) : (
@@ -2067,24 +2067,24 @@ export default function VerificationCenter() {
                                   )}
 
                                   {step.id === 'email' && (
-                                    <p className="text-xs text-afrikoni-chestnut/60">
+                                    <p className="text-os-xs text-afrikoni-chestnut/60">
                                       We'll send a verification link to <strong>{user?.email}</strong>. After verifying, click "Submit for Review".
                                     </p>
                                   )}
                                   {step.id === 'phone' && !user?.phone && (
-                                    <p className="text-xs text-afrikoni-chestnut/60">
+                                    <p className="text-os-xs text-afrikoni-chestnut/60">
                                       <strong>Note:</strong> Please add your phone number in your profile first.
                                     </p>
                                   )}
                                   {step.id === 'trade' && requiredCompleted < requiredTotal && (
-                                    <p className="text-xs text-afrikoni-chestnut/60">
+                                    <p className="text-os-xs text-afrikoni-chestnut/60">
                                       Complete all required steps ({requiredCompleted}/{requiredTotal}) to enable Trade Assurance.
                                     </p>
                                   )}
 
                                   {/* Show submitted status */}
                                   {isStepSubmitted(step.id) && !isCompleted && (
-                                    <div className="flex items-center gap-2 text-meta font-medium text-afrikoni-gold">
+                                    <div className="flex items-center gap-2 text-meta font-medium text-os-accent">
                                       <Clock className="w-4 h-4" />
                                       <span>Submitted - Awaiting admin review</span>
                                     </div>
@@ -2129,10 +2129,10 @@ export default function VerificationCenter() {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="mt-6 p-4 bg-afrikoni-gold/10 border-2 border-afrikoni-gold rounded-xl"
+                  className="mt-6 p-4 bg-os-accent/10 border-2 border-os-accent rounded-os-sm"
                 >
                   <div className="flex items-center gap-3">
-                    <CheckCircle className="w-6 h-6 text-afrikoni-gold flex-shrink-0" />
+                    <CheckCircle className="w-6 h-6 text-os-accent flex-shrink-0" />
                     <div>
                       <h4 className="text-h3 font-semibold leading-[1.3] text-afrikoni-chestnut mb-1">All Required Steps Complete!</h4>
                       <p className="text-body font-normal leading-[1.6] text-afrikoni-chestnut/80">
@@ -2154,8 +2154,8 @@ export default function VerificationCenter() {
         >
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
             {benefits.map((benefit, idx) => (
-              <div key={idx} className="flex items-center gap-2 p-4 bg-afrikoni-cream rounded-lg border border-afrikoni-gold/30">
-                <CheckCircle className="w-5 h-5 text-afrikoni-gold flex-shrink-0" />
+              <div key={idx} className="flex items-center gap-2 p-4 bg-afrikoni-cream rounded-lg border border-os-accent/30">
+                <CheckCircle className="w-5 h-5 text-os-accent flex-shrink-0" />
                 <span className="text-body font-normal leading-[1.6] text-afrikoni-chestnut">{benefit}</span>
               </div>
             ))}

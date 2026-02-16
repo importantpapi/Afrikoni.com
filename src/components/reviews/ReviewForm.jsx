@@ -203,7 +203,7 @@ export default function ReviewForm({ order, product, company, onSuccess, onCance
           <Button 
             onClick={handleSubmit} 
             disabled={isLoading} 
-            className={`${onCancel ? 'flex-1' : 'w-full'} bg-afrikoni-gold hover:bg-amber-700`}
+            className={`${onCancel ? 'flex-1' : 'w-full'} bg-os-accent hover:bg-amber-700`}
           >
             {isLoading ? 'Submitting...' : 'Submit Review'}
           </Button>
