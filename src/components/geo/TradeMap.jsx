@@ -91,7 +91,7 @@ export default function TradeMap({ className = '' }) {
                             {/* Moving Particle */}
                             <motion.circle
                                 r="2"
-                                fill="#D4AF37"
+                                fill="var(--os-accent)"
                                 initial={{ offsetDistance: "0%" }}
                                 animate={{ offsetDistance: "100%" }}
                                 style={{ offsetPath: `path('M${start.x},${start.y} Q${midX},${midY} ${end.x},${end.y}')` }}

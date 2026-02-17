@@ -5,7 +5,7 @@
 
 export async function testResendAPIDirectly() {
   const apiKey = import.meta.env.VITE_EMAIL_API_KEY;
-  
+
   if (!apiKey) {
     return {
       success: false,
@@ -15,7 +15,7 @@ export async function testResendAPIDirectly() {
 
   console.log('🧪 Testing Resend API directly...');
   console.log('API Key (first 10 chars):', apiKey.substring(0, 10) + '...');
-  
+
   try {
     const response = await fetch('https://api.resend.com/emails', {
       method: 'POST',
@@ -25,7 +25,7 @@ export async function testResendAPIDirectly() {
       },
       body: JSON.stringify({
         from: 'Afrikoni <hello@afrikoni.com>',
-        to: ['test@example.com'],
+        to: ['test@afrikoni.com'],
         subject: 'Test Email',
         html: '<p>This is a test email</p>'
       })
@@ -37,7 +37,7 @@ export async function testResendAPIDirectly() {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('Error response:', errorText);
-      
+
       let errorData;
       try {
         errorData = JSON.parse(errorText);
@@ -55,14 +55,14 @@ export async function testResendAPIDirectly() {
 
     const data = await response.json();
     console.log('Success response:', data);
-    
+
     return {
       success: true,
       data
     };
   } catch (error) {
     console.error('Fetch error:', error);
-    
+
     // Check for CORS error
     if (error.message.includes('CORS') || error.message.includes('fetch')) {
       return {

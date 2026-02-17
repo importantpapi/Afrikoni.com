@@ -46,7 +46,7 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
     const isSimple = interfaceMode === 'simple';
 
     // ✅ REACT QUERY: Unified data flow
-    const { data: tradesData = {}, isLoading, error: queryError } = useTrades();
+    const { data: tradesData = {}, isLoading, isRefetching, error: queryError } = useTrades();
     const allTrades = tradesData.trades || [];
 
     // Filter by viewMode (buy/sell)
@@ -115,20 +115,20 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
         });
     }, [trades, searchQuery, statusFilter]);
 
-    if (!isSystemReady || isLoading) return <CardSkeleton count={3} />;
+    if (!isSystemReady || isLoading || (isRefetching && trades.length === 0)) return <CardSkeleton count={3} />;
 
     if (queryError) {
         return <ErrorState message={queryError.message} />;
     }
 
     return (
-        <div className="os-page os-stagger space-y-8">
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-4">
+        <div className="os-page-layout os-stagger">
+            <div className="os-header-group flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-2">
-                    <h1 className="os-title-large">
+                    <h1 className="">
                         {viewMode === 'sell' ? 'Sales Ledger' : 'Active Orders'}
                     </h1>
-                    <p className="text-os-text-secondary text-os-lg">
+                    <p className="">
                         You have {trades.length} active trade flows synchronized.
                     </p>
                 </div>
@@ -142,15 +142,15 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
                 )}
             </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="os-stat-grid">
                 {stats.map((stat) => (
-                    <div key={stat.label} className="glass-surface p-6 flex flex-col gap-2">
+                    <Surface key={stat.label} variant="glass" className="p-6 flex flex-col gap-2 border-os-stroke/40">
                         <stat.icon className={cn("h-5 w-5 opacity-60", stat.color)} />
                         <div>
-                            <div className="text-os-xs font-semibold text-os-text-secondary uppercase tracking-widest">{stat.label}</div>
+                            <div className="os-label">{stat.label}</div>
                             <div className="text-os-2xl font-bold tracking-tight">{stat.value}</div>
                         </div>
-                    </div>
+                    </Surface>
                 ))}
             </div>
 
@@ -196,7 +196,8 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
                             <Surface
                                 key={order.id}
                                 variant="panel"
-                                className="p-6 hover:bg-os-surface-2 transition-all cursor-pointer group"
+                                hover
+                                className="p-6 hover:bg-os-surface transition-all group"
                                 onClick={() => navigate(`/dashboard/trade/${order.id}`)}
                             >
                                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
@@ -210,7 +211,7 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
                                                 </span>
                                             )}
                                         </div>
-                                        <div className="flex items-center gap-2 text-os-sm text-os-muted">
+                                        <div className="flex items-center gap-2 text-os-sm text-os-text-secondary">
                                             {!isSimple && <span className="font-mono text-os-xs opacity-70">ID: {order.id.substring(0, 8)}</span>}
                                             <span className={cn(isSimple ? "" : "hidden sm:inline")}>{isSimple ? "" : "· "}{format(new Date(order.created_at), 'MMM d, yyyy')}</span>
                                         </div>
@@ -228,8 +229,8 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
                                 {milestones.length > 0 && (
                                     <div className="mb-3">
                                         <div className="flex items-center justify-between mb-1.5">
-                                            <span className="text-os-xs uppercase text-os-muted">Chain Progress</span>
-                                            <span className="text-os-xs font-medium text-os-gold tabular-nums">{progress.toFixed(0)}%</span>
+                                            <span className="os-label">Chain Progress</span>
+                                            <span className="text-os-xs font-medium text-os-accent tabular-nums">{progress.toFixed(0)}%</span>
                                         </div>
                                         <Progress value={progress} className="h-1.5" />
                                     </div>
@@ -241,7 +242,7 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
                                             "px-2 py-0.5 rounded-full text-os-xs font-medium border transition-colors",
                                             m.status === 'completed' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" :
                                                 m.status === 'in_progress' ? "bg-os-blue/10 text-os-blue border-os-blue/20" :
-                                                    "bg-os-surface-0 text-os-muted border-os-stroke"
+                                                    "bg-os-bg text-os-text-secondary border-os-stroke"
                                         )}>
                                             {m.name || 'Step'}
                                         </span>

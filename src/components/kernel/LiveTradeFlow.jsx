@@ -42,7 +42,7 @@ export function LiveTradeFlow() {
       <div className="p-5 pb-3 border-b border-gray-100 dark:border-white/5 flex items-center justify-between bg-white/50 dark:bg-white/5 backdrop-blur-sm">
         <div>
           <div className="flex items-center gap-2">
-            <Activity className="w-4 h-4 text-[#D4A937]" />
+            <Activity className="w-4 h-4 text-os-accent" />
             <span className="text-os-sm font-bold tracking-wide uppercase text-gray-900 dark:text-gray-100">Live Trade Flow</span>
           </div>
           <p className="text-os-xs text-gray-500 dark:text-gray-400 mt-0.5">Real-time kernel process stream</p>
@@ -75,13 +75,13 @@ export function LiveTradeFlow() {
                   <div className="flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isStalled ? 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400' :
                         pct === 100 ? 'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' :
-                          'bg-[#D4A937]/10 text-[#D4A937]'
+                          'bg-os-accent/10 text-os-accent'
                       }`}>
                       <Package className="w-4 h-4" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-semibold text-os-sm text-gray-900 dark:text-gray-200 group-hover:text-[#D4A937] transition-colors line-clamp-1">
+                        <span className="font-semibold text-os-sm text-gray-900 dark:text-gray-200 group-hover:text-os-accent transition-colors line-clamp-1">
                           {t.productName}
                         </span>
                       </div>
@@ -106,7 +106,7 @@ export function LiveTradeFlow() {
                 {/* Micro Progress Bar */}
                 <div className="relative h-1 w-full bg-gray-100 dark:bg-white/10 rounded-full overflow-hidden mt-1">
                   <div
-                    className={`absolute top-0 left-0 h-full rounded-full transition-all duration-500 ${isStalled ? 'bg-red-500' : 'bg-[#D4A937]'
+                    className={`absolute top-0 left-0 h-full rounded-full transition-all duration-500 ${isStalled ? 'bg-red-500' : 'bg-os-accent'
                       }`}
                     style={{ width: `${pct}%` }}
                   />
@@ -117,7 +117,7 @@ export function LiveTradeFlow() {
                   {t.milestones.slice(0, 4).map((m, idx) => (
                     <div key={idx} className="flex flex-col items-center gap-1">
                       <div className={`w-1.5 h-1.5 rounded-full ${m.status === 'completed' ? (isStalled ? 'bg-red-400' : 'bg-emerald-400') :
-                          m.status === 'active' ? 'bg-[#D4A937] animate-pulse' :
+                          m.status === 'active' ? 'bg-os-accent animate-pulse' :
                             'bg-gray-200 dark:bg-gray-800'
                         }`} />
                     </div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { paginateQuery, createPaginationState } from '@/utils/pagination';
@@ -37,6 +37,7 @@ import {
   Zap,
   Truck,
   ShieldCheck,
+  Plus,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
@@ -78,10 +79,11 @@ export default function Marketplace() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const loadingRef = useRef(null); // Request cancellation guard
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilters, setSelectedFilters] = useState({
     category: '',
-    country: '',
+    country: 'All',
     verification: '',
     priceRange: '',
     moq: '',
@@ -91,6 +93,57 @@ export default function Marketplace() {
     fastResponse: false,
     readyToShip: false
   });
+
+  const getCountryFlagEmoji = (name) => {
+    const mapping = {
+      'Nigeria': '🇳🇬', 'Kenya': '🇰🇪', 'Ghana': '🇬🇭', 'South Africa': '🇿🇦',
+      'Ethiopia': '🇪🇹', 'Tanzania': '🇹🇿', 'Uganda': '🇺🇬', 'Egypt': '🇪🇬',
+      'Morocco': '🇲🇦', 'Algeria': '🇩🇿', 'Tunisia': '🇹🇳', 'Senegal': '🇸🇳',
+      "Côte d'Ivoire": '🇨🇮', 'Ivory Coast': '🇨🇮', 'Cameroon': '🇨🇲', 'Zimbabwe': '🇿🇼',
+      'Mozambique': '🇲🇿', 'Madagascar': '🇲🇬', 'Mali': '🇲🇱', 'Burkina Faso': '🇧🇫',
+      'Niger': '🇳🇪', 'Rwanda': '🇷🇼', 'Benin': '🇧🇯', 'Guinea': '🇬🇳', 'Chad': '🇹🇩',
+      'Zambia': '🇿🇲', 'Malawi': '🇲🇼', 'Somalia': '🇸🇴', 'Burundi': '🇧🇮',
+      'Togo': '🇹🇬', 'Sierra Leone': '🇸🇱', 'Libya': '🇱🇾', 'Mauritania': '🇲🇷',
+      'Eritrea': '🇪🇷', 'Gambia': '🇬🇲', 'Botswana': '🇧🇼', 'Namibia': '🇳🇦',
+      'Gabon': '🇬🇦', 'Lesotho': '🇱🇸', 'Guinea-Bissau': '🇬🇼', 'Liberia': '🇱🇷',
+      'Central African Republic': '🇨🇫', 'Congo': '🇨🇬', 'DR Congo': '🇨🇩',
+      'São Tomé and Príncipe': '🇸🇹', 'Seychelles': '🇸🇨', 'Cape Verde': '🇨🇻',
+      'Comoros': '🇰🇲', 'Mauritius': '🇲🇺', 'Equatorial Guinea': '🇬🇶',
+      'Eswatini': '🇸🇿', 'South Sudan': '🇸🇸', 'Angola': '🇦🇴'
+    };
+    return mapping[name] || '🌍';
+  };
+
+  const [stats, setStats] = useState({
+    producers: 0,
+    listings: 0,
+    nations: 0
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const [companiesRes, productsRes, nationsRes] = await Promise.all([
+          supabase.from('companies').select('id', { count: 'exact' }).eq('verified', true),
+          supabase.from('products').select('id', { count: 'exact' }).eq('status', 'active'),
+          supabase.from('companies').select('country', { count: 'exact', head: false })
+        ]);
+
+        // Get unique country count from companies
+        const uniqueNations = nationsRes.data ? new Set(nationsRes.data.map(c => c.country).filter(Boolean)).size : 0;
+
+        setStats({
+          producers: companiesRes.count || 0,
+          listings: productsRes.count || 0,
+          nations: uniqueNations || 0
+        });
+      } catch (error) {
+        console.error('Failed to fetch stats:', error);
+      }
+    };
+    fetchStats();
+  }, []);
+
   const [sortBy, setSortBy] = useState('-created_at');
   const [priceMin, setPriceMin] = useState('');
   const [priceMax, setPriceMax] = useState('');
@@ -214,7 +267,6 @@ export default function Marketplace() {
 
   useEffect(() => {
     trackPageView('Marketplace');
-    loadProducts();
     loadSavedSearches();
 
     // Use auth from context (no separate loadUser needed)
@@ -281,18 +333,26 @@ export default function Marketplace() {
   };
 
   useEffect(() => {
-    applyFilters();
-    // Add to search history when search is performed
-    if (debouncedSearchQuery && debouncedSearchQuery.trim()) {
+    const hasActiveFilters = !!(debouncedSearchQuery || selectedFilters.category || selectedFilters.country !== 'All' || priceMin || priceMax || moqMin);
+
+    if (hasActiveFilters && debouncedSearchQuery && debouncedSearchQuery.trim()) {
       addSearchToHistory(debouncedSearchQuery);
     }
-  }, [selectedFilters, searchQuery, sortBy, priceMin, priceMax, moqMin, debouncedSearchQuery]);
+
+    loadProducts();
+  }, [selectedFilters, sortBy, priceMin, priceMax, moqMin, debouncedSearchQuery, pagination.page]);
 
   const loadProducts = async () => {
+    // 🛡️ ABORT IN-FLIGHT REQUESTS
+    if (loadingRef.current) {
+      loadingRef.current.abort();
+    }
+    const controller = new AbortController();
+    loadingRef.current = controller;
+
     setIsLoading(true);
+
     try {
-      // ✅ UNIFIED DASHBOARD KERNEL: Fixed 404 by using real table + joins
-      // 'public_products' view was missing. Now querying 'products' directly.
       let query = supabase
         .from('products')
         .select(`
@@ -301,8 +361,7 @@ export default function Marketplace() {
           description,
           category_id,
           country_of_origin,
-          moq,
-          moq_unit,
+          min_order_quantity,
           price_min,
           price_max,
           currency,
@@ -310,31 +369,32 @@ export default function Marketplace() {
           slug,
           lead_time_min_days,
           images,
+          product_images (
+            url,
+            is_primary
+          ),
           categories!inner (
             name
           ),
-          companies!inner (
+          companies!company_id!inner (
             company_name,
             country,
             verified,
             logo_url
           )
         `, { count: 'exact' })
-        .eq('status', 'active'); // Only active products
+        .eq('status', 'active');
 
-      // Filter Logic
       if (selectedFilters.category) {
         query = query.eq('category_id', selectedFilters.category);
       }
-      if (selectedFilters.country) {
+      if (selectedFilters.country && selectedFilters.country !== 'All') {
         query = query.eq('country_of_origin', selectedFilters.country);
       }
 
-      // Apply sorting
       let sortField = sortBy.startsWith('-') ? sortBy.slice(1) : sortBy;
       let ascending = !sortBy.startsWith('-');
 
-      // Handle relevance sorting
       if (sortBy === 'relevance' || sortBy === 'most_trusted' || sortBy === 'fast_response') {
         sortField = 'created_at';
         ascending = false;
@@ -353,10 +413,14 @@ export default function Marketplace() {
         {
           page: pagination.page,
           pageSize: 20,
-        }
+        },
+        { abortSignal: controller.signal }
       );
 
       const { data, error } = result;
+
+      // 🛑 GUARD: Only update state if this is still the latest request
+      if (controller.signal.aborted) return;
 
       setPagination(prev => ({
         ...prev,
@@ -364,24 +428,19 @@ export default function Marketplace() {
         isLoading: false
       }));
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      // Transform products from JOINS structure
       const productsWithImages = Array.isArray(data) ? data.map(product => {
         let allImages = Array.isArray(product.images) ? product.images : [];
         let primaryImage = allImages.length > 0 ? allImages[0] : null;
 
         return {
           ...product,
-          // Map JOIN columns to component expectations
           category_name: product.categories?.name,
           company_name: product.companies?.company_name,
           company_country: product.companies?.country,
           company_verified: product.companies?.verified,
           company_logo: product.companies?.logo_url,
-
           companies: {
             company_name: product.companies?.company_name,
             country: product.companies?.country,
@@ -396,23 +455,19 @@ export default function Marketplace() {
         };
       }) : [];
 
-      // Apply client-side filters
       const filtered = applyClientSideFilters(productsWithImages);
       setProducts(filtered);
-
-      // Log search event
       logSearchEvent({ resultCount: filtered.length });
+
     } catch (error) {
+      if (error.name === 'AbortError') return;
       console.error('Failed to load products:', error);
-      setProducts([]);
-      toast.error('Failed to load products. Please try again.', {
-        action: {
-          label: 'Retry',
-          onClick: () => loadProducts()
-        }
-      });
+      console.error('Error details:', error.message, error.details, error.hint);
+      toast.error(`Failed to load products: ${error.message || 'Unknown error'}`);
     } finally {
-      setIsLoading(false);
+      if (!controller.signal.aborted) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -476,9 +531,7 @@ export default function Marketplace() {
     });
   };
 
-  const applyFilters = () => {
-    loadProducts();
-  };
+
 
   const filteredProducts = products;
 
@@ -492,56 +545,6 @@ export default function Marketplace() {
     selectedFilters.country && selectedFilters.country !== t('marketplace.allCountries')
       ? selectedFilters.country
       : urlCountryName || '';
-
-  // Country name to ISO code mapping for flags
-  const COUNTRY_NAME_TO_ISO = {
-    'Nigeria': 'NG', 'Ghana': 'GH', 'Kenya': 'KE', 'South Africa': 'ZA',
-    'Egypt': 'EG', 'Morocco': 'MA', 'Senegal': 'SN', 'Tanzania': 'TZ',
-    'Ethiopia': 'ET', 'Angola': 'AO', 'Cameroon': 'CM', "Côte d'Ivoire": 'CI',
-    'Ivory Coast': 'CI', 'Uganda': 'UG', 'Algeria': 'DZ', 'Sudan': 'SD',
-    'Mozambique': 'MZ', 'Madagascar': 'MG', 'Mali': 'ML', 'Burkina Faso': 'BF',
-    'Niger': 'NE', 'Rwanda': 'RW', 'Benin': 'BJ', 'Guinea': 'GN', 'Chad': 'TD',
-    'Zimbabwe': 'ZW', 'Zambia': 'ZM', 'Malawi': 'MW', 'Gabon': 'GA',
-    'Botswana': 'BW', 'Gambia': 'GM', 'Guinea-Bissau': 'GW', 'Liberia': 'LR',
-    'Sierra Leone': 'SL', 'Togo': 'TG', 'Mauritania': 'MR', 'Namibia': 'NA',
-    'Lesotho': 'LS', 'Eritrea': 'ER', 'Djibouti': 'DJ', 'South Sudan': 'SS',
-    'Central African Republic': 'CF', 'Republic of the Congo': 'CG', 'Congo': 'CG',
-    'DR Congo': 'CD', 'São Tomé and Príncipe': 'ST', 'Seychelles': 'SC',
-    'Cape Verde': 'CV', 'Comoros': 'KM', 'Mauritius': 'MU', 'Somalia': 'SO',
-    'Burundi': 'BI', 'Equatorial Guinea': 'GQ', 'Eswatini': 'SZ', 'Libya': 'LY',
-    'Tunisia': 'TN'
-  };
-
-  const COUNTRY_FLAGS = {
-    'NG': '🇳🇬', 'GH': '🇬🇭', 'KE': '🇰🇪', 'ZA': '🇿🇦', 'EG': '🇪🇬', 'MA': '🇲🇦',
-    'SN': '🇸🇳', 'TZ': '🇹🇿', 'ET': '🇪🇹', 'AO': '🇦🇴', 'CM': '🇨🇲', 'CI': '🇨🇮',
-    'UG': '🇺🇬', 'DZ': '🇩🇿', 'SD': '🇸🇩', 'MZ': '🇲🇿', 'MG': '🇲🇬', 'ML': '🇲🇱',
-    'BF': '🇧🇫', 'NE': '🇳🇪', 'RW': '🇷🇼', 'BJ': '🇧🇯', 'GN': '🇬🇳', 'TD': '🇹🇩',
-    'ZW': '🇿🇼', 'ZM': '🇿🇲', 'MW': '🇲🇼', 'GA': '🇬🇦', 'BW': '🇧🇼', 'GM': '🇬🇲',
-    'GW': '🇬🇼', 'LR': '🇱🇷', 'SL': '🇸🇱', 'TG': '🇹🇬', 'MR': '🇲🇷', 'NA': '🇳🇦',
-    'LS': '🇱🇸', 'ER': '🇪🇷', 'DJ': '🇩🇯', 'SS': '🇸🇸', 'CF': '🇨🇫', 'CG': '🇨🇬',
-    'CD': '🇨🇩', 'ST': '🇸🇹', 'SC': '🇸🇨', 'CV': '🇨🇻', 'KM': '🇰🇲', 'MU': '🇲🇺',
-    'SO': '🇸🇴', 'BI': '🇧🇮', 'GQ': '🇬🇶', 'SZ': '🇸🇿', 'LY': '🇱🇾', 'TN': '🇹🇳'
-  };
-
-  const getCountryFlagEmoji = (countryName) => {
-    if (!countryName) return '';
-    const normalizedName = countryName.trim();
-    // Try direct match first
-    const isoCode = COUNTRY_NAME_TO_ISO[normalizedName];
-    if (isoCode && COUNTRY_FLAGS[isoCode]) {
-      return COUNTRY_FLAGS[isoCode];
-    }
-    // Try case-insensitive match
-    const matchedKey = Object.keys(COUNTRY_NAME_TO_ISO).find(
-      key => key.toLowerCase() === normalizedName.toLowerCase()
-    );
-    if (matchedKey) {
-      const code = COUNTRY_NAME_TO_ISO[matchedKey];
-      return COUNTRY_FLAGS[code] || '';
-    }
-    return '';
-  };
 
   return (
     <>
@@ -564,86 +567,62 @@ export default function Marketplace() {
       />
       <StructuredData type="WebSite" />
 
-      <div className="min-h-screen bg-os-bg text-os-text-primary selection:bg-os-accent/30 selection:text-os-text-primary relative overflow-hidden transition-colors duration-700">
+      <div className="min-h-screen bg-os-bg text-os-text-primary relative overflow-hidden">
+        {/* 🌿 LUXE NOISE OVERLAY */}
+        <div className="absolute inset-0 opacity-[0.015] pointer-events-none z-[1] bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjciIG51bU9jdGF2ZXM9IjQiLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsdGVyPSJ1cmwoI24pIiBvcGFjaXR5PSIuNSIvPjwvc3ZnPg==')]" />
+
         <div className="relative z-10">
-          {/* 🏛️ 2026 Discovery Maison: Luxury Centered Portal */}
-          <div className="relative pt-24 pb-20 px-6 bg-os-bg selection:bg-os-accent/30 border-b border-os-stroke/40 overflow-hidden">
-            {/* Signature Brand Detail */}
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-os-accent/40 to-transparent" />
-
-            <div className="max-w-[800px] mx-auto text-center space-y-12 luxury-reveal">
-              <div className="space-y-8">
-                {/* ✅ PREMIUM HERO TITLE - Hermès Elegance */}
-                <h1 className="text-os-4xl md:text-os-5xl font-semibold tracking-[-0.02em] text-os-text-primary leading-[1.15]">
-                  Africa's Finest Producers.<br />
-                  <span className="text-os-accent">Curated</span> for Serious Trade.
+          {/* 🏛️ 2026 Discovery Maison Hero */}
+          <section className="relative pt-24 pb-16 px-6 border-b border-os-stroke/20">
+            <div className="max-w-4xl mx-auto text-center space-y-10">
+              <div className="space-y-5">
+                <h1 className="text-os-6xl font-bold text-os-text-primary tracking-tighter leading-[0.9] uppercase">
+                  Trusted African <br />
+                  <span className="text-os-accent italic">Production.</span>
                 </h1>
-
-                {/* ✅ PREMIUM INSTITUTIONAL SUBLINE - Apple Warmth */}
-                <p className="text-os-lg md:text-os-xl text-os-text-secondary/80 font-normal max-w-[680px] mx-auto leading-[1.7]">
-                  A private marketplace of verified manufacturers and suppliers. Built for trust, scale, and long-term partnerships.
+                <p className="text-os-base md:text-os-lg text-os-text-secondary/80 font-medium max-w-xl mx-auto tracking-tight leading-relaxed">
+                  Connecting global buyers with verified institutional-grade manufacturers, producers, and suppliers across the continent.
                 </p>
 
-                {/* ✅ MICRO-TRUST LINE - Refined Typography */}
-                <div className="flex items-center justify-center gap-2.5 text-[10px] uppercase tracking-[0.2em] font-medium text-os-text-secondary/40 pt-2">
-                  <ShieldCheck className="w-3.5 h-3.5 text-os-accent opacity-60" />
-                  <span>Every supplier is identity-verified and continuously monitored by Afrikoni</span>
+                <div className="flex items-center justify-center gap-6 pt-2">
+                  <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.25em] font-black text-os-text-secondary/40">
+                    <ShieldCheck className="w-4 h-4 text-os-accent" />
+                    Institutional Trust Layer
+                  </div>
+                  <div className="w-1 h-1 rounded-full bg-os-stroke/40" />
+                  <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.25em] font-black text-os-text-secondary/40">
+                    <Globe className="w-4 h-4 text-os-blue/60" />
+                    Pan-African Reach
+                  </div>
                 </div>
               </div>
 
-              {/* ✅ PREMIUM SEARCH EXPERIENCE */}
-              <div className="relative group max-w-[640px] mx-auto z-50">
-                <Surface variant="soft" className="relative group-focus-within:shadow-os-lg group-focus-within:ring-4 group-focus-within:ring-os-accent/5 transition-all duration-500 rounded-full border-os-accent/20">
-                  <Search className="w-5 h-5 text-os-accent absolute left-6 top-1/2 -translate-y-1/2 z-10 opacity-40 group-focus-within:opacity-70 transition-opacity" />
-                  <Input
-                    placeholder="Search producers, commodities, or supply chains..."
-                    className="pl-16 pr-6 h-16 w-full bg-white/80 backdrop-blur border-os-stroke group-focus-within:border-os-accent/50 rounded-full text-os-base font-normal placeholder:text-os-text-secondary/35 transition-all shadow-os-sm border-2 focus:outline-none"
-                    value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setShowSuggestions(true);
-                    }}
-                    onFocus={() => {
-                      setSearchFocused(true);
-                      setShowSuggestions(true);
-                    }}
-                    onBlur={() => {
-                      setTimeout(() => {
-                        setSearchFocused(false);
-                        setShowSuggestions(false);
-                      }, 200);
-                    }}
-                  />
-                </Surface>
-
-                {/* ✅ UNDER-SEARCH TRUST COPY - Hermès Refinement */}
-                <div className="flex items-center justify-center gap-8 mt-6">
-                  <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.25em] font-medium text-os-text-secondary/50">
-                    <span className="w-1 h-1 rounded-full bg-os-accent opacity-60" />
-                    Private Network
-                  </div>
-                  <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.25em] font-medium text-os-text-secondary/50">
-                    <span className="w-1 h-1 rounded-full bg-os-accent opacity-60" />
-                    Verified Partners
-                  </div>
-                  <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.25em] font-medium text-os-text-secondary/50">
-                    <span className="w-1 h-1 rounded-full bg-os-accent opacity-60" />
-                    Protected Trade
+              <div className="relative max-w-2xl mx-auto">
+                <div className="relative group">
+                  <div className="absolute -inset-1 bg-os-accent/5 rounded-full blur-xl opacity-0 group-focus-within:opacity-100 transition duration-1000"></div>
+                  <div className="relative flex items-center bg-os-surface-solid border border-os-stroke/60 rounded-full px-8 py-5 shadow-os-sm focus-within:border-os-accent transition-all duration-500">
+                    <Search className="w-5 h-5 text-os-text-secondary/30 mr-4" />
+                    <Input
+                      type="text"
+                      placeholder="Search verified producers, materials, or supply capabilities..."
+                      className="bg-transparent border-none focus:ring-0 text-os-base h-auto p-0 placeholder:text-os-text-secondary/20 w-full"
+                      value={searchQuery}
+                      onChange={(e) => {
+                        setSearchQuery(e.target.value);
+                        setShowSuggestions(true);
+                      }}
+                      onFocus={() => {
+                        setSearchFocused(true);
+                        setShowSuggestions(true);
+                      }}
+                    />
                   </div>
                 </div>
 
-                {/* Curated Discovery Prompts - Apple Warmth */}
-                <div className="flex flex-wrap items-center justify-center gap-4 mt-8">
-                  <span className="text-[10px] font-medium uppercase tracking-[0.2em] text-os-text-secondary/35">Explore:</span>
-                  <button onClick={() => setSearchQuery('Premium Cocoa Ghana')} className="text-[11px] font-medium text-os-text-primary/50 hover:text-os-accent border-b border-os-stroke/40 hover:border-os-accent transition-all pb-0.5">Cocoa from Ghana</button>
-                  <button onClick={() => setSearchQuery('Shea Butter Nigeria')} className="text-[11px] font-medium text-os-text-primary/50 hover:text-os-accent border-b border-os-stroke/40 hover:border-os-accent transition-all pb-0.5">Shea Butter producers</button>
-                  <button onClick={() => setSearchQuery('Industrial Cotton')} className="text-[11px] font-medium text-os-text-primary/50 hover:text-os-accent border-b border-os-stroke/40 hover:border-os-accent transition-all pb-0.5">Industrial Cotton</button>
-                </div>
-
-                {/* ✅ FIX: Floating overlay panel (Apple Spotlight style) */}
+                {/* Search Suggestions Panel */}
                 {showSuggestions && searchFocused && (
-                  <div className="absolute top-[calc(100%+16px)] left-0 right-0 z-[100] pointer-events-auto">
-                    <Surface variant="glass" className="p-3 border border-os-stroke shadow-premium backdrop-blur-xl overflow-hidden rounded-os-md bg-white/95">
+                  <div className="absolute top-[calc(100%+12px)] left-0 right-0 z-[100]">
+                    <Surface variant="glass" className="p-2 border border-os-stroke/40 shadow-premium backdrop-blur-2xl overflow-hidden rounded-os-md bg-os-surface/98">
                       <SearchSuggestions
                         query={searchQuery}
                         onSelectSuggestion={(query, type) => {
@@ -662,126 +641,174 @@ export default function Marketplace() {
                   </div>
                 )}
               </div>
-            </div>
-          </div>
 
-          <div className="max-w-[1440px] mx-auto px-6 py-12 relative overflow-hidden">
+              <div className="flex items-center justify-center gap-12 pt-4">
+                <div className="flex flex-col items-center gap-1">
+                  <span className={cn(
+                    "text-os-2xl font-bold text-os-text-primary tracking-tighter transition-all duration-700",
+                    stats.producers === 0 ? "opacity-20 animate-pulse bg-os-stroke h-8 w-12 rounded" : "opacity-100"
+                  )}>
+                    {stats.producers > 0 ? stats.producers : ''}
+                  </span>
+                  <span className="text-[9px] uppercase tracking-widest text-os-text-secondary/50 font-black italic">Verified Producers</span>
+                </div>
+                <div className="w-px h-8 bg-os-stroke/40" />
+                <div className="flex flex-col items-center gap-1" title="Institutional Supply Ready for Trade">
+                  <span className={cn(
+                    "text-os-2xl font-bold text-os-text-primary tracking-tighter transition-all duration-700",
+                    stats.listings === 0 ? "opacity-20 animate-pulse bg-os-stroke h-8 w-12 rounded" : "opacity-100"
+                  )}>
+                    {stats.listings > 0 ? stats.listings : ''}
+                  </span>
+                  <span className="text-[9px] uppercase tracking-widest text-os-text-secondary/50 font-black italic">Trade Listings</span>
+                </div>
+                <div className="w-px h-8 bg-os-stroke/40" />
+                <div className="flex flex-col items-center gap-1" title="Active African Markets Represented">
+                  <span className={cn(
+                    "text-os-2xl font-bold text-os-text-primary tracking-tighter transition-all duration-700",
+                    stats.nations === 0 ? "opacity-20 animate-pulse bg-os-stroke h-8 w-8 rounded" : "opacity-100"
+                  )}>
+                    {stats.nations > 0 ? stats.nations : ''}
+                  </span>
+                  <span className="text-[9px] uppercase tracking-widest text-os-text-secondary/50 font-black italic">Member Nations</span>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div className="max-w-[1440px] mx-auto px-8 py-10">
             {/* ✅ FIX: Institutional background for content area */}
             <div className="absolute inset-0 bg-os-bg/50 -z-10 rounded-os-lg" />
 
-            {/* 🟦 THE MAISON REVEAL: Curated Intelligence Bar */}
-            <div className="flex flex-wrap items-center justify-between gap-6 mb-12 px-6">
-              <div className="flex flex-wrap items-center gap-4">
-                <FilterChip
-                  label="Verified Only"
-                  active={selectedFilters.verified}
-                  onRemove={() => setSelectedFilters({ ...selectedFilters, verified: !selectedFilters.verified })}
-                  className={cn("bg-os-emerald/5 border-os-emerald/20 text-os-emerald")}
-                  icon={<Shield className="w-3.5 h-3.5" />}
-                />
-                <FilterChip
-                  label="Fast Response"
-                  active={selectedFilters.fastResponse}
-                  onRemove={() => setSelectedFilters({ ...selectedFilters, fastResponse: !selectedFilters.fastResponse })}
-                  className={cn("bg-os-blue/5 border-os-blue/20 text-os-blue")}
-                  icon={<Zap className="w-3.5 h-3.5" />}
-                />
+            {/* 🟦 THE MAISON REVEAL: Instrument-Grade Sourcing Intelligence */}
+            <div className="flex flex-wrap items-center justify-between gap-4 mb-6 px-6 py-4 bg-os-surface-solid border border-os-stroke rounded-os-lg shadow-os-sm">
+              <div className="flex flex-wrap items-center gap-6">
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-[10px] uppercase tracking-widest text-os-text-secondary/60 font-black">Supplier Tier</span>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedFilters({ ...selectedFilters, verified: !selectedFilters.verified })}
+                      className={cn(
+                        "rounded-none border border-os-stroke px-4 h-9 text-[10px] uppercase font-bold tracking-widest transition-all",
+                        selectedFilters.verified ? "bg-os-accent text-[#1A1512] border-os-accent" : "hover:bg-os-accent/5 text-os-text-primary"
+                      )}
+                    >
+                      Verified
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="rounded-none border border-os-stroke/40 px-4 h-9 text-[10px] uppercase font-bold tracking-widest opacity-30 cursor-not-allowed"
+                    >
+                      Boutique
+                    </Button>
+                  </div>
+                </div>
 
-                <div className="h-4 w-px bg-os-stroke mx-2 hidden md:block" />
+                <div className="h-8 w-px bg-os-stroke mx-1 hidden md:block" />
 
-                <Button
-                  variant="ghost"
-                  onClick={() => setFiltersOpen(true)}
-                  className="h-10 px-6 rounded-full border border-os-stroke hover:border-os-accent hover:bg-os-accent/5 text-[10px] font-bold uppercase tracking-widest text-os-text-primary transition-all flex items-center gap-2 shadow-os-sm bg-white"
-                >
-                  <SlidersHorizontal className="w-3.5 h-3.5 text-os-accent" />
-                  Refine Selection
-                </Button>
-              </div>
-
-              <div className="flex items-center gap-8">
-                <div className="flex items-center gap-3">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-os-text-secondary/40">Sort by</span>
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-44 h-8 bg-transparent border-b border-os-stroke rounded-none text-os-xs font-bold text-os-text-primary hover:border-os-accent transition-all px-0 shadow-none ring-0 focus:ring-0">
-                      <SelectValue />
+                <div className="flex flex-col gap-1.5 min-w-[240px]">
+                  <span className="text-[10px] uppercase tracking-widest text-os-text-secondary/60 font-black">Production Origin</span>
+                  <Select value={selectedFilters.country} onValueChange={(val) => setSelectedFilters({ ...selectedFilters, country: val })}>
+                    <SelectTrigger className="rounded-none border border-os-stroke h-9 text-[11px] font-bold bg-os-surface-solid hover:border-os-accent transition-colors">
+                      <SelectValue placeholder="All 54 Member Nations" />
                     </SelectTrigger>
-                    <SelectContent className="bg-os-surface-solid border-os-stroke text-os-text-primary">
-                      {SORT_OPTIONS.map((opt) => (
-                        <SelectItem key={opt.value} value={opt.value}>
-                          {opt.label}
+                    <SelectContent className="max-h-[400px] border-os-stroke shadow-premium">
+                      <SelectItem value="All">All Nations</SelectItem>
+                      {[...AFRICAN_COUNTRIES].sort().map(country => (
+                        <SelectItem key={country} value={country}>
+                          <div className="flex items-center gap-3">
+                            <span className="text-16">{getCountryFlagEmoji(country)}</span>
+                            <span>{country}</span>
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
+
+                <div className="h-8 w-px bg-os-stroke mx-1 hidden md:block" />
+
+                <div className="flex flex-col gap-1.5">
+                  <span className="text-[10px] uppercase tracking-widest text-os-text-secondary/60 font-black">Quick Action</span>
+                  <Button
+                    onClick={() => navigate('/dashboard/rfqs/new')}
+                    className="rounded-none bg-[#1A1512] text-white px-6 h-9 text-[10px] uppercase font-black tracking-widest hover:bg-os-accent hover:text-[#1A1512] transition-all flex items-center gap-2"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    Trade Inquiry
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[10px] uppercase tracking-widest text-os-text-secondary/60 font-black">Sort Logic</span>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-44 h-9 bg-transparent border-os-stroke rounded-none text-[11px] font-bold text-os-text-primary hover:border-os-accent transition-colors">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="border-os-stroke shadow-premium">
+                    {SORT_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 
-            <div className="flex flex-col gap-12">
+            <div className="flex flex-col gap-4">
               {/* MAIN DISCOVERY AREA - Full Width */}
               <main className="flex-1 min-w-0">
-                <div className="mb-6 md:mb-8">
-                  <div className="mb-12 text-center space-y-4">
-                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-os-accent/5 border border-os-accent/10">
-                      <span className="w-1 h-1 rounded-full bg-os-accent animate-pulse opacity-60" />
-                      <span className="text-[10px] font-medium uppercase tracking-[0.25em] text-os-accent">Selected for Your Trade</span>
-                    </div>
-                    <h2 className="text-os-3xl font-semibold text-os-text-primary tracking-[-0.01em]">Selected Producers</h2>
-                    <p className="text-os-sm text-os-text-secondary/60 font-normal max-w-[520px] mx-auto leading-relaxed">
-                      Verified manufacturers and suppliers matched to your business requirements.
-                    </p>
-                  </div>
-
-                  <div className="mb-10">
+                <div className="mb-6">
+                  <div className="flex items-center gap-4 flex-wrap">
                     {/* Active Filters Display - Minimalist Presentation */}
                     {(selectedFilters.category || selectedFilters.country || selectedFilters.verification ||
                       priceMin || priceMax || moqMin || selectedFilters?.certifications?.length > 0 ||
                       selectedFilters.deliveryTime || selectedFilters.verified || selectedFilters.fastResponse ||
                       selectedFilters.readyToShip || debouncedSearchQuery) && (
-                        <div className="flex items-center justify-center gap-3 flex-wrap">
+                        <>
                           {debouncedSearchQuery && (
-                            <Badge variant="ghost" className="text-[10px] font-bold uppercase tracking-widest bg-os-accent/5 border border-os-accent/10 px-4 py-1.5 rounded-full text-os-accent">
-                              "{debouncedSearchQuery}"
-                              <X className="w-3 h-3 ml-2 cursor-pointer hover:text-os-accentDark" onClick={() => setSearchQuery('')} />
-                            </Badge>
+                            <div className="flex items-center gap-2 px-3 py-1 bg-os-surface-solid border border-os-stroke rounded text-[10px] font-bold uppercase tracking-wider">
+                              <span className="opacity-40">Query:</span>
+                              <span>{debouncedSearchQuery}</span>
+                              <X className="w-3 h-3 ml-1 cursor-pointer hover:text-os-accent" onClick={() => setSearchQuery('')} />
+                            </div>
                           )}
                           {selectedFilters.category && (
-                            <Badge variant="ghost" className="text-[10px] font-bold uppercase tracking-widest bg-white border border-os-stroke px-4 py-1.5 rounded-full text-os-text-primary/60">
-                              {(() => {
+                            <div className="flex items-center gap-2 px-3 py-1 bg-os-surface-solid border border-os-stroke rounded text-[10px] font-bold uppercase tracking-wider">
+                              <span className="opacity-40">Sector:</span>
+                              <span>{(() => {
                                 const category = (Array.isArray(categories) ? categories : []).find(cat => cat && (cat.id === selectedFilters.category || cat.name === selectedFilters.category));
                                 return category?.name || selectedFilters.category;
-                              })()}
-                              <X className="w-3 h-3 ml-2 cursor-pointer" onClick={() => setSelectedFilters({ ...selectedFilters, category: '' })} />
-                            </Badge>
-                          )}
-                          {selectedFilters.country && (
-                            <Badge variant="ghost" className="text-[10px] font-bold uppercase tracking-widest bg-white border border-os-stroke px-4 py-1.5 rounded-full text-os-text-primary/60">
-                              {selectedFilters.country}
-                              <X className="w-3 h-3 ml-2 cursor-pointer" onClick={() => setSelectedFilters({ ...selectedFilters, country: '' })} />
-                            </Badge>
+                              })()}</span>
+                              <X className="w-3 h-3 ml-1 cursor-pointer" onClick={() => setSelectedFilters({ ...selectedFilters, category: '' })} />
+                            </div>
                           )}
                           <button
                             onClick={() => {
                               setSelectedFilters({ category: '', country: '', verification: '', priceRange: '', moq: '', certifications: [], deliveryTime: '', verified: false, fastResponse: false, readyToShip: false });
                               setPriceMin(''); setPriceMax(''); setMoqMin(''); setSearchQuery('');
                             }}
-                            className="text-[10px] font-bold uppercase tracking-widest text-os-accent hover:underline ml-4"
+                            className="text-[9px] font-black uppercase tracking-[0.25em] text-os-accent hover:underline opacity-80"
                           >
-                            Clear All
+                            Reset Applied Filters
                           </button>
-                        </div>
+                        </>
                       )}
                   </div>
                 </div>
                 {/* Top toolbar: AI best match, sort, and view toggle */}
-                <div className="flex items-center justify-between gap-3 mb-6 flex-wrap bg-os-surface-1 rounded-os-sm p-5 border border-os-stroke hover:border-os-accent/20 transition-all">
-                  <div className="flex flex-col gap-1.5">
-                    <span className="text-[11px] md:text-os-sm font-medium text-os-text-primary uppercase tracking-[0.2em]">
-                      Recommended for Your Trade Profile
+                <div className="flex items-center justify-between gap-4 mb-4 p-3 bg-os-surface-solid/60 border border-os-stroke rounded-os-lg shadow-sm">
+                  <div className="flex flex-col">
+                    <span className="text-[8px] font-black text-os-text-primary uppercase tracking-[0.5em] mb-0.5">
+                      Recommended For You
                     </span>
-                    <span className="text-os-xs md:text-os-sm text-os-text-secondary/50 font-normal">
-                      Our intelligence engine selects the most aligned producer for your sourcing profile.
+                    <span className="text-[10px] text-os-text-secondary/60 font-bold uppercase tracking-widest italic">
+                      Products from verified suppliers matching your interests
                     </span>
                   </div>
                   <div className="flex items-center gap-3 flex-wrap">
@@ -880,82 +907,121 @@ export default function Marketplace() {
 
                 {
                   isLoading ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 p-8">
                       {[...Array(8)].map((_, i) => (
-                        <Surface key={i} variant="glass" className="animate-pulse border-white/5 h-[380px] flex flex-col">
-                          <div className="h-48 bg-os-accent/5 animate-pulse rounded-t-xl" />
-                          <div className="p-5 space-y-3 flex-1">
-                            <div className="h-4 bg-white/5 rounded w-3/4" />
-                            <div className="h-4 bg-white/5 rounded w-1/2" />
+                        <Surface key={i} className="animate-pulse border-os-stroke/60 bg-os-surface-solid rounded-[20px] overflow-hidden flex flex-col h-[530px]">
+                          <div className="aspect-[4/5] bg-os-stroke/20 animate-pulse" />
+                          <div className="p-5 space-y-4 flex-1">
+                            <div className="h-2 bg-os-stroke/30 rounded w-1/4" />
+                            <div className="h-6 bg-os-stroke/40 rounded w-3/4" />
+                            <div className="flex gap-2">
+                              <div className="h-4 bg-os-stroke/20 rounded w-20" />
+                              <div className="h-4 bg-os-stroke/20 rounded w-16" />
+                            </div>
+                            <div className="mt-auto pt-4 flex items-center justify-between">
+                              <div className="space-y-2">
+                                <div className="h-5 bg-os-stroke/40 rounded w-24" />
+                                <div className="h-2 bg-os-stroke/20 rounded w-16" />
+                              </div>
+                              <div className="w-10 h-10 rounded-full bg-os-stroke/20" />
+                            </div>
                           </div>
                         </Surface>
                       ))}
                     </div>
                   ) : filteredProducts.length === 0 ? (
-                    <Surface variant="glass" className="p-20 text-center border-white/5">
-                      <Package className="w-16 h-16 text-os-accent/40 mx-auto mb-6" />
-                      <h3 className="text-os-2xl font-black text-white/90 mb-4">{t('marketplace.noProductsFound')}</h3>
-                      <p className="text-white/40 text-os-lg mb-8 max-w-md mx-auto">
-                        {t('marketplace.changeFiltersOrSearch')}
+                    <div className="flex flex-col items-center justify-center py-20 px-6
+                                    bg-os-surface-solid/50 border border-os-stroke
+                                    rounded-[32px] shadow-premium relative overflow-hidden group/concierge">
+                      <div className="absolute inset-0 bg-os-accent/5 opacity-0 group-hover/concierge:opacity-100 transition-opacity duration-1000" />
+
+                      {/* Icon */}
+                      <div className="w-24 h-24 rounded-full bg-os-surface-solid
+                                      flex items-center justify-center mb-10
+                                      shadow-premium border border-os-stroke relative z-10">
+                        <Sparkles className="w-10 h-10 text-os-accent" />
+                      </div>
+
+                      {/* Header */}
+                      <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-os-accent/10 rounded-full mb-6 relative z-10">
+                        <span className="w-1.5 h-1.5 rounded-full bg-os-accent animate-pulse" />
+                        <span className="text-[10px] font-bold text-os-accent uppercase tracking-[0.25em]">Concierge Sourcing Active</span>
+                      </div>
+
+                      {/* Title */}
+                      <h3 className="text-os-3xl font-bold text-os-text-primary mb-4 text-center tracking-tighter relative z-10 uppercase">
+                        {t('marketplace.noProductsFound') || 'Matching Sourcing Capabilities'}
+                      </h3>
+
+                      {/* Description */}
+                      <p className="text-os-base text-os-text-secondary font-medium max-w-xl text-center mb-12 leading-relaxed relative z-10">
+                        We are currently matching verified suppliers against your trade profile.
+                        Institutional-grade producers in this sector typically interact via <span className="text-os-text-primary font-bold">Private RFQs</span>.
+                        Initiate a trade request to unlock curated results within 24–48 hours.
                       </p>
-                      <div className="flex flex-col items-center gap-6 justify-center">
-                        <div className="space-y-2">
-                          <h4 className="text-os-lg font-bold text-white/90">Specialized Sourcing Required?</h4>
-                          <p className="text-white/40 text-os-sm">Our private network can connect you with verified producers tailored to your specifications.</p>
-                        </div>
+
+                      {/* Action */}
+                      <div className="flex flex-col sm:flex-row items-center justify-center gap-6 relative z-10">
                         <Button
-                          className="bg-os-accent hover:bg-os-accent/90 text-white h-12 px-10 rounded-full font-bold uppercase tracking-widest text-[10px] shadow-premium transition-all active:scale-95"
+                          className="bg-os-accent hover:bg-os-accent/90 text-[#1A1512]
+                                     font-black uppercase tracking-widest text-[11px]
+                                     px-10 h-14 rounded-xl shadow-lg
+                                     transition-all active:scale-95 flex items-center gap-3"
                           asChild
                         >
-                          <Link to="/rfq/create">Request Private Sourcing →</Link>
+                          <Link to="/rfq/create">
+                            Post Trade Request
+                            <Plus className="w-4 h-4" />
+                          </Link>
                         </Button>
+                        <div className="flex flex-col items-start px-6 text-left border-l border-os-stroke h-14 justify-center">
+                          <span className="text-[10px] uppercase tracking-widest text-os-text-secondary font-black">Sourcing SLA</span>
+                          <span className="text-[11px] font-bold text-os-text-primary">Direct Factory Access</span>
+                        </div>
                       </div>
-                    </Surface>
+                    </div>
                   ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <motion.div
+                      layout
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.5 }}
+                      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 p-8 bg-gradient-to-b from-os-surface/40 to-transparent rounded-os-lg w-full"
+                    >
                       {Array.isArray(filteredProducts) && filteredProducts.map((product, idx) => (
-                        <ProductCard
+                        <motion.div
                           key={product.id}
-                          product={product}
-                          priority={idx < 2}
-                        />
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: idx * 0.05 }}
+                          className="w-full"
+                        >
+                          <ProductCard
+                            product={product}
+                            priority={idx < 2}
+                          />
+                        </motion.div>
                       ))}
-                      {/* Fill empty space when there are few products */}
-                      {filteredProducts.length > 0 && filteredProducts.length < 4 && (
-                        <Surface variant="glass" className="hidden lg:flex flex-col items-center justify-center p-8 text-center border-os-stroke bg-os-accent/5">
-                          <Package className="w-10 h-10 text-os-accent/30 mb-4" />
-                          <div className="space-y-2 mb-6">
-                            <h3 className="font-bold text-white/90">Custom Requirements?</h3>
-                            <p className="text-[10px] text-white/40 leading-relaxed">
-                              Our concierge team sources verified producers matched to your exact specifications.
+                      {filteredProducts.length > 0 && filteredProducts.length < 6 && (
+                        <Surface className="flex flex-col items-center justify-center p-8 text-center border-2 border-dashed border-os-stroke bg-os-surface-solid/50 rounded-[20px] transition-all hover:border-os-accent group-hover:bg-os-accent/5">
+                          <div className="w-16 h-16 bg-os-accent/10 rounded-full flex items-center justify-center mb-6">
+                            <Plus className="w-8 h-8 text-os-accent" />
+                          </div>
+                          <div className="space-y-3 mb-8">
+                            <h3 className="text-18 font-bold text-os-text-primary uppercase tracking-tight">Post Trade Request</h3>
+                            <p className="text-12 text-os-text-secondary leading-relaxed max-w-[200px] mx-auto">
+                              Can't find the perfect producer? Post a request and our sourcing team will match you.
                             </p>
                           </div>
                           <Button
-                            variant="ghost"
-                            size="sm"
-                            className="bg-os-accent/10 text-os-accent hover:bg-os-accent/20 font-bold uppercase tracking-widest text-[9px] h-9 px-6 rounded-full border border-os-accent/20"
+                            className="bg-os-accent text-[#1A1512] hover:bg-os-accent/90 font-black uppercase tracking-[0.2em] text-[10px] h-12 px-8 rounded-full shadow-lg"
                             asChild
                           >
-                            <Link to="/rfq/create">Request Sourcing →</Link>
+                            <Link to="/rfq/create">Start Sourcing</Link>
                           </Button>
                         </Surface>
                       )}
-
-                      {/* Skeleton Loaders for remaining grid slots when < 8 products */}
-                      {filteredProducts.length > 0 && filteredProducts.length < 8 && (
-                        <>
-                          {[...Array(Math.min(8 - filteredProducts.length, 4))].map((_, i) => (
-                            <Surface key={`skeleton-${i}`} variant="glass" className="animate-pulse border-white/5 h-[380px] flex flex-col">
-                              <div className="h-48 bg-white/5 rounded-t-xl" />
-                              <div className="p-4 space-y-3 flex-1">
-                                <div className="h-4 bg-white/5 rounded w-3/4" />
-                                <div className="h-4 bg-white/5 rounded w-1/2" />
-                              </div>
-                            </Surface>
-                          ))}
-                        </>
-                      )}
-                    </div>
+                    </motion.div>
                   )
                 }
 
@@ -981,7 +1047,7 @@ export default function Marketplace() {
             <div className="space-y-10 p-2">
               {/* Markets Section */}
               <div>
-                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-os-text-secondary/40 mb-6">Discovery Clusters</h3>
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-os-text-secondary/40 mb-6">Browse Categories</h3>
                 <div className="grid grid-cols-2 gap-3">
                   {categories.map((cat) => (
                     <button
@@ -1001,16 +1067,26 @@ export default function Marketplace() {
               {/* Origin Section */}
               <div>
                 <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-os-text-secondary/40 mb-6">Origin of Goods</h3>
-                <div className="flex flex-wrap gap-2">
-                  {POPULAR_COUNTRIES.map((country) => (
+                <div className="flex flex-wrap gap-2 max-h-[240px] overflow-y-auto pr-2 custom-scrollbar">
+                  <button
+                    onClick={() => setSelectedFilters({ ...selectedFilters, country: 'All' })}
+                    className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${selectedFilters.country === 'All'
+                      ? 'bg-os-accent text-[#1A1512] border-os-accent'
+                      : 'bg-os-surface-solid border-os-stroke text-os-text-primary/60 hover:border-os-accent'
+                      }`}
+                  >
+                    🌍 All Nations
+                  </button>
+                  {[...AFRICAN_COUNTRIES].sort().map((country) => (
                     <button
                       key={country}
                       onClick={() => setSelectedFilters({ ...selectedFilters, country: country })}
-                      className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border ${selectedFilters.country === country
-                        ? 'bg-os-action text-white border-os-action'
-                        : 'bg-white border-os-stroke text-os-text-primary/60 hover:border-os-accent'
+                      className={`px-4 py-2 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all border flex items-center gap-2 ${selectedFilters.country === country
+                        ? 'bg-os-accent text-[#1A1512] border-os-accent'
+                        : 'bg-os-surface-solid border-os-stroke text-os-text-primary/60 hover:border-os-accent'
                         }`}
                     >
+                      <span className="text-14">{getCountryFlagEmoji(country)}</span>
                       {country}
                     </button>
                   ))}
@@ -1056,7 +1132,7 @@ export default function Marketplace() {
             </div>
           </Drawer >
         </div>
-      </div>
+      </div >
     </>
   );
 }

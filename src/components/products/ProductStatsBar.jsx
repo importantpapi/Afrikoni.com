@@ -9,7 +9,7 @@ export default function ProductStatsBar({ stats }) {
       label: 'Total Products',
       value: stats.total || 0,
       icon: Package,
-      color: 'text-[#D4A937]'
+      color: 'text-os-accent'
     },
     {
       label: 'Active',
@@ -42,7 +42,7 @@ export default function ProductStatsBar({ stats }) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.2, delay: idx * 0.05 }}
           >
-            <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-os-sm hover:border-[#D4A937]/20 transition-all">
+            <Card className="border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-os-sm hover:border-os-accent/20 transition-all">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>

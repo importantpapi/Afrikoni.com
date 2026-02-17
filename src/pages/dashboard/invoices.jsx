@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import {
   Receipt, FileText, DollarSign, Clock, CheckCircle, XCircle,
   Download, Plus, Search, Filter, ArrowRight,
-  Shield, AlertCircle, Layers
+  Shield, AlertCircle, Layers, Lock
 } from 'lucide-react';
 import { Surface } from '@/components/system/Surface';
 import { Button } from '@/components/shared/ui/button';

@@ -36,7 +36,7 @@ export default function TradeOSHeader({
         {/* Mobile menu toggle */}
         <button
           onClick={onToggleSidebar}
-          className="md:hidden p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-[#D4A937] hover:bg-afrikoni-cream/30 dark:hover:bg-white/5 transition-colors"
+          className="md:hidden p-2 rounded-lg text-os-text-secondary dark:text-gray-400 hover:text-os-accent hover:bg-afrikoni-cream/30 dark:hover:bg-white/5 transition-colors"
         >
           <Menu className="w-5 h-5" />
         </button>
@@ -44,13 +44,13 @@ export default function TradeOSHeader({
         {/* Command Bar Trigger */}
         <button
           onClick={onOpenCommandPalette}
-          className="flex items-center gap-2 h-9 px-3 rounded-os-sm bg-afrikoni-cream/20 dark:bg-white/5 border border-os-accent/20 dark:border-white/10 hover:border-[#D4A937]/40 transition-all text-os-sm text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex-1 max-w-md"
+          className="flex items-center gap-2 h-9 px-3 rounded-os-sm bg-afrikoni-cream/20 dark:bg-white/5 border border-os-accent/20 dark:border-white/10 hover:border-os-accent/40 transition-all text-os-sm text-os-text-secondary dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex-1 max-w-md"
         >
           <Search className="w-3.5 h-3.5" />
           <span className="hidden sm:inline">Search or run command...</span>
           <span className="sm:hidden">Search...</span>
           <div className="ml-auto flex items-center gap-1">
-            <kbd className="hidden md:inline-flex items-center px-1.5 py-0.5 text-os-xs font-medium text-gray-600 dark:text-gray-400 bg-white dark:bg-white/10 rounded border border-os-accent/20 dark:border-white/10">
+            <kbd className="hidden md:inline-flex items-center px-1.5 py-0.5 text-os-xs font-medium text-os-text-secondary dark:text-gray-400 bg-white dark:bg-white/10 rounded border border-os-accent/20 dark:border-white/10">
               <Command className="w-2.5 h-2.5 mr-0.5" />K
             </kbd>
           </div>
@@ -61,20 +61,20 @@ export default function TradeOSHeader({
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-[#D4A937] hover:bg-afrikoni-cream/30 dark:hover:bg-white/5 transition-colors"
+            className="p-2 rounded-lg text-os-text-secondary dark:text-gray-400 hover:text-os-accent hover:bg-afrikoni-cream/30 dark:hover:bg-white/5 transition-colors"
           >
             {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
           {/* Mode Toggle */}
           <button
             onClick={onToggleMode}
-            className="hidden sm:flex items-center gap-2 h-8 px-3 rounded-full border border-os-accent/20 text-os-xs font-bold tracking-wider uppercase hover:border-[#D4A937]/40 hover:text-[#D4A937] transition-colors bg-afrikoni-cream/20"
+            className="hidden sm:flex items-center gap-2 h-8 px-3 rounded-full border border-os-accent/20 text-os-xs font-bold tracking-wider uppercase hover:border-os-accent/40 hover:text-os-accent transition-colors bg-afrikoni-cream/20"
           >
-            <span className={`${workspaceMode === 'simple' ? 'text-[#D4A937]' : 'text-gray-600'}`}>
+            <span className={`${workspaceMode === 'simple' ? 'text-os-accent' : 'text-os-text-secondary'}`}>
               Simple
             </span>
             <span className="h-3 w-px bg-os-accent/20" />
-            <span className={`${workspaceMode === 'operator' ? 'text-[#D4A937]' : 'text-gray-600'}`}>
+            <span className={`${workspaceMode === 'operator' ? 'text-os-accent' : 'text-os-text-secondary'}`}>
               Operator
             </span>
           </button>
@@ -82,7 +82,7 @@ export default function TradeOSHeader({
           {/* Quick Add */}
           <button
             onClick={() => navigate('/dashboard/products/new')}
-            className="hidden sm:flex items-center gap-1.5 h-8 px-3 rounded-lg bg-[#D4A937] hover:bg-[#C09830] text-black text-os-xs font-bold transition-all shadow-[0_0_15px_rgba(212,169,55,0.2)]"
+            className="hidden sm:flex items-center gap-1.5 h-8 px-3 rounded-lg bg-os-accent hover:bg-os-accent-dark text-black text-os-xs font-bold transition-all shadow-[0_0_15px_rgba(212,169,55,0.2)]"
           >
             <Plus className="w-3.5 h-3.5 stroke-[3px]" />
             <span>NEW</span>
@@ -91,14 +91,14 @@ export default function TradeOSHeader({
           {/* AI Copilot */}
           <button
             onClick={onToggleCopilot}
-            className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-[#D4A937] hover:bg-afrikoni-cream/30 dark:hover:bg-white/5 transition-colors relative group"
+            className="p-2 rounded-lg text-os-text-secondary dark:text-gray-400 hover:text-os-accent hover:bg-afrikoni-cream/30 dark:hover:bg-white/5 transition-colors relative group"
           >
             <Sparkles className="w-4 h-4" />
-            <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-[#D4A937] animate-pulse" />
+            <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-os-accent animate-pulse" />
           </button>
 
           {/* Notifications */}
-          <button className="p-2 rounded-lg text-gray-600 dark:text-gray-400 hover:text-[#D4A937] hover:bg-afrikoni-cream/30 dark:hover:bg-white/5 transition-colors relative">
+          <button className="p-2 rounded-lg text-os-text-secondary dark:text-gray-400 hover:text-os-accent hover:bg-afrikoni-cream/30 dark:hover:bg-white/5 transition-colors relative">
             <Bell className="w-4 h-4" />
             {notificationCount > 0 && (
               <span className="absolute top-2 right-2.5 w-1.5 h-1.5 rounded-full bg-red-500 ring-2 ring-white" />
@@ -119,7 +119,7 @@ export default function TradeOSHeader({
         {/* Kernel Status Badge */}
         <div className="flex items-center gap-2 flex-shrink-0 mr-6 z-10">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-          <span className="text-os-xs font-black uppercase tracking-[0.2em] text-gray-600">KERNEL ACTIVE</span>
+          <span className="text-os-xs font-black uppercase tracking-[0.2em] text-os-text-secondary">KERNEL ACTIVE</span>
         </div>
 
         {/* Scrolling Intelligence Ribbon */}
@@ -134,29 +134,29 @@ export default function TradeOSHeader({
             <div className="flex items-center gap-8 animate-marquee whitespace-nowrap">
               {/* Active Trades */}
               <div className="flex items-center gap-2 group cursor-pointer hover:bg-afrikoni-cream/20 px-2 py-0.5 rounded transition-colors">
-                <Activity className="w-3 h-3 text-[#D4A937]" />
-                <span className="text-os-xs uppercase tracking-wide text-gray-600 group-hover:text-gray-800">Active Trades</span>
+                <Activity className="w-3 h-3 text-os-accent" />
+                <span className="text-os-xs uppercase tracking-wide text-os-text-secondary group-hover:text-gray-800">Active Trades</span>
                 <span className="text-os-xs font-mono text-afrikoni-deep ml-1">{activeTrades}</span>
               </div>
 
               {/* Capital */}
               <div className="flex items-center gap-2 group cursor-pointer hover:bg-[#111] px-2 py-0.5 rounded transition-colors">
                 <Database className="w-3 h-3 text-emerald-500" />
-                <span className="text-os-xs uppercase tracking-wide text-gray-600 group-hover:text-gray-800">Capital Flow</span>
+                <span className="text-os-xs uppercase tracking-wide text-os-text-secondary group-hover:text-gray-800">Capital Flow</span>
                 <span className="text-os-xs font-mono text-afrikoni-deep ml-1">${(capitalInMotion / 1000).toFixed(0)}K</span>
               </div>
 
               {/* Compliance */}
               <div className="flex items-center gap-2 group cursor-pointer hover:bg-[#111] px-2 py-0.5 rounded transition-colors">
                 <ShieldCheck className="w-3 h-3 text-os-blue" />
-                <span className="text-os-xs uppercase tracking-wide text-gray-600 group-hover:text-gray-800">AfCFTA</span>
+                <span className="text-os-xs uppercase tracking-wide text-os-text-secondary group-hover:text-gray-800">AfCFTA</span>
                 <span className="text-os-xs font-mono text-afrikoni-deep ml-1">{complianceReady}%</span>
               </div>
 
               {/* Network */}
               <div className="flex items-center gap-2 group cursor-pointer hover:bg-[#111] px-2 py-0.5 rounded transition-colors">
                 <Globe className="w-3 h-3 text-purple-500" />
-                <span className="text-os-xs uppercase tracking-wide text-gray-600 group-hover:text-gray-800">Corridors</span>
+                <span className="text-os-xs uppercase tracking-wide text-os-text-secondary group-hover:text-gray-800">Corridors</span>
                 <span className="text-os-xs font-mono text-afrikoni-deep ml-1">{activeCorridors} Active</span>
               </div>
             </div>
@@ -165,7 +165,7 @@ export default function TradeOSHeader({
 
         {/* System Clock */}
         <div className="hidden md:flex items-center gap-2 flex-shrink-0 ml-4 z-10 pl-4 border-l border-os-accent/20">
-          <span className="text-os-xs font-mono text-gray-600">UTC {new Date().toISOString().slice(11, 16)}</span>
+          <span className="text-os-xs font-mono text-os-text-secondary">UTC {new Date().toISOString().slice(11, 16)}</span>
         </div>
       </div>
     </div>

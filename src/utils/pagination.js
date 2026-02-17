@@ -21,36 +21,37 @@ export async function paginateQuery(query, options = {}) {
     pageSize = DEFAULT_PAGE_SIZE,
     orderBy = 'created_at',
     ascending = false,
-    selectOverride = null // Optional: override select if needed
+    selectOverride = null,
+    abortSignal = null
   } = options;
-  
+
   const limit = Math.min(pageSize, MAX_PAGE_SIZE);
   const offset = (page - 1) * limit;
-  
+
   // Apply ordering and range
   let finalQuery = query
     .order(orderBy, { ascending })
     .range(offset, offset + limit - 1);
-  
-  // Only call select() if we need to override, or if query doesn't already have select
-  // Note: Supabase queries track if select() was called, but we can't check that easily
-  // So we use selectOverride to preserve existing select
+
+  // Only apply default select if selectOverride is provided
+  // If no selectOverride and query already has selections, Supabase handles it
   if (selectOverride) {
     finalQuery = finalQuery.select(selectOverride, { count: 'exact' });
-  } else {
-    // Try to preserve existing select by not calling select() again
-    // If query already has select(), this will preserve it
-    // Otherwise, default to '*'
-    finalQuery = finalQuery.select('*', { count: 'exact' });
   }
-  
-  const { data, error, count } = await finalQuery;
-  
+
+  // Handle AbortSignal
+  if (abortSignal) {
+    finalQuery = finalQuery.abortSignal(abortSignal);
+  }
+
+  const result = await finalQuery;
+  const { data, error, count } = result;
+
   if (error) throw error;
-  
+
   const totalPages = count ? Math.ceil(count / limit) : 0;
   const hasMore = page < totalPages;
-  
+
   return {
     data: data || [],
     page,
@@ -71,17 +72,17 @@ export async function loadMoreQuery(query, currentData, options = {}) {
     orderBy = 'created_at',
     ascending = false
   } = options;
-  
+
   const currentCount = currentData.length;
   const limit = Math.min(pageSize, MAX_PAGE_SIZE);
-  
+
   const { data, error } = await query
     .order(orderBy, { ascending })
     .range(currentCount, currentCount + limit - 1)
     .select('*');
-  
+
   if (error) throw error;
-  
+
   return {
     data: data || [],
     hasMore: (data || []).length === limit
@@ -110,7 +111,7 @@ export function getPaginationInfo(paginationState) {
   const { page, totalPages, totalCount, pageSize } = paginationState;
   const start = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
   const end = Math.min(page * pageSize, totalCount);
-  
+
   return {
     start,
     end,

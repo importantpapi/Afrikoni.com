@@ -91,14 +91,14 @@ export default function TradeCorridorWidget({ className = '' }) {
   }, [canLoadData, profileCompanyId]);
 
   return (
-    <Card className={`border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-os-sm ${className}`}>
+    <Card className={`border-os-stroke dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-os-sm ${className}`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-os-sm font-semibold dark:text-[#F5F0E8] flex items-center gap-2">
             <Globe className="w-4 h-4" />
             Trade Corridors
           </CardTitle>
-          <span className="text-os-xs font-mono dark:text-gray-600">{corridors.length} routes</span>
+          <span className="text-os-xs font-mono dark:text-os-text-secondary">{corridors.length} routes</span>
         </div>
       </CardHeader>
       <CardContent>
@@ -109,7 +109,7 @@ export default function TradeCorridorWidget({ className = '' }) {
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: i * 0.05 }}
-              className="flex items-center justify-between p-2.5 rounded-lg dark:bg-[#1A1A1A] hover:bg-gray-100 dark:hover:bg-[#222] border border-transparent hover:border-[#D4A937]/10 transition-all"
+              className="flex items-center justify-between p-2.5 rounded-lg dark:bg-[#1A1A1A] hover:bg-gray-100 dark:hover:bg-[#222] border border-transparent hover:border-os-accent/10 transition-all"
             >
               <div className="flex items-center gap-2 min-w-0">
                 <span className="text-os-sm">{corridor.flag_from}</span>

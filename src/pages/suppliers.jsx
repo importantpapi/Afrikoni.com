@@ -418,7 +418,7 @@ export default function Suppliers() {
                     {/* Image */}
                     <div className="h-48 bg-gradient-to-br from-zinc-100 to-zinc-200 overflow-hidden">
                       {supplier.logo_url ? (
-                        <img src={supplier.logo_url} alt={supplier.company_name} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                        <img src={supplier.logo_url} alt={supplier.company_name} className="w-full h-full object-cover" width="200" height="200" loading="lazy" decoding="async" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <Building className="w-20 h-20 text-afrikoni-deep/70" />

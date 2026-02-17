@@ -192,18 +192,18 @@ export function IdentityLayer({
                             initial={{ opacity: 0, y: -10, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                            className="fixed w-56 bg-white dark:bg-[#141414] border border-gray-200 dark:border-[#2A2A2A] rounded-os-sm shadow-2xl z-[1002] overflow-hidden"
+                            className="fixed w-56 bg-os-surface-solid border border-os-stroke rounded-os-sm shadow-2xl z-[1002] overflow-hidden"
                             style={{
                                 top: `${menuPosition.top}px`,
                                 right: `${menuPosition.right}px`,
                             }}
                         >
                             <div className="py-1">
-                                <div className="px-4 py-3 border-b border-gray-200 dark:border-[#1E1E1E]">
-                                    <div className="font-bold text-gray-900 dark:text-[#F5F0E8] text-os-sm truncate">
-                                        {user?.email || 'user@example.com'}
+                                <div className="px-4 py-3 border-b border-os-stroke">
+                                    <div className="font-bold text-os-text-primary text-os-sm truncate">
+                                        {user?.email || 'Institutional Identity'}
                                     </div>
-                                    <div className="text-os-xs text-gray-500 uppercase mt-0.5 font-bold tracking-tighter">
+                                    <div className="text-os-xs text-os-text-secondary uppercase mt-0.5 font-bold tracking-tighter">
                                         {orgName}
                                     </div>
                                 </div>
@@ -219,14 +219,14 @@ export function IdentityLayer({
                                     <Link
                                         key={item.to}
                                         to={item.to}
-                                        className="flex items-center gap-3 px-4 py-2 hover:bg-gray-100 dark:hover:bg-[#1A1A1A] text-os-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-[#F5F0E8] transition-colors"
+                                        className="flex items-center gap-3 px-4 py-2 hover:bg-os-accent/10 text-os-sm text-os-text-secondary hover:text-os-text-primary transition-colors"
                                         onClick={() => setUserMenuOpen(false)}
                                     >
-                                        <item.icon className="w-4 h-4 text-gray-500" />
+                                        <item.icon className="w-4 h-4 text-os-text-secondary" />
                                         {item.label}
                                     </Link>
                                 ))}
-                                <div className="border-t border-gray-200 dark:border-[#1E1E1E] my-1"></div>
+                                <div className="border-t border-os-stroke my-1"></div>
                                 <button
                                     onClick={handleLogout}
                                     className="flex items-center gap-3 w-full text-left px-4 py-2 hover:bg-red-950/30 text-os-sm text-red-400 transition-colors"

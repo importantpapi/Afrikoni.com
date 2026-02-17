@@ -7,6 +7,7 @@ import { FileText, Calendar, ArrowRight, MessageCircle } from 'lucide-react';
 import SEO from '@/components/SEO';
 import { openWhatsAppCommunity } from '@/utils/whatsappCommunity';
 import { useLanguage } from '@/i18n/LanguageContext';
+import OptimizedImage from '@/components/OptimizedImage';
 
 /**
  * Blog/News placeholder page

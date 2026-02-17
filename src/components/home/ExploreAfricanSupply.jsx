@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
-import { ArrowRight, MapPin, Package, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowRight, MapPin, Package, ChevronLeft, ChevronRight, Globe, ShieldCheck } from 'lucide-react';
 import { Sprout, Shirt, HardHat, Heart, Home, Smartphone } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
 import { useCurrency } from '@/contexts/CurrencyContext';
@@ -81,12 +81,12 @@ const getFlagForCountryName = (countryName) => {
 
 // Popular categories with icons and search keywords
 const popularCategories = [
-  { name: 'Agriculture & Food', icon: Sprout, key: 'agriculture', keywords: ['agriculture', 'food', 'cocoa', 'coffee', 'grain', 'produce'] },
-  { name: 'Textiles & Apparel', icon: Shirt, key: 'textiles', keywords: ['textile', 'fabric', 'apparel', 'clothing', 'garment'] },
-  { name: 'Beauty & Personal Care', icon: Heart, key: 'beauty', keywords: ['beauty', 'cosmetic', 'skincare', 'shea', 'soap'] },
-  { name: 'Industrial & Construction', icon: HardHat, key: 'industrial', keywords: ['industrial', 'construction', 'machinery', 'equipment', 'building'] },
-  { name: 'Home & Living', icon: Home, key: 'home', keywords: ['home', 'furniture', 'decor', 'living', 'household'] },
-  { name: 'Consumer Electronics', icon: Smartphone, key: 'electronics', keywords: ['electronics', 'phone', 'mobile', 'smartphone', 'device'] }
+  { name: 'Agricultural Products', icon: Sprout, key: 'agriculture', keywords: ['agriculture', 'food', 'cocoa', 'coffee', 'grain', 'produce'] },
+  { name: 'Food & Beverages', icon: Heart, key: 'food-beverage', keywords: ['food', 'beverage', 'drink', 'processed'] },
+  { name: 'Textiles & Fashion', icon: Shirt, key: 'textiles', keywords: ['textile', 'fabric', 'fashion', 'clothing', 'garment'] },
+  { name: 'Minerals & Mining', icon: HardHat, key: 'minerals', keywords: ['mineral', 'mining', 'gold', 'ore', 'stone'] },
+  { name: 'Electronics', icon: Smartphone, key: 'electronics', keywords: ['electronics', 'phone', 'device', 'appliance'] },
+  { name: 'Machinery & Equipment', icon: Home, key: 'machinery', keywords: ['machinery', 'equipment', 'industrial', 'tools'] }
 ];
 
 export default function ExploreAfricanSupply() {
@@ -97,11 +97,13 @@ export default function ExploreAfricanSupply() {
   const [loadingProducts, setLoadingProducts] = useState({});
   const [hasMore, setHasMore] = useState({});
   const [page, setPage] = useState({});
+  const [categoryMap, setCategoryMap] = useState({});
+  const [categoryCounts, setCategoryCounts] = useState({});
   const countryScrollRef = useRef(null);
   const observerRefs = useRef({});
 
   // Load products for each category with pagination
-  const loadCategoryProducts = useCallback(async (categoryKey, pageNum = 0, append = false) => {
+  const loadCategoryProducts = useCallback(async (categoryKey, pageNum = 0, append = false, catMap = categoryMap) => {
     const category = popularCategories.find(c => c.key === categoryKey);
     if (!category) return;
 
@@ -110,41 +112,53 @@ export default function ExploreAfricanSupply() {
 
       const limit = 12;
       const offset = pageNum * limit;
+      const categoryId = catMap[category.name];
 
-      // Build two queries: one for category match, one for keyword match
-      // Then combine and deduplicate results
+      // Query 1: Products with matching category ID
+      let categoryProducts = [];
+      if (categoryId) {
+        const { data, error } = await supabase
+          .from('products')
+          .select('id, name, price_min, price_max, currency, min_order_quantity, country_of_origin, images, product_images(url, is_primary)')
+          .eq('status', 'active')
+          .eq('category_id', categoryId)
+          .order('created_at', { ascending: false })
+          .limit(limit * 2);
 
-      // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
-      // Query 1: Products with matching category name in database
-      const { data: categoryProducts } = await supabase
-        .from('products')
-        .select('id, name, price_min, price_max, currency, moq, country_of_origin, product_images(url, is_primary), categories!inner(name)')
-        .eq('status', 'active')
-        .ilike('categories.name', `%${category.name}%`)
-        .order('created_at', { ascending: false })
-        .limit(limit * 2);
-
-      // ✅ KERNEL-SCHEMA ALIGNMENT: Query 2: Products with keywords in name (using OR for multiple keywords)
-      const keywordFilters = category.keywords.map(keyword => `name.ilike.%${keyword}%`);
-
-      let keywordQuery = supabase
-        .from('products')
-        .select('id, name, price_min, price_max, currency, moq, country_of_origin, product_images(url, is_primary), categories(name)')
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .limit(limit * 2);
-
-      if (keywordFilters.length > 0) {
-        keywordQuery = keywordQuery.or(keywordFilters.join(','));
+        if (error) {
+          console.warn('Category ID query failed:', error);
+        } else {
+          categoryProducts = data || [];
+        }
       }
 
-      const { data: keywordProducts } = await keywordQuery;
+      // Query 2: Keyword search - only if needed or as additional discovery
+      let keywordProducts = [];
+      const orConditions = category.keywords.length > 0
+        ? category.keywords.map(kw => `name.ilike.%${kw}%`).join(',')
+        : null;
+
+      if (orConditions) {
+        const { data, error } = await supabase
+          .from('products')
+          .select('id, name, price_min, price_max, currency, min_order_quantity, country_of_origin, images, product_images(url, is_primary)')
+          .eq('status', 'active')
+          .or(orConditions)
+          .order('created_at', { ascending: false })
+          .limit(limit * 2);
+
+        if (error) {
+          console.warn('Keyword search query failed:', error);
+        } else {
+          keywordProducts = data || [];
+        }
+      }
 
       // Combine results and remove duplicates
-      const allProducts = [...(categoryProducts || []), ...(keywordProducts || [])];
+      const allProducts = [...categoryProducts, ...keywordProducts];
       const productMap = new Map();
       allProducts.forEach(p => {
-        if (!productMap.has(p.id)) {
+        if (p && p.id && !productMap.has(p.id)) {
           productMap.set(p.id, p);
         }
       });
@@ -152,28 +166,70 @@ export default function ExploreAfricanSupply() {
       // Get unique products and apply pagination
       const uniqueProducts = Array.from(productMap.values());
       const products = uniqueProducts.slice(offset, offset + limit);
-      const error = null;
 
-      if (!error && products) {
-        setCategoryProducts(prev => ({
-          ...prev,
-          [categoryKey]: append ? [...(prev[categoryKey] || []), ...products] : products
-        }));
-        setHasMore(prev => ({ ...prev, [categoryKey]: products.length === limit }));
-        setPage(prev => ({ ...prev, [categoryKey]: pageNum }));
-      }
+      setCategoryProducts(prev => ({
+        ...prev,
+        [categoryKey]: append ? [...(prev[categoryKey] || []), ...products] : products
+      }));
+      setHasMore(prev => ({ ...prev, [categoryKey]: products.length === limit }));
+      setPage(prev => ({ ...prev, [categoryKey]: pageNum }));
     } catch (error) {
       console.error(`Error loading products for ${category.name}:`, error);
     } finally {
       setLoadingProducts(prev => ({ ...prev, [categoryKey]: false }));
     }
-  }, []);
+  }, [categoryMap]);
 
-  // Initial load - only once on mount
+  // Initial load - first fetch categories, then products
   useEffect(() => {
-    popularCategories.forEach(category => {
-      loadCategoryProducts(category.key, 0, false);
-    });
+    const initLoad = async () => {
+      try {
+        // Fetch category IDs once
+        const { data: categories } = await supabase
+          .from('categories')
+          .select('id, name');
+
+        const mapping = {};
+        if (categories) {
+          categories.forEach(c => {
+            mapping[c.name] = c.id;
+          });
+          setCategoryMap(mapping);
+
+          // TRASNPARENCY FIX: Fetch actual counts for categories
+          const { data: countsData } = await supabase
+            .from('products')
+            .select('category_id', { count: 'exact', head: true });
+
+          // Note: In real production, we'd group by category_id on the server. 
+          // For now, we'll fetch general counts to show 'Live Production' activity.
+          const { data: totalProducts } = await supabase
+            .from('products')
+            .select('category_id')
+            .eq('status', 'active');
+
+          const counts = {};
+          totalProducts?.forEach(p => {
+            if (p.category_id) {
+              const catName = categories.find(c => c.id === p.category_id)?.name;
+              if (catName) {
+                counts[catName] = (counts[catName] || 0) + 1;
+              }
+            }
+          });
+          setCategoryCounts(counts);
+        }
+
+        // Load products for each category
+        popularCategories.forEach(category => {
+          loadCategoryProducts(category.key, 0, false, mapping);
+        });
+      } catch (err) {
+        console.error('Failed to initialize ExploreAfricanSupply:', err);
+      }
+    };
+
+    initLoad();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -212,77 +268,74 @@ export default function ExploreAfricanSupply() {
   };
 
   return (
-    <section className="py-12 md:py-16 lg:py-20 bg-gradient-to-b from-white to-afrikoni-offwhite">
-      <div className="max-w-7xl mx-auto px-4">
-        {/* Header */}
+    <section className="py-20 md:py-28 bg-os-bg relative overflow-hidden">
+      {/* Subtle Texture */}
+      <div className="absolute inset-0 opacity-[0.015] pointer-events-none bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjciIG51bU9jdGF2ZXM9IjQiLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsdGVyPSJ1cmwoI24pIiBvcGFjaXR5PSIuNSIvPjwvc3ZnPg==')]" />
+      <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-black/[0.01] to-transparent pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-6">
+        {/* Header - Simple & Clean */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-50px' }}
-          transition={{ duration: 0.4 }}
-          className="text-center mb-8 md:mb-12"
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="text-center mb-12 md:mb-16"
         >
-          <h2 className="text-h2-mobile md:text-h2 font-semibold leading-[1.2] text-afrikoni-chestnut mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-os-accent/5 border border-os-accent/10 rounded-full mb-6">
+            <Globe className="w-3.5 h-3.5 text-os-accent" />
+            <span className="text-[10px] font-bold text-os-accent uppercase tracking-[0.2em]">Verified African Network</span>
+          </div>
+          <h2 className="text-36 md:text-48 lg:text-56 font-bold leading-[1.1] text-os-text-primary mb-8 tracking-tight">
             {t('explore_supply')}
           </h2>
-          <p className="text-body font-normal leading-[1.6] text-afrikoni-deep/80 max-w-3xl mx-auto">
-            {t('explore_supply_subtitle')}
+          <p className="text-16 md:text-18 font-medium leading-[1.6] text-os-text-secondary max-w-2xl mx-auto">
+            Direct access to premium manufacturers and vetted suppliers across the continent.
           </p>
         </motion.div>
 
-        {/* Source by Country - Slider with all 54 countries - Hidden on Mobile */}
+        {/* Source by Country */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-          className="hidden md:block mb-10 md:mb-16"
+          transition={{ duration: 0.8, delay: 0.1 }}
+          className="hidden md:block mb-16"
         >
-          <div className="flex items-center justify-between mb-3 md:mb-4">
-            <div className="flex-1 min-w-0">
-              <h3 className="text-os-lg md:text-h3 font-semibold leading-[1.3] text-afrikoni-chestnut flex items-center gap-2 mb-1">
-                {/* Mobile: Neutral brown icon, Desktop: Gold icon */}
-                <MapPin className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-chestnut/70 md:text-os-accent flex-shrink-0" />
-                <span className="truncate">{t('source_by_country')}</span>
+          <div className="flex items-end justify-between mb-8 border-b border-os-stroke pb-6">
+            <div>
+              <h3 className="text-24 font-bold text-os-text-primary flex items-center gap-3 mb-2 tracking-tight">
+                <MapPin className="w-6 h-6 text-os-accent" />
+                {t('source_by_country')}
               </h3>
-              <p className="text-os-xs md:text-meta font-medium text-afrikoni-deep/60 leading-tight">
-                Supplier availability varies by category and verification status
+              <p className="text-12 font-medium text-os-text-secondary uppercase tracking-[0.1em] opacity-60">
+                Source by region and country
               </p>
             </div>
-            <Link to="/countries" className="flex-shrink-0 ml-2">
-              {/* Mobile: Neutral brown border, Desktop: Gold border */}
-              <Button variant="outline" size="sm" className="border-afrikoni-chestnut/30 md:border-os-accent text-afrikoni-chestnut hover:bg-afrikoni-chestnut/5 md:hover:bg-os-accent/10 text-os-xs md:text-os-sm min-h-[36px] md:min-h-[32px] px-3 md:px-4 touch-manipulation">
+            <Link to="/countries">
+              <Button variant="outline" className="border-os-stroke hover:border-os-accent hover:bg-os-accent/5 px-8 rounded-xl font-bold text-12 h-12">
                 {t('view_all_countries')}
               </Button>
             </Link>
           </div>
 
-          {/* Country Slider */}
-          <div className="relative">
+          <div className="relative group/countries">
             <div
               ref={countryScrollRef}
-              className="flex gap-3 overflow-x-auto scrollbar-hide pb-4"
-              style={{
-                scrollbarWidth: 'none',
-                msOverflowStyle: 'none',
-                WebkitOverflowScrolling: 'touch'
-              }}
+              className="flex gap-4 overflow-x-auto scrollbar-hide pb-8 px-1"
+              style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
             >
               {ALL_AFRICAN_COUNTRIES.map((country, idx) => (
                 <motion.div
                   key={idx}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.3, delay: idx * 0.01 }}
-                  whileHover={{ y: -4, scale: 1.05 }}
+                  whileHover={{ y: -8 }}
                   className="flex-shrink-0"
                 >
-                  <Link to={`/marketplace?country=${country.code}`} className="block touch-manipulation active:scale-95">
-                    <Card className="w-28 md:w-36 h-auto min-h-[90px] md:min-h-[110px] hover:shadow-os-gold-lg transition-all cursor-pointer border-2 md:border border-os-accent/30 md:border-os-accent/20 hover:border-os-accent/50 md:hover:border-os-accent/40 bg-white md:bg-afrikoni-offwhite flex items-center justify-center shadow-md md:shadow-none">
-                      <CardContent className="p-2.5 md:p-3 text-center">
-                        <div className="text-2.5xl md:text-4xl mb-1.5 md:mb-2">{country.flag}</div>
-                        <h4 className="font-bold text-afrikoni-chestnut text-os-xs md:text-os-sm leading-tight whitespace-normal break-words px-1">
+                  <Link to={`/marketplace?country=${country.code}`} className="block">
+                    <Card className="w-36 md:w-44 bg-os-surface-solid border border-os-stroke hover:border-os-accent hover:shadow-xl transition-all duration-500 cursor-pointer rounded-2xl overflow-hidden group/country-card">
+                      <CardContent className="p-6 text-center">
+                        <div className="text-4xl md:text-5xl mb-4 group-hover/country-card:scale-110 transition-transform duration-500">{country.flag}</div>
+                        <h4 className="font-bold text-os-text-primary text-13 md:text-14 tracking-tight group-hover/country-card:text-os-accent transition-colors">
                           {country.name}
                         </h4>
                       </CardContent>
@@ -292,309 +345,189 @@ export default function ExploreAfricanSupply() {
               ))}
             </div>
 
-            {/* Scroll Buttons - Perfectly centered relative to card height */}
             <button
               onClick={() => scrollCountries('left')}
-              className="absolute left-2 top-[50px] md:top-[55px] -translate-y-1/2 bg-afrikoni-cream border-2 border-os-accent/30 rounded-full w-10 h-10 shadow-os-gold-lg hover:bg-afrikoni-offwhite z-10 hidden md:flex items-center justify-center transition-all"
-              aria-label="Scroll left"
+              className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-6 bg-os-surface-solid border border-os-stroke rounded-full w-12 h-12 shadow-xl hover:bg-os-accent hover:text-white z-10 hidden md:flex items-center justify-center transition-all opacity-0 group-hover/countries:opacity-100"
             >
-              <ChevronLeft className="w-5 h-5 text-os-accent" strokeWidth={2.5} />
+              <ChevronLeft className="w-6 h-6" />
             </button>
             <button
               onClick={() => scrollCountries('right')}
-              className="absolute right-2 top-[50px] md:top-[55px] -translate-y-1/2 bg-afrikoni-cream border-2 border-os-accent/30 rounded-full w-10 h-10 shadow-os-gold-lg hover:bg-afrikoni-offwhite z-10 hidden md:flex items-center justify-center transition-all"
-              aria-label="Scroll right"
+              className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-6 bg-os-surface-solid border border-os-stroke rounded-full w-12 h-12 shadow-xl hover:bg-os-accent hover:text-white z-10 hidden md:flex items-center justify-center transition-all opacity-0 group-hover/countries:opacity-100"
             >
-              <ChevronRight className="w-5 h-5 text-os-accent" strokeWidth={2.5} />
+              <ChevronRight className="w-6 h-6" />
             </button>
           </div>
-
-          <style>{`
-            .scrollbar-hide::-webkit-scrollbar {
-              display: none;
-            }
-          `}</style>
         </motion.div>
 
-        {/* Popular Categories with Infinite Vertical Scrolling Products */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-        >
-          <div className="flex items-center justify-between mb-5 md:mb-6">
-            <h3 className="text-os-lg md:text-os-2xl font-bold text-afrikoni-chestnut flex items-center gap-2">
-              {/* Mobile: Neutral brown icon, Desktop: Gold icon */}
-              <Package className="w-5 h-5 md:w-6 md:h-6 text-afrikoni-chestnut/70 md:text-os-accent flex-shrink-0" />
-              <span>{t('popular_categories')}</span>
-            </h3>
-          </div>
+        {/* Popular Categories */}
+        <div className="space-y-24">
+          {popularCategories.slice(0, 3).map((category, categoryIdx) => {
+            const Icon = category.icon;
+            const products = categoryProducts[category.key] || [];
+            const isLoading = loadingProducts[category.key];
+            const hasProducts = products.length > 0;
 
-          {/* Mobile: Show max 3 categories, collapse empty ones */}
-          <div className="space-y-12">
-            {popularCategories.slice(0, 3).map((category, categoryIdx) => {
-              const Icon = category.icon;
-              const products = categoryProducts[category.key] || [];
-              const isLoading = loadingProducts[category.key];
-              const hasProducts = products.length > 0;
-
-              // On mobile, collapse empty categories
-              if (!hasProducts && !isLoading) {
-                return (
-                  <div key={category.key} className="md:space-y-4">
-                    {/* Collapsed empty category - Mobile only */}
-                    <div className="md:hidden">
-                      <Link
-                        to={`/marketplace?category=${encodeURIComponent(category.name.toLowerCase())}`}
-                        className="flex items-center gap-2.5 group touch-manipulation active:scale-95 py-2"
-                      >
-                        <div className="w-9 h-9 bg-afrikoni-chestnut/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                          <Icon className="w-4.5 h-4.5 text-afrikoni-chestnut/60" />
-                        </div>
-                        <h4 className="text-os-sm font-semibold text-afrikoni-chestnut/70">
-                          {category.name}
-                        </h4>
-                        <ArrowRight className="w-3.5 h-3.5 text-afrikoni-chestnut/50 ml-auto flex-shrink-0" />
-                      </Link>
+            return (
+              <motion.div
+                key={category.key}
+                className="space-y-10"
+                initial={{ opacity: 0, y: 40 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.8 }}
+              >
+                {/* Category Header */}
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-os-accent/10">
+                  <div className="flex items-center gap-6 group/cat-header">
+                    <div className="w-16 h-16 md:w-20 md:h-20 bg-os-accent rounded-[24px] flex items-center justify-center shadow-lg group-hover/cat-header:scale-105 transition-transform duration-500">
+                      <Icon className="w-8 h-8 md:w-10 md:h-10 text-[#1A1512]" />
                     </div>
-                    {/* Desktop: Full empty category display */}
-                    <div className="hidden md:block space-y-4">
-                      <div className="flex items-center justify-between">
-                        <Link
-                          to={`/marketplace?category=${encodeURIComponent(category.name.toLowerCase())}`}
-                          className="flex items-center gap-3 group touch-manipulation active:scale-95"
-                        >
-                          <div className="w-10 h-10 bg-os-accent rounded-lg flex items-center justify-center shadow-os-gold-lg group-hover:scale-110 transition-transform flex-shrink-0">
-                            <Icon className="w-5 h-5 text-afrikoni-chestnut" />
-                          </div>
-                          <h4 className="text-os-xl font-bold text-afrikoni-chestnut group-hover:text-os-accent transition-colors">
-                            {category.name}
-                          </h4>
-                          <ArrowRight className="w-5 h-5 text-os-accent opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                        </Link>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <div className="h-[2px] w-4 bg-os-accent" />
+                        <span className="text-[10px] font-bold text-os-accent uppercase tracking-[0.2em]">Premium Supply</span>
                       </div>
-                      {/* Empty state for desktop */}
-                      <div className="text-center py-8 px-4">
-                        <div className="max-w-md mx-auto space-y-4">
-                          <p className="text-body font-normal leading-[1.6] text-afrikoni-deep/70 mb-4 px-2">
-                            Suppliers in this category are onboarding. Post a trade request to get matched with verified suppliers.
-                          </p>
-                          <Link to="/dashboard/rfqs/new" className="inline-block">
-                            <Button className="bg-os-accent hover:bg-os-accentDark text-white min-h-[44px] px-8 py-2.5 text-os-base font-semibold shadow-md">
-                              Post RFQ
-                              <ArrowRight className="w-4 h-4 ml-2" />
-                            </Button>
-                          </Link>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              }
-
-              return (
-                <div key={category.key} className="space-y-4">
-                  {/* Category Header - Mobile optimized */}
-                  <div className="flex items-center justify-between">
-                    <Link
-                      to={`/marketplace?category=${encodeURIComponent(category.name.toLowerCase())}`}
-                      className="flex items-center gap-2.5 md:gap-3 group touch-manipulation active:scale-95"
-                    >
-                      {/* Mobile: Neutral brown icon, Desktop: Gold icon */}
-                      <div className="w-11 h-11 md:w-10 md:h-10 bg-afrikoni-chestnut/10 md:bg-os-accent rounded-os-sm md:rounded-lg flex items-center justify-center shadow-os-md md:shadow-os-gold-lg group-hover:scale-110 transition-transform flex-shrink-0">
-                        <Icon className="w-5.5 h-5.5 md:w-5 md:h-5 text-afrikoni-chestnut md:text-afrikoni-chestnut" />
-                      </div>
-                      <h4 className="text-os-base md:text-os-xl font-bold text-afrikoni-chestnut group-hover:text-os-accent transition-colors">
+                      <h4 className="text-28 md:text-36 font-bold text-os-text-primary tracking-tight leading-none">
                         {category.name}
                       </h4>
-                      <ArrowRight className="w-4 h-4 md:w-5 md:h-5 text-afrikoni-chestnut/60 md:text-os-accent opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
-                    </Link>
-                  </div>
-
-                  {/* Products Grid with Infinite Scroll */}
-                  {isLoading && products.length === 0 ? (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                      {[...Array(8)].map((_, i) => (
-                        <div key={i} className="h-64 bg-afrikoni-cream/50 rounded-lg skeleton-loading" />
-                      ))}
-                    </div>
-                  ) : products.length > 0 ? (
-                    <>
-                      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 md:gap-3 lg:gap-4">
-                        {products.map((product, productIdx) => {
-                          const primaryImage = product.product_images?.find(img => img.is_primary) || product.product_images?.[0];
-                          return (
-                            <motion.div
-                              key={product.id || productIdx}
-                              initial={{ opacity: 0, y: 20 }}
-                              whileInView={{ opacity: 1, y: 0 }}
-                              viewport={{ once: true }}
-                              transition={{ duration: 0.4, delay: (productIdx % 8) * 0.05 }}
-                              whileHover={{ y: -4, scale: 1.02 }}
-                            >
-                              <Link to={`/product/${product.id}`} className="block touch-manipulation active:scale-[0.98]">
-                                <Card className="h-full hover:shadow-os-gold-lg transition-all cursor-pointer border-2 md:border border-os-accent/30 hover:border-os-accent/60 bg-[#FFF6E1] overflow-hidden rounded-os-sm shadow-md md:shadow-none">
-                                  <div className="h-36 md:h-48 bg-gradient-to-br from-afrikoni-cream to-afrikoni-offwhite relative overflow-hidden">
-                                    {primaryImage?.url ? (
-                                      <OptimizedImage
-                                        src={primaryImage.url}
-                                        alt={product.name || product.title || 'Product'}
-                                        className="w-full h-full object-cover"
-                                        width={400}
-                                        height={300}
-                                        quality={85}
-                                        placeholder="/product-placeholder.svg"
-                                        priority={productIdx < 4} // Load first 4 images immediately
-                                      />
-                                    ) : null}
-                                    <div className={`w-full h-full bg-gradient-to-br from-os-accent/10 to-afrikoni-chestnut/10 flex items-center justify-center ${primaryImage?.url ? 'hidden' : ''}`}>
-                                      <Package className="w-12 h-12 text-os-accent/40" />
-                                    </div>
-                                    {/* Save Button */}
-                                    {product.id && (
-                                      <div className="absolute top-2 right-2 z-20" onClick={(e) => e.stopPropagation()}>
-                                        <SaveButton itemId={product.id} itemType="product" />
-                                      </div>
-                                    )}
-                                  </div>
-                                  <CardContent className="p-2.5 md:p-3 space-y-1.5">
-                                    <h5 className="font-semibold text-afrikoni-chestnut text-os-sm md:text-os-lg leading-snug line-clamp-2 min-h-[2.5em]">
-                                      {product.name || product.title || 'Product Name'}
-                                    </h5>
-                                    {product.price_min ? (
-                                      <div className="text-os-xs md:text-os-base text-os-accent font-bold">
-                                        {product.price_max && product.price_max !== product.price_min ? (
-                                          <>
-                                            <Price
-                                              amount={product.price_min}
-                                              fromCurrency={product.currency || 'USD'}
-                                              className="inline"
-                                            />
-                                            {' - '}
-                                            <Price
-                                              amount={product.price_max}
-                                              fromCurrency={product.currency || 'USD'}
-                                              className="inline"
-                                            />
-                                          </>
-                                        ) : (
-                                          <Price
-                                            amount={product.price_min}
-                                            fromCurrency={product.currency || 'USD'}
-                                          />
-                                        )}
-                                      </div>
-                                    ) : (
-                                      <p className="text-os-xs md:text-os-sm text-afrikoni-deep/60 italic">
-                                        Price on request
-                                      </p>
-                                    )}
-                                    <div className="flex items-center justify-between pt-1">
-                                      {product.moq && (
-                                        <p className="text-os-xs md:text-os-xs text-afrikoni-deep/70">
-                                          MOQ: {product.moq}
-                                        </p>
-                                      )}
-                                      {product.country_of_origin && (
-                                        <div className="flex items-center gap-1 text-os-xs md:text-os-xs text-afrikoni-deep/80">
-                                          <MapPin className="w-3 h-3 text-afrikoni-deep/70" />
-                                          <span>
-                                            {(() => {
-                                              const city =
-                                                product?.city ||
-                                                product?.companies?.city ||
-                                                product?.companies?.town ||
-                                                '';
-                                              const country = product.country_of_origin;
-                                              if (city && country) return `${city}, ${country}`;
-                                              return country;
-                                            })()}
-                                          </span>
-                                          <span>
-                                            {getFlagForCountryName(product.country_of_origin)}
-                                          </span>
-                                        </div>
-                                      )}
-                                    </div>
-                                    {/* Quick View Button - Mobile optimized */}
-                                    <div className="pt-2">
-                                      {/* Mobile: Neutral brown border, Desktop: Gold border */}
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="w-full border-afrikoni-chestnut/30 md:border-os-accent/30 text-afrikoni-chestnut hover:bg-afrikoni-chestnut/5 md:hover:bg-os-accent/10 text-os-xs min-h-[44px] md:min-h-0 touch-manipulation active:scale-95 md:active:scale-100"
-                                        onClick={(e) => {
-                                          e.preventDefault();
-                                          window.location.href = `/product/${product.id}`;
-                                        }}
-                                      >
-                                        <span className="hidden sm:inline">Quick View</span>
-                                        <span className="sm:hidden">View</span>
-                                      </Button>
-                                    </div>
-                                  </CardContent>
-                                </Card>
-                              </Link>
-                            </motion.div>
-                          );
-                        })}
-                      </div>
-
-                      {/* Infinite Scroll Trigger */}
-                      {hasMore[category.key] && (
-                        <div
-                          ref={(el) => { observerRefs.current[category.key] = el; }}
-                          className="h-20 flex items-center justify-center"
-                        >
-                          {isLoading && (
-                            <div className="flex gap-2">
-                              <div className="w-2 h-2 bg-os-accent rounded-full loading-dot" style={{ animationDelay: '0s' }} />
-                              <div className="w-2 h-2 bg-os-accent rounded-full loading-dot" style={{ animationDelay: '0.3s' }} />
-                              <div className="w-2 h-2 bg-os-accent rounded-full loading-dot" style={{ animationDelay: '0.6s' }} />
-                            </div>
-                          )}
+                      {categoryCounts[category.name] && (
+                        <div className="flex items-center gap-2 mt-4">
+                          <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                          <span className="text-[11px] font-bold text-os-text-secondary uppercase tracking-[0.2em]">
+                            {categoryCounts[category.name]} Active Production Units
+                          </span>
                         </div>
                       )}
-                    </>
-                  ) : !isLoading ? (
-                    <div className="text-center py-6 md:py-8 px-4">
-                      <div className="max-w-md mx-auto space-y-4">
-                        <p className="text-os-sm md:text-body font-normal leading-[1.5] md:leading-[1.6] text-afrikoni-deep/70 mb-4 px-2">
-                          Suppliers in this category are onboarding. Post a trade request to get matched with verified suppliers.
-                        </p>
-                        <Link to="/dashboard/rfqs/new" className="inline-block">
-                          {/* Mobile: Neutral outline, Desktop: Gold primary */}
-                          <Button className="md:bg-os-accent md:hover:bg-os-accentDark md:text-white border-2 border-afrikoni-chestnut/30 md:border-0 text-afrikoni-chestnut md:text-white hover:bg-afrikoni-chestnut/5 md:hover:bg-os-accentDark min-h-[44px] px-6 md:px-8 py-2.5 md:py-2.5 text-os-sm md:text-os-base font-semibold shadow-md md:shadow-md active:scale-95 touch-manipulation">
-                            <span className="md:hidden">Post Trade Request</span>
-                            <span className="hidden md:inline">Post RFQ</span>
-                            <ArrowRight className="w-4 h-4 ml-2" />
+                    </div>
+                  </div>
+                  <Link
+                    to={`/marketplace?category=${encodeURIComponent(category.name.toLowerCase())}`}
+                    className="group flex items-center gap-3 px-6 h-14 bg-os-surface-solid border border-os-stroke rounded-xl hover:border-os-accent transition-all duration-300 shadow-sm"
+                  >
+                    <span className="text-13 font-bold text-os-text-primary uppercase tracking-[0.1em]">{t('view_all_category')}</span>
+                    <div className="w-8 h-8 rounded-full bg-os-accent/5 flex items-center justify-center group-hover:bg-os-accent group-hover:text-[#1A1512] transition-all duration-300">
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
+                  </Link>
+                </div>
+
+                {/* Products Grid */}
+                {isLoading && products.length === 0 ? (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                    {[...Array(4)].map((_, i) => (
+                      <div key={i} className="aspect-square bg-os-surface-solid rounded-[24px] border border-os-stroke shadow-sm animate-pulse" />
+                    ))}
+                  </div>
+                ) : products.length > 0 ? (
+                  <div className={`grid grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8 ${products.length === 1 ? 'lg:flex lg:justify-center' :
+                    products.length === 2 ? 'lg:flex lg:justify-center' :
+                      products.length === 3 ? 'lg:flex lg:justify-center' : ''
+                    }`}>
+                    {products.slice(0, 4).map((product, productIdx) => {
+                      const primaryImage = product.product_images?.find(img => img.is_primary) || product.product_images?.[0];
+                      const countryFlag = getFlagForCountryName(product.country_of_origin);
+
+                      return (
+                        <motion.div
+                          key={product.id || productIdx}
+                          whileHover={{ y: -8 }}
+                          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                          className={products.length < 4 ? 'w-full max-w-[300px]' : ''}
+                        >
+                          <Link to={`/product/${product.id}`} className="block group/product">
+                            <Card className="h-full bg-os-surface-solid border border-os-stroke hover:border-os-accent hover:shadow-xl transition-all duration-500 rounded-[24px] overflow-hidden flex flex-col relative">
+                              {/* Verification Badge */}
+                              <div className="absolute top-4 left-4 z-10">
+                                <div className="flex items-center gap-1.5 bg-os-surface-solid/95 backdrop-blur-md px-3 py-1.5 rounded-full border border-os-stroke shadow-sm">
+                                  <ShieldCheck className="w-3.5 h-3.5 text-os-accent" />
+                                  <span className="text-[9px] font-bold tracking-[0.12em] text-os-text-primary uppercase">Verified</span>
+                                </div>
+                              </div>
+
+                              <div className="aspect-[4/5] bg-os-bg relative overflow-hidden">
+                                {primaryImage?.url ? (
+                                  <OptimizedImage
+                                    src={primaryImage.url}
+                                    alt={product.name}
+                                    className="w-full h-full object-cover group-hover/product:scale-105 transition-transform duration-[1.5s]"
+                                    width={400}
+                                    height={500}
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center opacity-20">
+                                    <Package className="w-16 h-16 text-os-text-primary" />
+                                  </div>
+                                )}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/5 to-transparent opacity-0 group-hover/product:opacity-100 transition-opacity duration-500" />
+                              </div>
+
+                              <CardContent className="p-6 flex flex-col flex-1 relative bg-os-surface-solid">
+                                <div className="flex items-center gap-2 mb-4">
+                                  {countryFlag && <span className="text-xl grayscale group-hover/product:grayscale-0 transition-all">{countryFlag}</span>}
+                                  <span className="text-[10px] font-bold text-os-text-secondary uppercase tracking-widest">{product.country_of_origin}</span>
+                                </div>
+                                <h5 className="font-semibold text-os-text-primary text-16 md:text-18 mb-4 tracking-tight leading-tight group-hover/product:text-os-accent transition-colors">
+                                  {product.name}
+                                </h5>
+                                <div className="mt-auto pt-4 border-t border-os-stroke flex items-center justify-between">
+                                  <div>
+                                    <Price
+                                      amount={product.price_min}
+                                      fromCurrency={product.currency || 'USD'}
+                                      className="text-18 font-bold text-os-text-primary tracking-tight"
+                                    />
+                                    <p className="text-[9px] font-bold text-os-text-secondary/80 uppercase tracking-widest mt-1">Best Market Rate</p>
+                                  </div>
+                                  <div className="w-9 h-9 rounded-full border border-os-stroke flex items-center justify-center group-hover/product:bg-os-accent group-hover/product:text-[#1A1512] transition-all duration-500">
+                                    <ArrowRight className="w-4 h-4" />
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          </Link>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="bg-os-surface-solid border border-os-stroke rounded-[32px] p-12 md:p-20 text-center relative overflow-hidden group/concierge shadow-premium">
+                    <div className="absolute inset-0 bg-os-accent/5 opacity-0 group-hover/concierge:opacity-100 transition-opacity duration-700" />
+                    <div className="max-w-2xl mx-auto relative z-10">
+                      <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-os-accent/10 rounded-full mb-8">
+                        <span className="w-1.5 h-1.5 rounded-full bg-os-accent animate-pulse" />
+                        <span className="text-[10px] font-bold text-os-accent uppercase tracking-[0.2em]">Institutional Sourcing</span>
+                      </div>
+                      <h5 className="text-24 md:text-32 font-bold text-os-text-primary mb-6 tracking-tight">Bespoke Concierge Matching</h5>
+                      <p className="text-16 md:text-18 text-os-text-secondary font-medium mb-12 leading-relaxed">
+                        Our sourcing team is currently vetting manufacturers in the <span className="text-os-text-primary font-bold">{category.name}</span> sector.
+                        Request automated matching to be connected within 24–48 hours.
+                      </p>
+                      <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <Link to="/dashboard/rfqs/new">
+                          <Button className="bg-os-accent hover:bg-os-accent/90 text-[#1A1512] h-14 px-10 rounded-xl font-bold uppercase tracking-[0.1em] shadow-lg flex items-center gap-3">
+                            Initiate Trade Request
+                            <ArrowRight className="w-5 h-5" />
                           </Button>
                         </Link>
+                        <div className="flex flex-col items-start px-4 text-left border-l border-os-stroke h-14 justify-center">
+                          <span className="text-[10px] uppercase tracking-widest text-os-text-secondary font-black">Trade SLA</span>
+                          <span className="text-[11px] font-bold text-os-text-primary">24h Response Guaranteed</span>
+                        </div>
                       </div>
                     </div>
-                  ) : null}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Mobile: "View All Categories" Link - Only show if more than 3 categories */}
-          {popularCategories.length > 3 && (
-            <div className="md:hidden mt-8 text-center">
-              <Link to="/marketplace">
-                <Button
-                  variant="outline"
-                  className="border-2 border-afrikoni-chestnut/30 text-afrikoni-chestnut hover:bg-afrikoni-chestnut/5 min-h-[44px] px-6 py-2.5 text-os-sm font-semibold touch-manipulation active:scale-95"
-                >
-                  View All Categories
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </Link>
-            </div>
-          )}
-        </motion.div>
+                  </div>
+                )}
+              </motion.div>
+            );
+          })}
+        </div>
       </div>
+
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .italic-display { font-family: inherit; font-style: italic; }
+      `}</style>
     </section>
   );
 }

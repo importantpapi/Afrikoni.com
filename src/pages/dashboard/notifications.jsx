@@ -507,7 +507,7 @@ export default function NotificationsCenter() {
                                       className={`text-os-xs ${notification.type === 'order' ? 'border-os-accent text-os-accent' :
                                         notification.type === 'message' ? 'border-blue-500 text-blue-600' :
                                           notification.type === 'payment' ? 'border-green-500 text-green-600' :
-                                            'border-gray-300 text-gray-600'
+                                            'border-gray-300 text-os-text-secondary'
                                         }`}
                                     >
                                       {notification.type}

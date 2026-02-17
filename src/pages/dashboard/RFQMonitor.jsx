@@ -50,7 +50,7 @@ const statusConfig = {
 export default function RFQMonitor({ viewMode = 'buyer' }) {
     // ✅ REACT QUERY MIGRATION: Use query hooks for auto-refresh
     const { user, profileCompanyId, isSystemReady } = useDashboardKernel();
-    const { data: allRFQs = [], isLoading, error, refetch, isRefetching } = useRFQs();
+    const { data: allRFQs = [], isLoading, isRefetching, error, refetch } = useRFQs();
     const navigate = useNavigate();
     const location = useLocation();
 
@@ -344,8 +344,8 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
 
                                     <div className="flex flex-col items-end justify-between self-stretch gap-2">
                                         <span className="text-os-xs text-os-muted font-medium bg-os-surface-1 px-2 py-1 rounded-md border border-os-stroke"><Clock className="h-3 w-3 inline mr-1 opacity-70" /> {format(new Date(rfq.created_at), 'MMM d')}</span>
-                                        <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100 transition-all translate-x-1 group-hover:translate-x-0 h-8 text-os-xs font-bold text-os-accent">
-                                            {viewMode === 'supplier' ? "Send Quote" : "Open Workspace"} <ChevronRight className="h-3.5 w-3.5 ml-1" />
+                                        <Button variant="ghost" size="sm" className="md:opacity-0 md:group-hover:opacity-100 transition-all md:translate-x-1 md:group-hover:translate-x-0 h-8 text-os-xs font-bold text-os-accent">
+                                            {viewMode === 'supplier' ? "Send Quote" : "View Details"} <ChevronRight className="h-3.5 w-3.5 ml-1" />
                                         </Button>
                                     </div>
                                 </div>

@@ -141,7 +141,7 @@ export default function AntiCorruption() {
       case 'medium': return 'bg-os-accent/20 text-os-accent border-os-accent/30';
       case 'high': return 'bg-orange-50 text-orange-700 border-orange-200';
       case 'extreme': return 'bg-afrikoni-clay/20 text-afrikoni-clay border-afrikoni-clay/30';
-      default: return 'bg-gray-100 text-gray-600 border-gray-200';
+      default: return 'bg-gray-100 text-os-text-secondary border-os-stroke';
     }
   };
 
@@ -152,8 +152,8 @@ export default function AntiCorruption() {
       case 'resolved': return 'bg-afrikoni-green/20 text-afrikoni-green border-afrikoni-green/30';
       case 'investigating': return 'bg-orange-50 text-orange-700 border-orange-200';
       case 'escalated': return 'bg-red-50 text-red-700 border-red-200';
-      case 'closed': return 'bg-gray-100 text-gray-600 border-gray-200';
-      default: return 'bg-gray-100 text-gray-600 border-gray-200';
+      case 'closed': return 'bg-gray-100 text-os-text-secondary border-os-stroke';
+      default: return 'bg-gray-100 text-os-text-secondary border-os-stroke';
     }
   };
 

@@ -2,13 +2,6 @@
  * ============================================================================
  * ONE FLOW - The Trade Operating System Core
  * ============================================================================
- * 
- * This is the ONLY flow that matters in v1.0:
- * RFQ → Supplier Match → Quote → Contract → Escrow → Shipment → Delivery → Settlement → Close
- * 
- * Everything else is locked until this works perfectly.
- * This is the "railroad track" view where every step is a decision.
- * No dashboards. No extra features. Just the flow.
  */
 
 import React, { useEffect, useState } from 'react';
@@ -33,8 +26,9 @@ import MultiSigBridge from '@/components/trade/MultiSigBridge';
 import { Surface } from '@/components/system/Surface';
 import { ForensicExportButton } from '@/components/shared/ui/ForensicExportButton';
 import { generateForensicPDF } from '@/utils/pdfGenerator';
-import { ArrowLeft, Fingerprint, ShieldAlert, Cpu, Sparkles } from 'lucide-react';
+import { ArrowLeft, Fingerprint, ShieldAlert, Cpu, Sparkles, Terminal, Activity, Shield } from 'lucide-react';
 import { toast } from 'sonner';
+import { PageLoader } from '@/components/shared/ui/skeletons';
 
 const FLOW_PANELS = {
   [TRADE_STATE.DRAFT]: RFQCreationPanel,
@@ -58,7 +52,6 @@ export default function OneFlow() {
   const navigate = useNavigate();
   const { isSystemReady, profile, capabilities } = useDashboardKernel();
 
-  // ✅ REACT QUERY: Standardized data flow (Resolves Hard Refresh Bug)
   const { data: trade, isLoading: loading, error: queryError, refetch } = useTrade(tradeId);
   const [error, setError] = useState(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -79,8 +72,8 @@ export default function OneFlow() {
     setIsExporting(true);
 
     try {
-      const profile = generateForensicProfile(trade, kernelTimeline.map(t => t.raw));
-      await generateForensicPDF(profile.reportHtml, `Forensic_Audit_${trade.id.substring(0, 8)}.pdf`);
+      const profileData = generateForensicProfile(trade, kernelTimeline.map(t => t.raw));
+      await generateForensicPDF(profileData.reportHtml, `Forensic_Audit_${trade.id.substring(0, 8)}.pdf`);
 
       toast.success('Institutional Audit Exported', {
         description: 'Your bankable trade profile has been generated.'
@@ -97,13 +90,10 @@ export default function OneFlow() {
     try {
       const result = await transitionTrade(tradeId, nextState, metadata);
       if (result.success) {
-        // React Query will refetch via real-time invalidation, 
-        // but we explicitly refetch for better UX immediacy
         await refetch();
-
         if (result.trustMutation > 0) {
           toast.success('Trust DNA Mutated', {
-            description: `Sovereign Reliability increased by ${result.trustMutation}%. Your credit score is growing!`,
+            description: `Sovereign Reliability increased by ${result.trustMutation}%.`,
             icon: <Sparkles className="w-4 h-4 text-os-accent" />
           });
         }
@@ -136,155 +126,147 @@ export default function OneFlow() {
   const PanelComponent = FLOW_PANELS[trade.status] || DefaultPanel;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-afrikoni-offwhite via-afrikoni-ivory/30 to-afrikoni-ivory/50">
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* COMMAND HEADER */}
-        <div className="mb-8 flex flex-col md:flex-row md:items-start justify-between gap-6">
-          <div className="flex-1">
-            <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')} className="pl-0 hover:bg-transparent text-os-muted">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Command Center
-            </Button>
-            <h1 className="text-3xl md:text-4xl font-bold mt-2 tracking-tight bg-gradient-to-r from-white via-white/80 to-os-accent bg-clip-text text-transparent">
-              {trade.title}
-            </h1>
-            <p className="text-os-xs text-os-muted font-mono mt-1 uppercase tracking-widest">
-              {trade.buyer?.company_name} <span className="mx-2 opacity-30">/</span> {trade.seller ? trade.seller.company_name : 'PENDING'}
-            </p>
-          </div>
-
-          <div className="flex flex-col items-end gap-3">
-            {/* Trust DNA Pulse Index */}
-            <TrustDNAIndex mutation={trade.metadata?.trust_mutation || 0} baseScore={profile?.trust_score || 72} />
-            <OSStatusBar />
-            <div className="rounded-os-sm border border-white/10 bg-white/5 backdrop-blur px-4 py-2 text-right">
-              <p className="text-os-xs uppercase tracking-[0.25em] text-os-muted">Kernel State</p>
-              <div className="flex items-center justify-end gap-2 mt-0.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-os-accent animate-pulse shadow-[0_0_8px_rgba(212,169,55,0.5)]" />
-                <p className="text-os-sm font-semibold text-os-accent uppercase tracking-tight">
-                  {TRADE_STATE_LABELS[trade.status] || trade.status}
-                </p>
-              </div>
-            </div>
-          </div>
+    <div className="os-page-layout">
+      {/* COMMAND HEADER */}
+      <div className="os-header-group flex flex-col md:flex-row md:items-start justify-between gap-6">
+        <div className="flex-1">
+          <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')} className="pl-0 hover:bg-transparent text-os-text-secondary">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Command Center
+          </Button>
+          <h1 className="mt-2 tracking-tight">
+            {trade.title}
+          </h1>
+          <p className="text-os-xs font-mono mt-1 uppercase tracking-widest text-os-text-secondary">
+            {trade.buyer?.company_name} <span className="mx-2 opacity-30">/</span> {trade.seller ? trade.seller.company_name : 'PENDING'}
+          </p>
         </div>
 
-        {/* CORE GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* MAIN FLOW PANEL */}
-          <div className="lg:col-span-7">
-            <div className="rounded-os-md border p-4 md:p-6 backdrop-blur">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <p className="text-os-xs uppercase tracking-[0.25em]">One-Flow</p>
-                  <p className="text-os-sm">Single path. No detours.</p>
-                </div>
-                <div className="text-os-xs text-os-muted font-mono">ID: {trade.id.substring(0, 8)}</div>
-              </div>
-
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={trade.status}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                >
-                  <PanelComponent
-                    trade={trade}
-                    onNextStep={handleStateTransition}
-                    onExportAudit={handleExportAudit}
-                    isGeneratingExport={isExporting}
-                    isTransitioning={isTransitioning}
-                    capabilities={capabilities}
-                    profile={profile}
-                  />
-                </motion.div>
-              </AnimatePresence>
-
-              {/* Multi-Sig Bridge Visualization */}
-              {(trade.status !== TRADE_STATE.DRAFT && trade.status !== TRADE_STATE.CLOSED) && (
-                <div className="mt-8">
-                  <MultiSigBridge tradeId={tradeId} status={trade.status} />
-                </div>
-              )}
-
-              {error && (
-                <Card className="mt-4 border-red-500/50 bg-red-500/5">
-                  <CardContent className="p-4 text-os-sm text-os-red">
-                    {error}
-                  </CardContent>
-                </Card>
-              )}
+        <div className="flex flex-col items-end gap-3">
+          <TrustDNAIndex mutation={trade.metadata?.trust_mutation || 0} baseScore={profile?.trust_score || 72} />
+          <Surface variant="soft" className="px-4 py-2 border-os-stroke/40">
+            <div className="flex items-center justify-end gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-os-accent animate-pulse" />
+              <p className="os-label !text-os-accent">
+                {TRADE_STATE_LABELS[trade.status] || trade.status}
+              </p>
             </div>
-          </div>
+          </Surface>
+        </div>
+      </div>
 
-          {/* KERNEL RAIL + EVENT STREAM */}
-          <div className="lg:col-span-5 lg:sticky lg:top-6 lg:h-fit">
-            <TradeTimeline
-              tradeId={tradeId}
-              currentState={trade.status}
-            />
+      {/* CORE GRID */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* MAIN FLOW PANEL */}
+        <div className="lg:col-span-7 space-y-8">
+          <Surface variant="panel" className="p-4 md:p-6 overflow-hidden">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-4">
+                <Surface variant="soft" className="w-12 h-12 flex items-center justify-center border-os-stroke/30">
+                  <Activity className="w-6 h-6 text-os-accent" />
+                </Surface>
+                <div>
+                  <h2 className="text-os-lg font-bold">Execution Engine</h2>
+                  <p className="os-label">Kernel v8.0.21</p>
+                </div>
+              </div>
+              <div className="text-os-xs text-os-text-secondary font-mono">ID: {trade.id.substring(0, 8)}</div>
+            </div>
 
-            <div className="mt-4 rounded-os-md border p-4 backdrop-blur">
-              <p className="text-os-xs uppercase tracking-[0.25em] text-muted-foreground">Kernel Console</p>
-              <div className="mt-3 space-y-2 text-os-sm">
-                {kernelTimeline?.slice(0, 6).map((item) => (
-                  <div key={item.id} className="flex items-center justify-between text-os-xs">
-                    <span>{item.label}</span>
-                    <span className="text-muted-foreground font-mono">{item.time}</span>
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={trade.status}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+              >
+                <PanelComponent
+                  trade={trade}
+                  onNextStep={handleStateTransition}
+                  onExportAudit={handleExportAudit}
+                  isGeneratingExport={isExporting}
+                  isTransitioning={isTransitioning}
+                  capabilities={capabilities}
+                  profile={profile}
+                />
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Multi-Sig Bridge Visualization */}
+            {(trade.status !== TRADE_STATE.DRAFT && trade.status !== TRADE_STATE.CLOSED) && (
+              <div className="mt-8">
+                <MultiSigBridge tradeId={tradeId} status={trade.status} />
+              </div>
+            )}
+
+            {error && (
+              <Surface variant="soft" className="mt-4 border-os-error/20 bg-os-error/5 p-4 text-os-sm text-os-error">
+                {error}
+              </Surface>
+            )}
+          </Surface>
+        </div>
+
+        {/* SIDEBAR: CONSOLE & LEDGER */}
+        <div className="lg:col-span-5 space-y-8">
+          <TradeTimeline
+            tradeId={tradeId}
+            currentState={trade.status}
+          />
+
+          {/* 🔧 KERNEL CONSOLE */}
+          <div className="space-y-4">
+            <h2 className="os-label flex items-center gap-2">
+              <Terminal className="w-4 h-4" />
+              Kernel Console
+            </h2>
+            <Surface variant="panel" className="p-0 border-os-stroke bg-black/40 overflow-hidden">
+              <div className="p-3 border-b border-os-stroke/50 flex items-center justify-between">
+                <div className="flex gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/30" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-amber-500/30" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-green-500/30" />
+                </div>
+                <span className="os-label opacity-40 lowercase">ssh: kernel-prod-8</span>
+              </div>
+              <div className="p-4 font-mono text-[10px] space-y-2 h-[200px] overflow-y-auto">
+                {kernelTimeline?.slice(0, 8).map((item) => (
+                  <div key={item.id} className="flex items-center justify-between text-os-text-secondary/70">
+                    <span className="truncate pr-4">&gt; {item.label}</span>
+                    <span className="shrink-0 opacity-40">{item.time}</span>
                   </div>
                 ))}
                 {!kernelTimeline?.length && (
-                  <div className="text-os-xs text-muted-foreground">No kernel events yet.</div>
+                  <div className="text-os-text-secondary/40 italic">Waiting for kernel signals...</div>
                 )}
               </div>
-            </div>
+            </Surface>
+          </div>
 
-            {/* FORENSIC LEDGER DNA RAIL */}
-            <div className="mt-4 rounded-os-md border p-4 backdrop-blur bg-emerald-500/5 border-emerald-500/10">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-os-xs uppercase tracking-[0.25em] text-emerald-500 font-bold">Forensic Ledger</p>
-                <Fingerprint className="w-3 h-3 text-emerald-500 opacity-50" />
-              </div>
-
-              {trade.metadata?.trade_dna ? (
-                <div className="space-y-3">
-                  <div className="p-3 bg-black/40 rounded-os-sm border border-white/5">
-                    <p className="text-os-xs text-gray-500 uppercase font-mono">Current State Hash</p>
-                    <p className="text-os-xs font-mono text-emerald-400 mt-1 break-all">
-                      {trade.metadata.trade_dna}
+          {/* 📁 FORENSIC LEDGER */}
+          <div className="space-y-4">
+            <h2 className="os-label flex items-center gap-2">
+              <Shield className="w-4 h-4" />
+              Forensic Ledger
+            </h2>
+            <Surface variant="panel" className="p-6 border-emerald-500/20 bg-emerald-500/5">
+              <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <p className="text-os-sm font-medium">Immutability Locked</p>
+                </div>
+                <p className="text-os-xs text-os-text-secondary leading-relaxed">
+                  Every transition generates a unique hash, cryptographically linked to your Trust DNA. Tampering voids Sovereign Insurance.
+                </p>
+                {trade.metadata?.trade_dna && (
+                  <div className="p-2 bg-black/20 rounded border border-white/5 overflow-hidden">
+                    <p className="text-[9px] font-mono text-emerald-500/50 break-all select-all">
+                      SHA-256: {trade.metadata.trade_dna}
                     </p>
                   </div>
-
-                  <div className="space-y-1">
-                    <p className="text-os-xs text-gray-500 uppercase font-mono px-1">Audit Trace</p>
-                    {kernelTimeline?.filter(e => e.raw?.metadata?.trade_dna).map((event, idx) => (
-                      <div key={idx} className="flex items-center gap-2 p-1.5 hover:bg-white/5 rounded transition-colors group">
-                        <div className="w-1 h-1 rounded-full bg-emerald-500/30"></div>
-                        <span className="text-os-xs font-mono text-gray-400 group-hover:text-emerald-300 transition-colors">
-                          {event.raw.metadata.trade_dna.substring(0, 16)}...
-                        </span>
-                        <span className="text-os-xs text-gray-600 ml-auto">
-                          {event.raw.metadata.previous_state} → {event.raw.status_to}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="p-6 text-center border border-dashed rounded-os-sm border-white/5">
-                  <Cpu className="w-5 h-5 text-gray-600 mx-auto mb-2 opacity-20" />
-                  <p className="text-os-xs text-gray-500">Forensic DNA trace initialization pending next transition...</p>
-                </div>
-              )}
-
-              <div className="mt-4 p-2 bg-black/20 rounded-lg flex items-start gap-2 border border-white/5">
-                <ShieldAlert className="w-3 h-3 text-amber-500 mt-0.5" />
-                <p className="text-os-xs text-gray-500 italic">
-                  Immutable hashes are generated on every transition. Any tampering voids the Sovereign Insurance.
-                </p>
+                )}
               </div>
-            </div>
+            </Surface>
           </div>
         </div>
       </div>
@@ -294,16 +276,15 @@ export default function OneFlow() {
 
 function DefaultPanel({ trade }) {
   return (
-    <Card className="border rounded-os-md">
-      <CardContent className="p-6 text-center">
-        <p className="">State: {trade.status}</p>
-        <p className="text-os-sm mt-2">No action available for this state yet.</p>
-      </CardContent>
-    </Card>
+    <Surface variant="soft" className="p-12 text-center border-dashed">
+      <Cpu className="w-10 h-10 text-os-text-secondary/20 mx-auto mb-4" />
+      <h3 className="text-os-lg font-bold">State: {trade.status}</h3>
+      <p className="text-os-sm text-os-text-secondary mt-1">No execution logic defined for this kernel state.</p>
+    </Surface>
   );
 }
 
-function SettlementPanel({ trade, onExportAudit, isTransitioning }) {
+function SettlementPanel({ trade, onExportAudit, isTransitioning, isGeneratingExport }) {
   const [isClearing, setIsClearing] = useState(false);
   const isPAPSSAvailable = trade.currency !== 'USD' && trade.currency !== 'EUR';
   const isCleared = trade.metadata?.papss_clearing_success || false;
@@ -313,13 +294,9 @@ function SettlementPanel({ trade, onExportAudit, isTransitioning }) {
     try {
       const result = await clearLocalCurrency(trade.id, trade.total_value, trade.currency);
       if (result.success) {
-        toast.success('PAPSS Clearing Successful', {
-          description: `Settled ${trade.total_value} ${trade.currency} via instant rail.`
-        });
+        toast.success('PAPSS Clearing Successful');
       } else {
-        toast.error('PAPSS Clearing Failed', {
-          description: result.error
-        });
+        toast.error('PAPSS Clearing Failed', { description: result.error });
       }
     } catch (err) {
       toast.error('Clearing Error', { description: err.message });
@@ -329,134 +306,102 @@ function SettlementPanel({ trade, onExportAudit, isTransitioning }) {
   };
 
   return (
-    <Card className="border bg-gradient-to-br from-[#0E1016] to-[#141B24] rounded-os-md shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
-      <CardContent className="p-6 text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-os-md mb-4 border border-emerald-500/20 bg-emerald-500/5">
-          <span className="text-os-2xl">{isCleared ? '✅' : '💰'}</span>
+    <div className="space-y-6">
+      <Surface variant="glass" className="p-8 text-center border-emerald-500/20">
+        <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-6">
+          <span className="text-2xl">{isCleared ? '✅' : '💰'}</span>
         </div>
-        <h2 className="text-os-xl font-semibold">
-          {isCleared ? 'PAPSS Settlement Cleared' : 'Payment Released'}
+        <h2 className="text-os-xl font-bold">
+          {isCleared ? 'Settlement Cleared' : 'Funds Released'}
         </h2>
-        <p className="mt-2 text-os-muted">
+        <p className="mt-2 text-os-text-secondary text-os-sm">
           {isCleared
-            ? 'Funds have been settled in local currency via the Pan-African rail.'
-            : 'Escrow funds have been released. Settlement in progress.'}
+            ? 'International local-currency settlement via PAPSS complete.'
+            : 'Multi-sig escrow release confirmed. Funds are now available for clearing.'}
         </p>
-        <div className="border rounded-os-sm p-4 mt-4 text-left bg-black/20 border-white/5">
-          <p className="text-os-sm font-semibold">Order Summary</p>
-          <div className="grid grid-cols-2 gap-4 mt-3">
-            <div>
-              <p className="text-os-xs uppercase text-os-muted">Quantity</p>
-              <p className="text-os-sm">{trade.quantity} {trade.quantity_unit}</p>
-            </div>
-            <div>
-              <p className="text-os-xs uppercase text-os-muted">Value</p>
-              <p className="text-os-sm">{trade.total_value} {trade.currency}</p>
-            </div>
-          </div>
-        </div>
+      </Surface>
 
-        <div className="mt-6 flex flex-col gap-3">
-          {isPAPSSAvailable && !isCleared && (
-            <Button
-              onClick={handlePAPSSClearing}
-              disabled={isClearing || isTransitioning}
-              className="w-full h-12 bg-os-accent text-black font-black uppercase tracking-widest rounded-os-sm transition-all hover:scale-[1.02]"
-            >
-              {isClearing ? 'Clearing via PAPSS...' : 'Initiate PAPSS Clearing'}
-            </Button>
-          )}
+      <div className="grid grid-cols-2 gap-4">
+        <Surface variant="soft" className="p-4">
+          <p className="os-label">Quantity</p>
+          <p className="text-os-lg font-bold">{trade.quantity} {trade.quantity_unit}</p>
+        </Surface>
+        <Surface variant="soft" className="p-4">
+          <p className="os-label">Value</p>
+          <p className="text-os-lg font-bold">{trade.total_value} {trade.currency}</p>
+        </Surface>
+      </div>
 
-          <ForensicExportButton
-            onClick={() => onExportAudit()}
-            isGenerating={isGeneratingExport}
-            className="w-full"
-          />
-          <p className="text-os-xs text-os-muted italic">
-            Certified by Afrikoni Sovereign Ledger. Use this report for trade finance applications.
-          </p>
-        </div>
-      </CardContent>
-    </Card>
+      <div className="space-y-3">
+        {isPAPSSAvailable && !isCleared && (
+          <Button
+            onClick={handlePAPSSClearing}
+            disabled={isClearing || isTransitioning}
+            className="w-full bg-os-accent text-os-bg font-black uppercase tracking-widest rounded-os-sm h-12"
+          >
+            {isClearing ? 'Clearing via PAPSS...' : 'Initiate PAPSS Clearing'}
+          </Button>
+        )}
+        <ForensicExportButton
+          onClick={() => onExportAudit()}
+          isGenerating={isGeneratingExport}
+          className="w-full"
+        />
+      </div>
+    </div>
   );
 }
 
 function DisputedPanel({ trade }) {
   return (
-    <Card className="border border-os-red/20 bg-red-500/5 rounded-os-md">
-      <CardContent className="p-6 text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-os-md mb-4 border border-os-red/20 bg-red-500/5">
-          <span className="text-os-2xl">⚠️</span>
-        </div>
-        <h2 className="text-os-2xl font-semibold text-os-red">
-          Trade Disputed
-        </h2>
-        <p className="mt-2 text-os-muted">
-          This trade is under dispute. Escrow is frozen until resolution.
-        </p>
-        <p className="text-os-xs mt-4 font-mono opacity-50">
-          TICKET: {trade.id.substring(0, 8)}
-        </p>
-      </CardContent>
-    </Card>
+    <Surface variant="glass" className="p-12 text-center border-os-error/20 bg-os-error/5">
+      <ShieldAlert className="w-16 h-16 text-os-error mx-auto mb-6 opacity-80" />
+      <h2 className="text-os-2xl font-bold text-os-error">Trade Disputed</h2>
+      <p className="mt-2 text-os-text-secondary">
+        Sovereign execution frozen. Awaiting resolution from Afrikoni Arbitration Council.
+      </p>
+    </Surface>
+  );
+}
+
+function ClosedPanel({ trade }) {
+  return (
+    <Surface variant="glass" className="p-12 text-center border-os-stroke">
+      <div className="w-16 h-16 rounded-full bg-os-stroke flex items-center justify-center mx-auto mb-6">
+        <span className="text-2xl text-os-text-secondary">✓</span>
+      </div>
+      <h2 className="text-os-2xl font-bold text-os-text-secondary">Trade Archived</h2>
+      <p className="mt-2 text-os-text-secondary">
+        Flow complete. Forensic records stored in sovereign vault.
+      </p>
+    </Surface>
   );
 }
 
 function TrustDNAIndex({ mutation, baseScore }) {
   const isPositive = mutation > 0;
-
   return (
     <motion.div
       initial={{ scale: 0.9, opacity: 0 }}
       animate={{ scale: 1, opacity: 1 }}
-      className="group relative overflow-hidden flex items-center gap-3 px-4 py-2 rounded-os-sm bg-gradient-to-r from-os-accent/10 to-transparent border border-os-accent/20 backdrop-blur-md"
+      className="group relative overflow-hidden flex items-center gap-4 px-4 py-2 rounded-os-sm bg-os-accent/5 border border-os-accent/20 backdrop-blur-md"
     >
-      {/* Pulsing Aura for active mutation */}
-      {mutation !== 0 && (
-        <motion.div
-          animate={{
-            opacity: [0.1, 0.3, 0.1],
-            scale: [1, 1.05, 1]
-          }}
-          transition={{ duration: 2, repeat: Infinity }}
-          className="absolute inset-0 bg-os-accent/20"
-        />
-      )}
-
       <div className="relative">
-        <p className="text-os-xs uppercase tracking-[0.2em] text-os-accent font-bold">Trust DNA Index</p>
+        <p className="os-label !text-os-accent !opacity-100">Trust DNA Index</p>
         <div className="flex items-center gap-2">
-          <span className="text-os-xl font-black text-white">{baseScore}%</span>
+          <span className="text-os-xl font-black">{baseScore}%</span>
           {mutation !== 0 && (
             <motion.span
               initial={{ y: 5, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              className={`text-os-xs font-bold px-1.5 py-0.5 rounded ${isPositive ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-os-red'}`}
+              className={cn("text-os-xs font-bold px-1.5 py-0.5 rounded", isPositive ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-os-error')}
             >
               {isPositive ? '+' : ''}{mutation}%
             </motion.span>
           )}
         </div>
       </div>
-      <Cpu className={`w-5 h-5 ${mutation !== 0 ? 'text-os-accent animate-spin-slow' : 'text-os-muted'}`} />
+      <Cpu className={cn("w-5 h-5", mutation !== 0 ? 'text-os-accent animate-spin-slow' : 'text-os-text-secondary opacity-40')} />
     </motion.div>
-  );
-}
-
-function ClosedPanel({ trade }) {
-  return (
-    <Card className="border border-white/10 bg-white/5 rounded-os-md">
-      <CardContent className="p-6 text-center">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-os-md mb-4 border border-emerald-500/20 bg-emerald-500/10">
-          <span className="text-os-2xl text-emerald-500">✓</span>
-        </div>
-        <h2 className="text-os-2xl font-semibold">
-          Trade Closed
-        </h2>
-        <p className="mt-2 text-os-muted">
-          This trade has been successfully completed and archived.
-        </p>
-      </CardContent>
-    </Card>
   );
 }

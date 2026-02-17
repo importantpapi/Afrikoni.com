@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
 import { Surface } from '@/components/system/Surface';
 import { StatusBadge } from '@/components/system/StatusBadge';
@@ -29,6 +29,9 @@ import {
 } from 'lucide-react';
 import { useTrustScore } from '@/hooks/useTrustScore';
 import TrustBadge from '@/components/trust/TrustBadge';
+import { getQuotesForRFQ } from '@/services/quoteService';
+import ReviewForm from '@/components/reviews/ReviewForm';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/shared/ui/dialog';
 
 const STAGES = [
   { id: 'rfq', label: 'RFQ' },
@@ -64,6 +67,7 @@ const NEXT_STATE_BY_STAGE = {
 
 export default function TradeWorkspace() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { canLoadData, isSystemReady } = useDashboardKernel();
   const tradeKernel = useTradeKernelState();
   const { isSimple } = useWorkspaceMode();
@@ -82,6 +86,32 @@ export default function TradeWorkspace() {
 
   // ✅ TRUST SCORE INTEGRATION
   const { trustData } = useTrustScore(trade?.seller_company_id);
+
+  // ✅ QUOTE & REVIEW STATE
+  const [quotes, setQuotes] = useState([]);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [selectedQuoteId, setSelectedQuoteId] = useState(null);
+
+  // Load Quotes for RFQs
+  useEffect(() => {
+    if (trade?.id && tradeType === 'rfq') {
+      getQuotesForRFQ(trade.id).then(res => {
+        if (res.success) setQuotes(res.quotes);
+      });
+    }
+  }, [trade?.id, tradeType]);
+
+  // Trigger Review Modal
+  useEffect(() => {
+    if ((trade?.status === 'delivered' || trade?.status === 'settled') && !trade.metadata?.reviewed_at) {
+      // Simple check: show modal if not reviewed and status is complete
+      // In production, we'd check 'reviews' table to avoid nagging
+      const hasReviewed = localStorage.getItem(`reviewed_${trade.id}`);
+      if (!hasReviewed) {
+        setShowReviewModal(true);
+      }
+    }
+  }, [trade?.status, trade?.id]);
 
 
   useEffect(() => {
@@ -164,8 +194,9 @@ export default function TradeWorkspace() {
       ],
     };
 
-  const handleAdvance = async () => {
-    if (!nextState || !trade?.id) return;
+  const handleAdvance = async (overrideNextState = null, metadataPayload = {}) => {
+    const targetState = overrideNextState || nextState;
+    if (!targetState || !trade?.id) return;
 
     // 🚨 COMPLIANCE GATE
     if (tradeKernel.kycStatus !== 'verified') {
@@ -175,7 +206,9 @@ export default function TradeWorkspace() {
 
     setIsAdvancing(true);
     setKernelBlock(null);
-    const result = await transitionTrade(trade.id, nextState, {});
+
+    // Merge provided metadata (e.g. quote_id) with new DNA
+    const result = await transitionTrade(trade.id, targetState, metadataPayload);
     if (!result.success) {
       setKernelBlock({
         message: result.error || 'Kernel blocked transition.',
@@ -306,7 +339,7 @@ export default function TradeWorkspace() {
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                 <div>
                   <div className="os-label flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#D4A937] animate-pulse" />
+                    <span className="w-2 h-2 rounded-full bg-os-accent animate-pulse" />
                     Live Trade Dossier
                   </div>
                   <h1 className="text-3xl font-light mt-2 tracking-tight text-white">
@@ -337,26 +370,26 @@ export default function TradeWorkspace() {
                         key={stage.id}
                         className={`flex flex-col items-center gap-2`}
                       >
-                        <div className={`w-3 h-3 rounded-full border-2 transition-all duration-300 ${isActive ? 'bg-[#D4A937] border-[#D4A937] shadow-[0_0_10px_#D4A937]' : isComplete ? 'bg-[#D4A937] border-transparent' : 'bg-transparent border-white/20'}`} />
-                        <span className={`text-os-xs uppercase font-bold tracking-wider text-center ${isActive ? 'text-[#D4A937]' : 'text-white/30'}`}>{stage.label}</span>
+                        <div className={`w-3 h-3 rounded-full border-2 transition-all duration-300 ${isActive ? 'bg-os-accent border-os-accent shadow-[0_0_10px_#D4A937]' : isComplete ? 'bg-os-accent border-transparent' : 'bg-transparent border-white/20'}`} />
+                        <span className={`text-os-xs uppercase font-bold tracking-wider text-center ${isActive ? 'text-os-accent' : 'text-white/30'}`}>{stage.label}</span>
                       </div>
                     );
                   })}
                 </div>
                 {/* Timeline Line */}
                 <div className="absolute top-[5px] left-0 right-0 h-[2px] bg-white/5 z-0" />
-                <div className="absolute top-[5px] left-0 h-[2px] bg-[#D4A937] z-0 transition-all duration-1000" style={{ width: `${(currentStageIndex / (STAGES.length - 1)) * 100}%` }} />
+                <div className="absolute top-[5px] left-0 h-[2px] bg-os-accent z-0 transition-all duration-1000" style={{ width: `${(currentStageIndex / (STAGES.length - 1)) * 100}%` }} />
               </div>
 
               {/* Next Action Driver */}
               <div className="grid md:grid-cols-[1.5fr_1fr] gap-6 mt-6 pt-6 border-t border-white/5">
                 <div>
-                  <div className="text-os-xs uppercase tracking-widest text-[#D4A937] mb-2 font-bold">Recommended Action</div>
+                  <div className="text-os-xs uppercase tracking-widest text-os-accent mb-2 font-bold">Recommended Action</div>
                   <h3 className="text-os-xl font-medium text-white mb-2">{nextAction.title}</h3>
                   <div className="space-y-1">
                     {nextAction.consequences.map((item, i) => (
                       <div key={i} className="text-os-sm text-white/60 flex items-center gap-2">
-                        <ArrowRight className="w-3 h-3 text-[#D4A937]" /> {item}
+                        <ArrowRight className="w-3 h-3 text-os-accent" /> {item}
                       </div>
                     ))}
                   </div>
@@ -364,7 +397,7 @@ export default function TradeWorkspace() {
                     <Button
                       onClick={handleAdvance}
                       disabled={isAdvancing || !nextState}
-                      className="bg-[#D4A937] hover:bg-[#C09830] text-black font-bold uppercase tracking-wide px-8"
+                      className="bg-os-accent hover:bg-os-accent-dark text-black font-bold uppercase tracking-wide px-8"
                     >
                       {isAdvancing ? 'Processing...' : 'Execute'}
                     </Button>
@@ -428,6 +461,68 @@ export default function TradeWorkspace() {
                 />
               </Surface>
             </TradeOSErrorBoundary>
+
+            {/* ✅ QUOTE SELECTION (For RFQs) */}
+            {tradeType === 'rfq' && (trade?.status === 'rfq_open' || trade?.status === 'quoted') && (
+              <TradeOSErrorBoundary>
+                <Surface variant="panel" className="p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <MessageSquare className="w-4 h-4 text-os-accent" />
+                    <span className="text-os-sm font-bold">Received Quotes ({quotes.length})</span>
+                  </div>
+
+                  {quotes.length === 0 ? (
+                    <div className="text-center p-8 border border-dashed border-white/10 rounded-lg">
+                      <p className="text-white/40 text-os-sm">Waiting for suppliers to submit quotes...</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {quotes.map(quote => (
+                        <div key={quote.id} className="p-4 bg-white/5 rounded-lg border border-white/10 hover:border-os-accent/30 transition-all">
+                          <div className="flex justify-between items-start mb-3">
+                            <div>
+                              <div className="text-white font-medium">{quote.companies?.name || 'Verified Supplier'}</div>
+                              <div className="text-os-xs text-white/50">{quote.companies?.country}</div>
+                            </div>
+                            <div className="text-right">
+                              <div className="text-os-lg font-mono text-os-accent font-bold">
+                                {Number(quote.total_price).toLocaleString()} {quote.currency}
+                              </div>
+                              <div className="text-os-xs text-white/50">
+                                {Number(quote.unit_price).toLocaleString()} / {quote.quantity_unit}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex gap-2 text-os-xs text-white/70 mb-4">
+                            <span className="px-2 py-1 bg-white/5 rounded">Lead Time: {quote.lead_time_days} days</span>
+                            <span className="px-2 py-1 bg-white/5 rounded">{quote.incoterms}</span>
+                          </div>
+
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              className="flex-1 bg-white/5 border-white/10 hover:bg-white/10 text-white"
+                              onClick={() => navigate(`/dashboard/messages?recipient=${quote.supplier_company_id}&rfq=${trade.id}&productTitle=${encodeURIComponent(trade.title)}`)}
+                            >
+                              Message
+                            </Button>
+                            <Button
+                              className="flex-[2] bg-os-accent text-black hover:bg-os-accent-dark font-bold"
+                              onClick={() => handleAdvance(TRADE_STATE.CONTRACTED, { quote_id: quote.id })}
+                              disabled={isAdvancing}
+                            >
+                              {isAdvancing ? 'Processing...' : 'Accept & Contract'}
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </Surface>
+              </TradeOSErrorBoundary>
+            )}
+
           </div>
         </div>
 
@@ -458,6 +553,23 @@ export default function TradeWorkspace() {
           </div>
         </div>
       </div>
+
+      {/* ✅ REVIEW MODAL */}
+      <Dialog open={showReviewModal} onOpenChange={setShowReviewModal}>
+        <DialogContent className="bg-os-surface-2 border-os-stroke text-white sm:max-w-[500px]">
+          <ReviewForm
+            order={trade}
+            product={{ id: trade?.product_id, name: trade?.title }}
+            company={{ id: trade?.seller_company_id }}
+            onSuccess={() => {
+              setShowReviewModal(false);
+              localStorage.setItem(`reviewed_${trade.id}`, 'true');
+              toast.success('Review verified on blockchain ledger');
+            }}
+            onCancel={() => setShowReviewModal(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

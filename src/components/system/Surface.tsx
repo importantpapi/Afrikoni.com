@@ -26,7 +26,7 @@ const glowClasses: Record<GlowIntensity, string> = {
   strong: 'os-glow-strong',
   sapphire: 'os-glow-sapphire',
   emerald: 'os-glow-emerald',
-  gold: 'os-glow-gold shadow-[0_0_20px_rgba(212,169,55,0.15)]',
+  gold: 'os-glow-gold shadow-[0_0_20px_rgba(197,160,55,0.15)]',
 };
 
 /**

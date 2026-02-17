@@ -58,7 +58,7 @@ export default function ResetPassword() {
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-white border border-gray-300 rounded-[13px] py-3.5 px-4 pr-12 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D4A937]/20 focus:border-[#D4A937] transition-all"
+              className="w-full bg-white border border-gray-300 rounded-[13px] py-3.5 px-4 pr-12 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-os-accent/20 focus:border-os-accent transition-all"
               placeholder="Minimum 8 characters"
               required
               disabled={isLoading}
@@ -81,7 +81,7 @@ export default function ResetPassword() {
               type={showConfirmPassword ? 'text' : 'password'}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full bg-white border border-gray-300 rounded-[13px] py-3.5 px-4 pr-12 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D4A937]/20 focus:border-[#D4A937] transition-all"
+              className="w-full bg-white border border-gray-300 rounded-[13px] py-3.5 px-4 pr-12 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-os-accent/20 focus:border-os-accent transition-all"
               placeholder="Re-enter your password"
               required
               disabled={isLoading}
@@ -100,7 +100,7 @@ export default function ResetPassword() {
         <Button
           type="submit"
           disabled={isLoading}
-          className="w-full h-[52px] bg-[#D4A937] hover:bg-[#C29931] active:bg-[#B38A2C] text-white font-semibold text-[15px] rounded-[14px] transition-all shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(212,169,55,0.15)] hover:shadow-[0_2px_4px_rgba(0,0,0,0.1),0_6px_16px_rgba(212,169,55,0.2)] active:shadow-[0_1px_2px_rgba(0,0,0,0.12)] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+          className="w-full h-[52px] bg-os-accent hover:bg-os-accent-dark active:bg-os-accent-dark text-white font-semibold text-[15px] rounded-[14px] transition-all shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(212,169,55,0.15)] hover:shadow-[0_2px_4px_rgba(0,0,0,0.1),0_6px_16px_rgba(212,169,55,0.2)] active:shadow-[0_1px_2px_rgba(0,0,0,0.12)] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
         >
           {isLoading ? (
             <>

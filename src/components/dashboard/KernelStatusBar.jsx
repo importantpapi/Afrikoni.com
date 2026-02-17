@@ -10,14 +10,14 @@ function StatusPill({ icon: Icon, label, value, status = 'normal', className = '
     good: 'text-emerald-600 dark:text-emerald-400 border-emerald-200 dark:border-emerald-900/30 bg-emerald-50 dark:bg-emerald-950/30',
     warning: 'text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-900/30 bg-amber-50 dark:bg-amber-950/30',
     critical: 'text-red-600 dark:text-red-400 border-red-200 dark:border-red-900/30 bg-red-50 dark:bg-red-950/30',
-    normal: 'text-gray-700 dark:text-gray-300 border-gray-200 dark:border-[#2A2A2A] bg-gray-50 dark:bg-[#141414]',
-    gold: 'text-[#D4A937] border-[#D4A937]/20 bg-[#D4A937]/5',
+    normal: 'text-gray-700 dark:text-gray-300 border-os-stroke dark:border-[#2A2A2A] bg-gray-50 dark:bg-[#141414]',
+    gold: 'text-os-accent border-os-accent/20 bg-os-accent/5',
   };
 
   return (
     <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border ${statusColors[status]} ${className}`}>
       <Icon className="w-3.5 h-3.5 flex-shrink-0" />
-      <span className="text-os-xs font-medium dark:text-gray-500 hidden xl:inline">{label}</span>
+      <span className="text-os-xs font-medium dark:text-os-text-secondary hidden xl:inline">{label}</span>
       <span className="text-os-xs font-mono font-bold">{value}</span>
     </div>
   );
@@ -45,7 +45,7 @@ export default function KernelStatusBar({
         >
           <Cpu className="w-3.5 h-3.5" />
         </motion.div>
-        <span className="text-os-xs font-mono font-bold uppercase tracking-wider">KERNEL</span>
+        <span className="text-os-xs font-mono font-bold uppercase tracking-wider">STATUS</span>
         <div className="w-1.5 h-1.5 rounded-full" />
       </div>
 

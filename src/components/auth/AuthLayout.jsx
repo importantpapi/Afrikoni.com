@@ -16,7 +16,7 @@ export default function AuthLayout({
   footerLink
 }) {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FDFBF7] via-[#F8F6F0] to-[#F5F2EA] flex items-center justify-center py-12 px-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-os-bg via-os-bg to-os-bg flex items-center justify-center py-12 px-4 relative overflow-hidden">
       {/* Subtle depth - calm, not dramatic */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(212,169,55,0.03),transparent_50%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(212,169,55,0.02),transparent_50%)]" />

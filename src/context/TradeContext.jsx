@@ -3,6 +3,7 @@ import { calculateTradeFees, estimateFX } from '@/services/revenueEngine';
 import { predictHSCode, calculateDutySavings } from '@/services/taxShield';
 import { scanForLeakage } from '@/services/forensicSentinel';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
+import { secureStorage } from '@/utils/secureStorage';
 
 /**
  * TRADE CONTEXT (The Kernel)
@@ -142,16 +143,16 @@ function tradeReducer(state, action) {
 
 // PROVIDER
 export function TradeProvider({ children }) {
-    // 1. Load from Persistence (Offline Hardening)
+    // 1. Load from Persistence (Offline Hardening) - NOW ENCRYPTED 🔒
     const [state, dispatch] = useReducer(tradeReducer, initialState, (defaultState) => {
         if (typeof window !== 'undefined') {
-            const cached = localStorage.getItem('active_trade_session');
+            const cached = secureStorage.get('active_trade_session');
             if (cached) {
                 try {
-                    return JSON.parse(cached);
+                    return typeof cached === 'string' ? JSON.parse(cached) : cached;
                 } catch (e) {
-                    console.warn('Failed to parse cached trade session cleaning up');
-                    localStorage.removeItem('active_trade_session');
+                    console.warn('Failed to parse cached trade session, cleaning up');
+                    secureStorage.remove('active_trade_session');
                 }
             }
         }
@@ -160,10 +161,10 @@ export function TradeProvider({ children }) {
 
     const { isOnline } = useNetworkStatus();
 
-    // 2. Persist State on Change
+    // 2. Persist State on Change - NOW ENCRYPTED 🔒
     useEffect(() => {
         if (state.tradeId) {
-            localStorage.setItem('active_trade_session', JSON.stringify(state));
+            secureStorage.set('active_trade_session', state);
         }
     }, [state]);
 

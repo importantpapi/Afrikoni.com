@@ -135,7 +135,7 @@ export default function CommandPalette({ open, onClose }) {
         >
           {/* Search Input */}
           <div className="flex items-center gap-3 px-4 py-3 border-b dark:border-[#1E1E1E]">
-            <Search className="w-5 h-5 dark:text-gray-500 flex-shrink-0" />
+            <Search className="w-5 h-5 dark:text-os-text-secondary flex-shrink-0" />
             <input
               ref={inputRef}
               value={query}
@@ -145,9 +145,9 @@ export default function CommandPalette({ open, onClose }) {
               }}
               onKeyDown={handleKeyDown}
               placeholder="Search actions, pages, or type a command..."
-              className="flex-1 text-os-base outline-none bg-transparent dark:text-[#F5F0E8] placeholder:text-gray-400 dark:placeholder:text-gray-600"
+              className="flex-1 text-os-base outline-none bg-transparent dark:text-[#F5F0E8] placeholder:text-gray-400 dark:placeholder:text-os-text-secondary"
             />
-            <kbd className="hidden sm:inline-flex items-center px-2 py-0.5 text-os-xs font-medium dark:text-gray-500 dark:bg-[#1A1A1A] rounded border dark:border-[#2A2A2A]">
+            <kbd className="hidden sm:inline-flex items-center px-2 py-0.5 text-os-xs font-medium dark:text-os-text-secondary dark:bg-[#1A1A1A] rounded border dark:border-[#2A2A2A]">
               ESC
             </kbd>
           </div>
@@ -155,13 +155,13 @@ export default function CommandPalette({ open, onClose }) {
           {/* Results */}
           <div ref={listRef} className="max-h-[50vh] overflow-y-auto py-2">
             {flatList.length === 0 ? (
-              <div className="px-4 py-8 text-center dark:text-gray-500 text-os-sm">
+              <div className="px-4 py-8 text-center dark:text-os-text-secondary text-os-sm">
                 No results for &ldquo;{query}&rdquo;
               </div>
             ) : (
               Object.entries(grouped).map(([group, items]) => (
                 <div key={group}>
-                  <div className="px-4 py-1.5 text-os-xs font-bold dark:text-gray-600 uppercase tracking-[0.1em]">
+                  <div className="px-4 py-1.5 text-os-xs font-bold dark:text-os-text-secondary uppercase tracking-[0.1em]">
                     {group}
                   </div>
                   {(items || []).map((action) => {
@@ -175,11 +175,11 @@ export default function CommandPalette({ open, onClose }) {
                         onClick={() => executeAction(action)}
                         onMouseEnter={() => setSelectedIndex(idx)}
                         className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${isSelected
-                          ? 'bg-[#D4A937]/10 text-gray-900 dark:text-[#F5F0E8]'
-                          : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1A1A1A] hover:text-gray-700 dark:hover:text-gray-200'
+                          ? 'bg-os-accent/10 text-os-text-primary dark:text-[#F5F0E8]'
+                          : 'text-os-text-secondary dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1A1A1A] hover:text-gray-700 dark:hover:text-gray-200'
                           }`}
                       >
-                        <Icon className={`w-4 h-4 flex-shrink-0 ${isSelected ? 'text-[#D4A937]' : 'text-gray-400 dark:text-gray-600'
+                        <Icon className={`w-4 h-4 flex-shrink-0 ${isSelected ? 'text-os-accent' : 'text-gray-400 dark:text-os-text-secondary'
                           }`} />
                         <span className="flex-1 text-os-sm font-medium">{action.label}</span>
                         {isSelected && (
@@ -194,7 +194,7 @@ export default function CommandPalette({ open, onClose }) {
           </div>
 
           {/* Footer hint */}
-          <div className="px-4 py-2 border-t dark:border-[#1E1E1E] flex items-center gap-4 text-os-xs dark:text-gray-600">
+          <div className="px-4 py-2 border-t dark:border-[#1E1E1E] flex items-center gap-4 text-os-xs dark:text-os-text-secondary">
             <span className="flex items-center gap-1">
               <kbd className="px-1.5 py-0.5 dark:bg-[#1A1A1A] rounded border dark:border-[#2A2A2A] text-os-xs">&uarr;&darr;</kbd>
               Navigate

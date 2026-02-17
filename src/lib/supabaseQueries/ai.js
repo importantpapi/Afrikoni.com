@@ -13,16 +13,16 @@ export async function getProductRecommendations(productId, limit = 10) {
     const { data: recommendations, error: recError } = await supabase
       .from('product_recommendations')
       .select('recommended_product_id, score')
-      .eq('source_product_id', productId)
+      .eq('product_id', productId)
       .order('score', { ascending: false })
       .limit(limit);
-    
+
     if (recError) throw recError;
-    
+
     if (!recommendations || recommendations.length === 0) {
       return [];
     }
-    
+
     // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
     // Load products separately
     const productIds = recommendations.map(r => r.recommended_product_id).filter(Boolean);
@@ -30,9 +30,9 @@ export async function getProductRecommendations(productId, limit = 10) {
       .from('products')
       .select('id, name, description, price_min, price_max, currency, status, company_id, category_id, product_images(*)')
       .in('id', productIds);
-    
+
     if (productsError) throw productsError;
-    
+
     // Load companies separately if needed
     let companiesMap = new Map();
     if (productsData && productsData.length > 0) {
@@ -43,7 +43,7 @@ export async function getProductRecommendations(productId, limit = 10) {
             .from('companies')
             .select('id, company_name, country, verification_status, verified')
             .in('id', companyIds);
-          
+
           if (companies) {
             companies.forEach(c => companiesMap.set(c.id, c));
           }
@@ -53,13 +53,13 @@ export async function getProductRecommendations(productId, limit = 10) {
         }
       }
     }
-    
+
     // Merge company data with products
     const productsWithCompanies = (productsData || []).map(product => ({
       ...product,
       companies: companiesMap.get(product.company_id) || null
     }));
-    
+
     return productsWithCompanies;
   } catch (error) {
     console.error('Error getting product recommendations:', error);
@@ -73,7 +73,7 @@ export async function createProductRecommendation(recommendationData) {
     .insert(recommendationData)
     .select()
     .single();
-  
+
   if (error) throw error;
   return data;
 }
@@ -83,7 +83,7 @@ export async function bulkCreateProductRecommendations(recommendations) {
     .from('product_recommendations')
     .insert(recommendations)
     .select();
-  
+
   if (error) throw error;
   return data;
 }
@@ -96,7 +96,7 @@ export async function getCompanyRanking(companyId) {
     .select('*')
     .eq('company_id', companyId)
     .single();
-  
+
   if (error && error.code !== 'PGRST116') throw error;
   return data;
 }
@@ -110,7 +110,7 @@ export async function getAllCompanyRankings(limit = 100) {
     `)
     .order('rank_score', { ascending: false })
     .limit(limit);
-  
+
   if (error) throw error;
   return data;
 }
@@ -125,7 +125,7 @@ export async function updateCompanyRanking(companyId, rankingData) {
     })
     .select()
     .single();
-  
+
   if (error) throw error;
   return data;
 }
@@ -138,7 +138,7 @@ export async function createIntentClassifierLog(logData) {
     .insert(logData)
     .select()
     .single();
-  
+
   if (error) throw error;
   return data;
 }
@@ -149,7 +149,7 @@ export async function getIntentClassifierLogs(searchEventId) {
     .select('*')
     .eq('search_event_id', searchEventId)
     .order('created_at', { ascending: false });
-  
+
   if (error) throw error;
   return data;
 }

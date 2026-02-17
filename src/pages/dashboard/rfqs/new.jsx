@@ -8,9 +8,10 @@ import { Label } from '@/components/shared/ui/label';
 import { createRFQ } from '@/services/rfqService';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { useQueryClient } from '@tanstack/react-query';
-import { Sparkles, Upload, Calendar, ArrowRight, Wand2, CheckCircle2 } from 'lucide-react';
+import { Sparkles, Upload, Calendar, ArrowRight, Wand2, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
 import { rfqSchema, validate } from '@/schemas/trade';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/shared/ui/dialog';
 
 /**
  * IntakeEngine - The AI-First Entry Point for Trade OS
@@ -35,6 +36,7 @@ export default function IntakeEngine() {
     description: '',
     quantity: '',
     target_price: '',
+    currency: 'USD',
     unit: 'pieces',
     delivery_location: '',
     target_country: '',
@@ -43,6 +45,9 @@ export default function IntakeEngine() {
   const [closingDate, setClosingDate] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState(null);
+
+  // Soft Gate State
+  const [showGate, setShowGate] = useState(false);
 
   // AI Heuristic Parser with Spell Correction
   const analyzeIntent = async () => {
@@ -79,7 +84,7 @@ export default function IntakeEngine() {
     const qtyMatch = lower.match(/(\d+[\d,]*)\s*(tons?|tonnes?|kg|kilograms?|pieces?|units?|mt|metric\s*tons?|boxes?|pallets?|containers?)/i);
     let quantity = qtyMatch ? qtyMatch[1].replace(/,/g, '') : '';
     let unit = qtyMatch ? qtyMatch[2].toLowerCase() : 'pieces';
-    
+
     // Normalize units
     if (unit.includes('ton')) unit = 'tons';
     if (unit.includes('kg') || unit.includes('kilogram')) unit = 'kg';
@@ -87,20 +92,38 @@ export default function IntakeEngine() {
     if (unit.includes('box')) unit = 'boxes';
 
     // Extract Price with multiple currency patterns
-    const priceMatch = lower.match(/(\$|€|£|usd|eur|gbp)?\s*(\d+[\d,]*)\s*(\$|usd|per\s*ton|per\s*kg)?/i);
+    const priceMatch = lower.match(/(\$|€|£|₦|usd|eur|gbp|ngn|kes|ghs)?\s*(\d+[\d,]*)\s*(\$|€|£|₦|usd|eur|gbp|ngn|kes|ghs|per\s*ton|per\s*kg)?/i);
     const price = priceMatch ? priceMatch[2].replace(/,/g, '') : '';
+
+    // Detect Currency
+    let detectedCurrency = 'USD';
+    const currencyStr = (priceMatch?.[1] || priceMatch?.[3] || '').toLowerCase().trim();
+    const currencySymbols = {
+      '$': 'USD', 'usd': 'USD', 'dollar': 'USD',
+      '€': 'EUR', 'eur': 'EUR', 'euro': 'EUR',
+      '£': 'GBP', 'gbp': 'GBP', 'pound': 'GBP',
+      '₦': 'NGN', 'ngn': 'NGN', 'naira': 'NGN',
+      'kes': 'KES', 'shilling': 'KES',
+      'cedi': 'GHS', 'ghs': 'GHS'
+    };
+
+    if (currencyStr) {
+      Object.entries(currencySymbols).forEach(([key, code]) => {
+        if (currencyStr.includes(key)) detectedCurrency = code;
+      });
+    }
 
     // Extract Countries and Cities
     const countries = ['ghana', 'nigeria', 'kenya', 'senegal', 'ivory coast', 'south africa', 'egypt', 'morocco'];
     const cities = ['accra', 'lagos', 'nairobi', 'mombasa', 'dakar', 'abidjan', 'tema', 'lekki', 'cairo', 'johannesburg'];
-    
+
     const countryMatch = countries.find(c => lower.includes(c));
     const cityMatch = cities.find(c => lower.includes(c));
 
     // Extract delivery location
-    const deliveryMatch = lower.match(/delivered?\s*to\s*([a-z\s]+)/i) || 
-                          lower.match(/destination[:\s]*([a-z\s]+)/i) ||
-                          lower.match(/to\s+([a-z\s]+)\s+port/i);
+    const deliveryMatch = lower.match(/delivered?\s*to\s*([a-z\s]+)/i) ||
+      lower.match(/destination[:\s]*([a-z\s]+)/i) ||
+      lower.match(/to\s+([a-z\s]+)\s+port/i);
     const delivery = deliveryMatch ? deliveryMatch[1].trim() : '';
 
     // Generate intelligent title
@@ -115,6 +138,7 @@ export default function IntakeEngine() {
       quantity: quantity || prev.quantity,
       unit: unit || prev.unit,
       target_price: price || prev.target_price,
+      currency: detectedCurrency,
       delivery_location: delivery || (cityMatch ? cityMatch.charAt(0).toUpperCase() + cityMatch.slice(1) : prev.delivery_location),
       target_country: countryMatch ? countryMatch.charAt(0).toUpperCase() + countryMatch.slice(1) : prev.target_country,
       target_city: cityMatch ? cityMatch.charAt(0).toUpperCase() + cityMatch.slice(1) : prev.target_city,
@@ -141,14 +165,25 @@ export default function IntakeEngine() {
       return;
     }
 
+    // Open Soft Gate
+    setSubmitting(false);
+    setShowGate(true);
+  };
+
+  const handleConfirmSubmission = async () => {
+    setShowGate(false);
+    setSubmitting(true);
+
+    const payload = { ...form, closing_date: closingDate || undefined };
+
     // 2. Submit to API (using validated data where appropriate, or original payload)
     try {
       // Add a top-level timeout to prevent silent hangs
       // Enrich user object with company_id from profile
       const enrichedUser = { ...user, company_id: profile?.company_id };
-      
+
       console.log('[RFQ:New] Starting RFQ creation with enriched user:', { userId: enrichedUser.id, companyId: enrichedUser.company_id });
-      
+
       const createPromise = createRFQ({
         user: enrichedUser,
         formData: payload,
@@ -163,10 +198,10 @@ export default function IntakeEngine() {
       setSubmitting(false);
       if (success) {
         toast.success('RFQ published to Trade OS Network');
-        
+
         // Invalidate RFQ cache to refresh the list
         queryClient.invalidateQueries({ queryKey: ['rfqs'] });
-        
+
         navigate('/dashboard/rfqs');
       }
       else {
@@ -187,7 +222,7 @@ export default function IntakeEngine() {
         <div className="relative z-10 flex items-center justify-between">
           <div>
             <div className="os-label flex items-center gap-2">
-              <Sparkles className="w-3 h-3 text-[#D4A937]" />
+              <Sparkles className="w-3 h-3 text-os-accent" />
               Intake Engine
             </div>
             <h1 className="text-3xl font-light mt-2 text-white">Initialize Trade</h1>
@@ -209,14 +244,14 @@ export default function IntakeEngine() {
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            <Surface variant="panel" className="p-10 flex flex-col items-center justify-center min-h-[400px] border border-[#D4A937]/30 bg-[#D4A937]/5 relative">
+            <Surface variant="panel" className="p-10 flex flex-col items-center justify-center min-h-[400px] border border-os-accent/30 bg-os-accent/5 relative">
               <div className="w-full max-w-2xl space-y-4">
-                <Label className="text-os-lg text-[#D4A937] font-medium">What do you want to source?</Label>
+                <Label className="text-os-lg text-os-accent font-medium">What do you want to source?</Label>
                 <Textarea
                   value={magicInput}
                   onChange={(e) => setMagicInput(e.target.value)}
                   placeholder="e.g. I need 200 tons of Shea Butter delivered to Tema Port by next month. Target price is $1200 per ton."
-                  className="min-h-[160px] text-os-xl bg-black/50 border-white/10 focus:border-[#D4A937] p-6 resize-none leading-relaxed"
+                  className="min-h-[160px] text-os-xl bg-black/50 border-white/10 focus:border-os-accent p-6 resize-none leading-relaxed"
                   autoFocus
                 />
                 <div className="flex justify-end">
@@ -224,7 +259,7 @@ export default function IntakeEngine() {
                     size="lg"
                     onClick={analyzeIntent}
                     disabled={!magicInput.trim() || isAnalyzing}
-                    className="bg-[#D4A937] text-black hover:bg-[#C09830] font-bold text-os-lg px-8 h-14 rounded-os-sm"
+                    className="bg-os-accent text-black hover:bg-os-accent-dark font-bold text-os-lg px-8 h-14 rounded-os-sm"
                   >
                     {isAnalyzing ? (
                       <>
@@ -284,7 +319,7 @@ export default function IntakeEngine() {
                     placeholder="pieces, tons, kg"
                   />
                   <Field
-                    label="Target Price (USD)"
+                    label={`Target Price (${form.currency || 'USD'})`}
                     type="number"
                     value={form.target_price}
                     onChange={(v) => setForm({ ...form, target_price: v })}
@@ -339,7 +374,7 @@ export default function IntakeEngine() {
                   </div>
                   <div>
                     <Label className="mb-2 block">Attachments</Label>
-                    <div className="border-2 border-dashed border-white/10 rounded-lg p-4 text-center hover:border-[#D4A937] transition cursor-pointer bg-black/20">
+                    <div className="border-2 border-dashed border-white/10 rounded-lg p-4 text-center hover:border-os-accent transition cursor-pointer bg-black/20">
                       <Upload className="w-5 h-5 mx-auto mb-2 text-os-muted" />
                       <div className="text-os-xs text-os-muted">Drag files or click</div>
                     </div>
@@ -361,6 +396,37 @@ export default function IntakeEngine() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <Dialog open={showGate} onOpenChange={setShowGate}>
+        <DialogContent className="bg-os-surface-2 border-os-stroke text-white sm:max-w-[425px]">
+          <DialogHeader>
+            <div className="mx-auto w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center mb-4">
+              <AlertTriangle className="h-6 w-6 text-amber-500" />
+            </div>
+            <DialogTitle className="text-center text-white">Verified Sourcing Request</DialogTitle>
+            <DialogDescription className="text-center text-white/70">
+              To ensure network quality, our trade desk reviews all RFQs manually. An expert will contact you within 24 hours to verify specifications.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="p-3 bg-white/5 rounded text-os-sm text-white/60 mb-4 border border-white/10">
+              <span className="block font-bold text-white mb-1">Checking Availability:</span>
+              We are scanning 500+ verified suppliers for <strong>{form.quantity} {form.unit} of {form.title}</strong>.
+            </div>
+            <p className="text-os-xs text-white/50 text-center">
+              Note: High-value trades ($50k+) may require a refundable commitment deposit.
+            </p>
+          </div>
+          <div className="flex gap-3 justify-end">
+            <Button variant="ghost" onClick={() => setShowGate(false)} className="text-white hover:bg-white/10">
+              Edit Details
+            </Button>
+            <Button onClick={handleConfirmSubmission} disabled={submitting} className="bg-os-accent text-black font-bold hover:bg-os-accent-dark">
+              {submitting ? 'Submitting...' : 'Confirm & Request'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -375,7 +441,7 @@ function Field({ label, value, onChange, placeholder, type = 'text', required })
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         required={required}
-        className="bg-black/20 border-white/10 focus:border-[#D4A937]/50"
+        className="bg-black/20 border-white/10 focus:border-os-accent/50"
       />
     </div>
   );

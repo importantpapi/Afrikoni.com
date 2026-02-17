@@ -49,11 +49,11 @@ export default function MobileActionZones() {
   };
 
   return (
-    <section className="block lg:hidden py-8 bg-[#FDFBF7]">
+    <section className="block lg:hidden py-8 bg-os-bg">
       <div className="max-w-[1440px] mx-auto px-4">
         {/* PRIMARY ACTION - Heavy, institutional, ONE dominant focus */}
         <div onClick={handlePostRFQClick} className="cursor-pointer mb-8">
-          <div className="px-5 py-6 bg-gradient-to-b from-[#D4A937] to-[#C29931] rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.08)] active:shadow-[0_1px_4px_rgba(0,0,0,0.12)] active:translate-y-[1px] transition-all touch-manipulation">
+          <div className="px-5 py-6 bg-gradient-to-b from-os-accent to-os-accent-dark rounded-[10px] shadow-[0_2px_8px_rgba(0,0,0,0.08)] active:shadow-[0_1px_4px_rgba(0,0,0,0.12)] active:translate-y-[1px] transition-all touch-manipulation">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-white/15 backdrop-blur-sm rounded-[8px] flex items-center justify-center flex-shrink-0">
                 <FileText className="w-6 h-6 text-white" strokeWidth={2} />

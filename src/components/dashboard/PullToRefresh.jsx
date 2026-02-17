@@ -101,7 +101,7 @@ const PullToRefresh = ({ children, onRefresh, containerRef }) => {
                         animate={isRefreshing ? { rotate: 360 } : {}}
                         transition={isRefreshing ? { duration: 1, repeat: Infinity, ease: "linear" } : {}}
                     >
-                        <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'text-[#D4A937]' : 'text-gray-400'}`} />
+                        <RefreshCw className={`w-5 h-5 ${isRefreshing ? 'text-os-accent' : 'text-gray-400'}`} />
                     </motion.div>
                 </div>
             </motion.div>

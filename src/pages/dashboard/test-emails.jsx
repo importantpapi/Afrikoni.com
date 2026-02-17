@@ -63,18 +63,18 @@ export default function TestEmails() {
 
     setIsSending(true);
     setResults(prev => ({ ...prev, [emailType]: 'sending' }));
-    setDetailedResults(prev => ({ 
-      ...prev, 
-      [emailType]: { 
-        status: 'sending', 
+    setDetailedResults(prev => ({
+      ...prev,
+      [emailType]: {
+        status: 'sending',
         from: 'checking...',
         timestamp: new Date().toISOString()
-      } 
+      }
     }));
 
     try {
       let result;
-      
+
       // For newsletter test, use sendEmail directly
       if (emailType === 'Newsletter Subscription') {
         result = await sendEmail({
@@ -87,25 +87,25 @@ export default function TestEmails() {
       } else {
         result = await emailFunction(testEmail, emailData);
       }
-      
+
       // Verify from address is hello@afrikoni.com
       const fromAddress = customFrom || 'Afrikoni <hello@afrikoni.com>';
       const usesOfficialEmail = fromAddress.includes('hello@afrikoni.com');
-      
+
       if (result.success) {
         setResults(prev => ({ ...prev, [emailType]: 'success' }));
-        setDetailedResults(prev => ({ 
-          ...prev, 
-          [emailType]: { 
+        setDetailedResults(prev => ({
+          ...prev,
+          [emailType]: {
             status: 'success',
             from: fromAddress,
             usesOfficialEmail,
             messageId: result.id || 'N/A',
             timestamp: new Date().toISOString(),
             error: null
-          } 
+          }
         }));
-        
+
         if (usesOfficialEmail) {
           toast.success(`${emailType} email sent successfully from hello@afrikoni.com!`);
         } else {
@@ -113,28 +113,28 @@ export default function TestEmails() {
         }
       } else {
         setResults(prev => ({ ...prev, [emailType]: 'error' }));
-        setDetailedResults(prev => ({ 
-          ...prev, 
-          [emailType]: { 
+        setDetailedResults(prev => ({
+          ...prev,
+          [emailType]: {
             status: 'error',
             from: fromAddress,
             usesOfficialEmail,
             error: result.error || 'Unknown error',
             timestamp: new Date().toISOString()
-          } 
+          }
         }));
         toast.error(`Failed to send ${emailType} email: ${result.error}`);
       }
     } catch (error) {
       setResults(prev => ({ ...prev, [emailType]: 'error' }));
-      setDetailedResults(prev => ({ 
-        ...prev, 
-        [emailType]: { 
+      setDetailedResults(prev => ({
+        ...prev,
+        [emailType]: {
           status: 'error',
           from: customFrom || 'Afrikoni <hello@afrikoni.com>',
           error: error.message || 'Unknown error',
           timestamp: new Date().toISOString()
-        } 
+        }
       }));
       toast.error(`Error sending ${emailType} email: ${error.message}`);
     } finally {
@@ -163,7 +163,7 @@ export default function TestEmails() {
         })
         .select()
         .single();
-      
+
       if (dbError && dbError.code !== '23505') { // Ignore duplicate key errors
         console.warn('Database insert warning:', dbError);
       }
@@ -431,11 +431,10 @@ export default function TestEmails() {
                   {isRunningDiagnostic ? 'Running Diagnostic...' : 'Run API Diagnostic Test'}
                 </Button>
                 {diagnosticResult && (
-                  <div className={`mt-3 p-3 rounded-lg border-2 ${
-                    diagnosticResult.success 
-                      ? 'bg-green-50 border-green-200' 
+                  <div className={`mt-3 p-3 rounded-lg border-2 ${diagnosticResult.success
+                      ? 'bg-green-50 border-green-200'
                       : 'bg-red-50 border-red-200'
-                  }`}>
+                    }`}>
                     <div className="flex items-start gap-2">
                       {diagnosticResult.success ? (
                         <CheckCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
@@ -443,14 +442,12 @@ export default function TestEmails() {
                         <XCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
                       )}
                       <div className="flex-1">
-                        <p className={`font-semibold ${
-                          diagnosticResult.success ? 'text-green-800' : 'text-red-800'
-                        }`}>
+                        <p className={`font-semibold ${diagnosticResult.success ? 'text-green-800' : 'text-red-800'
+                          }`}>
                           {diagnosticResult.success ? '✓ API Connection Successful' : '✗ API Connection Failed'}
                         </p>
-                        <p className={`text-os-sm mt-1 ${
-                          diagnosticResult.success ? 'text-green-700' : 'text-red-700'
-                        }`}>
+                        <p className={`text-os-sm mt-1 ${diagnosticResult.success ? 'text-green-700' : 'text-red-700'
+                          }`}>
                           {diagnosticResult.error || 'Connection test passed'}
                         </p>
                         {diagnosticResult.details && (
@@ -490,7 +487,7 @@ export default function TestEmails() {
                 <Input
                   id="test-email"
                   type="email"
-                  placeholder="your-email@example.com"
+                  placeholder="your-email@afrikoni.com"
                   value={testEmail}
                   onChange={(e) => setTestEmail(e.target.value)}
                   className="mt-1"
@@ -571,7 +568,7 @@ export default function TestEmails() {
               </Card>
             );
           })}
-          
+
           {/* Newsletter Subscription Test */}
           <Card className={detailedResults['Newsletter Subscription']?.status === 'success' ? 'border-green-200' : detailedResults['Newsletter Subscription']?.status === 'error' ? 'border-red-200' : ''}>
             <CardHeader>

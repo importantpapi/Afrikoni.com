@@ -175,16 +175,10 @@ export default function AddProduct() {
         const fileExt = file.name.split('.').pop();
         const fileName = `${profileCompanyId}/${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
 
-        // Add timeout per image upload
-        const uploadPromise = supabase.storage
+        // Upload image using Supabase SDK
+        const { error: uploadError } = await supabase.storage
           .from('product-images')
           .upload(fileName, file);
-
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Image upload timed out')), 10000)
-        );
-
-        const { error: uploadError } = await Promise.race([uploadPromise, timeoutPromise]);
 
         if (uploadError) {
           console.error('[AddProduct] Image upload error:', uploadError);
@@ -232,13 +226,14 @@ export default function AddProduct() {
       const publicImageUrls = await uploadImages();
 
       // Decide publish status based on image upload success
-      const canPublish = publicImageUrls.length > 0;
-      const productStatus = canPublish ? 'active' : 'draft';
+      const hasImages = publicImageUrls.length > 0;
+      const productStatus = (publish && hasImages) ? 'active' : 'draft';
 
-      if (!canPublish && formData.images?.length > 0) {
-        toast.warning('Images failed to upload', {
-          description: 'Saving as draft. Please contact support about storage setup.'
+      if (formData.images?.length > 0 && publicImageUrls.length === 0) {
+        toast.error('Image upload failed', {
+          description: 'Try reducing image size or check your connection.'
         });
+        return { success: false, error: 'Image upload failed' };
       }
 
       // Map UI form data to Service expected format
@@ -269,7 +264,7 @@ export default function AddProduct() {
     try {
       // Add timeout to prevent hanging indefinitely (encapsulates category + images + service)
       const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Process timed out after 30 seconds. This might be due to heavy images or network delay.')), 30000)
+        setTimeout(() => reject(new Error('Process timed out after 90 seconds. This might be due to heavy images or network delay.')), 90000)
       );
 
       const result = await Promise.race([
@@ -288,7 +283,7 @@ export default function AddProduct() {
           });
         }
 
-        const isDraft = productStatus === 'draft';
+        const isDraft = result.data?.status === 'draft';
         toast.success(isDraft ? '📦 Product saved as draft' : '🎉 Product published successfully!', {
           description: isDraft
             ? 'Fix images and publish from the products page'

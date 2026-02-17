@@ -6,7 +6,7 @@ import { useEffect } from 'react';
  * SEO component for managing page meta tags
  * Uses document manipulation for now (can upgrade to react-helmet-async later)
  */
-export default function SEO({ 
+export default function SEO({
   title = 'AFRIKONI - African B2B Marketplace',
   description = 'Connect with verified African suppliers and buyers. Source products, post RFQs, and grow your business across Africa.',
   image = '/og-image.jpg',
@@ -16,7 +16,7 @@ export default function SEO({
   ogImage = '/og-image.jpg',
   structuredData = null
 }) {
-  const fullTitle = title.includes('AFRIKONI') ? title : `${title} | AFRIKONI`;
+  const fullTitle = title?.includes('AFRIKONI') ? title : `${title} | AFRIKONI`;
   const fullUrl = url ? `https://afrikoni.com${url}` : 'https://afrikoni.com';
   const fullImage = image.startsWith('http') ? image : `https://afrikoni.com${image}`;
 

@@ -49,8 +49,8 @@ export default function VerifyEmailPrompt() {
     >
       <div className="space-y-6">
         <div className="text-center">
-          <div className="w-16 h-16 bg-[#D4A937]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Mail className="w-8 h-8 text-[#D4A937]" />
+          <div className="w-16 h-16 bg-os-accent/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Mail className="w-8 h-8 text-os-accent" />
           </div>
           <p className="text-[13px] text-gray-600 leading-relaxed">
             Check your inbox and spam folder for the verification email. Click the link to activate your account.
@@ -60,7 +60,7 @@ export default function VerifyEmailPrompt() {
         <Button
           onClick={handleResend}
           disabled={isSending}
-          className="w-full h-[52px] bg-[#D4A937] hover:bg-[#C29931] active:bg-[#B38A2C] text-white font-semibold text-[15px] rounded-[14px] transition-all shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(212,169,55,0.15)] hover:shadow-[0_2px_4px_rgba(0,0,0,0.1),0_6px_16px_rgba(212,169,55,0.2)] active:shadow-[0_1px_2px_rgba(0,0,0,0.12)] disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full h-[52px] bg-os-accent hover:bg-os-accent-dark active:bg-os-accent-dark text-white font-semibold text-[15px] rounded-[14px] transition-all shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(212,169,55,0.15)] hover:shadow-[0_2px_4px_rgba(0,0,0,0.1),0_6px_16px_rgba(212,169,55,0.2)] active:shadow-[0_1px_2px_rgba(0,0,0,0.12)] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {isSending ? (
             <>

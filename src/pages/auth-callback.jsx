@@ -138,7 +138,7 @@ export default function AuthCallback() {
   }, [navigate, searchParams, t, authReady, user, profile]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FDFBF7] via-[#F8F6F0] to-[#F5F2EA] flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-os-bg via-os-bg to-os-bg flex items-center justify-center py-12 px-4">
       <div className="w-full max-w-[460px] text-center">
         <div className="bg-white rounded-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.12),0_8px_20px_rgba(0,0,0,0.08)] p-12 border border-black/[0.08]">
           <div className="flex justify-center mb-10">
@@ -146,7 +146,7 @@ export default function AuthCallback() {
           </div>
           {isLoading ? (
             <>
-              <Loader2 className="w-12 h-12 mx-auto mb-6 animate-spin text-[#D4A937]" />
+              <Loader2 className="w-12 h-12 mx-auto mb-6 animate-spin text-os-accent" />
               <h2 className="text-[20px] font-semibold text-gray-900 mb-2">
                 {isEmailVerification ? 'Verifying your email' : 'Signing you in'}
               </h2>
@@ -167,7 +167,7 @@ export default function AuthCallback() {
             </>
           ) : (
             <>
-              <Loader2 className="w-8 h-8 mx-auto mb-4 animate-spin text-[#D4A937]" />
+              <Loader2 className="w-8 h-8 mx-auto mb-4 animate-spin text-os-accent" />
               <p className="text-[14px] text-gray-600">Redirecting...</p>
             </>
           )}

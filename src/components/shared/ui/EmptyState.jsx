@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Button } from './button';
 import {
-  Package, ShoppingCart, FileText, MessageSquare, 
+  Package, ShoppingCart, FileText, MessageSquare,
   Wallet, BarChart3, Inbox, Search
 } from 'lucide-react';
 
@@ -41,7 +41,7 @@ const configMap = {
     title: 'No RFQs yet',
     description: 'Create a Request for Quotation to get competitive pricing from suppliers.',
     cta: 'Create RFQ',
-    ctaLink: '/rfq/create',
+    ctaLink: '/dashboard/rfqs/new',
     iconColor: 'text-purple-600',
     iconBg: 'bg-purple-50'
   },
@@ -83,18 +83,18 @@ const configMap = {
   }
 };
 
-export default function EmptyState({ 
-  type = 'default', 
-  title, 
-  description, 
-  cta, 
+export default function EmptyState({
+  type = 'default',
+  title,
+  description,
+  cta,
   ctaLink,
   onCtaClick,
   className = ''
 }) {
   const config = configMap[type] || configMap.default;
   const Icon = config.icon;
-  
+
   const finalTitle = title || config.title;
   const finalDescription = description || config.description;
   const finalCta = cta || config.cta;
@@ -110,15 +110,15 @@ export default function EmptyState({
       <div className={`w-20 h-20 ${config.iconBg} rounded-full flex items-center justify-center mb-6`}>
         <Icon className={`w-10 h-10 ${config.iconColor}`} />
       </div>
-      
-      <h3 className="text-os-xl font-bold text-afrikoni-chestnut mb-2 text-center">
+
+      <h3 className="text-os-xl font-bold text-os-text-primary mb-2 text-center uppercase tracking-tight">
         {finalTitle}
       </h3>
-      
-      <p className="text-afrikoni-deep text-center max-w-md mb-6">
+
+      <p className="text-os-text-secondary font-medium text-center max-w-md mb-8 leading-relaxed">
         {finalDescription}
       </p>
-      
+
       {finalCta && (
         onCtaClick ? (
           <Button variant="primary" onClick={onCtaClick}>

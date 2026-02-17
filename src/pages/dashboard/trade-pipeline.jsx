@@ -56,7 +56,7 @@ function StageNode({ stage, count, isActive, index }) {
             ? `${stage.color} text-white shadow-os-md shadow-black/30`
             : 'bg-white/5 text-os-muted border border-white/10'
           }
-          ${isActive ? 'ring-2 ring-offset-2 ring-[#D4A937] ring-offset-[#0b0a08]' : ''}
+          ${isActive ? 'ring-2 ring-offset-2 ring-os-accent ring-offset-[#0b0a08]' : ''}
         `}
       >
         <Icon className="w-5 h-5" />
@@ -81,7 +81,7 @@ function StageNode({ stage, count, isActive, index }) {
 function StageConnector({ active }) {
   return (
     <div className="flex-1 flex items-center px-0.5 mt-[-16px]">
-      <div className={`h-0.5 w-full rounded-full transition-colors ${active ? 'bg-[#D4A937]' : 'bg-white/10'
+      <div className={`h-0.5 w-full rounded-full transition-colors ${active ? 'bg-os-accent' : 'bg-white/10'
         }`} />
     </div>
   );

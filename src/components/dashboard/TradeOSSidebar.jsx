@@ -36,7 +36,7 @@ export default function TradeOSSidebar({
   return (
     <aside
       className={`
-        relative h-full bg-[#FDFBF7] border-r border-os-accent/20
+        relative h-full bg-os-bg border-r border-os-accent/20
         flex flex-col
         shadow-[8px_0_40px_rgba(0,0,0,0.12)]
         ${sidebarOpen ? 'w-[240px]' : 'w-[88px]'}
@@ -60,15 +60,15 @@ export default function TradeOSSidebar({
             animate={{ opacity: 1, x: 0 }}
             className="flex flex-col"
           >
-            <span className="text-os-xs font-bold tracking-widest text-[#D4A937]">AFRIKONI OS</span>
-            <span className="text-os-xs text-muted-foreground font-medium uppercase tracking-tighter">Trade Intelligence</span>
+            <span className="text-os-xs font-bold tracking-widest text-os-accent">AFRIKONI</span>
+            <span className="text-os-xs text-muted-foreground font-medium uppercase tracking-tighter">Trade. Trust. Thrive.</span>
           </motion.div>
         )}
 
         {!sidebarOpen && (
-          <div className="absolute left-14 px-3 py-1.5 bg-white dark:bg-gray-900 border border-[#D4A937]/30 rounded-lg text-os-xs font-semibold text-[#D4A937] opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-[60] shadow-os-lg">
-            AFRIKONI OS
-            <div className="text-os-xs text-gray-500 dark:text-gray-400 font-normal mt-0.5">Trade. Trust. Thrive.</div>
+          <div className="absolute left-14 px-3 py-1.5 bg-white dark:bg-gray-900 border border-os-accent/30 rounded-lg text-os-xs font-semibold text-os-accent opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-[60] shadow-os-lg">
+            AFRIKONI
+            <div className="text-os-xs text-os-text-secondary dark:text-gray-400 font-normal mt-0.5">Trade. Trust. Thrive.</div>
           </div>
         )}
       </Link>

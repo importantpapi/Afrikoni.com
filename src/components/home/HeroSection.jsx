@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, X, CheckCircle, Users, Globe, Shield, Lock, TrendingUp, ArrowRight, Store, ShoppingBag, Truck, FileText } from 'lucide-react';
-import { Input } from '@/components/shared/ui/input';
+import { Search, X, CheckCircle, Globe, Shield, Lock, TrendingUp, ArrowRight, Store, ShoppingBag, Truck, Users, MessageCircle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
+import { Input } from '@/components/shared/ui/input';
 import { Logo } from '@/components/shared/ui/Logo';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/shared/ui/card';
@@ -11,8 +11,10 @@ import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 import SearchSuggestions from '@/components/search/SearchSuggestions';
 import { addSearchToHistory } from '@/components/search/SearchHistory';
+import { cn } from '@/lib/utils';
+import { openWhatsAppCommunity } from '@/utils/whatsappCommunity';
 
-// Compact Social Proof Component
+// Compact Social Proof Component (Institutional Styling)
 function SocialProofSection() {
   const { t } = useTranslation();
   const [stats, setStats] = useState({
@@ -24,31 +26,22 @@ function SocialProofSection() {
   useEffect(() => {
     const loadStats = async () => {
       try {
-        // Get verified suppliers count
         const { count: suppliersCount } = await supabase
           .from('companies')
           .select('*', { count: 'exact', head: true })
           .in('role', ['seller', 'hybrid'])
           .eq('verification_status', 'verified');
 
-        // Get unique countries from products (anonymous-friendly query)
-        // Fixed: Simplified query for anonymous access
-        const { data: productsData, error: productsError } = await supabase
+        const { data: productsData } = await supabase
           .from('products')
           .select('country_of_origin')
           .eq('status', 'active')
-          .limit(100); // Limit to avoid large queries
-
-        // Silently handle errors - show zeros if query fails
-        if (productsError) {
-          console.debug('[HeroSection] Products query failed (non-critical):', productsError);
-        }
+          .limit(100);
 
         const uniqueCountries = new Set(
           productsData?.map(p => p.country_of_origin).filter(Boolean) || []
         );
 
-        // Get active businesses (companies)
         const { count: businessesCount } = await supabase
           .from('companies')
           .select('*', { count: 'exact', head: true })
@@ -60,47 +53,38 @@ function SocialProofSection() {
           activeBusinesses: businessesCount || 0
         });
       } catch (error) {
-        // Silently fail - show zeros if data can't be loaded
         console.debug('Error loading social proof stats:', error);
       }
     };
-
     loadStats();
   }, []);
 
-  // Only show if we have some data
-  if (stats.verifiedSuppliers === 0 && stats.countries === 0 && stats.activeBusinesses === 0) {
-    return null;
-  }
+  if (stats.verifiedSuppliers === 0 && stats.countries === 0 && stats.activeBusinesses === 0) return null;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6, delay: 0.3 }}
-      className="flex flex-wrap items-center justify-center gap-3 md:gap-8 mt-6 md:mt-8 text-meta px-2 md:px-0"
+      transition={{ duration: 0.8, delay: 0.4 }}
+      className="flex flex-wrap items-center justify-center gap-4 md:gap-10 mt-10"
     >
       {stats.verifiedSuppliers > 0 && (
-        <div className="flex items-center gap-2 text-afrikoni-cream/95 bg-afrikoni-cream/8 md:bg-afrikoni-cream/5 border border-os-accent/30 md:border-os-accent/20 rounded-full px-3 md:px-4 py-1.5 md:py-2 backdrop-blur-sm shadow-sm md:shadow-none">
-          <CheckCircle className="w-4 h-4 md:w-6 md:h-6 text-os-accent flex-shrink-0" />
-          <span className="text-os-xs md:text-body">
-            <span className="font-bold text-os-accent">{stats.verifiedSuppliers}+</span>
-            <span className="ml-1 md:ml-1.5 font-normal hidden sm:inline">Verified Suppliers</span>
-            <span className="ml-1 md:hidden font-normal">Suppliers</span>
+        <div className="flex items-center gap-3 text-os-text-secondary/80">
+          <CheckCircle className="w-5 h-5 text-os-accent" />
+          <span className="text-13 font-medium tracking-wide uppercase">
+            <span className="text-os-text-primary font-bold">{stats.verifiedSuppliers}+</span> Verified Suppliers
           </span>
         </div>
       )}
-      <div className="flex items-center gap-2 text-afrikoni-cream/95 bg-afrikoni-cream/8 md:bg-afrikoni-cream/5 border border-os-accent/30 md:border-os-accent/20 rounded-full px-3 md:px-4 py-1.5 md:py-2 backdrop-blur-sm shadow-sm md:shadow-none">
-        <Globe className="w-4 h-4 md:w-6 md:h-6 text-os-accent flex-shrink-0" />
-        <span className="text-os-xs md:text-body font-normal">{t('active_54')}</span>
+      <div className="flex items-center gap-3 text-os-text-secondary/80">
+        <Globe className="w-5 h-5 text-os-accent" />
+        <span className="text-13 font-medium tracking-wide uppercase">Active in 54 Countries</span>
       </div>
       {stats.activeBusinesses > 0 && (
-        <div className="flex items-center gap-2 text-afrikoni-cream/95 bg-afrikoni-cream/8 md:bg-afrikoni-cream/5 border border-os-accent/30 md:border-os-accent/20 rounded-full px-3 md:px-4 py-1.5 md:py-2 backdrop-blur-sm shadow-sm md:shadow-none">
-          <Users className="w-4 h-4 md:w-6 md:h-6 text-os-accent flex-shrink-0" />
-          <span className="text-os-xs md:text-body">
-            <span className="font-bold text-os-accent">{stats.activeBusinesses}+</span>
-            <span className="ml-1 md:ml-1.5 font-normal hidden sm:inline">Active Businesses</span>
-            <span className="ml-1 md:hidden font-normal">Businesses</span>
+        <div className="flex items-center gap-3 text-os-text-secondary/80">
+          <Users className="w-5 h-5 text-os-accent" />
+          <span className="text-13 font-medium tracking-wide uppercase">
+            <span className="text-os-text-primary font-bold">{stats.activeBusinesses}+</span> Businesses
           </span>
         </div>
       )}
@@ -113,14 +97,53 @@ export default function HeroSection({ categories = [] }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchFocused, setSearchFocused] = useState(false);
-  // Use centralized AuthProvider (for consistency, even though this is public)
-  const { user, authReady } = useAuth();
+  const { user } = useAuth();
   const [categorySearchQuery, setCategorySearchQuery] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
   const searchContainerRef = useRef(null);
   const navigate = useNavigate();
 
-  // Limit categories to top 12 most popular + search functionality
+  // REAL DATA INJECTION: Fetching stats for institutional transparency
+  const [stats, setStats] = useState({
+    verifiedSuppliers: 0,
+    countries: 54,
+    activeBusinesses: 0
+  });
+
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const { count: suppliersCount } = await supabase
+          .from('companies')
+          .select('*', { count: 'exact', head: true })
+          .in('role', ['seller', 'hybrid'])
+          .eq('verification_status', 'verified');
+
+        const { data: productsData } = await supabase
+          .from('products')
+          .select('country_of_origin')
+          .eq('status', 'active')
+          .limit(200);
+
+        const uniqueCountries = new Set(
+          productsData?.map(p => p.country_of_origin).filter(Boolean) || []
+        );
+
+        const { count: businessesCount } = await supabase
+          .from('companies')
+          .select('*', { count: 'exact', head: true })
+          .in('verification_status', ['verified', 'pending']);
+
+        setStats({
+          verifiedSuppliers: suppliersCount || 0,
+          countries: uniqueCountries.size > 0 ? uniqueCountries.size : 54,
+          activeBusinesses: businessesCount || 0
+        });
+      } catch (e) { }
+    };
+    loadStats();
+  }, []);
+
   const popularCategoryNames = [
     'Agriculture', 'Food & Beverages', 'Textiles & Apparel',
     'Beauty & Personal Care', 'Consumer Electronics', 'Industrial Machinery',
@@ -130,28 +153,17 @@ export default function HeroSection({ categories = [] }) {
 
   const displayedCategories = useMemo(() => {
     if (categorySearchQuery.trim()) {
-      // Filter by search query
       return categories.filter(cat =>
         cat.name.toLowerCase().includes(categorySearchQuery.toLowerCase())
       ).slice(0, 15);
     }
-    // Show popular categories first, then others
-    const popular = categories.filter(cat =>
-      popularCategoryNames.includes(cat.name)
-    ).slice(0, 12);
-    const others = categories.filter(cat =>
-      !popularCategoryNames.includes(cat.name)
-    ).slice(0, 3);
+    const popular = categories.filter(cat => popularCategoryNames.includes(cat.name)).slice(0, 12);
+    const others = categories.filter(cat => !popularCategoryNames.includes(cat.name)).slice(0, 3);
     return [...popular, ...others];
   }, [categories, categorySearchQuery]);
 
-  // User loaded from AuthProvider context (no separate useEffect needed)
-  // AuthProvider handles all auth state changes
-
   const handleSearch = () => {
-    if (searchQuery.trim()) {
-      addSearchToHistory(searchQuery);
-    }
+    if (searchQuery.trim()) addSearchToHistory(searchQuery);
     const params = new URLSearchParams();
     if (searchQuery) params.set('q', searchQuery);
     if (selectedCategory !== 'all') params.set('category', selectedCategory);
@@ -162,26 +174,19 @@ export default function HeroSection({ categories = [] }) {
   const handleSelectSuggestion = (text, type, id) => {
     setSearchQuery(text);
     setShowSuggestions(false);
-    if (text.trim()) {
-      addSearchToHistory(text);
-    }
+    if (text.trim()) addSearchToHistory(text);
     const params = new URLSearchParams();
     params.set('q', text);
-    if (type === 'category' && id) {
-      params.set('category', id);
-    }
+    if (type === 'category' && id) params.set('category', id);
     navigate(`/marketplace?${params.toString()}`);
   };
 
-  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Cmd/Ctrl + K to focus search
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         document.getElementById('hero-search-input')?.focus();
       }
-      // Escape to close suggestions
       if (e.key === 'Escape') {
         setShowSuggestions(false);
         setSearchFocused(false);
@@ -191,7 +196,6 @@ export default function HeroSection({ categories = [] }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Close suggestions when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
@@ -205,410 +209,198 @@ export default function HeroSection({ categories = [] }) {
   }, [showSuggestions]);
 
   return (
-    <div className="relative bg-gradient-to-br from-afrikoni-earth via-afrikoni-deep to-afrikoni-chestnut py-12 md:py-24 overflow-visible">
-      {/* Faint Afrikoni Logo Watermark */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-[0.04]">
-        <Logo type="icon" size="xl" link={false} className="scale-150 text-os-accent" />
-      </div>
+    <div className="relative bg-[var(--os-bg)] min-h-[850px] flex items-center justify-center py-20 overflow-hidden group/hero">
+      {/* Background Texture */}
+      <div className="absolute inset-0 z-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjciIG51bU9jdGF2ZXM9IjQiLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsdGVyPSJ1cmwoI24pIiBvcGFjaXR5PSIuNSIvPjwvc3ZnPg==')]" />
 
-      {/* Subtle Pattern Overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.08]"
-        style={{
-          backgroundImage: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(212, 168, 87, 0.1) 10px, rgba(212, 168, 87, 0.1) 20px)'
-        }}
-      />
+      {/* Premium Backlit Glow */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-os-accent/10 blur-[160px] rounded-full pointer-events-none animate-pulse duration-[10s]" />
 
-      <div className="w-full max-w-[1440px] mx-auto px-4 relative z-10">
-        <div className="grid lg:grid-cols-12 gap-6 lg:gap-8 items-start">
-          {/* Left Sidebar - Quick Links & Features */}
+      <div className="container relative z-10 mx-auto px-6 md:px-12 h-full flex flex-col justify-center gap-12 lg:gap-20">
+
+        {/* MAIN LAYOUT: Unified Columns */}
+        <div className="grid lg:grid-cols-12 gap-10 items-center">
+
+          {/* LEFT: Quick Access (Minimal) */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.4, delay: 0.1, ease: 'easeOut' }}
-            className="hidden lg:block lg:col-span-3"
+            className="lg:col-span-3 hidden lg:flex flex-col gap-6"
           >
-            <Card className="border border-os-accent/20 bg-afrikoni-cream/5 backdrop-blur-sm shadow-os-md opacity-70">
-              <CardContent className="p-4 space-y-2">
-                <h3 className="text-meta font-medium text-os-accent/80 mb-4 tracking-[0.02em]">
-                  {t('quick_access')}
-                </h3>
-                <motion.button
-                  whileHover={{ x: 2 }}
-                  onClick={() => navigate('/services/buyers')}
-                  className="w-full flex items-center gap-2 p-2.5 rounded-lg bg-transparent hover:bg-os-accent/5 transition-all text-left group border border-os-accent/20"
-                >
-                  <ShoppingBag className="w-4 h-4 text-os-accent/70 group-hover:scale-110 transition-transform" />
-                  <div className="flex-1">
-                    <p className="text-body font-normal leading-[1.6] text-afrikoni-cream/80">{t('buy_source')}</p>
-                  </div>
-                  <ArrowRight className="w-3 h-3 text-os-accent/50 group-hover:translate-x-1 transition-transform" />
-                </motion.button>
-                <motion.button
-                  whileHover={{ x: 2 }}
-                  onClick={() => navigate('/become-supplier')}
-                  className="w-full flex items-center gap-2 p-2.5 rounded-lg bg-transparent hover:bg-os-accent/5 transition-all text-left group border border-os-accent/20"
-                >
-                  <Store className="w-4 h-4 text-os-accent/70 group-hover:scale-110 transition-transform" />
-                  <div className="flex-1">
-                    <p className="text-body font-normal leading-[1.6] text-afrikoni-cream/80">{t('sell_products')}</p>
-                  </div>
-                  <ArrowRight className="w-3 h-3 text-os-accent/50 group-hover:translate-x-1 transition-transform" />
-                </motion.button>
-                <motion.button
-                  whileHover={{ x: 2 }}
-                  onClick={() => navigate('/logistics-partner-onboarding')}
-                  className="w-full flex items-center gap-2 p-2.5 rounded-lg bg-transparent hover:bg-os-accent/5 transition-all text-left group border border-os-accent/20"
-                >
-                  <Truck className="w-4 h-4 text-os-accent/70 group-hover:scale-110 transition-transform" />
-                  <div className="flex-1">
-                    <p className="text-body font-normal leading-[1.6] text-afrikoni-cream/80">{t('ship_goods')}</p>
-                  </div>
-                  <ArrowRight className="w-3 h-3 text-os-accent/50 group-hover:translate-x-1 transition-transform" />
-                </motion.button>
-              </CardContent>
-            </Card>
+            <div className="glass-surface p-6 rounded-[24px] border-os-stroke bg-os-surface-solid shadow-premium">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-2 h-2 rounded-full bg-os-accent animate-pulse" />
+                <span className="text-[10px] font-bold tracking-[0.2em] text-os-accent uppercase">Quick Access</span>
+              </div>
+
+              <nav className="flex flex-col gap-1">
+                {[
+                  { name: 'Browse Marketplace', icon: ShoppingBag, path: '/marketplace' },
+                  { name: 'Source Suppliers', icon: Store, path: '/suppliers' },
+                  { name: 'Global Logistics', icon: Truck, path: '/logistics' },
+                  { name: 'Verified Network', icon: Users, path: '/network' }
+                ].map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.path}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-os-accent/5 transition-all text-os-text-secondary hover:text-os-text-primary group"
+                  >
+                    <item.icon className="w-4 h-4 text-os-accent/60 group-hover:text-os-accent" />
+                    <span className="text-14 font-medium">{item.name}</span>
+                  </Link>
+                ))}
+              </nav>
+            </div>
           </motion.div>
 
-          {/* Center Content */}
-          <div className="lg:col-span-6 text-center">
-            {/* Mobile: Operational Header | Desktop: Brand Header */}
+          {/* CENTER: Clean Apple-Style Search */}
+          <div className="lg:col-span-6 flex flex-col items-center text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
-              className="mb-6 md:mb-12 px-2 md:px-0"
+              className="mb-8"
             >
-              {/* Mobile: Operational, Action-Oriented */}
-              <div className="md:hidden space-y-4 mb-6">
-                <h1 className="text-os-2xl font-bold leading-tight text-os-accent mb-2">
-                  Find verified African suppliers
-                </h1>
-                <p className="text-os-base font-medium text-afrikoni-cream/95 leading-relaxed">
-                  Search products or verified suppliers across 54 countries
-                </p>
-                {/* Small brand seal */}
-                <p className="text-os-xs text-afrikoni-cream/70 font-medium">
-                  Trade. Trust. Thrive.
-                </p>
+              <h1 className="text-40 md:text-64 lg:text-72 font-bold tracking-tight text-os-text-primary mb-6 leading-[0.95]">
+                Buy & Sell <br />
+                <span className="text-os-accent italic">Across Africa.</span>
+              </h1>
+              <div className="flex items-center justify-center gap-6 mb-8 mt-2 opacity-60">
+                <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.25em] font-black text-os-text-secondary">
+                  <Shield className="w-4 h-4 text-os-accent" />
+                  Verified Suppliers
+                </div>
+                <div className="w-1 h-1 rounded-full bg-os-stroke" />
+                <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.25em] font-black text-os-text-secondary">
+                  <Globe className="w-4 h-4 text-os-accent" />
+                  54 African Countries
+                </div>
               </div>
-
-              {/* Desktop: Brand Header (restored) */}
-              <div className="hidden md:block">
-                <h1 className="text-os-5xl font-bold leading-[1.1] tracking-[-0.02em] text-os-accent mb-4 md:mb-8">
-                  {t('trade_trust_thrive')}
-                </h1>
-                <p className="text-os-lg font-normal leading-[1.6] text-afrikoni-cream/90 mb-5 md:mb-8 max-w-3xl mx-auto">
-                  {t('hero_subtitle') || 'A Pan-African B2B marketplace where verified African suppliers, buyers, and logistics partners build, trade, and scale safely across 54 countries.'}
-                </p>
-              </div>
+              <p className="text-16 md:text-18 text-os-text-secondary/80 max-w-lg mx-auto leading-relaxed font-medium">
+                Afrikoni connects global buyers with vetted manufacturers and institutional producers across the continent.
+              </p>
             </motion.div>
 
-            {/* Afrikoni Shield trust strip - Hidden per request */}
-            {/* <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.22 }}
-            className="inline-flex flex-wrap items-center justify-center gap-1.5 sm:gap-2 bg-afrikoni-cream/5 border border-os-accent/40 rounded-full px-3 sm:px-4 py-1.5 sm:py-2 text-os-xs sm:text-os-xs md:text-os-xs text-afrikoni-cream mb-5 mx-2"
-          >
-            <span className="font-semibold uppercase tracking-wide text-os-accent">
-              Afrikoni&nbsp;Shield™
-            </span>
-            <span className="opacity-80">Verified suppliers</span>
-            <span className="w-1 h-1 rounded-full bg-os-accent/70" />
-            <span className="opacity-80">KYC / AML &amp; anti-corruption</span>
-            <span className="w-1 h-1 rounded-full bg-os-accent/70" />
-            <span className="opacity-80">Escrow-protected payments</span>
-            <span className="w-1 h-1 rounded-full bg-os-accent/70" />
-            <span className="opacity-80">Cross-border logistics support</span>
-          </motion.div> */}
+            {/* THE SEARCH: Billion-Dollar Simplicity */}
+            <div ref={searchContainerRef} className="w-full max-w-2xl relative group">
+              <div className="absolute -inset-1 bg-gradient-to-r from-os-accent/20 via-white/5 to-os-accent/20 rounded-[28px] blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity duration-700" />
 
-            {/* Mobile: DOMINANT Search Bar - THE CONTROL PANEL */}
-            <div className="md:hidden space-y-4 mb-6">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.1, ease: 'easeOut' }}
-                className="w-full"
-              >
-                <div ref={searchContainerRef} className="relative z-[5000]" style={{ position: 'relative' }}>
-                  {/* Mobile: FULL-WIDTH, HEAVIER, DARKER - THE ENGINE */}
-                  <div
-                    className={`
-                      flex items-center gap-2 md:gap-3
-                      bg-white/98 md:bg-white/95
-                      rounded-os-md md:rounded-full
-                      shadow-os-lg md:shadow-os-md
-                      border-2 md:border border-os-accent/30 md:border-os-accent/20
-                      px-3 md:px-4 py-2.5 md:py-3
-                      transition-all duration-300
-                      focus-within:ring-2 md:focus-within:ring-1 focus-within:ring-os-accent/40 md:focus-within:ring-os-accent/30 focus-within:shadow-2xl md:focus-within:shadow-os-lg
-                      ${searchFocused ? 'shadow-2xl md:shadow-os-lg border-os-accent/40 md:border-os-accent/30' : ''}
-                    `}
-                  >
-                    {/* Main Search Input - DOMINANT, HIGH CONTRAST */}
-                    <input
-                      id="hero-search-input"
-                      type="text"
-                      placeholder="Search products or verified suppliers"
-                      value={searchQuery}
-                      onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        setShowSuggestions(true);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && searchQuery.trim()) {
-                          handleSearch();
-                        }
-                      }}
-                      onFocus={() => {
-                        setSearchFocused(true);
-                        setShowSuggestions(true);
-                      }}
-                      onBlur={() => {
-                        setTimeout(() => {
-                          setSearchFocused(false);
-                        }, 200);
-                      }}
-                      className="flex-1 text-os-sm md:text-os-base px-3 md:px-3 py-2 md:py-1.5 focus:outline-none placeholder:text-afrikoni-deep/70 md:placeholder:text-afrikoni-deep/50 bg-afrikoni-cream/40 md:bg-afrikoni-cream/20 border border-os-accent/30 md:border-os-accent/20 rounded-lg md:rounded-full text-afrikoni-chestnut min-h-[44px] md:min-h-[44px] focus:bg-afrikoni-cream/60 md:focus:bg-afrikoni-cream/30 focus:border-os-accent/50 md:focus:border-os-accent/40 transition-all duration-200"
-                    />
-
-                    {/* Clear button */}
-                    {searchQuery && (
-                      <motion.button
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        onClick={() => {
-                          setSearchQuery('');
-                          setShowSuggestions(false);
-                        }}
-                        className="p-1.5 rounded-full hover:bg-os-accent/10 text-afrikoni-deep/50 hover:text-afrikoni-chestnut transition-colors"
-                        aria-label="Clear search"
-                      >
-                        <X className="w-4 h-4" />
-                      </motion.button>
-                    )}
-
-                    {/* Search Button - Desktop */}
-                    <button
-                      onClick={handleSearch}
-                      className="flex items-center gap-1.5 md:gap-2 bg-os-accent text-afrikoni-chestnut font-semibold md:font-medium px-4 md:px-5 py-2.5 md:py-2 rounded-os-sm md:rounded-full hover:bg-os-accent/90 md:hover:bg-os-accent/70 active:scale-95 md:active:scale-100 transition-all duration-200 min-h-[44px] touch-manipulation shadow-md md:shadow-none"
-                    >
-                      <Search className="w-4.5 h-4.5 md:w-4 md:h-4" />
-                      <span className="hidden sm:inline text-os-sm md:text-os-base">Search</span>
-                    </button>
-                  </div>
-
-                  {/* Premium Search Suggestions Dropdown */}
-                  <AnimatePresence>
-                    {showSuggestions && (searchFocused || searchQuery) && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -10, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -10, scale: 0.98 }}
-                        transition={{ duration: 0.2 }}
-                        className="absolute top-full left-0 right-0 mt-2"
-                        style={{ position: 'absolute', zIndex: 9000 }}
-                      >
-                        <SearchSuggestions
-                          query={searchQuery}
-                          onSelectSuggestion={handleSelectSuggestion}
-                          showHistory={!searchQuery}
-                          showTrending={!searchQuery}
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-              </motion.div>
-            </div>
-
-            {/* Desktop: Enterprise-Grade Search Bar - Keep original design */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1, ease: 'easeOut' }}
-              className="hidden md:block max-w-3xl mx-auto mb-8 md:mb-12 px-2 md:px-0"
-            >
-              <div ref={searchContainerRef} className="relative z-[5000]" style={{ position: 'relative' }}>
-                <div
-                  className={`
-                    flex items-center gap-2 md:gap-3
-                    bg-white/98 md:bg-white/95
-                    rounded-os-md md:rounded-full
-                    shadow-os-lg md:shadow-os-md
-                    border-2 md:border border-os-accent/30 md:border-os-accent/20
-                    px-3 md:px-4 py-2.5 md:py-3
-                    transition-all duration-300
-                    focus-within:ring-2 md:focus-within:ring-1 focus-within:ring-os-accent/40 md:focus-within:ring-os-accent/30 focus-within:shadow-2xl md:focus-within:shadow-os-lg
-                    ${searchFocused ? 'shadow-2xl md:shadow-os-lg border-os-accent/40 md:border-os-accent/30' : ''}
-                  `}
-                >
-                  {/* Category Dropdown - Desktop only */}
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="bg-transparent text-os-xs md:text-os-sm text-afrikoni-deep/70 px-2 md:px-3 focus:outline-none border-0 focus:ring-0 h-auto py-1 md:py-1.5 min-w-[70px] sm:min-w-[100px] font-medium">
-                      <SelectValue placeholder="All" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[60vh] sm:max-h-[400px] bg-white shadow-os-lg border-os-accent/20">
-                      <div className="sticky top-0 bg-white z-10 p-3 border-b border-os-accent/20">
-                        <Input
-                          type="text"
-                          placeholder="Search categories..."
-                          value={categorySearchQuery}
-                          onChange={(e) => setCategorySearchQuery(e.target.value)}
-                          className="w-full h-9 text-os-sm border-os-accent/30 focus:border-os-accent"
-                          onClick={(e) => e.stopPropagation()}
-                        />
-                      </div>
-                      <div className="max-h-[50vh] sm:max-h-[350px] overflow-y-auto">
-                        <SelectItem value="all" className="font-semibold">{t('categories.all') || 'All'}</SelectItem>
-                        {displayedCategories.length > 0 ? (
-                          displayedCategories.map(cat => (
-                            <SelectItem key={cat.id} value={cat.id} className="text-os-sm">{cat.name}</SelectItem>
-                          ))
-                        ) : (
-                          <div className="px-4 py-6 text-os-sm text-afrikoni-deep/60 text-center">
-                            No categories found
-                          </div>
-                        )}
-                      </div>
-                    </SelectContent>
-                  </Select>
-
-                  {/* Main Search Input - Desktop */}
+              <div className="relative flex flex-col md:flex-row gap-3 bg-os-surface-solid/90 backdrop-blur-2xl border-2 border-os-stroke p-2 md:p-3 rounded-[28px] shadow-premium">
+                <div className="flex-1 relative flex items-center">
+                  <Search className="absolute left-4 w-5 h-5 text-os-text-secondary/40" />
                   <input
-                    id="hero-search-input-desktop"
+                    id="hero-search-input"
                     type="text"
-                    placeholder={t('search_placeholder')}
+                    placeholder="Search products or suppliers..."
+                    className="w-full bg-transparent border-none text-os-text-primary text-18 font-bold pl-12 pr-4 py-3 focus:outline-none placeholder:text-os-text-secondary/30"
                     value={searchQuery}
-                    onChange={(e) => {
-                      setSearchQuery(e.target.value);
-                      setShowSuggestions(true);
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && searchQuery.trim()) {
-                        handleSearch();
-                      }
-                    }}
-                    onFocus={() => {
-                      setSearchFocused(true);
-                      setShowSuggestions(true);
-                    }}
-                    onBlur={() => {
-                      setTimeout(() => {
-                        setSearchFocused(false);
-                      }, 200);
-                    }}
-                    className="flex-1 text-os-sm md:text-os-base px-3 md:px-3 py-2 md:py-1.5 focus:outline-none placeholder:text-afrikoni-deep/70 md:placeholder:text-afrikoni-deep/50 bg-afrikoni-cream/40 md:bg-afrikoni-cream/20 border border-os-accent/30 md:border-os-accent/20 rounded-lg md:rounded-full text-afrikoni-chestnut min-h-[44px] md:min-h-[44px] focus:bg-afrikoni-cream/60 md:focus:bg-afrikoni-cream/30 focus:border-os-accent/50 md:focus:border-os-accent/40 transition-all duration-200"
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => setShowSuggestions(true)}
                   />
-
-                  {/* Clear button */}
-                  {searchQuery && (
-                    <motion.button
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      onClick={() => {
-                        setSearchQuery('');
-                        setShowSuggestions(false);
-                      }}
-                      className="p-1.5 rounded-full hover:bg-os-accent/10 text-afrikoni-deep/50 hover:text-afrikoni-chestnut transition-colors"
-                      aria-label="Clear search"
-                    >
-                      <X className="w-4 h-4" />
-                    </motion.button>
-                  )}
-
-                  {/* Search Button - Desktop */}
-                  <button
-                    onClick={handleSearch}
-                    className="flex items-center gap-1.5 md:gap-2 bg-os-accent text-afrikoni-chestnut font-semibold md:font-medium px-4 md:px-5 py-2.5 md:py-2 rounded-os-sm md:rounded-full hover:bg-os-accent/90 md:hover:bg-os-accent/70 active:scale-95 md:active:scale-100 transition-all duration-200 min-h-[44px] touch-manipulation shadow-md md:shadow-none"
-                  >
-                    <Search className="w-4.5 h-4.5 md:w-4 md:h-4" />
-                    <span className="hidden sm:inline text-os-sm md:text-os-base">Search</span>
-                  </button>
                 </div>
 
-                {/* Premium Search Suggestions Dropdown - Desktop */}
-                <AnimatePresence>
-                  {showSuggestions && (searchFocused || searchQuery) && (
-                    <motion.div
-                      initial={{ opacity: 0, y: -10, scale: 0.98 }}
-                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                      exit={{ opacity: 0, y: -10, scale: 0.98 }}
-                      transition={{ duration: 0.2 }}
-                      className="absolute top-full left-0 right-0 mt-2"
-                      style={{ position: 'absolute', zIndex: 9000 }}
-                    >
+                <button
+                  onClick={() => {
+                    if (searchQuery.trim()) addSearchToHistory(searchQuery);
+                    navigate(`/marketplace?q=${searchQuery}`);
+                    setShowSuggestions(false);
+                  }}
+                  className="bg-os-accent hover:bg-os-accent/90 text-[#1A1512] px-8 py-4 rounded-[22px] font-bold text-16 transition-all active:scale-95 shadow-lg shadow-os-accent/20"
+                >
+                  Search
+                </button>
+              </div>
+
+              {/* Suggestions */}
+              <AnimatePresence>
+                {showSuggestions && (searchQuery || isSearchFocused) && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute top-full left-0 right-0 mt-4 z-50"
+                  >
+                    <div className="glass-surface overflow-hidden rounded-[24px]">
                       <SearchSuggestions
                         query={searchQuery}
-                        onSelectSuggestion={handleSelectSuggestion}
+                        onSelect={(suggestion) => {
+                          setSearchQuery(suggestion);
+                          if (suggestion.trim()) addSearchToHistory(suggestion);
+                          navigate(`/marketplace?q=${suggestion}`);
+                          setShowSuggestions(false);
+                        }}
                         showHistory={!searchQuery}
                         showTrending={!searchQuery}
                       />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-            </motion.div>
-
-
-            {/* Social Proof - Moved below search on mobile */}
-            <div className="md:hidden mt-8">
-              <SocialProofSection />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-            <div className="hidden md:block">
-              <SocialProofSection />
+
+            {/* QUICK STATS */}
+            <div className="mt-12 flex flex-wrap justify-center gap-8 md:gap-16">
+              {[
+                { label: 'Markets', value: stats.countries },
+                ...(stats.verifiedSuppliers > 0 ? [{ label: 'Verified Suppliers', value: stats.verifiedSuppliers >= 1000 ? `${(stats.verifiedSuppliers / 1000).toFixed(1)}k+` : `${stats.verifiedSuppliers}+` }] : []),
+                ...(stats.activeBusinesses > 0 ? [{ label: 'Businesses', value: stats.activeBusinesses >= 1000 ? `${(stats.activeBusinesses / 1000).toFixed(1)}k+` : `${stats.activeBusinesses}+` }] : []),
+              ].map((stat) => (
+                <div key={stat.label} className="text-center">
+                  <p className="text-24 font-bold text-os-text-primary mb-1">{stat.value}</p>
+                  <p className="text-[10px] font-bold text-os-text-secondary/50 uppercase tracking-[0.2em]">{stat.label}</p>
+                </div>
+              ))}
             </div>
+
+            {/* WhatsApp CTA */}
+            <button
+              onClick={() => openWhatsAppCommunity('hero_section')}
+              className="mt-6 inline-flex items-center gap-2 text-14 font-medium text-green-600 hover:text-green-500 transition-colors"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>Join our WhatsApp community</span>
+            </button>
           </div>
 
-          {/* Right Sidebar - Trust Features */}
+          {/* RIGHT: High-End Feature (Simple) */}
           <motion.div
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="hidden lg:block lg:col-span-3"
+            className="lg:col-span-3 hidden lg:flex flex-col gap-6"
           >
-            <Card className="border border-os-accent/20 bg-afrikoni-cream/5 backdrop-blur-sm shadow-os-md opacity-70">
-              <CardContent className="p-4 space-y-2">
-                <h3 className="text-meta font-medium text-os-accent/80 mb-4 tracking-[0.02em]">
-                  Why Afrikoni
-                </h3>
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-os-accent/5 border border-os-accent/10">
-                    <Shield className="w-5 h-5 text-os-accent/70 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <h4 className="text-h3 font-semibold leading-[1.3] text-afrikoni-cream/90 mb-1">Verified Only</h4>
-                      <p className="text-body font-normal leading-[1.6] text-afrikoni-cream/70">Only vetted African suppliers</p>
+            <div className="glass-surface p-6 rounded-[24px] border-os-stroke bg-os-surface-solid shadow-premium flex flex-col gap-8">
+              <div>
+                <h4 className="text-os-text-primary font-bold mb-2 text-16 uppercase tracking-tight">Need Help Sourcing?</h4>
+                <p className="text-os-text-secondary/60 text-13 leading-relaxed font-medium">
+                  Our team can help you find and verify the right suppliers for your business.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                {[
+                  { label: 'Growing Fast', value: 'Active', icon: TrendingUp, color: 'text-os-accent' },
+                  { label: 'Platform Status', value: 'Verified', icon: Shield, color: 'text-os-accent' }
+                ].map((item) => (
+                  <div key={item.label} className="p-4 bg-os-accent/5 rounded-2xl border border-os-stroke">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-[10px] font-bold text-os-text-secondary/40 uppercase tracking-widest">{item.label}</span>
+                      <item.icon className={cn("w-3 h-3", item.color)} />
                     </div>
+                    <p className="text-18 font-bold text-os-text-primary">{item.value}</p>
                   </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-os-accent/5 border border-os-accent/10">
-                    <Lock className="w-5 h-5 text-os-accent/70 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <h4 className="text-h3 font-semibold leading-[1.3] text-afrikoni-cream/90 mb-1">Secure Payments</h4>
-                      <p className="text-body font-normal leading-[1.6] text-afrikoni-cream/70">Escrow‑protected trade</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-os-accent/5 border border-os-accent/10">
-                    <Globe className="w-5 h-5 text-os-accent/70 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <h4 className="text-h3 font-semibold leading-[1.3] text-afrikoni-cream/90 mb-1">54 Countries</h4>
-                      <p className="text-body font-normal leading-[1.6] text-afrikoni-cream/70">Pan-African reach</p>
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3 p-3 rounded-lg bg-os-accent/5 border border-os-accent/10">
-                    <TrendingUp className="w-5 h-5 text-os-accent/70 flex-shrink-0 mt-0.5" />
-                    <div>
-                      <h4 className="text-h3 font-semibold leading-[1.3] text-afrikoni-cream/90 mb-1">Growing Network</h4>
-                      <p className="text-body font-normal leading-[1.6] text-afrikoni-cream/70">New suppliers onboarding regularly</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+                ))}
+              </div>
+
+              <button
+                onClick={() => navigate('/signup')}
+                className="w-full py-4 bg-os-accent hover:bg-os-accent/90 text-[#1A1512] rounded-2xl font-bold text-14 transition-all flex items-center justify-center gap-2 group shadow-lg"
+              >
+                Get Started Free
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
           </motion.div>
         </div>
       </div>
-
     </div>
   );
 }

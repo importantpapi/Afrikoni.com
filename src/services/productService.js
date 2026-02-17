@@ -156,10 +156,9 @@ export async function createProduct({ user, formData, companyId, publish = false
     // ✅ KERNEL: Calculate price (use price_min if available, otherwise price_max)
     const price = priceMin || priceMax || 0;
 
-    // ✅ KERNEL: Prepare product data
     const productData = {
       company_id: companyId,
-      title: sanitizeString(formData.title),
+      name: sanitizeString(formData.title),
       short_description: sanitizeString(formData.short_description || ''),
       description: sanitizeString(formData.description || ''),
       category_id: finalCategoryId,
@@ -167,7 +166,6 @@ export async function createProduct({ user, formData, companyId, publish = false
       country_of_origin: formData.country_of_origin || null,
       min_order_quantity: formData.min_order_quantity ? parseFloat(formData.min_order_quantity) : null,
       moq_unit: formData.moq_unit || 'pieces',
-      price: price,
       price_min: priceMin,
       price_max: priceMax,
       currency: formData.currency || 'USD',
@@ -184,7 +182,8 @@ export async function createProduct({ user, formData, companyId, publish = false
       status: publish ? 'active' : (formData.status || 'draft'),
       featured: formData.featured || false,
       published_at: publish ? new Date().toISOString() : null,
-      views: 0
+      views: 0,
+      images: formData.images || []
     };
 
     // ✅ KERNEL: Insert product
@@ -402,9 +401,8 @@ export async function updateProduct({ user, productId, formData, companyId, publ
     // ✅ KERNEL: Calculate price
     const price = priceMin || priceMax || 0;
 
-    // ✅ KERNEL: Prepare update data
     const updateData = {
-      title: sanitizeString(formData.title),
+      name: sanitizeString(formData.title),
       short_description: sanitizeString(formData.short_description || ''),
       description: sanitizeString(formData.description || ''),
       category_id: formData.category_id || null,
@@ -412,7 +410,6 @@ export async function updateProduct({ user, productId, formData, companyId, publ
       country_of_origin: formData.country_of_origin || null,
       min_order_quantity: formData.min_order_quantity ? parseFloat(formData.min_order_quantity) : null,
       moq_unit: formData.moq_unit || 'pieces',
-      price: price,
       price_min: priceMin,
       price_max: priceMax,
       currency: formData.currency || 'USD',
@@ -428,7 +425,8 @@ export async function updateProduct({ user, productId, formData, companyId, publ
       completeness_score: completenessScore,
       status: publish ? 'active' : (formData.status || 'draft'),
       featured: formData.featured || false,
-      published_at: publish ? new Date().toISOString() : null
+      published_at: publish ? new Date().toISOString() : null,
+      images: formData.images || []
     };
 
     // ✅ KERNEL: Update product

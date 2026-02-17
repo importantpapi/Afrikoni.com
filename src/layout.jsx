@@ -12,6 +12,7 @@ import { Logo } from '@/components/shared/ui/Logo';
 import WhatsAppButton from '@/components/shared/ui/WhatsAppButton';
 import CookieBanner from '@/components/shared/ui/CookieBanner';
 import MobileMainNav from './components/layout/MobileMainNav';
+import { PageLoader } from '@/components/shared/ui/skeletons';
 
 // Lazy load MobileLayout outside component to prevent re-creation on every render
 const MobileLayout = lazy(() => import('@/layouts/MobileLayout'));
@@ -71,7 +72,7 @@ function Footer() {
   ];
 
   return (
-    <footer className="bg-afrikoni-chestnut text-afrikoni-cream mt-12 md:mt-16">
+    <footer className="bg-afrikoni-chestnut text-afrikoni-cream mt-12 md:mt-16" role="contentinfo" aria-label="Site footer">
       <div className="max-w-7xl mx-auto px-4 py-6 md:py-10 lg:py-12">
         <div className="grid md:grid-cols-4 gap-6 md:gap-8 lg:gap-12 mb-8 md:mb-10 lg:mb-12">
           {/* Company Info - Always visible */}
@@ -89,14 +90,14 @@ function Footer() {
                 whileHover={{ x: 4 }}
                 className="flex items-center gap-2"
               >
-                <Mail className="w-3 h-3 md:w-4 md:h-4 text-os-accent flex-shrink-0" />
-                <a href="mailto:hello@afrikoni.com" className="hover:text-os-accent transition-colors break-all">hello@afrikoni.com</a>
+                <Mail className="w-3 h-3 md:w-4 md:h-4 text-os-accent flex-shrink-0" aria-hidden="true" />
+                <a href="mailto:hello@afrikoni.com" className="hover:text-os-accent transition-colors break-all focus-visible-ring">hello@afrikoni.com</a>
               </motion.div>
               <motion.div
                 whileHover={{ x: 4 }}
                 className="flex items-center gap-2"
               >
-                <Phone className="w-3 h-3 md:w-4 md:h-4 text-os-accent flex-shrink-0" />
+                <Phone className="w-3 h-3 md:w-4 md:h-4 text-os-accent flex-shrink-0" aria-hidden="true" />
                 <a href="tel:+32456779368" className="hover:text-os-accent transition-colors">+32 456 77 93 68</a>
               </motion.div>
               <motion.div
@@ -432,7 +433,7 @@ export default function Layout({ children }) {
     // For dashboard routes, wait for auth ready
     if (!authReady || authLoading) {
       return (
-        <div className="min-h-screen flex items-center justify-center">
+        <div className="min-h-screen flex items-center justify-center bg-os-bg">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-os-accent" />
         </div>
       );
@@ -473,11 +474,20 @@ export default function Layout({ children }) {
   // Desktop layout (unchanged)
   return (
     <div className="min-h-screen bg-os-bg relative overflow-visible transition-colors duration-500">
+      {/* ✅ WCAG 2.4.1: Skip to main content link for keyboard users */}
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+
       {/* Navbar - Fixed at top (80px height) */}
       <Navbar user={user} onLogout={handleLogout} />
 
       {/* Main Content - Add padding-top for navbar (80px), padding-bottom for mobile nav (88px includes safe area) */}
-      <main className="bg-os-bg pt-[80px] pb-[88px] md:pb-0 relative overflow-visible">{children}</main>
+      <main id="main-content" className="bg-os-bg pt-[80px] pb-[88px] md:pb-0 relative overflow-visible" role="main">
+        <Suspense fallback={<PageLoader />}>
+          {children}
+        </Suspense>
+      </main>
 
       {/* Footer */}
       <Footer />

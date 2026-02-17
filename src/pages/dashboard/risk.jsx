@@ -944,7 +944,7 @@ export default function RiskManagementDashboard() {
       case 'done': return 'bg-afrikoni-green/20 text-afrikoni-green border-afrikoni-green/30';
       case 'upcoming': return 'bg-os-accent/20 text-os-accent border-os-accent/30';
       case 'overdue': return 'bg-afrikoni-red/20 text-afrikoni-red border-afrikoni-red/30';
-      default: return 'bg-gray-100 text-gray-600 border-gray-200';
+      default: return 'bg-gray-100 text-os-text-secondary border-os-stroke';
     }
   };
 
@@ -954,7 +954,7 @@ export default function RiskManagementDashboard() {
       case 'high': return 'text-orange-600';
       case 'medium': return 'text-yellow-600';
       case 'low': return 'text-green-600';
-      default: return 'text-gray-600';
+      default: return 'text-os-text-secondary';
     }
   };
 
@@ -1193,7 +1193,7 @@ export default function RiskManagementDashboard() {
                                       ? 'bg-green-50 text-green-700 border-green-200'
                                       : reg.verificationStatus === 'pending'
                                         ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                                        : 'bg-gray-50 text-gray-700 border-gray-200'
+                                        : 'bg-gray-50 text-gray-700 border-os-stroke'
                                       }`}
                                   >
                                     {reg.verificationStatus}
@@ -1576,7 +1576,7 @@ export default function RiskManagementDashboard() {
                           className={`text-os-xs ${entry.severity === 'critical' ? 'bg-red-50 text-red-700 border-red-200' :
                             entry.severity === 'high' ? 'bg-orange-50 text-orange-700 border-orange-200' :
                               entry.severity === 'medium' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
-                                'bg-gray-50 text-gray-700 border-gray-200'
+                                'bg-gray-50 text-gray-700 border-os-stroke'
                             }`}
                         >
                           {entry.severity}
@@ -1693,7 +1693,7 @@ export default function RiskManagementDashboard() {
                 <div className="space-y-3">
                   {Object.entries(fraudData.fxBreakdown || {}).map(([currency, amount]) => (
                     <div key={currency} className="flex items-center justify-between text-os-sm">
-                      <span className="font-medium text-gray-600 dark:text-gray-400">{currency}</span>
+                      <span className="font-medium text-os-text-secondary dark:text-gray-400">{currency}</span>
                       <span>${amount.toLocaleString()}</span>
                     </div>
                   ))}

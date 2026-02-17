@@ -60,7 +60,7 @@ export default function EscrowMilestoneProgress({
   const releaseProgress = totalAmount > 0 ? Math.round((releasedAmount / totalAmount) * 100) : 0;
 
   return (
-    <Card className={`border-gray-200 dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-os-sm ${className}`}>
+    <Card className={`border-os-stroke dark:border-[#1E1E1E] bg-white dark:bg-[#141414] rounded-os-sm ${className}`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="text-os-sm font-semibold dark:text-[#F5F0E8] flex items-center gap-2">
@@ -110,14 +110,14 @@ export default function EscrowMilestoneProgress({
               initial={{ width: 0 }}
               animate={{ width: `${releaseProgress}%` }}
               transition={{ duration: 1, ease: 'easeOut' }}
-              className="h-full bg-gradient-to-r to-[#D4A937] rounded-full"
+              className="h-full bg-gradient-to-r to-os-accent rounded-full"
             />
           </div>
         </div>
 
         {/* Payment Milestones */}
         <div className="space-y-2">
-          <p className="text-os-xs font-bold dark:text-gray-600 uppercase tracking-wider">
+          <p className="text-os-xs font-bold dark:text-os-text-secondary uppercase tracking-wider">
             Payment Milestones
           </p>
           {MILESTONES.map((milestone, i) => {
@@ -135,14 +135,14 @@ export default function EscrowMilestoneProgress({
                   status === 'completed'
                     ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/30'
                     : status === 'active'
-                    ? 'bg-[#D4A937]/5 border-[#D4A937]/20 ring-1 ring-[#D4A937]/10'
-                    : 'bg-gray-50 dark:bg-[#1A1A1A] border-gray-100 dark:border-[#2A2A2A]'
+                    ? 'bg-os-accent/5 border-os-accent/20 ring-1 ring-os-accent/10'
+                    : 'bg-gray-50 dark:bg-[#1A1A1A] border-os-stroke dark:border-[#2A2A2A]'
                 }`}
               >
                 <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${
                   status === 'completed' ? 'bg-emerald-500 text-white'
-                    : status === 'active' ? 'bg-[#D4A937] text-white dark:text-[#0A0A0A]'
-                    : 'bg-gray-200 dark:bg-[#2A2A2A] text-gray-400 dark:text-gray-600'
+                    : status === 'active' ? 'bg-os-accent text-white dark:text-[#0A0A0A]'
+                    : 'bg-gray-200 dark:bg-[#2A2A2A] text-gray-400 dark:text-os-text-secondary'
                 }`}>
                   {status === 'completed' ? (
                     <CheckCircle className="w-3.5 h-3.5" />
@@ -153,8 +153,8 @@ export default function EscrowMilestoneProgress({
                 <div className="flex-1 min-w-0">
                   <p className={`text-os-sm font-semibold ${
                     status === 'completed' ? 'text-emerald-600 dark:text-emerald-400'
-                      : status === 'active' ? 'text-gray-900 dark:text-[#F5F0E8]'
-                      : 'text-gray-400 dark:text-gray-500'
+                      : status === 'active' ? 'text-os-text-primary dark:text-[#F5F0E8]'
+                      : 'text-gray-400 dark:text-os-text-secondary'
                   }`}>
                     {milestone.label}
                   </p>
@@ -165,12 +165,12 @@ export default function EscrowMilestoneProgress({
                 <div className="text-right flex-shrink-0">
                   <p className={`text-os-sm font-bold font-mono ${
                     status === 'completed' ? 'text-emerald-600 dark:text-emerald-400'
-                      : status === 'active' ? 'text-[#D4A937]'
+                      : status === 'active' ? 'text-os-accent'
                       : 'text-gray-400'
                   }`}>
                     ${amount.toLocaleString()}
                   </p>
-                  <p className="text-os-xs font-mono dark:text-gray-600">{milestone.releasePercent}%</p>
+                  <p className="text-os-xs font-mono dark:text-os-text-secondary">{milestone.releasePercent}%</p>
                 </div>
               </motion.div>
             );
@@ -179,7 +179,7 @@ export default function EscrowMilestoneProgress({
 
         {/* FX Rate */}
         {fxRate && (
-          <div className="mt-4 pt-3 border-t dark:border-[#2A2A2A] text-os-xs dark:text-gray-500 flex items-center gap-1 font-mono">
+          <div className="mt-4 pt-3 border-t dark:border-[#2A2A2A] text-os-xs dark:text-os-text-secondary flex items-center gap-1 font-mono">
             FX Rate (ECB) <span className="font-bold dark:text-gray-300">{fxRate}</span>
           </div>
         )}

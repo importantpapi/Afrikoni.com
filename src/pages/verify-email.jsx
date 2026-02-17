@@ -79,8 +79,8 @@ export default function VerifyEmail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#FDFBF7] via-[#F8F6F0] to-[#F5F2EA] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#D4A937]" />
+      <div className="min-h-screen bg-gradient-to-br from-os-bg via-os-bg to-os-bg flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-os-accent" />
       </div>
     );
   }
@@ -95,7 +95,7 @@ export default function VerifyEmail() {
           <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
-          <Loader2 className="w-6 h-6 animate-spin text-[#D4A937] mx-auto" />
+          <Loader2 className="w-6 h-6 animate-spin text-os-accent mx-auto" />
         </div>
       </AuthLayout>
     );
@@ -113,8 +113,8 @@ export default function VerifyEmail() {
     >
       <div className="space-y-6">
         <div className="text-center">
-          <div className="w-16 h-16 bg-[#D4A937]/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Mail className="w-8 h-8 text-[#D4A937]" />
+          <div className="w-16 h-16 bg-os-accent/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Mail className="w-8 h-8 text-os-accent" />
           </div>
           <p className="text-[13px] text-gray-600 leading-relaxed">
             Please check your inbox and click the verification link to continue.
@@ -141,7 +141,7 @@ export default function VerifyEmail() {
 
         <Button
           onClick={checkEmailStatus}
-          className="w-full h-[52px] bg-[#D4A937] hover:bg-[#C29931] active:bg-[#B38A2C] text-white font-semibold text-[15px] rounded-[14px] transition-all shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(212,169,55,0.15)] hover:shadow-[0_2px_4px_rgba(0,0,0,0.1),0_6px_16px_rgba(212,169,55,0.2)] active:shadow-[0_1px_2px_rgba(0,0,0,0.12)]"
+          className="w-full h-[52px] bg-os-accent hover:bg-os-accent-dark active:bg-os-accent-dark text-white font-semibold text-[15px] rounded-[14px] transition-all shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(212,169,55,0.15)] hover:shadow-[0_2px_4px_rgba(0,0,0,0.1),0_6px_16px_rgba(212,169,55,0.2)] active:shadow-[0_1px_2px_rgba(0,0,0,0.12)]"
         >
           I've verified my email
         </Button>
@@ -150,7 +150,7 @@ export default function VerifyEmail() {
           Didn't receive the email? Check your spam folder or{' '}
           <button
             onClick={handleResendEmail}
-            className="text-[#D4A937] hover:text-[#C29931] font-medium transition-colors"
+            className="text-os-accent hover:text-os-accent-dark font-medium transition-colors"
           >
             resend
           </button>

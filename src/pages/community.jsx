@@ -13,6 +13,7 @@ import SEO from '@/components/SEO';
 import { openWhatsAppCommunity, generateWhatsAppQRCode } from '@/utils/whatsappCommunity';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { useLanguage } from '@/i18n/LanguageContext';
+import OptimizedImage from '@/components/OptimizedImage';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useNavigate } from 'react-router-dom';
 

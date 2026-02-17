@@ -954,7 +954,7 @@ export default function CompanyInfo() {
                 <div className="relative group/logo">
                   <div className="w-40 h-40 rounded-[2.5rem] bg-black/40 border-2 border-dashed border-white/10 flex items-center justify-center overflow-hidden transition-all group-hover/logo:border-os-accent/30">
                     {logoUrl ? (
-                      <img src={logoUrl} className="w-full h-full object-cover" />
+                      <img src={logoUrl} className="w-full h-full object-cover" width="96" height="96" loading="lazy" />
                     ) : (
                       <Building className="w-12 h-12 text-os-muted opacity-20" />
                     )}

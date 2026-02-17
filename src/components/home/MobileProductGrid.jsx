@@ -52,11 +52,11 @@ const getCountryFlag = (countryName) => {
   return COUNTRY_FLAGS[countryName] || '';
 };
 
-export default function MobileProductGrid({ 
-  country = null, 
-  limit = 8, 
+export default function MobileProductGrid({
+  country = null,
+  limit = 8,
   title = null,
-  showHeader = false 
+  showHeader = false
 }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -84,15 +84,15 @@ export default function MobileProductGrid({
   const loadProducts = async () => {
     try {
       setLoading(true);
-      
+
       // Determine which country to filter by
       const filterCountry = country || detectedCountry;
-      
+
       // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'name' instead of 'title' (DB schema uses 'name')
       // Simplified query - PostgREST friendly (no complex joins)
       let query = supabase
         .from('products')
-        .select('id, name, description, price_min, price_max, currency, status, company_id, category_id, country_of_origin, views, created_at')
+        .select('id, name, description, price_min, price_max, currency, status, company_id, category_id, country_of_origin, views, created_at, images, product_images(url, is_primary)')
         .eq('status', 'active');
 
       // Filter by country if specified (simplified - only use country_of_origin)
@@ -119,7 +119,7 @@ export default function MobileProductGrid({
               .from('companies')
               .select('id, company_name, verification_status, country')
               .in('id', companyIds);
-            
+
             if (companies) {
               companies.forEach(c => companiesMap.set(c.id, c));
             }

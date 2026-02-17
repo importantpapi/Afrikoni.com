@@ -279,7 +279,7 @@ export default function OSShell({
                                 animate={{ x: 0 }}
                                 exit={{ x: "-100%" }}
                                 transition={{ type: "spring", damping: 30, stiffness: 300 }}
-                                className="fixed inset-y-0 left-0 w-full sm:w-[320px] bg-[#FDFBF7] z-[1001] md:hidden shadow-[8px_0_40px_rgba(0,0,0,0.12)]"
+                                className="fixed inset-y-0 left-0 w-full sm:w-[320px] bg-os-surface-solid z-[1001] md:hidden shadow-[8px_0_40px_rgba(0,0,0,0.12)]"
                             >
                                 <TradeOSSidebar
                                     capabilities={capabilities}

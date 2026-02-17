@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useFlutterwave, closePaymentModal } from 'flutterwave-react-v3';
 import { Shield, Check, Lock, CreditCard, Building, Smartphone } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '@/api/supabaseClient';
 
 export default function EscrowFundingPanel({ trade, onNextStep, isTransitioning, capabilities, profile }) {
   const [loading, setLoading] = useState(false);

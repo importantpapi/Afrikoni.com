@@ -17,7 +17,7 @@ import { Label } from '@/components/shared/ui/label';
 import { Textarea } from '@/components/shared/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/shared/ui/tabs';
-import { Settings, User, Building, Bell, Shield, CreditCard, Globe, Save, Key, Lock, Upload, X, Image as ImageIcon, Cookie, ShieldCheck, Truck, TrendingUp, Zap, Sparkles, Check, Monitor, Activity, ShoppingCart, Package } from 'lucide-react';
+import { Settings, User, Building, Bell, Shield, CreditCard, Globe, Save, Key, Lock, Upload, X, Image as ImageIcon, Cookie, ShieldCheck, Truck, TrendingUp, Zap, Sparkles, Check, Monitor, Activity, ShoppingCart, Package, Mail, MessageSquare, FileText, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/shared/ui/switch';
 import { useTranslation } from 'react-i18next';
@@ -530,7 +530,7 @@ export default function DashboardSettings() {
           transition={{ duration: 0.5, ease: "easeOut" }}
           className="mb-10"
         >
-          <div className="relative overflow-hidden rounded-[2.5rem] border border-white/10 bg-gradient-to-br from-white/[0.08] to-transparent shadow-[0_32px_120px_rgba(0,0,0,0.5)] backdrop-blur-3xl">
+          <div className="relative overflow-hidden rounded-[2.5rem] border border-gray-200 bg-gradient-to-br from-white to-gray-50/50 shadow-xl backdrop-blur-3xl">
             <div className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-os-accent/10 blur-[120px]" />
             <div className="absolute -left-48 -bottom-48 h-[30rem] w-[30rem] rounded-full bg-blue-500/5 blur-[160px]" />
 
@@ -550,10 +550,10 @@ export default function DashboardSettings() {
                         System Control
                       </span>
                     </div>
-                    <h1 className="text-3xl md:text-5xl font-black tracking-tight text-white mb-2">
+                    <h1 className="text-3xl md:text-5xl font-black tracking-tight text-os-text-primary mb-2">
                       Identity <span className="text-white/40">&</span> Control
                     </h1>
-                    <p className="text-os-sm md:text-os-base text-white/50 max-w-lg font-medium">
+                    <p className="text-os-sm md:text-os-base text-gray-500 max-w-lg font-medium">
                       Manage your global enterprise presence and cryptographic security settings.
                     </p>
                   </div>
@@ -587,7 +587,7 @@ export default function DashboardSettings() {
 
         {/* 2026 OS Tabs */}
         <Tabs defaultValue="profile" className="space-y-8">
-          <TabsList className="border-none bg-black/40 backdrop-blur-2xl rounded-[2rem] p-2 shadow-[0_24px_100px_rgba(0,0,0,0.6)] grid grid-cols-3 md:grid-cols-6 gap-2 sticky top-4 z-50 mb-12">
+          <TabsList className="border-none bg-gray-100/50 backdrop-blur-2xl rounded-[2rem] p-2 shadow-sm grid grid-cols-3 md:grid-cols-6 gap-2 sticky top-4 z-50 mb-12">
             {[
               { id: 'profile', label: 'Identity', icon: User },
               { id: 'company', label: 'Enterprise', icon: Building },
@@ -599,9 +599,9 @@ export default function DashboardSettings() {
               <TabsTrigger
                 key={tab.id}
                 value={tab.id}
-                className="data-[state=active]:bg-white data-[state=active]:text-black data-[state=active]:scale-[1.05] data-[state=active]:shadow-[0_12px_40px_rgba(255,255,255,0.15)] rounded-os-md font-black transition-all duration-300 min-h-[52px] text-os-xs uppercase tracking-widest flex items-center justify-center gap-2 group"
+                className="data-[state=active]:bg-white data-[state=active]:text-os-text-primary data-[state=active]:scale-[1.05] data-[state=active]:shadow-md rounded-os-md font-black transition-all duration-300 min-h-[52px] text-os-xs uppercase tracking-widest flex items-center justify-center gap-2 group"
               >
-                <tab.icon className="w-4 h-4 group-data-[state=active]:text-black text-white/40 transition-colors" />
+                <tab.icon className="w-4 h-4 group-data-[state=active]:text-black text-gray-400 transition-colors" />
                 <span className="hidden lg:inline">{translate(`settings.${tab.id}`, tab.label)}</span>
               </TabsTrigger>
             ))}
@@ -609,9 +609,9 @@ export default function DashboardSettings() {
 
           <TabsContent value="profile" className="space-y-6">
             {/* Identity Surface */}
-            <Surface variant="glass" className="overflow-hidden p-0 rounded-[2rem] border border-white/10 shadow-[0_32px_100px_rgba(0,0,0,0.5)] bg-black/20 backdrop-blur-3xl">
-              <div className="border-b border-white/10 bg-gradient-to-r from-white/10 to-transparent p-8">
-                <div className="flex items-center gap-4 text-os-xl font-black text-white uppercase tracking-tighter">
+            <Surface variant="glass" className="overflow-hidden p-0 rounded-[2rem] border border-gray-200 shadow-xl bg-white/60 backdrop-blur-3xl">
+              <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50/50 to-transparent p-8">
+                <div className="flex items-center gap-4 text-os-xl font-black text-os-text-primary uppercase tracking-tighter">
                   <div className="p-3 rounded-os-md bg-os-accent/10 border border-os-accent/30">
                     <User className="w-6 h-6 text-os-accent" />
                   </div>
@@ -621,14 +621,14 @@ export default function DashboardSettings() {
 
               <div className="p-8 md:p-12 space-y-10">
                 {/* Avatar Section */}
-                <div className="flex flex-col md:flex-row items-center gap-10 p-8 rounded-os-lg bg-white/[0.03] border border-white/10 relative overflow-hidden group">
+                <div className="flex flex-col md:flex-row items-center gap-10 p-8 rounded-os-lg bg-gray-50 border border-gray-200 relative overflow-hidden group">
                   <div className="absolute inset-0 bg-gradient-to-br from-os-accent/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                   <div className="relative">
                     <div className="absolute -inset-4 bg-os-accent/20 blur-3xl rounded-full opacity-50" />
                     <div className="relative w-32 h-32 rounded-[2rem] overflow-hidden border-2 border-os-accent/40 shadow-2xl">
                       {avatarUrl ? (
-                        <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" />
+                        <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" width="128" height="128" loading="lazy" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-black/60">
                           <User className="w-12 h-12 text-white/20" />
@@ -645,8 +645,8 @@ export default function DashboardSettings() {
 
                   <div className="flex-1 text-center md:text-left space-y-4">
                     <div>
-                      <h4 className="text-os-xl font-bold text-white mb-1">Cryptographic Avatar</h4>
-                      <p className="text-os-sm text-white/40 font-medium max-w-sm">
+                      <h4 className="text-os-xl font-bold text-os-text-primary mb-1">Cryptographic Avatar</h4>
+                      <p className="text-os-sm text-gray-500 font-medium max-w-sm">
                         This image represents your enterprise handle across the Pan-African trade network.
                       </p>
                     </div>
@@ -662,7 +662,7 @@ export default function DashboardSettings() {
                         ref={avatarInputRef}
                       />
                       <label htmlFor="avatar-upload">
-                        <Button type="button" variant="outline" size="lg" disabled={uploadingAvatar} asChild className="rounded-os-sm border-white/10 bg-white/5 hover:bg-white/10 text-white font-bold h-12 px-6">
+                        <Button type="button" variant="outline" size="lg" disabled={uploadingAvatar} asChild className="rounded-os-sm border-gray-200 bg-white hover:bg-gray-50 text-os-text-primary font-bold h-12 px-6">
                           <span>
                             <Upload className="w-4 h-4 mr-2" />
                             {uploadingAvatar ? 'Uploading...' : 'Update Signature'}
@@ -686,18 +686,18 @@ export default function DashboardSettings() {
                 {/* Form Grid */}
                 <div className="grid md:grid-cols-2 gap-10">
                   <div className="space-y-4">
-                    <Label htmlFor="name" className="text-os-xs uppercase font-black tracking-widest text-white/40 ml-1">Account Display Name</Label>
+                    <Label htmlFor="name" className="text-os-xs uppercase font-black tracking-widest text-gray-400 ml-1">Account Display Name</Label>
                     <Input
                       id="name"
                       value={formData.name || formData.full_name}
                       onChange={(e) => handleChange('name', e.target.value)}
                       placeholder="e.g. Aliko Dangote"
-                      className="h-14 bg-white/5 border-white/10 rounded-os-md focus:border-os-accent/40 focus:ring-os-accent/10 text-os-lg font-medium transition-all"
+                      className="h-14 bg-white border-gray-200 rounded-os-md focus:border-os-accent/40 focus:ring-os-accent/10 text-os-lg font-medium transition-all"
                     />
                   </div>
 
                   <div className="space-y-4">
-                    <Label htmlFor="email" className="text-os-xs uppercase font-black tracking-widest text-white/40 ml-1 text-emerald-400/60 flex items-center gap-2">
+                    <Label htmlFor="email" className="text-os-xs uppercase font-black tracking-widest text-gray-400 ml-1 text-emerald-400/60 flex items-center gap-2">
                       Verified Email Root
                       <div className="w-1 h-1 rounded-full bg-emerald-400" />
                     </Label>
@@ -707,10 +707,10 @@ export default function DashboardSettings() {
                         type="email"
                         value={formData.email}
                         disabled
-                        className="h-14 bg-white/[0.02] border-white/5 rounded-os-md text-white/40 cursor-not-allowed font-mono italic"
+                        className="h-14 bg-gray-50 border-gray-200 rounded-os-md text-gray-400 cursor-not-allowed font-mono italic"
                       />
                       <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                        <Lock className="w-4 h-4 text-white/10 group-hover:text-white/20 transition-colors" />
+                        <Lock className="w-4 h-4 text-gray-400 transition-colors" />
                       </div>
                     </div>
                   </div>
@@ -718,12 +718,12 @@ export default function DashboardSettings() {
 
                 <div className="grid md:grid-cols-2 gap-10">
                   <div className="space-y-4">
-                    <Label className="text-os-xs uppercase font-black tracking-widest text-white/40 ml-1">Localization (OS Language)</Label>
+                    <Label className="text-os-xs uppercase font-black tracking-widest text-gray-400 ml-1">Localization (OS Language)</Label>
                     <Select value={preferences.language} onValueChange={(v) => setPreferences({ ...preferences, language: v })}>
-                      <SelectTrigger className="h-14 bg-white/5 border-white/10 rounded-os-md text-white font-medium">
+                      <SelectTrigger className="h-14 bg-white border-gray-200 rounded-os-md text-os-text-primary font-medium">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-black/90 border-white/10 backdrop-blur-xl">
+                      <SelectContent className="bg-white border-gray-200 backdrop-blur-xl">
                         <SelectItem value="en">English (Continental)</SelectItem>
                         <SelectItem value="fr">Français (Maghreb/West)</SelectItem>
                         <SelectItem value="ar">العربية (North)</SelectItem>
@@ -734,12 +734,12 @@ export default function DashboardSettings() {
                   </div>
 
                   <div className="space-y-4">
-                    <Label className="text-os-xs uppercase font-black tracking-widest text-white/40 ml-1">Trade Currency (Settlement)</Label>
+                    <Label className="text-os-xs uppercase font-black tracking-widest text-gray-400 ml-1">Trade Currency (Settlement)</Label>
                     <Select value={preferences.currency} onValueChange={(v) => setPreferences({ ...preferences, currency: v })}>
-                      <SelectTrigger className="h-14 bg-white/5 border-white/10 rounded-os-md text-white font-medium">
+                      <SelectTrigger className="h-14 bg-white border-gray-200 rounded-os-md text-os-text-primary font-medium">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="bg-black/90 border-white/10 backdrop-blur-xl">
+                      <SelectContent className="bg-white border-gray-200 backdrop-blur-xl">
                         <SelectItem value="USD">USD ($) - International</SelectItem>
                         <SelectItem value="NGN">NGN (₦) - Nigeria</SelectItem>
                         <SelectItem value="ZAR">ZAR (R) - South Africa</SelectItem>
@@ -751,11 +751,11 @@ export default function DashboardSettings() {
                   </div>
                 </div>
 
-                <div className="space-y-4 pt-4 border-t border-white/5">
+                <div className="space-y-4 pt-4 border-t border-gray-100">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="space-y-1">
-                      <h4 className="text-white font-bold">Commit Changes to Kernel</h4>
-                      <p className="text-os-xs text-white/40">Persistence will be propagated across all active sessions.</p>
+                      <h4 className="text-os-text-primary font-bold">Commit Changes to Kernel</h4>
+                      <p className="text-os-xs text-gray-400">Persistence will be propagated across all active sessions.</p>
                     </div>
                     <Button
                       onClick={() => handleSave('profile')}
@@ -781,9 +781,9 @@ export default function DashboardSettings() {
           </TabsContent>
 
           <TabsContent value="company" className="space-y-6">
-            <Surface variant="glass" className="overflow-hidden p-0 rounded-[2rem] border border-white/10 shadow-[0_32px_100px_rgba(0,0,0,0.5)] bg-black/20 backdrop-blur-3xl">
-              <div className="border-b border-white/10 bg-gradient-to-r from-white/10 to-transparent p-8">
-                <div className="flex items-center gap-4 text-os-xl font-black text-white uppercase tracking-tighter">
+            <Surface variant="glass" className="overflow-hidden p-0 rounded-[2rem] border border-gray-200 shadow-xl bg-white/60 backdrop-blur-3xl">
+              <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50/50 to-transparent p-8">
+                <div className="flex items-center gap-4 text-os-xl font-black text-os-text-primary uppercase tracking-tighter">
                   <div className="p-3 rounded-os-md bg-os-accent/10 border border-os-accent/30">
                     <Building className="w-6 h-6 text-os-accent" />
                   </div>
@@ -795,29 +795,29 @@ export default function DashboardSettings() {
                 {/* Institutional Grid */}
                 <div className="space-y-8">
                   <div className="flex items-center gap-3">
-                    <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-white/30">Registry Details</h3>
-                    <div className="h-px flex-1 bg-white/5" />
+                    <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-gray-400">Registry Details</h3>
+                    <div className="h-px flex-1 bg-gray-200" />
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-10">
                     <div className="space-y-4">
-                      <Label htmlFor="company_name" className="text-white/40 font-bold uppercase tracking-widest text-os-xs ml-1">Legal Entity Name</Label>
+                      <Label htmlFor="company_name" className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">Legal Entity Name</Label>
                       <Input
                         id="company_name"
                         value={formData.company_name}
                         onChange={(e) => handleChange('company_name', e.target.value)}
                         placeholder="e.g. Dangote Cement PLC"
-                        className="h-14 bg-white/5 border-white/10 rounded-os-md text-os-lg font-medium"
+                        className="h-14 bg-white border-gray-200 rounded-os-md text-os-lg font-medium"
                       />
                     </div>
 
                     <div className="space-y-4">
-                      <Label htmlFor="business_type" className="text-white/40 font-bold uppercase tracking-widest text-os-xs ml-1">Enterprise Architecture</Label>
+                      <Label htmlFor="business_type" className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">Enterprise Architecture</Label>
                       <Select value={formData.business_type} onValueChange={(v) => handleChange('business_type', v)}>
-                        <SelectTrigger className="h-14 bg-white/5 border-white/10 rounded-os-md font-medium">
+                        <SelectTrigger className="h-14 bg-white border-gray-200 rounded-os-md font-medium">
                           <SelectValue placeholder="Select structure" />
                         </SelectTrigger>
-                        <SelectContent className="bg-black/90 border-white/10 backdrop-blur-xl">
+                        <SelectContent className="bg-white border-gray-200 backdrop-blur-xl">
                           <SelectItem value="manufacturer">Industrial Manufacturer</SelectItem>
                           <SelectItem value="wholesaler">Bulk Wholesaler</SelectItem>
                           <SelectItem value="distributor">Regional Distributor</SelectItem>
@@ -830,12 +830,12 @@ export default function DashboardSettings() {
 
                   <div className="grid md:grid-cols-3 gap-10">
                     <div className="space-y-4">
-                      <Label className="text-white/40 font-bold uppercase tracking-widest text-os-xs ml-1">Base Jurisdicton</Label>
+                      <Label className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">Base Jurisdicton</Label>
                       <Select value={formData.country} onValueChange={(v) => handleChange('country', v)}>
-                        <SelectTrigger className="h-14 bg-white/5 border-white/10 rounded-os-md font-medium">
+                        <SelectTrigger className="h-14 bg-white border-gray-200 rounded-os-md font-medium">
                           <SelectValue placeholder="Country" />
                         </SelectTrigger>
-                        <SelectContent className="bg-black/90 border-white/10 max-h-80">
+                        <SelectContent className="bg-white border-gray-200 max-h-80">
                           {AFRICAN_COUNTRIES.map(country => (
                             <SelectItem key={country} value={country}>{country}</SelectItem>
                           ))}
@@ -844,7 +844,7 @@ export default function DashboardSettings() {
                     </div>
 
                     <div className="space-y-4">
-                      <Label className="text-white/40 font-bold uppercase tracking-widest text-os-xs ml-1">Principal City</Label>
+                      <Label className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">Principal City</Label>
                       <Input
                         id="city"
                         value={formData.city}
@@ -855,14 +855,14 @@ export default function DashboardSettings() {
                     </div>
 
                     <div className="space-y-4">
-                      <Label className="text-white/40 font-bold uppercase tracking-widest text-os-xs ml-1">Foundation Year</Label>
+                      <Label className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">Foundation Year</Label>
                       <Input
                         id="year_established"
                         type="number"
                         value={formData.year_established}
                         onChange={(e) => handleChange('year_established', e.target.value)}
                         placeholder="Year"
-                        className="h-14 bg-white/5 border-white/10 rounded-os-md font-mono"
+                        className="h-14 bg-white border-gray-200 rounded-os-md font-mono"
                       />
                     </div>
                   </div>
@@ -871,18 +871,18 @@ export default function DashboardSettings() {
                 {/* Operations Section */}
                 <div className="space-y-8">
                   <div className="flex items-center gap-3">
-                    <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-white/30">Operative Network</h3>
-                    <div className="h-px flex-1 bg-white/5" />
+                    <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-gray-400">Operative Network</h3>
+                    <div className="h-px flex-1 bg-gray-200" />
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-10">
                     <div className="space-y-4">
-                      <Label className="text-white/40 font-bold uppercase tracking-widest text-os-xs ml-1">Enterprise Scale</Label>
+                      <Label className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">Enterprise Scale</Label>
                       <Select value={formData.company_size} onValueChange={(v) => handleChange('company_size', v)}>
-                        <SelectTrigger className="h-14 bg-white/5 border-white/10 rounded-os-md font-medium">
+                        <SelectTrigger className="h-14 bg-white border-gray-200 rounded-os-md font-medium">
                           <SelectValue placeholder="Human Capital Scale" />
                         </SelectTrigger>
-                        <SelectContent className="bg-black/90 border-white/10">
+                        <SelectContent className="bg-white border-gray-200">
                           <SelectItem value="1-10">1-10 (Micro)</SelectItem>
                           <SelectItem value="11-50">11-50 (SME)</SelectItem>
                           <SelectItem value="51-200">51-200 (Mid-Market)</SelectItem>
@@ -893,26 +893,26 @@ export default function DashboardSettings() {
                     </div>
 
                     <div className="space-y-4">
-                      <Label className="text-white/40 font-bold uppercase tracking-widest text-os-xs ml-1">Digital Presence (URL)</Label>
+                      <Label className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">Digital Presence (URL)</Label>
                       <Input
                         id="website"
                         value={formData.website}
                         onChange={(e) => handleChange('website', e.target.value)}
                         placeholder="https://..."
-                        className="h-14 bg-white/5 border-white/10 rounded-os-md font-mono"
+                        className="h-14 bg-white border-gray-200 rounded-os-md font-mono"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-4">
-                    <Label className="text-white/40 font-bold uppercase tracking-widest text-os-xs ml-1">Capability Description</Label>
+                    <Label className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">Capability Description</Label>
                     <Textarea
                       id="company_description"
                       value={formData.company_description}
                       onChange={(e) => handleChange('company_description', e.target.value)}
                       rows={5}
                       placeholder="Detail your industrial capacity and trade corridors..."
-                      className="bg-white/5 border-white/10 rounded-os-md p-6 text-os-lg"
+                      className="bg-white border-gray-200 rounded-os-md p-6 text-os-lg"
                     />
                   </div>
                 </div>
@@ -924,7 +924,7 @@ export default function DashboardSettings() {
                       <Shield className="w-8 h-8" />
                     </div>
                     <div className="flex-1 text-center md:text-left space-y-2">
-                      <h4 className="text-os-xl font-bold text-white uppercase tracking-tight">Trust Verification Hub</h4>
+                      <h4 className="text-os-xl font-bold text-os-text-primary uppercase tracking-tight">Trust Verification Hub</h4>
                       <p className="text-os-sm text-blue-200/50 font-medium">
                         Institutional badges, tax IDs, and trade compliance papers are managed via the Verification Gate.
                       </p>
@@ -958,9 +958,9 @@ export default function DashboardSettings() {
           </TabsContent>
 
           <TabsContent value="role" className="space-y-6">
-            <Surface variant="glass" className="overflow-hidden p-0 rounded-[2rem] border border-white/10 shadow-[0_32px_100px_rgba(0,0,0,0.5)] bg-black/20 backdrop-blur-3xl">
-              <div className="border-b border-white/10 bg-gradient-to-r from-white/10 to-transparent p-8">
-                <div className="flex items-center gap-4 text-os-xl font-black text-white uppercase tracking-tighter">
+            <Surface variant="glass" className="overflow-hidden p-0 rounded-[2rem] border border-gray-200 shadow-xl bg-white/60 backdrop-blur-3xl">
+              <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50/50 to-transparent p-8">
+                <div className="flex items-center gap-4 text-os-xl font-black text-os-text-primary uppercase tracking-tighter">
                   <div className="p-3 rounded-os-md bg-os-accent/10 border border-os-accent/30">
                     <ShieldCheck className="w-6 h-6 text-os-accent" />
                   </div>
@@ -970,7 +970,7 @@ export default function DashboardSettings() {
 
               <div className="p-8 md:p-12 space-y-12">
                 {/* Active Persona Surface */}
-                <div className="p-10 rounded-[2.5rem] border border-os-accent/30 bg-gradient-to-br from-os-accent/[0.15] to-transparent relative overflow-hidden group">
+                <div className="p-10 rounded-[2.5rem] border border-os-accent/30 bg-gradient-to-br from-os-accent/[0.15] to-white relative overflow-hidden group">
                   <div className="absolute top-0 right-0 p-48 bg-os-accent/10 rounded-full blur-[100px] -mr-24 -mt-24 group-hover:bg-os-accent/20 transition-colors duration-700" />
 
                   <div className="relative flex flex-col md:flex-row items-center md:items-start justify-between gap-8">
@@ -988,8 +988,8 @@ export default function DashboardSettings() {
                           </span>
                         )}
                       </div>
-                      <h2 className="text-5xl md:text-6xl font-black text-white mb-4 capitalize tracking-tighter">{currentRole}</h2>
-                      <p className="text-os-base text-white/50 max-w-sm font-medium leading-relaxed">
+                      <h2 className="text-5xl md:text-6xl font-black text-os-text-primary mb-4 capitalize tracking-tighter">{currentRole}</h2>
+                      <p className="text-os-base text-gray-500 max-w-sm font-medium leading-relaxed">
                         {currentRole === 'buyer' && "Authorized for global sourcing, high-value RFQ issuance, and trade finance protocols."}
                         {currentRole === 'seller' && "Certified for global inventory distribution, trade listing, and RFQ fulfillment."}
                         {currentRole === 'logistics' && "Operational lead for fleet logistics, multi-modal freight booking, and tracking."}
@@ -1017,8 +1017,8 @@ export default function DashboardSettings() {
                 {(capabilities?.can_buy && capabilities?.can_sell) && (
                   <div className="space-y-6">
                     <div className="flex items-center gap-3">
-                      <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-white/30">Startup Handlers</h3>
-                      <div className="h-px flex-1 bg-white/5" />
+                      <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-gray-400">Startup Handlers</h3>
+                      <div className="h-px flex-1 bg-gray-200" />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1054,8 +1054,8 @@ export default function DashboardSettings() {
                 {/* Capabilities Grid */}
                 <div className="space-y-8">
                   <div className="flex items-center gap-3">
-                    <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-white/30">Active System Privileges</h3>
-                    <div className="h-px flex-1 bg-white/5" />
+                    <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-gray-400">Active System Privileges</h3>
+                    <div className="h-px flex-1 bg-gray-200" />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1081,10 +1081,10 @@ export default function DashboardSettings() {
                         </div>
                         <div>
                           <div className="flex items-center gap-2 mb-2">
-                            <h4 className="font-black text-os-xs uppercase tracking-wider text-white">{cap.label}</h4>
+                            <h4 className="font-black text-os-xs uppercase tracking-wider text-os-text-primary">{cap.label}</h4>
                             {cap.active && <Check className="w-3 h-3 text-emerald-400" />}
                           </div>
-                          <p className="text-os-xs text-white/40 font-medium leading-relaxed">{cap.desc}</p>
+                          <p className="text-os-xs text-gray-400 font-medium leading-relaxed">{cap.desc}</p>
                         </div>
                       </div>
                     ))}
@@ -1111,9 +1111,9 @@ export default function DashboardSettings() {
           </TabsContent>
 
           <TabsContent value="notifications" className="space-y-6">
-            <Surface variant="glass" className="overflow-hidden p-0 rounded-[2rem] border border-white/10 shadow-[0_32px_100px_rgba(0,0,0,0.5)] bg-black/20 backdrop-blur-3xl">
-              <div className="border-b border-white/10 bg-gradient-to-r from-white/10 to-transparent p-8">
-                <div className="flex items-center gap-4 text-os-xl font-black text-white uppercase tracking-tighter">
+            <Surface variant="glass" className="overflow-hidden p-0 rounded-[2rem] border border-gray-200 shadow-xl bg-white/60 backdrop-blur-3xl">
+              <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50/50 to-transparent p-8">
+                <div className="flex items-center gap-4 text-os-xl font-black text-os-text-primary uppercase tracking-tighter">
                   <div className="p-3 rounded-os-md bg-os-accent/10 border border-os-accent/30">
                     <Bell className="w-6 h-6 text-os-accent" />
                   </div>
@@ -1138,8 +1138,8 @@ export default function DashboardSettings() {
                           <item.icon className="w-5 h-5" />
                         </div>
                         <div>
-                          <h4 className="font-bold text-white uppercase tracking-wider text-os-xs mb-1">{item.title}</h4>
-                          <p className="text-os-xs text-white/40 font-medium">{item.desc}</p>
+                          <h4 className="font-bold text-os-text-primary uppercase tracking-wider text-os-xs mb-1">{item.title}</h4>
+                          <p className="text-os-xs text-gray-400 font-medium">{item.desc}</p>
                         </div>
                       </div>
                       <Switch
@@ -1151,11 +1151,11 @@ export default function DashboardSettings() {
                   ))}
                 </div>
 
-                <div className="pt-8 border-t border-white/10">
+                <div className="pt-8 border-t border-gray-100">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
                     <div className="space-y-1">
-                      <h4 className="text-white font-bold">Sync Communication Matrix</h4>
-                      <p className="text-os-xs text-white/40">Broadcasting will be normalized across your connected devices.</p>
+                      <h4 className="text-os-text-primary font-bold">Sync Communication Matrix</h4>
+                      <p className="text-os-xs text-gray-400">Broadcasting will be normalized across your connected devices.</p>
                     </div>
                     <Button
                       onClick={() => handleSave('notifications')}
@@ -1178,9 +1178,9 @@ export default function DashboardSettings() {
           </TabsContent>
 
           <TabsContent value="security" className="space-y-6">
-            <Surface variant="glass" className="overflow-hidden p-0 rounded-[2rem] border border-white/10 shadow-[0_32px_100px_rgba(0,0,0,0.5)] bg-black/20 backdrop-blur-3xl">
-              <div className="border-b border-white/10 bg-gradient-to-r from-white/10 to-transparent p-8">
-                <div className="flex items-center gap-4 text-os-xl font-black text-white uppercase tracking-tighter">
+            <Surface variant="glass" className="overflow-hidden p-0 rounded-[2rem] border border-gray-200 shadow-xl bg-white/60 backdrop-blur-3xl">
+              <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50/50 to-transparent p-8">
+                <div className="flex items-center gap-4 text-os-xl font-black text-os-text-primary uppercase tracking-tighter">
                   <div className="p-3 rounded-os-md bg-red-400/10 border border-red-400/30">
                     <Lock className="w-6 h-6 text-red-400" />
                   </div>
@@ -1192,29 +1192,29 @@ export default function DashboardSettings() {
                 {/* Password Section */}
                 <div className="space-y-8">
                   <div className="flex items-center gap-3">
-                    <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-white/30">Keys Rotation</h3>
-                    <div className="h-px flex-1 bg-white/5" />
+                    <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-gray-400">Keys Rotation</h3>
+                    <div className="h-px flex-1 bg-gray-200" />
                   </div>
 
                   <div className="grid md:grid-cols-3 gap-6">
                     <div className="space-y-4">
-                      <Label htmlFor="currentPassword" title="Current Key" className="text-white/40 font-bold uppercase tracking-widest text-os-xs ml-1">Current Key</Label>
+                      <Label htmlFor="currentPassword" title="Current Key" className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">Current Key</Label>
                       <Input
                         id="currentPassword"
                         type="password"
                         value={passwordData.currentPassword}
                         onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
-                        className="h-14 bg-white/5 border-white/10 rounded-os-md font-mono"
+                        className="h-14 bg-white border-gray-200 rounded-os-md font-mono"
                       />
                     </div>
                     <div className="space-y-4">
-                      <Label htmlFor="newPassword" title="New Key" className="text-white/40 font-bold uppercase tracking-widest text-os-xs ml-1">New Strategic Key</Label>
+                      <Label htmlFor="newPassword" title="New Key" className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">New Strategic Key</Label>
                       <Input
                         id="newPassword"
                         type="password"
                         value={passwordData.newPassword}
                         onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
-                        className="h-14 bg-white/5 border-white/10 rounded-os-md font-mono"
+                        className="h-14 bg-white border-gray-200 rounded-os-md font-mono"
                       />
                     </div>
                     <div className="space-y-4 flex flex-col justify-end">
@@ -1234,8 +1234,8 @@ export default function DashboardSettings() {
                 <div className="grid md:grid-cols-2 gap-10">
                   <div className="space-y-6">
                     <div className="flex items-center gap-3">
-                      <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-white/30">Session Management</h3>
-                      <div className="h-px flex-1 bg-white/5" />
+                      <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-gray-400">Session Management</h3>
+                      <div className="h-px flex-1 bg-gray-200" />
                     </div>
                     <div className="p-8 rounded-[2rem] border border-os-red/20 bg-red-500/5 space-y-4">
                       <p className="text-os-sm text-red-200/50 font-medium">Clear all active cryptographic tokens from all devices in your network.</p>
@@ -1247,12 +1247,12 @@ export default function DashboardSettings() {
 
                   <div className="space-y-6">
                     <div className="flex items-center gap-3">
-                      <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-white/30">External Connectivity</h3>
-                      <div className="h-px flex-1 bg-white/5" />
+                      <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-gray-400">External Connectivity</h3>
+                      <div className="h-px flex-1 bg-gray-200" />
                     </div>
                     <div className="p-8 rounded-[2rem] border border-white/10 bg-white/[0.03] space-y-4">
                       <div className="flex items-center justify-between">
-                        <Label className="text-white font-bold uppercase tracking-widest text-os-xs">Trade API Key</Label>
+                        <Label className="text-os-text-primary font-bold uppercase tracking-widest text-os-xs">Trade API Key</Label>
                         <Button variant="ghost" size="sm" onClick={() => setShowApiKey(!showApiKey)} className="text-os-accent h-auto p-0 font-black text-os-xs uppercase tracking-widest">
                           {showApiKey ? '[ Hide ]' : '[ Reveal ]'}
                         </Button>
@@ -1273,7 +1273,7 @@ export default function DashboardSettings() {
                 </div>
 
                 {/* Final Commit */}
-                <div className="pt-8 border-t border-white/10 text-right">
+                <div className="pt-8 border-t border-gray-100 text-right">
                   <Button
                     onClick={() => handleSave('security')}
                     disabled={isSaving}
@@ -1294,9 +1294,9 @@ export default function DashboardSettings() {
           </TabsContent>
 
           <TabsContent value="system" className="space-y-6">
-            <Surface variant="glass" className="overflow-hidden p-0 rounded-[2rem] border border-white/10 shadow-[0_32px_100px_rgba(0,0,0,0.5)] bg-black/20 backdrop-blur-3xl">
-              <div className="border-b border-white/10 bg-gradient-to-r from-white/10 to-transparent p-8">
-                <div className="flex items-center gap-4 text-os-xl font-black text-white uppercase tracking-tighter">
+            <Surface variant="glass" className="overflow-hidden p-0 rounded-[2rem] border border-gray-200 shadow-xl bg-white/60 backdrop-blur-3xl">
+              <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50/50 to-transparent p-8">
+                <div className="flex items-center gap-4 text-os-xl font-black text-os-text-primary uppercase tracking-tighter">
                   <div className="p-3 rounded-os-md bg-blue-500/20 backdrop-blur-sm border border-os-blue/20">
                     <Monitor className="w-6 h-6 text-blue-400" />
                   </div>
@@ -1306,7 +1306,7 @@ export default function DashboardSettings() {
 
               <div className="p-8 md:p-12 space-y-12">
                 {/* Kernel Status */}
-                <div className="p-10 rounded-[2.5rem] bg-black/40 border border-white/5 relative overflow-hidden group">
+                <div className="p-10 rounded-[2.5rem] bg-gray-50 border border-gray-200 relative overflow-hidden group">
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent" />
 
                   <div className="relative flex flex-col md:flex-row items-center gap-10">
@@ -1319,8 +1319,8 @@ export default function DashboardSettings() {
 
                     <div className="flex-1 text-center md:text-left space-y-4">
                       <div className="space-y-1">
-                        <h4 className="text-os-xl font-black text-white uppercase tracking-tighter">Kernel Pulse Active</h4>
-                        <p className="text-os-sm text-white/40 font-medium">Monitoring GPU load and cryptographic throughput in real-time.</p>
+                        <h4 className="text-os-xl font-black text-os-text-primary uppercase tracking-tighter">Kernel Pulse Active</h4>
+                        <p className="text-os-sm text-gray-400 font-medium">Monitoring GPU load and cryptographic throughput in real-time.</p>
                       </div>
 
                       <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
@@ -1334,13 +1334,13 @@ export default function DashboardSettings() {
 
                 <div className="grid md:grid-cols-2 gap-8">
                   {/* Performance Mode */}
-                  <div className="flex items-start justify-between p-8 rounded-[2rem] bg-white/[0.03] border border-white/10 group hover:bg-white/[0.05] transition-all">
+                  <div className="flex items-start justify-between p-8 rounded-[2rem] bg-white border border-gray-200 group hover:bg-gray-50 transition-all">
                     <div className="space-y-3">
-                      <div className="text-os-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+                      <div className="text-os-xs font-black text-os-text-primary uppercase tracking-widest flex items-center gap-2">
                         <Zap className="w-4 h-4 text-amber-500" />
                         Lite Engine Execution
                       </div>
-                      <p className="text-os-xs text-white/40 max-w-sm font-medium leading-relaxed">
+                      <p className="text-os-xs text-gray-400 max-w-sm font-medium leading-relaxed">
                         Reduces visual fidelity by disabling blur effects and heavy gradients. Essential for low-latency trade executions.
                       </p>
                     </div>
@@ -1352,13 +1352,13 @@ export default function DashboardSettings() {
                   </div>
 
                   {/* Reduced Motion */}
-                  <div className="flex items-start justify-between p-8 rounded-[2rem] bg-white/[0.03] border border-white/10 group hover:bg-white/[0.05] transition-all">
+                  <div className="flex items-start justify-between p-8 rounded-[2rem] bg-white border border-gray-200 group hover:bg-gray-50 transition-all">
                     <div className="space-y-3">
-                      <div className="text-os-xs font-black text-white uppercase tracking-widest flex items-center gap-2">
+                      <div className="text-os-xs font-black text-os-text-primary uppercase tracking-widest flex items-center gap-2">
                         <Activity className="w-4 h-4 text-emerald-500" />
                         Static UI Mode
                       </div>
-                      <p className="text-os-xs text-white/40 max-w-sm font-medium leading-relaxed">
+                      <p className="text-os-xs text-gray-400 max-w-sm font-medium leading-relaxed">
                         Disables micro-interactions and spring animations for a more persistent, infrastructure-grade interface.
                       </p>
                     </div>

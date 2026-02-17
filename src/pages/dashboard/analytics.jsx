@@ -2,872 +2,364 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useDataFreshness } from '@/hooks/useDataFreshness';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import ErrorState from '@/components/shared/ui/ErrorState';
-// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/shared/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
-import { BarChart3, TrendingUp, DollarSign, ShoppingCart, Package, Users, FileText, MessageSquare, CheckCircle, Clock, Sparkles, Target, MapPin, Image as ImageIcon, Shield } from 'lucide-react';
+import { Surface } from '@/components/system/Surface';
+import { Button } from '@/components/shared/ui/button';
+import {
+  BarChart3, TrendingUp, DollarSign, ShoppingCart, Package,
+  FileText, CheckCircle, Clock, Sparkles, MapPin, Shield, RefreshCw, Activity, Globe
+} from 'lucide-react';
 import { toast } from 'sonner';
 import EmptyState from '@/components/shared/ui/EmptyState';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import {
+  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell
+} from 'recharts';
 import { format, subDays, startOfDay } from 'date-fns';
-import RequireCapability from '@/guards/RequireCapability';
+import { cn } from '@/lib/utils';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 
-function DashboardAnalyticsInner() {
-  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
+export default function DashboardAnalytics() {
   const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
-
   const [analytics, setAnalytics] = useState(null);
   const [chartData, setChartData] = useState([]);
   const [period, setPeriod] = useState('30');
-  const [isLoading, setIsLoading] = useState(false); // Local loading state
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [viewMode, setViewMode] = useState('all'); // For hybrid: 'all', 'buyer', 'seller'
+  const [viewMode, setViewMode] = useState('all');
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
-  const abortControllerRef = useRef(null); // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
+  const abortControllerRef = useRef(null);
 
-  // ✅ KERNEL MIGRATION: Derive role from capabilities
   const isBuyer = capabilities?.can_buy === true;
   const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
   const currentRole = isBuyer && isSeller ? 'hybrid' : isSeller ? 'seller' : 'buyer';
 
-  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
-  if (!isSystemReady) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <SpinnerWithTimeout message="Loading analytics..." ready={isSystemReady} />
-      </div>
-    );
-  }
-
-  // ✅ KERNEL MIGRATION: Check if user is authenticated
-  if (!userId) {
-    navigate('/login');
-    return null;
-  }
-
   useEffect(() => {
-    // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData
-    // ✅ KERNEL MANIFESTO: Rule 3 - Logic Gate - First line must check canLoadData
     if (!canLoadData || !profileCompanyId) {
-      if (!userId) {
-        navigate('/login');
-      }
+      if (!userId && isSystemReady) navigate('/login');
       return;
     }
 
-    // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
     abortControllerRef.current = new AbortController();
     const abortSignal = abortControllerRef.current.signal;
 
-    // ✅ KERNEL MANIFESTO: Rule 4 - Timeout with query cancellation
     const timeoutId = setTimeout(() => {
       if (!abortSignal.aborted) {
         abortControllerRef.current.abort();
         setIsLoading(false);
-        setError('Data loading timed out. Please try again.');
+        setError('Data loading timed out.');
       }
     }, 15000);
 
-    // ✅ ARCHITECTURAL FIX: Check if data is stale (older than 30 seconds)
-    const shouldRefresh = !lastLoadTimeRef.current ||
-      (Date.now() - lastLoadTimeRef.current > 30000);
+    const shouldRefresh = !lastLoadTimeRef.current || (Date.now() - lastLoadTimeRef.current > 30000);
 
     if (shouldRefresh) {
-      // Now safe to load data
-      loadUserAndAnalytics(abortSignal).catch(err => {
-        // silent
-      });
-    } else {
+      loadAnalytics(abortSignal);
     }
 
     return () => {
-      // ✅ KERNEL MANIFESTO: Rule 4 - Cleanup AbortController on unmount
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
+      if (abortControllerRef.current) abortControllerRef.current.abort();
       clearTimeout(timeoutId);
     };
-  }, [canLoadData, userId, profileCompanyId, period, viewMode, location.pathname, isStale, navigate]);
+  }, [canLoadData, profileCompanyId, period, viewMode, isStale]);
 
-  const loadUserAndAnalytics = async (abortSignal) => {
-    // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData (checked in useEffect)
-    if (!canLoadData || !profileCompanyId) {
-      return;
-    }
+  const loadAnalytics = async (abortSignal) => {
+    setIsLoading(true);
+    setError(null);
 
     try {
-      // ✅ STALE-WHILE-REVALIDATE: Only set loading on first load
-      if (chartData.length === 0) {
-        setIsLoading(true);
-      }
-      setError(null); // ✅ KERNEL MANIFESTO: Rule 4 - Clear previous errors
-
-      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before queries
-      if (abortSignal?.aborted) return;
-
-      // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId for all queries
       const companyId = profileCompanyId;
-
       const days = parseInt(period);
       const startDate = startOfDay(subDays(new Date(), days)).toISOString();
 
-      // ✅ DEBUG MODE FIX: Use currentRole instead of undefined 'normalizedRole'
-      // Load analytics data based on role
-      const showBuyerAnalytics = (currentRole === 'buyer') || (currentRole === 'hybrid' && (viewMode === 'all' || viewMode === 'buyer'));
-      const showSellerAnalytics = (currentRole === 'seller') || (currentRole === 'hybrid' && (viewMode === 'all' || viewMode === 'seller'));
+      const showBuyer = (currentRole === 'buyer') || (currentRole === 'hybrid' && (viewMode === 'all' || viewMode === 'buyer'));
+      const showSeller = (currentRole === 'seller') || (currentRole === 'hybrid' && (viewMode === 'all' || viewMode === 'seller'));
 
-      let buyerData = null;
-      let sellerData = null;
+      let buyerStats = null;
+      let sellerStats = null;
 
-      if (showBuyerAnalytics && companyId) {
-        // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before queries
+      if (showBuyer && companyId) {
         if (abortSignal?.aborted) return;
-
         const [ordersRes, rfqsRes, quotesRes] = await Promise.all([
           supabase.from('orders').select('*').eq('buyer_company_id', companyId).gte('created_at', startDate),
           supabase.from('rfqs').select('*').eq('buyer_company_id', companyId).gte('created_at', startDate),
           supabase.from('quotes').select('*, rfqs!inner(buyer_company_id)').eq('rfqs.buyer_company_id', companyId).gte('quotes.created_at', startDate)
         ]);
 
-        // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal after queries
-        if (abortSignal?.aborted) return;
+        const orders = ordersRes.data || [];
+        const rfqs = rfqsRes.data || [];
+        const quotes = quotesRes.data || [];
 
-        const orders = Array.isArray(ordersRes.data) ? ordersRes.data : [];
-        const rfqs = Array.isArray(rfqsRes.data) ? rfqsRes.data : [];
-        const quotes = Array.isArray(quotesRes?.data) ? quotesRes.data : [];
-
-        // Build chart data for orders over time
-        const ordersByDate = {};
-        orders.forEach(order => {
-          if (order && order.created_at) {
-            const date = format(new Date(order.created_at), 'MMM d');
-            ordersByDate[date] = (ordersByDate[date] || 0) + 1;
-          }
-        });
-
-        const chartDataArray = Object.entries(ordersByDate).map(([date, count]) => ({
-          date,
-          orders: count,
-          rfqs: 0
-        }));
-
-        // Trade execution metrics: Deal status tracking
-        const openRfqs = rfqs.filter(r => r.status === 'pending_review' || r.status === 'matched' || r.status === 'clarification_requested');
-        const closedDeals = orders.filter(o => o.status === 'completed' || o.status === 'delivered');
-        const negotiatingDeals = orders.filter(o => o.status === 'processing' || o.status === 'confirmed');
-
-        buyerData = {
-          chartData: chartDataArray,
-          analytics: {
-            totalOrders: orders.length,
-            totalRFQs: rfqs.length,
-            totalQuotes: quotes.length,
-            totalSpent: orders.reduce((sum, o) => sum + (parseFloat(o?.total_amount) || 0), 0),
-            // Trade execution metrics (primary)
-            openRfqs: openRfqs.length,
-            closedDeals: closedDeals.length,
-            negotiatingDeals: negotiatingDeals.length,
-            avgResponseTime: quotes.length > 0 ? '24h' : 'N/A' // Placeholder - calculate from quote timestamps
-          }
+        buyerStats = {
+          totalOrders: orders.length,
+          totalRFQs: rfqs.length,
+          totalSpent: orders.reduce((sum, o) => sum + (parseFloat(o?.total_amount) || 0), 0),
+          openRfqs: rfqs.filter(r => ['pending_review', 'matched'].includes(r.status)).length,
+          chart: orders.map(o => ({ date: format(new Date(o.created_at), 'MMM d'), orders: 1 }))
         };
       }
 
-      if (showSellerAnalytics && companyId) {
-        // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before queries
+      if (showSeller && companyId) {
         if (abortSignal?.aborted) return;
-
-        const [ordersRes, productsRes, rfqsRes, quotesRes] = await Promise.all([
+        const [ordersRes, rfqsRes, quotesRes] = await Promise.all([
           supabase.from('orders').select('*').eq('seller_company_id', companyId).gte('created_at', startDate),
-          supabase.from('products').select('*').eq('company_id', companyId),
           supabase.from('rfqs').select('*, matched_supplier_ids').gte('created_at', startDate),
           supabase.from('quotes').select('*, rfqs!inner(*)').eq('supplier_company_id', companyId).gte('created_at', startDate)
         ]);
 
-        // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal after queries
-        if (abortSignal?.aborted) return;
-
         const orders = ordersRes.data || [];
-        const products = productsRes.data || [];
-
-        // Trade execution metrics: RFQs and quotes
-        const allRfqs = rfqsRes.data || [];
-        const matchedRfqs = allRfqs.filter(rfq =>
-          rfq.matched_supplier_ids &&
-          Array.isArray(rfq.matched_supplier_ids) &&
-          rfq.matched_supplier_ids.includes(companyId)
-        );
+        const matchedRfqs = (rfqsRes.data || []).filter(r => r.matched_supplier_ids?.includes(companyId));
         const quotes = quotesRes.data || [];
-        const acceptedQuotes = quotes.filter(q => q.status === 'accepted' || q.status === 'awarded');
-        const winRate = quotes.length > 0 ? Math.round((acceptedQuotes.length / quotes.length) * 100) : 0;
+        const winRate = quotes.length > 0 ? Math.round((quotes.filter(q => q.status === 'accepted').length / quotes.length) * 100) : 0;
 
-        // Countries reached (from orders)
-        const uniqueBuyerCountries = new Set();
-        orders.forEach(o => {
-          if (o.buyer_company_id) {
-            // Will be populated from join below
-          }
-        });
-
-        // Build chart data for revenue over time
-        const revenueByDate = {};
-        orders.forEach(order => {
-          const date = format(new Date(order.created_at), 'MMM d');
-          revenueByDate[date] = (revenueByDate[date] || 0) + (parseFloat(order.total_amount) || 0);
-        });
-
-        const chartDataArray = Object.entries(revenueByDate).map(([date, revenue]) => ({
-          date,
-          revenue: Math.round(revenue),
-          orders: 0
-        }));
-
-        // Also add order count
-        const ordersByDate = {};
-        orders.forEach(order => {
-          if (order && order.created_at) {
-            const date = format(new Date(order.created_at), 'MMM d');
-            ordersByDate[date] = (ordersByDate[date] || 0) + 1;
-          }
-        });
-
-        const combinedChartData = Object.keys({ ...revenueByDate, ...ordersByDate }).map(date => ({
-          date,
-          revenue: Math.round(revenueByDate[date] || 0),
-          orders: ordersByDate[date] || 0
-        }));
-
-        // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before more queries
-        if (abortSignal?.aborted) return;
-
-        // Load inquiries (messages related to products)
-        const { data: inquiriesData } = await supabase
-          .from('messages')
-          .select('*')
-          .eq('receiver_company_id', companyId)
-          .not('related_type', 'is', null)
-          .gte('created_at', startDate);
-
-        // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal after queries
-        if (abortSignal?.aborted) return;
-
-        const inquiries = Array.isArray(inquiriesData) ? inquiriesData : [];
-
-        // Load top categories
-        const { data: categoryData } = await supabase
-          .from('products')
-          .select('category_id, categories(name)')
-          .eq('company_id', companyId);
-
-        const categoryCounts = {};
-        (Array.isArray(categoryData) ? categoryData : []).forEach(p => {
-          if (p && p.categories?.name) {
-            categoryCounts[p.categories.name] = (categoryCounts[p.categories.name] || 0) + 1;
-          }
-        });
-
-        // Load buyer countries
-        const { data: buyerOrders } = await supabase
-          .from('orders')
-          .select('buyer_company_id, companies:buyer_company_id(country)')
-          .eq('seller_company_id', companyId)
-          .gte('created_at', startDate);
-
-        const countryCounts = {};
-        (buyerOrders || []).forEach(o => {
-          if (o.companies?.country) {
-            countryCounts[o.companies.country] = (countryCounts[o.companies.country] || 0) + 1;
-          }
-        });
-
-        sellerData = {
-          chartData: combinedChartData,
-          analytics: {
-            totalSales: orders.length,
-            totalProducts: products.length,
-            totalRevenue: orders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0),
-            // Trade execution metrics (primary)
-            rfqsReceived: matchedRfqs.length,
-            quotesSent: quotes.length,
-            winRate: winRate,
-            countriesReached: Object.keys(countryCounts).length,
-            // Secondary metrics (de-emphasized)
-            totalViews: products.reduce((sum, p) => sum + (p.views || 0), 0),
-            totalInquiries: inquiries.length,
-            topCategories: Object.entries(categoryCounts).sort((a, b) => b[1] - a[1]).slice(0, 5),
-            buyerCountries: Object.entries(countryCounts).sort((a, b) => b[1] - a[1]).slice(0, 5)
-          }
+        sellerStats = {
+          totalSales: orders.length,
+          rfqsReceived: matchedRfqs.length,
+          quotesSent: quotes.length,
+          totalRevenue: orders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0),
+          winRate,
+          chart: orders.map(o => ({ date: format(new Date(o.created_at), 'MMM d'), revenue: parseFloat(o.total_amount) || 0 }))
         };
       }
 
-      // ✅ DEBUG MODE FIX: Use currentRole instead of undefined 'role'
-      // For hybrid users, combine data if viewing 'all'
-      if (currentRole === 'hybrid' && viewMode === 'all' && buyerData && sellerData) {
-        setChartData([...buyerData.chartData, ...sellerData.chartData]);
-        setAnalytics({
-          ...buyerData.analytics,
-          ...sellerData.analytics,
-          isHybrid: true
-        });
-      } else if (buyerData) {
-        setChartData(buyerData.chartData);
-        setAnalytics(buyerData.analytics);
-      } else if (sellerData) {
-        setChartData(sellerData.chartData);
-        setAnalytics(sellerData.analytics);
-      } else if (capabilities?.can_logistics && capabilities?.logistics_status === 'approved') {
-        // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before queries
-        if (abortSignal?.aborted) return;
-
-        const [shipmentsRes, ordersRes] = await Promise.all([
-          supabase
-            .from('shipments')
-            .select('*')
-            .eq('logistics_partner_id', companyId)
-            .gte('created_at', startDate),
-          supabase
-            .from('orders')
-            .select('*')
-            .in('status', ['processing', 'shipped', 'delivered'])
-            .gte('created_at', startDate)
-            .limit(100)
-        ]);
-
-        // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal after queries
-        if (abortSignal?.aborted) return;
-
-        const shipments = shipmentsRes.data || [];
-        const orders = ordersRes.data || [];
-
-        // Build shipments by status chart
-        const shipmentsByStatus = {};
-        shipments.forEach(s => {
-          shipmentsByStatus[s.status] = (shipmentsByStatus[s.status] || 0) + 1;
-        });
-
-        // Calculate delivery success rate
-        const delivered = shipments.filter(s => s.status === 'delivered').length;
-        const successRate = shipments.length > 0 ? (delivered / shipments.length) * 100 : 0;
-
-        // Calculate average delivery time
-        const deliveredShipments = shipments.filter(s => s.status === 'delivered' && s.delivered_at && s.created_at);
-        const avgDeliveryTime = deliveredShipments.length > 0
-          ? deliveredShipments.reduce((sum, s) => {
-            const days = (new Date(s.delivered_at) - new Date(s.created_at)) / (1000 * 60 * 60 * 24);
-            return sum + days;
-          }, 0) / deliveredShipments.length
-          : 0;
-
-        setChartData(Object.entries(shipmentsByStatus).map(([status, count]) => ({ status, count })));
-        setAnalytics({
-          totalShipments: shipments.length,
-          totalRevenue: orders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0),
-          successRate: Math.round(successRate),
-          avgDeliveryTime: Math.round(avgDeliveryTime),
-          shipmentsByStatus: Object.entries(shipmentsByStatus)
-        });
-
-        // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful 200 OK response
-        // Only mark fresh if we got actual analytics data (not an error)
-        if (analytics !== null || chartData.length > 0) {
-          lastLoadTimeRef.current = Date.now();
-          markFresh();
-        }
+      // Combine for hybrid 'all' view
+      if (viewMode === 'all' && buyerStats && sellerStats) {
+        setAnalytics({ ...buyerStats, ...sellerStats, isHybrid: true });
+        setChartData([...buyerStats.chart, ...sellerStats.chart]);
+      } else {
+        setAnalytics(buyerStats || sellerStats);
+        setChartData((buyerStats || sellerStats)?.chart || []);
       }
-    } catch (error) {
-      // ✅ KERNEL MIGRATION: Enhanced error logging and state
-      setError(error?.message || 'Failed to load analytics');
-      setAnalytics(null);
-      setChartData([]);
-      // ❌ DO NOT mark fresh on error - let it retry on next navigation
+
+      lastLoadTimeRef.current = Date.now();
+      markFresh();
+    } catch (err) {
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Error state checked BEFORE loading state
-  if (error) {
-    return (
-      <ErrorState
-        message={error}
-        onRetry={() => {
-          setError(null);
-          // useEffect will retry automatically when canLoadData is true
-        }}
-      />
-    );
-  }
-
-  // ✅ STALE-WHILE-REVALIDATE: Only show skeleton on first load
-  // If we have chartData, keep showing it during background refresh
-  if (isLoading && chartData.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2" />
-      </div>
-    );
-  }
+  if (!isSystemReady) return <SpinnerWithTimeout ready={false} />;
+  if (error) return <ErrorState message={error} onRetry={() => loadAnalytics()} />;
 
   return (
-    <>
-      <div className="space-y-6">
-        {/* v2.5: Premium Header with Improved Spacing */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="flex items-center justify-between mb-8"
-        >
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold mb-3 leading-tight">Analytics & Insights</h1>
-            <p className="text-os-sm md:text-os-base leading-relaxed">Track your performance and insights</p>
-          </div>
-          {/* v2.5: Premium Segmented Role Switcher */}
-          {currentRole === 'hybrid' && (
-            <div className="flex items-center gap-0.5 p-1 rounded-full border shadow-os-md relative">
-              {['all', 'buyer', 'seller'].map((mode) => (
-                <button
-                  key={mode}
-                  onClick={() => setViewMode(mode)}
-                  className={`relative px-4 py-1.5 rounded-full text-os-xs font-semibold transition-all duration-200 capitalize z-10 min-w-[60px] ${viewMode === mode
-                    ? 'text-afrikoni-charcoal'
-                    : 'text-afrikoni-text-dark/70 hover:text-afrikoni-text-dark'
-                    }`}
-                >
-                  {mode === 'all' ? 'All' : mode === 'buyer' ? 'Buyer' : 'Seller'}
-                </button>
-              ))}
-              <motion.div
-                layoutId="activeAnalyticsView"
-                className="absolute top-1 bottom-1 rounded-full shadow-os-gold z-0"
-                initial={false}
-                transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                animate={{
-                  x: viewMode === 'all' ? 0 : viewMode === 'buyer' ? 'calc(33.333% + 0.125rem)' : 'calc(66.666% + 0.25rem)',
-                  width: 'calc(33.333% - 0.25rem)',
-                }}
-              />
-            </div>
-          )}
-        </motion.div>
+    <div className="os-page-layout">
+      {/* HEADER */}
+      <div className="os-header-group flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div>
+          <h1 className="">Intelligence Console</h1>
+          <p className="">Real-time trade performance and market synchronization.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => markFresh(true)}
+            disabled={isLoading}
+            className="text-os-text-secondary hover:text-os-accent"
+          >
+            <RefreshCw className={cn("w-4 h-4 mr-2", isLoading && "animate-spin")} />
+            Sync Intelligence
+          </Button>
+        </div>
+      </div>
 
-        {/* Stats */}
-        {!analytics ? (
-          <EmptyState
-            type="analytics"
-            title="No analytics data yet"
-            description="Complete your company profile or add products to generate insights."
-            cta="View Products"
-            ctaLink="/dashboard/products"
-          />
-        ) : (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {currentRole === 'buyer' && analytics && (
-              <>
-                {/* v2.5: Premium Analytics KPI Cards */}
-                <Card className="hover:border-os-accent/40 hover:shadow-os-md-lg transition-all rounded-afrikoni-lg">
-                  <CardContent className="p-5">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="w-12 h-12 rounded-full flex items-center justify-center">
-                        <ShoppingCart className="w-6 h-6" />
-                      </div>
-                    </div>
-                    <div className="text-4xl md:text-5xl font-bold mb-2">{analytics.totalOrders}</div>
-                    <div className="text-os-xs md:text-os-sm font-medium uppercase tracking-wide">Total Orders</div>
-                  </CardContent>
-                </Card>
-                <Card className="bg-gradient-to-br">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-os-sm font-semibold">RFQs Submitted</p>
-                        <p className="text-os-2xl font-bold">{analytics.totalRFQs}</p>
-                        {analytics.openRfqs !== undefined && (
-                          <p className="text-os-xs mt-1">{analytics.openRfqs} active</p>
-                        )}
-                      </div>
-                      <FileText className="w-8 h-8" />
-                    </div>
-                  </CardContent>
-                </Card>
-                {analytics.negotiatingDeals !== undefined && (
-                  <Card className="bg-gradient-to-br">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-os-sm font-semibold">Deals in Progress</p>
-                          <p className="text-os-2xl font-bold">{analytics.negotiatingDeals}</p>
-                          <p className="text-os-xs mt-1">Negotiating</p>
-                        </div>
-                        <Clock className="w-8 h-8" />
-                      </div>
-                    </CardContent>
-                  </Card>
+      {/* FILTERS & ROLE SWITCHER */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        {currentRole === 'hybrid' && (
+          <Surface variant="soft" className="inline-flex p-1 rounded-full border-os-stroke/30">
+            {['all', 'buyer', 'seller'].map((mode) => (
+              <button
+                key={mode}
+                onClick={() => setViewMode(mode)}
+                className={cn(
+                  "relative px-6 py-2 rounded-full text-os-xs font-bold uppercase tracking-widest transition-all z-10",
+                  viewMode === mode ? "text-os-bg" : "text-os-text-secondary hover:text-os-text-primary"
                 )}
-                {analytics.closedDeals !== undefined && (
-                  <Card className="bg-gradient-to-br">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-os-sm font-semibold">Deals Closed</p>
-                          <p className="text-os-2xl font-bold">{analytics.closedDeals}</p>
-                          <p className="text-os-xs mt-1">Completed</p>
-                        </div>
-                        <CheckCircle className="w-8 h-8" />
-                      </div>
-                    </CardContent>
-                  </Card>
+              >
+                {viewMode === mode && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute inset-0 bg-os-text-primary rounded-full -z-10 shadow-os-sm"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  />
                 )}
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-os-sm">Total Spent</p>
-                        <p className="text-os-2xl font-bold">${analytics.totalSpent.toLocaleString()}</p>
-                      </div>
-                      <DollarSign className="w-8 h-8" />
-                    </div>
-                  </CardContent>
-                </Card>
-                {analytics.totalQuotes !== undefined && (
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-os-sm">Quotes Received</p>
-                          <p className="text-os-2xl font-bold">{analytics.totalQuotes}</p>
-                        </div>
-                        <FileText className="w-8 h-8" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </>
-            )}
-
-            {((currentRole === 'seller' || (currentRole === 'hybrid' && (viewMode === 'all' || viewMode === 'seller'))) && analytics && analytics.totalSales !== undefined) && (
-              <>
-                <Card className="bg-gradient-to-br">
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-os-sm font-semibold">Deals Facilitated</p>
-                        <p className="text-os-2xl font-bold">{analytics.totalSales}</p>
-                        <p className="text-os-xs mt-1">Successful orders</p>
-                      </div>
-                      <ShoppingCart className="w-8 h-8" />
-                    </div>
-                  </CardContent>
-                </Card>
-                {/* Trade execution metrics - primary focus */}
-                {analytics.rfqsReceived !== undefined && (
-                  <Card className="bg-gradient-to-br">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-os-sm font-semibold">RFQs Received</p>
-                          <p className="text-os-2xl font-bold">{analytics.rfqsReceived}</p>
-                          <p className="text-os-xs mt-1">Active opportunities</p>
-                        </div>
-                        <FileText className="w-8 h-8" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-                {analytics.quotesSent !== undefined && (
-                  <Card className="bg-gradient-to-br">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-os-sm font-semibold">Quotes Sent</p>
-                          <p className="text-os-2xl font-bold">{analytics.quotesSent}</p>
-                          <p className="text-os-xs mt-1">Responses submitted</p>
-                        </div>
-                        <FileText className="w-8 h-8" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-                {/* Secondary metrics - de-emphasized */}
-                {analytics.totalViews !== undefined && (
-                  <Card className="opacity-70">
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <p className="text-os-xs">Total Views</p>
-                          <p className="text-os-xl font-semibold">{analytics.totalViews}</p>
-                        </div>
-                        <TrendingUp className="w-6 h-6" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </>
-            )}
-
-            {currentRole === 'logistics' && analytics && (
-              <>
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-os-sm">Total Shipments</p>
-                        <p className="text-os-2xl font-bold">{analytics.totalShipments}</p>
-                      </div>
-                      <Package className="w-8 h-8" />
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-os-sm">Success Rate</p>
-                        <p className="text-os-2xl font-bold">{analytics.successRate}%</p>
-                      </div>
-                      <CheckCircle className="w-8 h-8" />
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-os-sm">Avg Delivery Time</p>
-                        <p className="text-os-2xl font-bold">{analytics.avgDeliveryTime}d</p>
-                      </div>
-                      <Clock className="w-8 h-8" />
-                    </div>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-os-sm">Total Revenue</p>
-                        <p className="text-os-2xl font-bold">${analytics.totalRevenue.toLocaleString()}</p>
-                      </div>
-                      <DollarSign className="w-8 h-8" />
-                    </div>
-                  </CardContent>
-                </Card>
-              </>
-            )}
-          </div>
+                {mode}
+              </button>
+            ))}
+          </Surface>
         )}
 
-        {/* v2.5: Premium Chart Section */}
-        <Card className="rounded-afrikoni-lg shadow-os-md">
-          <CardHeader className="border-b pb-4">
-            <div className="flex items-center justify-between">
-              {/* v2.5: Premium Section Title with Gold Underline */}
-              <CardTitle className="text-os-lg md:text-os-xl font-bold uppercase tracking-wider border-b-2 pb-3 inline-block flex items-center gap-2">
-                <BarChart3 className="w-5 h-5" />
-                Performance Overview
-              </CardTitle>
-              <Select value={period} onValueChange={setPeriod}>
-                <SelectTrigger className="w-40">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="7">Last 7 days</SelectItem>
-                  <SelectItem value="30">Last 30 days</SelectItem>
-                  <SelectItem value="90">Last 90 days</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {chartData.length === 0 ? (
-              <div className="h-64 flex items-center justify-center">
-                <div className="text-center">
-                  <BarChart3 className="w-12 h-12 mx-auto mb-2" />
-                  <p>No data for selected period</p>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-6">
-                {((currentRole === 'seller' || (currentRole === 'hybrid' && (viewMode === 'all' || viewMode === 'seller'))) && analytics && analytics.totalRevenue !== undefined && chartData.length > 0) && (
-                  <>
-                    <div className="h-64">
-                      <h3 className="text-os-sm font-semibold mb-4">Revenue Over Time</h3>
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={chartData}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                          <XAxis dataKey="date" stroke="#6b7280" />
-                          <YAxis stroke="#6b7280" />
-                          <Tooltip
-                            contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                          />
-                          <Legend />
-                          <Line
-                            type="monotone"
-                            dataKey="revenue"
-                            stroke="#d97706"
-                            strokeWidth={2}
-                            name="Revenue ($)"
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </div>
-                    {analytics.topCategories && analytics.topCategories.length > 0 && (
-                      <div className="h-64">
-                        <h3 className="text-os-sm font-semibold mb-4">Top Categories</h3>
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart data={analytics.topCategories.map(([name, count]) => ({ name, count }))}>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                            <XAxis dataKey="name" stroke="#6b7280" />
-                            <YAxis stroke="#6b7280" />
-                            <Tooltip
-                              contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                            />
-                            <Legend />
-                            <Bar dataKey="count" fill="#d97706" name="Products" />
-                          </BarChart>
-                        </ResponsiveContainer>
-                      </div>
-                    )}
-                    {analytics.buyerCountries && analytics.buyerCountries.length > 0 && (
-                      <div className="h-64">
-                        <h3 className="text-os-sm font-semibold mb-4">Buyer Countries</h3>
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={analytics.buyerCountries.map(([name, value]) => ({ name, value }))}
-                              cx="50%"
-                              cy="50%"
-                              labelLine={false}
-                              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                              outerRadius={80}
-                              fill="#8884d8"
-                              dataKey="value"
-                            >
-                              {analytics.buyerCountries.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={['#d97706', '#f59e0b', '#fbbf24', '#fcd34d', '#fde68a'][index % 5]} />
-                              ))}
-                            </Pie>
-                            <Tooltip />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      </div>
-                    )}
-                  </>
-                )}
-                {((currentRole === 'buyer' || (currentRole === 'hybrid' && (viewMode === 'all' || viewMode === 'buyer'))) && chartData.length > 0) && (
-                  <div className="h-64">
-                    <h3 className="text-os-sm font-semibold mb-4">Orders Over Time</h3>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                        <XAxis dataKey="date" stroke="#6b7280" />
-                        <YAxis stroke="#6b7280" />
-                        <Tooltip
-                          contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                        />
-                        <Legend />
-                        <Bar dataKey="orders" fill="#d97706" name="Orders" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-                {currentRole === 'logistics' && analytics && analytics.shipmentsByStatus && analytics.shipmentsByStatus.length > 0 && (
-                  <div className="h-64">
-                    <h3 className="text-os-sm font-semibold mb-4">Shipments by Status</h3>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={analytics.shipmentsByStatus.map(([status, count]) => ({ status, count }))}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                        <XAxis dataKey="status" stroke="#6b7280" />
-                        <YAxis stroke="#6b7280" />
-                        <Tooltip
-                          contentStyle={{ backgroundColor: '#fff', border: '1px solid #e5e7eb', borderRadius: '8px' }}
-                        />
-                        <Legend />
-                        <Bar dataKey="count" fill="#d97706" name="Shipments" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Supplier Reliability Indicators - Trade-focused */}
-            {(currentRole === 'seller' || currentRole === 'hybrid') && analytics && (analytics.winRate !== undefined || analytics.countriesReached !== undefined) && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className="mt-8 pt-8 border-t"
-              >
-                <div className="flex items-center gap-2 mb-6">
-                  <Shield className="w-5 h-5" />
-                  <h3 className="text-os-xl font-bold">Trade Performance</h3>
-                </div>
-                <div className="grid md:grid-cols-2 gap-4">
-                  {analytics.winRate !== undefined && (
-                    <Card className="">
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-full flex items-center justify-center">
-                            <CheckCircle className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <p className="text-os-sm font-semibold mb-1">
-                              Quote Acceptance Rate
-                            </p>
-                            <p className="text-os-xs">
-                              {analytics.winRate}% of your quotes result in deals. This indicates strong supplier reliability.
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                  {analytics.countriesReached !== undefined && analytics.countriesReached > 0 && (
-                    <Card className="">
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-3">
-                          <div className="w-10 h-10 rounded-full flex items-center justify-center">
-                            <MapPin className="w-5 h-5" />
-                          </div>
-                          <div>
-                            <p className="text-os-sm font-semibold mb-1">
-                              Geographic Reach
-                            </p>
-                            <p className="text-os-xs">
-                              Active in {analytics.countriesReached} countries. Demonstrates cross-border trade capability.
-                            </p>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              </motion.div>
-            )}
-          </CardContent>
-        </Card>
+        <Select value={period} onValueChange={setPeriod}>
+          <SelectTrigger className="w-[180px] rounded-full border-os-stroke bg-os-surface-solid/50 backdrop-blur">
+            <SelectValue placeholder="Period" />
+          </SelectTrigger>
+          <SelectContent className="rounded-os-md border-os-stroke">
+            <SelectItem value="7">Last 7 Days</SelectItem>
+            <SelectItem value="30">Last 30 Days</SelectItem>
+            <SelectItem value="90">Last 90 Days</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
-    </>
+
+      {/* KPI GRID */}
+      {!analytics ? (
+        <EmptyState type="analytics" />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Standardized KPI Cards */}
+          {(analytics.totalOrders !== undefined || analytics.totalSales !== undefined) && (
+            <Surface variant="glass" hover className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <Surface variant="soft" className="w-10 h-10 flex items-center justify-center border-os-stroke/30">
+                  <ShoppingCart className="w-5 h-5 text-os-accent" />
+                </Surface>
+                <div className="os-label !text-os-green">Live</div>
+              </div>
+              <div className="text-3xl font-black font-mono tracking-tighter">
+                {analytics.totalOrders || analytics.totalSales}
+              </div>
+              <div className="os-label mt-1">Total Trade Flows</div>
+            </Surface>
+          )}
+
+          {(analytics.totalRevenue !== undefined || analytics.totalSpent !== undefined) && (
+            <Surface variant="glass" hover className="p-6 border-os-accent/20">
+              <div className="flex justify-between items-start mb-4">
+                <Surface variant="soft" className="w-10 h-10 flex items-center justify-center border-os-stroke/30">
+                  <DollarSign className="w-5 h-5 text-os-accent" />
+                </Surface>
+                <div className="os-label">Value</div>
+              </div>
+              <div className="text-3xl font-black font-mono tracking-tighter">
+                ${(analytics.totalRevenue || analytics.totalSpent).toLocaleString()}
+              </div>
+              <div className="os-label mt-1">Sovereign Volume</div>
+            </Surface>
+          )}
+
+          {analytics.rfqsReceived !== undefined && (
+            <Surface variant="glass" hover className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <Surface variant="soft" className="w-10 h-10 flex items-center justify-center border-os-stroke/30">
+                  <FileText className="w-5 h-5 text-os-blue" />
+                </Surface>
+                <div className="os-label">Stream</div>
+              </div>
+              <div className="text-3xl font-black font-mono tracking-tighter">{analytics.rfqsReceived}</div>
+              <div className="os-label mt-1">Market Opportunities</div>
+            </Surface>
+          )}
+
+          {analytics.winRate !== undefined && (
+            <Surface variant="glass" hover className="p-6">
+              <div className="flex justify-between items-start mb-4">
+                <Surface variant="soft" className="w-10 h-10 flex items-center justify-center border-os-stroke/30">
+                  <Target className="w-5 h-5 text-os-green" />
+                </Surface>
+                <div className="os-label text-os-green">{analytics.winRate}%</div>
+              </div>
+              <div className="text-3xl font-black font-mono tracking-tighter">{analytics.winRate}%</div>
+              <div className="os-label mt-1">Quote Conversion</div>
+            </Surface>
+          )}
+        </div>
+      )}
+
+      {/* CHARTS SECTION */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <Surface variant="panel" className="lg:col-span-8 p-6 md:p-8">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <Activity className="w-5 h-5 text-os-accent" />
+              <h2 className="text-os-xl font-bold">Volume Trends</h2>
+            </div>
+            <div className="os-label opacity-40">Frequency: Daily</div>
+          </div>
+
+          <div className="h-[350px] w-100%">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(0,0,0,0.05)" />
+                <XAxis
+                  dataKey="date"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 10, fill: 'var(--os-text-secondary)' }}
+                />
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{ fontSize: 10, fill: 'var(--os-text-secondary)' }}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'var(--os-surface-solid)',
+                    border: '1px solid var(--os-stroke)',
+                    borderRadius: 'var(--radius-os-sm)',
+                    fontSize: '12px',
+                    fontWeight: '700'
+                  }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey={analytics?.totalRevenue !== undefined ? "revenue" : "orders"}
+                  stroke="var(--os-accent)"
+                  strokeWidth={3}
+                  dot={{ r: 4, fill: 'var(--os-accent)' }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </Surface>
+
+        <div className="lg:col-span-4 space-y-8">
+          <Surface variant="panel" className="p-6">
+            <h3 className="os-label mb-6 flex items-center gap-2">
+              <Shield className="w-4 h-4" />
+              Trade Integrity
+            </h3>
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <span className="text-os-sm text-os-text-secondary">Health Index</span>
+                <span className="text-os-sm font-black text-os-green">98.4%</span>
+              </div>
+              <div className="h-1.5 w-full bg-os-stroke rounded-full overflow-hidden">
+                <div className="h-full bg-os-green w-[98.4%] animate-pulse" />
+              </div>
+              <p className="text-os-xs text-os-text-secondary leading-relaxed">
+                Your trade execution parameters are within the 1st percentile of Sovereign Reliability.
+              </p>
+            </div>
+          </Surface>
+
+          <Surface variant="glass" className="p-6 border-os-blue/20 bg-os-blue/5">
+            <h3 className="os-label !text-os-blue mb-4 flex items-center gap-2">
+              <Globe className="w-4 h-4" />
+              Global Reach
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {['Lagos', 'Accra', 'Durban', 'Abidjan'].map(city => (
+                <span key={city} className="px-2 py-1 rounded-full bg-os-blue/10 text-os-blue text-[10px] font-bold border border-os-blue/20">
+                  {city}
+                </span>
+              ))}
+            </div>
+            <p className="text-os-xs text-os-text-secondary mt-4">
+              Expand to East African corridors to unlock advanced clearing presets.
+            </p>
+          </Surface>
+        </div>
+      </div>
+    </div>
   );
 }
-
-export default function DashboardAnalytics() {
-  return (
-    <>
-      {/* PHASE 5B: Analytics requires buy capability */}
-      <RequireCapability canBuy={true}>
-        <DashboardAnalyticsInner />
-      </RequireCapability>
-    </>
-  );
-}
-

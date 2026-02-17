@@ -41,10 +41,23 @@ export function ThemeProvider({ children }) {
       setPathname(window.location.pathname);
     };
     window.addEventListener('popstate', handleLocationChange);
-    const interval = setInterval(handleLocationChange, 100);
+
+    // Intercept pushState/replaceState to detect SPA navigation
+    const originalPushState = history.pushState;
+    const originalReplaceState = history.replaceState;
+    history.pushState = function (...args) {
+      originalPushState.apply(this, args);
+      handleLocationChange();
+    };
+    history.replaceState = function (...args) {
+      originalReplaceState.apply(this, args);
+      handleLocationChange();
+    };
+
     return () => {
       window.removeEventListener('popstate', handleLocationChange);
-      clearInterval(interval);
+      history.pushState = originalPushState;
+      history.replaceState = originalReplaceState;
     };
   }, []);
 
@@ -52,12 +65,13 @@ export function ThemeProvider({ children }) {
     const root = document.documentElement;
     const isAppSpace = pathname.startsWith('/dashboard') || pathname.startsWith('/onboarding');
 
-    // Theme Class
-    if (isAppSpace) {
-      if (theme === 'dark') root.classList.add('dark');
-      else root.classList.remove('dark');
+    // Theme Class — single source of truth for dark/light
+    if (isAppSpace && theme === 'dark') {
+      root.classList.add('dark');
+      root.classList.remove('light');
     } else {
       root.classList.remove('dark');
+      root.classList.add('light');
     }
 
     // Palette Class

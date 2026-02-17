@@ -89,14 +89,14 @@ export default function QuickRFQBar() {
           value={sentence}
           onChange={(e) => setSentence(e.target.value)}
           placeholder='Describe what you need, e.g. "500kg cocoa beans to Lagos"'
-          className="pl-10 h-11 text-os-sm dark:bg-[#141414] dark:border-[#2A2A2A] focus:border-[#D4A937]/50 dark:text-[#F5F0E8] placeholder:text-gray-400 dark:placeholder:text-gray-600"
+          className="pl-10 h-11 text-os-sm dark:bg-[#141414] dark:border-[#2A2A2A] focus:border-os-accent/50 dark:text-[#F5F0E8] placeholder:text-gray-400 dark:placeholder:text-os-text-secondary"
           disabled={isProcessing}
         />
       </div>
       <Button
         type="submit"
         disabled={isProcessing || !sentence.trim()}
-        className="h-11 px-5 hover:bg-[#C09830] dark:text-[#0A0A0A] font-semibold whitespace-nowrap text-os-sm"
+        className="h-11 px-5 hover:bg-os-accent-dark dark:text-[#0A0A0A] font-semibold whitespace-nowrap text-os-sm"
       >
         {isProcessing ? (
           <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Drafting...</>

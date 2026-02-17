@@ -92,6 +92,7 @@ export async function createRFQ({ user, formData }) {
         incoterms: sanitizeString(formData.incoterms || ''),
         shipping_method: sanitizeString(formData.shipping_method || ''),
         unit_type: sanitizeString(formData.unit || 'pieces'),
+        contact_email: user.email, // Ops Fallback
       }
     };
 

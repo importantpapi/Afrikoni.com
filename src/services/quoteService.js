@@ -5,6 +5,7 @@
 
 import { supabase } from '@/api/supabaseClient';
 import { emitTradeEvent, TRADE_EVENT_TYPE } from './tradeEvents';
+import { notifyQuoteSubmitted } from '@/services/notificationService';
 
 /**
  * Get all open RFQs available to suppliers
@@ -151,40 +152,47 @@ export async function submitQuote({
       return { success: false, error: 'RFQ not found or no longer open' };
     }
 
-      const { logTradeEvent } = await import('./tradeKernel');
-      // Create quote
-      const { data: quote, error: createError } = await supabase
-        .from('quotes')
-        .insert({
-          trade_id: rfqId,
-          supplier_id: supplierId,
-          supplier_company_id: supplierCompanyId,
-          unit_price: unitPrice,
-          total_price: totalPrice,
-          quantity: rfq.quantity,
-          quantity_unit: rfq.quantity_unit,
-          currency,
-          lead_time_days: leadTime,
-          incoterms: deliveryIncoterms,
-          delivery_location: deliveryLocation,
-          payment_terms: paymentTerms,
-          certificates: certificates,
-          notes: notes,
-          status: 'submitted',
-          created_at: new Date()
-        })
-        .select()
-        .single();
-      if (createError) throw createError;
-      // Log event
-      await logTradeEvent(rfqId, 'quote_received', {
-        quote_id: quote.id,
+    const { logTradeEvent } = await import('./tradeKernel');
+    // Create quote
+    const { data: quote, error: createError } = await supabase
+      .from('quotes')
+      .insert({
+        trade_id: rfqId,
+        supplier_id: supplierId,
         supplier_company_id: supplierCompanyId,
         unit_price: unitPrice,
         total_price: totalPrice,
-        lead_time_days: leadTime
-      }, 'seller');
-      return { success: true, quote };
+        quantity: rfq.quantity,
+        quantity_unit: rfq.quantity_unit,
+        currency,
+        lead_time_days: leadTime,
+        incoterms: deliveryIncoterms,
+        delivery_location: deliveryLocation,
+        payment_terms: paymentTerms,
+        certificates: certificates,
+        notes: notes,
+        status: 'submitted',
+        created_at: new Date()
+      })
+      .select()
+      .single();
+    if (createError) throw createError;
+    // Log event
+    await logTradeEvent(rfqId, 'quote_received', {
+      quote_id: quote.id,
+      supplier_company_id: supplierCompanyId,
+      unit_price: unitPrice,
+      total_price: totalPrice,
+      lead_time_days: leadTime
+    }, 'seller');
+
+    // ✅ NOTIFICATION: Alert Buyer
+    if (rfq.buyer_company_id) {
+      // Don't await strictly to prevent blocking UI
+      notifyQuoteSubmitted(quote.id, rfqId, rfq.buyer_company_id).catch(console.error);
+    }
+
+    return { success: true, quote };
   } catch (err) {
     console.error('[quoteService] Submit quote failed:', err);
     return { success: false, error: err.message };

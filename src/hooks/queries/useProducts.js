@@ -13,7 +13,10 @@ async function fetchProducts(profileCompanyId) {
 
   const { data, error } = await supabase
     .from('products')
-    .select('*')
+    .select(`
+      *,
+      category:categories(name)
+    `)
     .eq('company_id', profileCompanyId)
     .order('created_at', { ascending: false });
 

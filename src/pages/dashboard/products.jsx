@@ -27,6 +27,7 @@ import { cn } from '@/lib/utils';
 import { TableSkeleton, CardSkeleton } from '@/components/shared/ui/skeletons';
 import ErrorState from '@/components/shared/ui/ErrorState';
 import EmptyState from '@/components/shared/ui/EmptyState';
+import { getPrimaryImageFromProduct } from '@/utils/productImages';
 
 const statusConfig = {
   active: { label: 'Active', icon: CheckCircle2 },
@@ -62,7 +63,7 @@ export default function Products() {
       const term = search.toLowerCase();
       return (
         product.name?.toLowerCase().includes(term) ||
-        product.category?.toLowerCase().includes(term)
+        (product.category?.name || product.category)?.toLowerCase().includes(term)
       );
     });
   }, [search, products]);
@@ -206,7 +207,7 @@ export default function Products() {
                   const hsCode = product.hs_code || '---';
                   const views = product.views || 0;
                   const inquiries = product.inquiries || 0;
-                  const category = product.category || 'Uncategorized';
+                  const category = product.category?.name || 'Uncategorized';
 
                   return (
                     <tr
@@ -216,8 +217,8 @@ export default function Products() {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-lg bg-os-surface-1 flex items-center justify-center overflow-hidden">
-                            {product.image_url ? (
-                              <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                            {getPrimaryImageFromProduct(product) ? (
+                              <img src={getPrimaryImageFromProduct(product)} alt={product.name} className="w-full h-full object-cover" width="40" height="40" loading="lazy" />
                             ) : (
                               <Package className="h-5 w-5 text-os-muted" />
                             )}
@@ -263,9 +264,22 @@ export default function Products() {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <button className="p-1.5 rounded-lg hover:bg-os-surface-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <MoreHorizontal className="h-4 w-4 text-os-muted" />
-                        </button>
+                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 text-os-xs font-semibold"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/dashboard/products/edit/${product.id}`);
+                            }}
+                          >
+                            Edit
+                          </Button>
+                          <button className="p-1.5 rounded-lg hover:bg-os-surface-2 transition-all">
+                            <MoreHorizontal className="h-4 w-4 text-os-muted" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -293,7 +307,7 @@ export default function Products() {
                 <div className="flex items-start justify-between">
                   <div className="w-12 h-12 rounded-os-sm bg-os-surface-1 flex items-center justify-center overflow-hidden">
                     {product.image_url ? (
-                      <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
+                      <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" width="48" height="48" loading="lazy" />
                     ) : (
                       <Package className="h-5 w-5 text-os-muted" />
                     )}

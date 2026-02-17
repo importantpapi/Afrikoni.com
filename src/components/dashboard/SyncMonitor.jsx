@@ -107,23 +107,23 @@ export const SyncMonitor = ({ isSubscribed, lastUpdateAt }) => {
                     {/* Stats Grid */}
                     <div className="grid grid-cols-2 border-b border-white/5">
                         <div className="p-3 border-r border-white/5">
-                            <div className="text-os-xs text-gray-500 uppercase mb-1">Signals</div>
+                            <div className="text-os-xs text-os-text-secondary uppercase mb-1">Signals</div>
                             <div className="text-os-sm font-bold text-white">{signalCountRef.current}</div>
                         </div>
                         <div className="p-3">
-                            <div className="text-os-xs text-gray-500 uppercase mb-1">Deferred</div>
+                            <div className="text-os-xs text-os-text-secondary uppercase mb-1">Deferred</div>
                             <div className="text-os-sm font-bold text-amber-400">{deferredCount}</div>
                         </div>
                     </div>
 
                     {/* Stream */}
                     <div className="p-3 max-h-48 overflow-y-auto">
-                        <div className="text-os-xs text-gray-500 uppercase mb-2 flex items-center gap-1">
+                        <div className="text-os-xs text-os-text-secondary uppercase mb-2 flex items-center gap-1">
                             <Radio className="w-2.5 h-2.5" /> Live Signal Stream
                         </div>
                         <div className="space-y-2">
                             {history.length === 0 ? (
-                                <div className="text-os-xs text-gray-600 italic py-4 text-center">Awaiting data signals...</div>
+                                <div className="text-os-xs text-os-text-secondary italic py-4 text-center">Awaiting data signals...</div>
                             ) : (
                                 history.map(entry => (
                                     <div key={entry.id} className="text-os-xs flex items-start gap-2 group">
@@ -134,9 +134,9 @@ export const SyncMonitor = ({ isSubscribed, lastUpdateAt }) => {
                                         <div className="flex-1">
                                             <div className="flex justify-between">
                                                 <span className="text-gray-300 font-bold">{entry.table}</span>
-                                                <span className="text-gray-500">{entry.latency}ms</span>
+                                                <span className="text-os-text-secondary">{entry.latency}ms</span>
                                             </div>
-                                            <div className="text-gray-500 flex justify-between">
+                                            <div className="text-os-text-secondary flex justify-between">
                                                 <span>{entry.type}</span>
                                                 <span>{entry.at.toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
                                             </div>
@@ -155,13 +155,13 @@ export const SyncMonitor = ({ isSubscribed, lastUpdateAt }) => {
                                 {isOnline ? 'Network Stable' : 'Offline'}
                             </span>
                         </div>
-                        <div className="flex items-center gap-1 text-gray-500">
+                        <div className="flex items-center gap-1 text-os-text-secondary">
                             <Clock className="w-2.5 h-2.5" /> 2026.REL
                         </div>
                     </div>
 
                     {/* Toggle Prompt (Dev Only) */}
-                    <div className="p-1.5 text-center text-os-xs text-gray-600 border-t border-white/5">
+                    <div className="p-1.5 text-center text-os-xs text-os-text-secondary border-t border-white/5">
                         Press Alt+S to show/hide
                     </div>
                 </motion.div>

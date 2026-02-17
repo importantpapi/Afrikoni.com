@@ -13,7 +13,7 @@ export default function AgentOnboarding() {
         <div className="min-h-screen bg-afrikoni-offwhite relative overflow-hidden flex flex-col">
             {/* 🎬 CINEMATIC DEPTH */}
             <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-os-accent/5 rounded-full blur-[120px] animate-pulse" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#D4A937]/5 rounded-full blur-[100px] animate-pulse delay-700" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-os-accent/5 rounded-full blur-[100px] animate-pulse delay-700" />
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
 
             <main className="flex-1 flex items-center justify-center p-6 z-10">

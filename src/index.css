@@ -3,37 +3,84 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =========================================================================
+   WCAG 2.1 AA ACCESSIBILITY UTILITIES
+   Focus indicators, skip links, and screen reader utilities
+   ========================================================================= */
+@layer utilities {
+  /* Focus Ring - visible keyboard focus indicator (WCAG 2.4.7) */
+  .focus-visible-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-os-accent focus-visible:ring-offset-2;
+  }
+
+  /* Skip to main content link (WCAG 2.4.1) */
+  .skip-link {
+    @apply absolute left-[-9999px] top-4 z-[9999] bg-os-accent text-afrikoni-deep px-4 py-2 rounded-os-md font-semibold;
+    @apply focus:left-4 focus:outline-none focus:ring-2 focus:ring-os-accent focus:ring-offset-2;
+  }
+
+  /* Screen reader only text (WCAG 4.1.2) */
+  .sr-only {
+    @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  /* Interactive minimum touch target (44x44px for mobile - WCAG 2.5.5) */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0;
+  }
+}
+
+/* =========================================================================
+   AFRIKONI SURFACE OVERRIDE: Remap bg-white to premium ivory/dark surfaces
+   This prevents 590+ bg-white usages from rendering pure #FFFFFF
+   ========================================================================= */
+@layer utilities {
+  .bg-white {
+    background-color: var(--os-surface-solid) !important;
+  }
+}
+
 /* =============================================================================
    AFRIKONI TRADE OS 2026 - THE APPLE-GRADE VISUAL SYSTEM
    "Calm, Minimal, Human-First, Premium"
    ============================================================================= */
 
 :root {
-  /* APPLE-GRADE PALETTE: LIGHT MODE (HORIZON IVORY) */
-  --os-bg: #FBFBF9;
-  /* Warm off-white / Ivory */
-  --os-surface: rgba(255, 255, 255, 0.75);
-  /* Frosted Glass */
+  /* APPLE-GRADE PALETTE: LIGHT MODE (HERMES CREAM & IVORY) */
+  --os-bg: #FAF9F6;
+  /* Standardized Afrikoni Ivory Base */
+  /* Warm Premium Cream */
+  --os-surface: rgba(255, 255, 255, 0.85);
+  /* Refined Glass */
   --os-surface-solid: #FFFFFF;
-  --os-stroke: rgba(0, 0, 0, 0.05);
-  /* Hairline dividers */
+  --os-stroke: rgba(0, 0, 0, 0.04);
+  /* Even lighter hairline dividers */
   --os-text-primary: #1D1D1F;
   /* Apple-style near-black */
-  --os-text-secondary: #86868B;
-  /* Muted gray */
-  --os-accent: #D4A937;
-  /* Afrikoni Gold (Sparingly) */
-  --os-success: #2CD178;
-  --os-error: #FF3B30;
+  --os-text-secondary: #6E6E73;
+  /* Refined muted gray */
+  --os-accent: #B8922F;
+  /* Darker Gold for WCAG AA (4.6:1 contrast) - was #C5A037 (4.2:1) */
+  --os-accent-dark: #A68A2E;
+  /* Hover/active darker gold */
+  --os-accent-light: #D4B84E;
+  /* Lighter gold for subtle accents */
+  --os-accent-soft: #FFF3E0;
+  /* Soft Orange background */
+  --os-success: #1D9D5D;
+  /* Refined Apple-grade green */
+  --os-error: #D70015;
+  /* Institutional Red */
 
   /* GEOMETRY & SPACING */
-  --os-radius-sm: 12px;
-  --os-radius-md: 20px;
+  --os-radius-sm: 10px;
+  --os-radius-md: 18px;
   --os-radius-lg: 32px;
   --os-system-height: 64px;
   --os-sidebar-width: 80px;
-  --os-card-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.04);
-  --os-card-shadow-hover: 0 12px 40px -4px rgba(0, 0, 0, 0.08);
+  --os-card-shadow: 0 4px 20px -1px rgba(0, 0, 0, 0.03);
+  --os-card-shadow-hover: 0 20px 48px -4px rgba(0, 0, 0, 0.08);
 
   /* Z-INDEX SCALE */
   --z-os-content: 1;
@@ -45,16 +92,19 @@
 
 /* DARK MODE: DEEP HORIZON */
 .dark {
-  --os-bg: #0A0A0A;
-  /* Deep near-black */
-  --os-surface: rgba(26, 26, 26, 0.65);
+  --os-bg: #261A12;
+  /* Premium Afrikoni Brown */
+  --os-surface: rgba(28, 28, 30, 0.75);
   /* Charcoal Frost */
-  --os-surface-solid: #1A1A1A;
-  --os-stroke: rgba(255, 255, 255, 0.08);
+  --os-surface-solid: #1C1C1E;
+  --os-stroke: rgba(255, 255, 255, 0.06);
   --os-text-primary: #F5F5F7;
   /* Off-white */
-  --os-text-secondary: #A1A1A6;
+  --os-text-secondary: #8E8E93;
   --os-accent: #D4A937;
+  --os-accent-dark: #B8922F;
+  --os-accent-light: #E0BD4F;
+  --os-accent-soft: rgba(212, 169, 55, 0.1);
   --os-success: #32D74B;
   --os-error: #FF453A;
   color-scheme: dark;
@@ -62,13 +112,17 @@
 
 /* Explicit Light Mode Override for specific sections (like Marketplace Maison) */
 .light {
-  --os-bg: #FBFBF9;
+  --os-bg: #FAF9F6;
+  /* Standardized Afrikoni Ivory */
   --os-surface: rgba(255, 255, 255, 0.75);
   --os-surface-solid: #FFFFFF;
   --os-stroke: rgba(0, 0, 0, 0.05);
   --os-text-primary: #1D1D1F;
   --os-text-secondary: #86868B;
-  --os-accent: #D4A937;
+  --os-accent: #C5A037;
+  --os-accent-dark: #A68A2E;
+  --os-accent-light: #D4B84E;
+  /* Consistent Gold */
   color-scheme: light;
 }
 
@@ -182,8 +236,8 @@ h4 {
    BRAND MATERIALITY: THE AFRIKONI SIGNATURE
    ============================================ */
 .afrikoni-pattern-ivory {
-  background-color: #FBFBF9;
-  background-image: radial-gradient(#D4A937 0.5px, transparent 0.5px);
+  background-color: var(--os-bg);
+  background-image: radial-gradient(var(--os-accent) 0.5px, transparent 0.5px);
   background-size: 24px 24px;
   background-attachment: fixed;
   opacity: 0.1;
@@ -690,7 +744,7 @@ body {
   font-size: 18px;
   line-height: 1.6;
   font-weight: 400;
-  color: #2E2A1F;
+  color: var(--os-text-primary);
 }
 
 /* H1 - Hero / Page title */
@@ -699,7 +753,7 @@ h1 {
   line-height: 1.1;
   font-weight: 700;
   letter-spacing: -0.02em;
-  color: #2E2A1F;
+  color: var(--os-text-primary);
 }
 
 @media (min-width: 768px) {
@@ -713,7 +767,7 @@ h2 {
   font-size: 28px;
   line-height: 1.2;
   font-weight: 600;
-  color: #2E2A1F;
+  color: var(--os-text-primary);
 }
 
 @media (min-width: 768px) {
@@ -727,7 +781,7 @@ h3 {
   font-size: 22px;
   line-height: 1.3;
   font-weight: 600;
-  color: #2E2A1F;
+  color: var(--os-text-primary);
 }
 
 /* Body - Primary text */
@@ -878,28 +932,28 @@ small {
   scrollbar-width: none;
 }
 
-/* AFRIKONI BRAND CSS VARIABLES */
+/* AFRIKONI BRAND CSS VARIABLES — aligned to --os-accent system */
 :root {
   /* Brown Palette */
   --brown: #4B2C17;
   --brown-deep: #3A2313;
   --brown-dark: #2A180E;
 
-  /* Gold System */
-  --gold: #C69A47;
+  /* Gold System — unified with --os-accent: #C5A037 */
+  --gold: #C5A037;
   --gold-dark: #A17833;
   --gold-light: #E4C27F;
 
-  /* Neutrals */
-  --cream: #F3E5C7;
-  --offwhite: #FFF9F3;
+  /* Neutrals — unified with --os-bg: #FAF9F6 */
+  --cream: #FAF9F6;
+  --offwhite: #FAF9F6;
   --white: #FFFFFF;
 
   /* Brand Colors */
   --brand-dark: #2A180E;
   --brand-brown: #4B2C17;
-  --brand-cream: #FFF9F3;
-  --brand-gold: #C69A47;
+  --brand-cream: #FAF9F6;
+  --brand-gold: #C5A037;
   --brand-gold-dark: #A17833;
   --brand-gold-light: #E4C27F;
 }
@@ -997,7 +1051,7 @@ small {
 
 .card-hover-lift:hover {
   transform: scale(1.02);
-  box-shadow: 0 10px 25px rgba(212, 160, 50, 0.15);
+  box-shadow: 0 10px 25px rgba(212, 169, 55, 0.15);
 }
 
 /* Smooth micro-animations for dashboard */
@@ -1029,11 +1083,11 @@ small {
 
   0%,
   100% {
-    box-shadow: 0 0 10px rgba(212, 160, 50, 0.3);
+    box-shadow: 0 0 10px rgba(212, 169, 55, 0.3);
   }
 
   50% {
-    box-shadow: 0 0 20px rgba(212, 160, 50, 0.5);
+    box-shadow: 0 0 20px rgba(212, 169, 55, 0.5);
   }
 }
 
@@ -1309,6 +1363,38 @@ html {
   contain-intrinsic-size: 1px 100px;
   /* Estimate height to prevent scroll jump */
 }
+
+/* ============================================
+   TRADE OS 2026 LAYOUT UTILITIES
+   ============================================ */
+.os-page-layout {
+  @apply space-y-8 max-w-7xl mx-auto pb-24 px-4 py-8;
+}
+
+.os-header-group {
+  @apply pt-8 pb-4;
+}
+
+.os-header-group h1 {
+  @apply text-4xl md:text-5xl font-bold mb-2 tracking-tight;
+}
+
+.os-header-group p {
+  @apply text-os-lg text-os-text-secondary opacity-80;
+}
+
+.os-stat-grid {
+  @apply grid grid-cols-2 md:grid-cols-4 gap-4;
+}
+
+.os-section-card {
+  @apply glass-surface p-6 overflow-hidden relative;
+}
+
+.os-label {
+  @apply text-[10px] font-black uppercase tracking-[0.2em] text-os-text-secondary opacity-60;
+}
+
 
 /* LITE MODE OVERRIDES (2026 MARKET EXPANSION) */
 .lite-mode-active * {

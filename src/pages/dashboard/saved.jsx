@@ -590,6 +590,9 @@ function DashboardSavedInner() {
                                 src={imageUrlResolved}
                                 alt={p.name || p.title}
                                 className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                width="400"
+                                height="300"
+                                loading="lazy"
                                 onError={(e) => {
                                   // Fallback to placeholder on error
                                   e.target.src = '/placeholder.png';

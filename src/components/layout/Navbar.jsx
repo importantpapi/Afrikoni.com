@@ -14,7 +14,8 @@ import {
   Settings,
   GitCompare,
   MapPin,
-  Check
+  Check,
+  Bookmark
 } from 'lucide-react';
 import { Button } from '@/components/shared/ui/button';
 import { Logo } from '@/components/shared/ui/Logo';
@@ -368,7 +369,7 @@ export default function Navbar({ user, onLogout }) {
   };
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 w-full bg-afrikoni-chestnut/90 backdrop-blur-xl text-afrikoni-cream border-b border-os-accent/30 z-[10000] transition-all duration-300 ${isScrolled ? 'shadow-[0_4px_20px_rgba(0,0,0,0.12)]' : 'shadow-none'} overflow-visible`} style={{ height: '80px' }}>
+    <nav className={`fixed top-0 left-0 right-0 w-full bg-[var(--os-surface)] backdrop-blur-xl text-os-text-primary border-b border-os-stroke z-[10000] transition-all duration-300 ${isScrolled ? 'shadow-premium' : 'shadow-none'} overflow-visible`} style={{ height: '72px' }}>
       {/* Top bar */}
       <div className="max-w-[1440px] mx-auto px-3 sm:px-4 flex items-center justify-between gap-2 sm:gap-4 lg:gap-6 h-full overflow-visible">
         {/* Left: logo + explore + quick link */}
@@ -377,24 +378,13 @@ export default function Navbar({ user, onLogout }) {
             <Logo type="full" size="sm" link={true} showTagline={false} direction="horizontal" />
           </div>
 
-          {/* All Categories - Opens Mega Menu (Alibaba-style) */}
-          <button
-            onClick={toggleMegaMenu}
-            className={`hidden sm:flex items-center gap-1 text-os-sm sm:text-os-base font-bold transition-colors whitespace-nowrap ${megaOpen
-              ? 'text-os-accent border-b-2 border-os-accent pb-1'
-              : 'text-afrikoni-cream hover:text-os-accent'
-              }`}
-          >
-            All Categories
-          </button>
-
           {/* Marketplace Link */}
-          <Link to="/marketplace" className="hidden sm:flex items-center gap-1 text-os-xs sm:text-os-sm font-medium text-afrikoni-cream hover:text-os-accent transition-colors whitespace-nowrap">
+          <Link to="/marketplace" className="hidden sm:flex items-center gap-1 text-os-xs sm:text-os-sm font-semibold text-os-text-primary/70 hover:text-os-accent transition-colors whitespace-nowrap uppercase tracking-widest">
             Marketplace
           </Link>
 
           {/* How It Works Link */}
-          <Link to="/how-it-works" className="hidden sm:flex items-center gap-1 text-os-xs sm:text-os-sm font-medium text-afrikoni-cream hover:text-os-accent transition-colors whitespace-nowrap">
+          <Link to="/how-it-works" className="hidden sm:flex items-center gap-1 text-os-xs sm:text-os-sm font-semibold text-os-text-primary/70 hover:text-os-accent transition-colors whitespace-nowrap uppercase tracking-widest">
             How It Works
           </Link>
 
@@ -421,16 +411,15 @@ export default function Navbar({ user, onLogout }) {
           <div className="relative hidden sm:block">
             <button
               onClick={openCountryMenu}
-              className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-md text-os-xs sm:text-os-sm font-medium text-afrikoni-cream hover:text-os-accent hover:bg-os-accent/10 transition-colors"
+              className="flex items-center gap-1 px-2.5 py-2 rounded-full border border-os-stroke hover:border-os-accent text-os-xs font-semibold text-os-text-primary/80 transition-all"
             >
-              <MapPin className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+              <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
               <span className="hidden lg:inline">
-                Deliver to: {detectedCountry && detectedCountry !== 'DEFAULT' ? COUNTRY_NAMES[detectedCountry] : 'Select'}
+                {detectedCountry && detectedCountry !== 'DEFAULT' ? COUNTRY_NAMES[detectedCountry] : 'Select Country'}
               </span>
               <span className="lg:hidden">
                 {detectedCountry && detectedCountry !== 'DEFAULT' ? COUNTRY_FLAGS[detectedCountry] || '🌍' : '🌍'}
               </span>
-              <ChevronDown className={`w-2.5 h-2.5 sm:w-3 sm:h-3 transition-transform duration-200 ${countryOpen ? 'rotate-180' : ''}`} />
             </button>
 
             <AnimatePresence>
@@ -459,7 +448,7 @@ export default function Navbar({ user, onLogout }) {
                         placeholder="Search country..."
                         value={countrySearchQuery}
                         onChange={(e) => setCountrySearchQuery(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-os-accent text-os-sm"
+                        className="w-full px-4 py-2 bg-os-surface-solid border border-os-stroke rounded-lg focus:outline-none focus:ring-2 focus:ring-os-accent text-os-sm text-os-text-primary"
                         id="country-search"
                         autoFocus
                       />
@@ -513,7 +502,7 @@ export default function Navbar({ user, onLogout }) {
           <div className="relative">
             <button
               onClick={openSettingsMenu}
-              className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-md text-os-xs sm:text-os-sm font-medium text-afrikoni-cream hover:text-os-accent hover:bg-os-accent/10 transition-colors"
+              className="flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 sm:py-2 rounded-md text-os-xs sm:text-os-sm font-medium text-os-text-primary/80 hover:text-os-accent hover:bg-os-accent/10 transition-colors"
             >
               <Globe className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
               <span className="hidden lg:inline whitespace-nowrap">
@@ -614,18 +603,20 @@ export default function Navbar({ user, onLogout }) {
           {/* User / auth actions */}
           {user ? (
             <>
-              <Link
-                to="/orders"
-                className="hidden lg:block relative p-2 rounded-md hover:bg-os-accent/10 transition-colors"
-              >
-                <ShoppingCart className="w-5 h-5 text-afrikoni-cream hover:text-os-accent transition-colors" />
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-os-accent text-afrikoni-chestnut text-os-xs rounded-full flex items-center justify-center font-bold">
-                  0
-                </span>
-              </Link>
-
-              <div className="hidden lg:block">
-                <NotificationBell />
+              <div className="hidden lg:flex items-center gap-3">
+                {/* Simplified Trade OS Navigation */}
+                <Link
+                  to="/saved"
+                  className="p-2 rounded-md hover:bg-os-accent/10 transition-colors text-os-text-secondary hover:text-os-accent"
+                >
+                  <Bookmark className="w-5 h-5" />
+                </Link>
+                <Link
+                  to="/messages"
+                  className="p-2 rounded-md hover:bg-os-accent/10 transition-colors text-os-text-secondary hover:text-os-accent"
+                >
+                  <MessageSquare className="w-5 h-5" />
+                </Link>
               </div>
 
               <div className="relative">
@@ -764,7 +755,7 @@ export default function Navbar({ user, onLogout }) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 sm:h-9 px-2 sm:px-3 lg:px-4 text-afrikoni-cream hover:text-os-accent hover:bg-os-accent/10 rounded-full text-os-xs sm:text-os-sm transition-all"
+                  className="h-8 sm:h-9 px-2 sm:px-3 lg:px-4 text-os-text-primary/80 hover:text-os-accent hover:bg-os-accent/10 rounded-full text-os-xs sm:text-os-sm transition-all"
                 >
                   Login
                 </Button>

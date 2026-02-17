@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/api/supabaseClient';
 import { verifySchemaIntegrity, getSchemaErrorMessage } from '@/services/SchemaValidator';
+import { secureStorage } from '@/utils/secureStorage';
 
 /**
  * Client-side fallback: Create profile when database trigger doesn't fire.
@@ -73,10 +74,9 @@ export function AuthProvider({ children }) {
   }, []);
 
   const resolveAuth = useCallback(async () => {
-    // ✅ BOOT RESILIENCE: Identity Recovery Timeout (Extended for slow networks)
-    // If auth resolution takes > 30s, we force authReady: true to break boot loops
+    const timeoutRef = { current: null };
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Auth Resolution Timeout')), 30000)
+      timeoutRef.current = setTimeout(() => reject(new Error('Auth Resolution Timeout')), 10000) // ✅ PERFORMANCE: Reduced from 30s to 10s
     );
 
     try {
@@ -90,63 +90,68 @@ export function AuthProvider({ children }) {
 
       // Race the resolution against the safety timeout
       const resolutionPromise = (async () => {
-        const { data: { session } } = await supabase.auth.getSession();
+        try {
+          const { data: { session } } = await supabase.auth.getSession();
 
-        // Background schema validation (Non-blocking)
-        validateSchema();
+          // Background schema validation (Non-blocking)
+          validateSchema();
 
-        if (!session?.user) {
-          setUser(null);
-          setProfile(null);
-          setRole(null);
+          if (!session?.user) {
+            setUser(null);
+            setProfile(null);
+            setRole(null);
+            setAuthReady(true);
+            setLoading(false);
+            hasInitializedRef.current = true;
+            return;
+          }
+
+          // ⚡ PERFORMANCE HARDENING: Zero-Zero Hydra Handshake
+          const { data: handshake, error: handshakeError } = await supabase
+            .rpc('get_institutional_handshake');
+
+          if (handshakeError) {
+            console.error('[Auth] Handshake failed, falling back to legacy hydration:', handshakeError);
+            // Fallback to legacy single-fetch profile
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('id', session.user.id)
+              .single();
+
+            let resolvedProfile = profileData;
+            if (!profileData) {
+              resolvedProfile = await ensureProfileExists(session.user);
+            }
+
+            setUser(session.user);
+            setProfile(resolvedProfile);
+            setRole(resolvedProfile?.role || null);
+          } else {
+            if (import.meta.env.DEV) console.log('[Auth] ⚡ Handshake successful:', handshake);
+
+            setUser(session.user);
+            setProfile(handshake.profile);
+            setRole(handshake.profile?.role || null);
+            setHandshakeData(handshake);
+          }
+
           setAuthReady(true);
           setLoading(false);
           hasInitializedRef.current = true;
-          return;
+        } finally {
+          if (timeoutRef.current) clearTimeout(timeoutRef.current);
         }
-
-        // ⚡ PERFORMANCE HARDENING: Zero-Zero Hydra Handshake
-        // We collapse profiles, companies, capabilities, and counts into a single RPC.
-        const { data: handshake, error: handshakeError } = await supabase
-          .rpc('get_institutional_handshake');
-
-        if (handshakeError) {
-          console.error('[Auth] Handshake failed, falling back to legacy hydration:', handshakeError);
-          // Fallback to legacy single-fetch profile
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-          let resolvedProfile = profileData;
-          if (!profileData) {
-            resolvedProfile = await ensureProfileExists(session.user);
-          }
-
-          setUser(session.user);
-          setProfile(resolvedProfile);
-          setRole(resolvedProfile?.role || null);
-        } else {
-          if (import.meta.env.DEV) console.log('[Auth] ⚡ Handshake successful:', handshake);
-
-          setUser(session.user);
-          setProfile(handshake.profile);
-          setRole(handshake.profile?.role || null);
-
-          // Store the enriched packet in a ref or state for other hooks to consume without re-fetching
-          // We can expose these through context
-          setHandshakeData(handshake);
-        }
-
-        setAuthReady(true);
-        setLoading(false);
-        hasInitializedRef.current = true;
       })();
 
       await Promise.race([resolutionPromise, timeoutPromise]);
     } catch (err) {
-      console.warn('[Auth] Resolution failed or timed out:', err.message);
+      if (err.message === 'Auth Resolution Timeout') {
+        console.warn('[Auth] Resolution timed out (30s) - Fostering Fail-Open boot sequence');
+      } else {
+        console.warn('[Auth] Resolution failed:', err.message);
+      }
+
       // Fail-Open: Allow OS to boot even if auth is taking too long
       setAuthReady(true);
       setLoading(false);
@@ -177,7 +182,7 @@ export function AuthProvider({ children }) {
           setRole(null);
           setAuthReady(true);
           setLoading(false);
-          localStorage.removeItem('afrikoni_last_company_id');
+          secureStorage.remove('afrikoni_last_company_id'); // NOW ENCRYPTED 🔒
         } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           if (session?.user) {
             await resolveAuth();
@@ -217,7 +222,7 @@ export function AuthProvider({ children }) {
       setUser(null);
       setProfile(null);
       setRole(null);
-      localStorage.removeItem('afrikoni_last_company_id');
+      secureStorage.remove('afrikoni_last_company_id'); // NOW ENCRYPTED 🔒
     } catch (error) {
       console.error('[Auth] Logout error:', error);
     }

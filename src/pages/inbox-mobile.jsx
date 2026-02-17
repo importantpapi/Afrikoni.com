@@ -59,7 +59,7 @@ export default function InboxMobile() {
   useEffect(() => {
     const conversationId = searchParams.get('conversation');
     const rfqId = searchParams.get('rfq');
-    
+
     if (conversationId && conversations.length > 0) {
       // Direct conversation ID takes priority
       const conv = conversations.find(c => c.id === conversationId);
@@ -68,7 +68,7 @@ export default function InboxMobile() {
       }
     } else if (rfqId && conversations.length > 0) {
       // Find conversation related to this RFQ
-      const rfqConv = conversations.find(c => c.related_rfq_id === rfqId);
+      const rfqConv = conversations.find(c => c.related_to === rfqId && c.related_type === 'rfq');
       if (rfqConv) {
         setSelectedConversation(rfqConv.id);
       }
@@ -80,7 +80,7 @@ export default function InboxMobile() {
   const loadConversations = async () => {
     try {
       setIsLoading(true);
-      
+
       // Load conversations where user is buyer or seller
       const { data, error } = await supabase
         .from('conversations')
@@ -96,21 +96,21 @@ export default function InboxMobile() {
 
       // Transform conversations for display
       const transformed = (data || []).map(conv => {
-        const otherCompany = conv.buyer_company_id === companyId 
-          ? conv.seller_company 
+        const otherCompany = conv.buyer_company_id === companyId
+          ? conv.seller_company
           : conv.buyer_company;
-        
+
         return {
           id: conv.id,
           otherCompany,
           lastMessage: conv.last_message || '',
           lastMessageAt: conv.last_message_at,
-          unreadCount: conv.buyer_company_id === companyId 
+          unreadCount: conv.buyer_company_id === companyId
             ? (conv.buyer_unread_count || 0)
             : (conv.seller_unread_count || 0),
           subject: conv.subject,
-          related_rfq_id: conv.related_rfq_id,
-          related_product_id: conv.related_product_id,
+          related_to: conv.related_to,
+          related_type: conv.related_type,
           is_system: conv.is_system || conv.seller_company_id === null,
           seller_company_id: conv.seller_company_id,
           buyer_company_id: conv.buyer_company_id,
@@ -188,7 +188,7 @@ export default function InboxMobile() {
         <h1 className="text-os-xl font-bold text-afrikoni-chestnut mb-3">
           Messages
         </h1>
-        
+
         {/* Search */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-afrikoni-deep/40" />

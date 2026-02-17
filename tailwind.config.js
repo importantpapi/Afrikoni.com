@@ -57,9 +57,12 @@ export default {
         },
         // 2026 PREMIUM DESIGN SYSTEM: "OS" PALETTE
         os: {
-          accent: 'hsl(var(--primary))',
-          'accent-light': 'hsl(var(--primary) / 0.8)',
-          'accent-dark': 'hsl(var(--primary) / 0.6)',
+          accent: 'var(--os-accent)',           // Refined Hermes Orange
+          'accent-soft': 'var(--os-accent-soft)',
+          'accent-bg': 'var(--os-accent-bg)',   // Original for backgrounds
+          'accent-text': 'var(--os-accent-text)', // Extra dark for small text
+          'accent-light': 'var(--os-accent-light)',
+          'accent-dark': 'var(--os-accent-dark)',
           green: '#2CD178',
           emerald: '#10B981',
           amber: '#F59E0B',
@@ -84,6 +87,9 @@ export default {
           gold: 'hsl(var(--afrikoni-brand-gold))',
           'gold-shimmer': 'hsl(var(--afrikoni-gold-shimmer))',
           'gold-deep': 'hsl(var(--afrikoni-gold-deep))',
+          'gold-crest': '#C5A037', // Official Brand Gold
+          'ivory-base': '#FAF9F6', // Premium Neutral
+          'hermes-cream': '#FDF8F0', // Warm Materiality
           charcoal: '#121212',
         }
       },
@@ -110,6 +116,7 @@ export default {
         'os-md': '0 4px 16px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04)',
         'os-lg': '0 8px 32px rgba(0,0,0,0.12), 0 4px 8px rgba(0,0,0,0.06)',
         'os-gold': '0 4px 20px rgba(212,169,55,0.25)',
+        'os-ambient': '0 4px 20px -1px rgba(100, 80, 40, 0.05)', // High-fidelity subtle depth
         'premium': '0 4px 24px rgba(0,0,0,0.08)',
       },
       borderRadius: {

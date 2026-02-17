@@ -1,20 +1,21 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { secureStorage } from '@/utils/secureStorage';
 
 const WorkspaceModeContext = createContext(null);
 
-const STORAGE_KEY = 'afrikoni.workspaceMode';
+const STORAGE_KEY = 'afrikoni_workspace_mode';
 
 export function WorkspaceModeProvider({ children, defaultMode = 'simple' }) {
   const [mode, setMode] = useState(() => {
     if (typeof window === 'undefined') return defaultMode;
-    const stored = window.localStorage.getItem(STORAGE_KEY);
+    const stored = secureStorage.get(STORAGE_KEY);
     // Canonical modes: simple | trade | pro
     return stored || defaultMode;
   });
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    window.localStorage.setItem(STORAGE_KEY, mode);
+    secureStorage.set(STORAGE_KEY, mode);
   }, [mode]);
 
   const value = useMemo(() => ({

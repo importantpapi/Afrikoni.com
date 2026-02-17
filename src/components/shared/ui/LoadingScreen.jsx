@@ -16,7 +16,7 @@ export const LoadingScreen = ({
     <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center py-12 px-4 relative overflow-hidden">
       {/* 🎬 CINEMATIC DEPTH: Ambient Background Blobs */}
       <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-os-accent/5 rounded-full blur-[120px] animate-pulse" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#D4A937]/5 rounded-full blur-[100px] animate-pulse delay-1000" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-os-accent/5 rounded-full blur-[100px] animate-pulse delay-1000" />
 
       {/* Grid Grain Overlay */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />

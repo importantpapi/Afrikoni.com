@@ -254,7 +254,7 @@ export default function EnhancedCorridorIntelligence({ corridorId = 'CI-FR-COCOA
                     </div>
                     <Button
                         onClick={() => navigate('/dashboard/quick-trade')}
-                        className="bg-[#D4A937] hover:bg-[#C09830] text-black"
+                        className="bg-os-accent hover:bg-os-accent-dark text-black"
                     >
                         <Sparkles className="w-4 h-4 mr-2" />
                         Start Trade
@@ -449,9 +449,9 @@ export default function EnhancedCorridorIntelligence({ corridorId = 'CI-FR-COCOA
             </Surface>
 
             {/* AI Recommendation */}
-            <Surface variant="glass" className="p-6 border border-[#D4A937]/20 bg-[#D4A937]/5">
+            <Surface variant="glass" className="p-6 border border-os-accent/20 bg-os-accent/5">
                 <div className="flex items-start gap-3">
-                    <Sparkles className="w-5 h-5 text-[#D4A937] mt-0.5" />
+                    <Sparkles className="w-5 h-5 text-os-accent mt-0.5" />
                     <div className="flex-1">
                         <h3 className="text-os-lg font-semibold text-white mb-2">AI Recommendation</h3>
                         {userActivity.trades === 0 ? (
@@ -473,7 +473,7 @@ export default function EnhancedCorridorIntelligence({ corridorId = 'CI-FR-COCOA
                         )}
                         <Button
                             onClick={() => navigate('/dashboard/quick-trade')}
-                            className="bg-[#D4A937] hover:bg-[#C09830] text-black"
+                            className="bg-os-accent hover:bg-os-accent-dark text-black"
                         >
                             Create Trade in This Corridor
                             <ArrowRight className="w-4 h-4 ml-2" />

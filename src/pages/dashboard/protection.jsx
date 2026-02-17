@@ -344,7 +344,7 @@ function DashboardProtectionInner() {
                         <div className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center z-10 ${
                           item.status === 'completed' ? 'bg-green-500 text-white' :
                           item.status === 'active' ? 'bg-os-accent text-white animate-pulse' :
-                          'bg-gray-200 text-gray-500'
+                          'bg-gray-200 text-os-text-secondary'
                         }`}>
                           <Icon className="w-5 h-5" />
                         </div>
@@ -353,7 +353,7 @@ function DashboardProtectionInner() {
                             <p className={`font-semibold ${
                               item.status === 'completed' ? 'text-green-700' :
                               item.status === 'active' ? 'text-os-accent' :
-                              'text-gray-500'
+                              'text-os-text-secondary'
                             }`}>
                               {item.step}
                             </p>

@@ -6,7 +6,13 @@
 /* Base layer content moved out of @layer for Tailwind compatibility */
 :root {
   /* Core Brand Colors - Gold & Earth (from Afrikoni Logo) */
-  --os-accent: 38 65% 50%;
+  /* Dual accent system: WCAG AA compliant for text on ivory */
+  --os-accent: 38 70% 42%;
+  /* Darker for text (WCAG AA: 4.5:1 on ivory) */
+  --os-accent-bg: 38 65% 50%;
+  /* Original for large elements/backgrounds */
+  --os-accent-text: 38 75% 35%;
+  /* Extra dark for small text */
   --os-accent-light: 38 70% 60%;
   --os-accent-dark: 38 60% 40%;
   --os-accent-glow: 38 80% 65%;
@@ -29,21 +35,22 @@
   --afrikoni-offwhite: 35 20% 98%;
   --afrikoni-ivory: 35 25% 96%;
 
-  /* LIGHT MODE (Warm Horizon 2026 - Ivory Base) */
-  --background: 35 25% 96%;
-  /* Warm ivory instead of cool pearl */
+  /* LIGHT MODE (Warm Horizon 2026 - Afrikoni Ivory Base) */
+  --background: 35 30% 96%;
+  /* #FAF9F6 range */
   --foreground: 25 30% 12%;
   /* Warm charcoal */
+
+  /* PREMIUM BRAND GOLD (Crest Authority) */
+  --primary: 38 75% 48%;
+  /* Brand Gold — single definition */
+  --primary-foreground: 220 40% 10%;
 
   --card: 0 0% 100%;
   --card-foreground: 220 30% 12%;
 
   --popover: 0 0% 100%;
   --popover-foreground: 220 30% 12%;
-
-  --primary: 38 75% 48%;
-  /* Slightly more vibrant gold */
-  --primary-foreground: 220 40% 10%;
 
   --secondary: 220 15% 94%;
   --secondary-foreground: 220 30% 15%;
@@ -127,9 +134,9 @@
    DARK MODE (Warm Horizon 2026 - Charcoal Base)
    ============================================================ */
 .dark {
-  /* Warm Deep Charcoal backgrounds (instead of cool obsidian) */
-  --background: 25 15% 8%;
-  /* Warm charcoal base */
+  /* Warm Deep Afrikoni Brown backgrounds (instead of near-black) */
+  --background: 25 40% 12%;
+  /* Warm charcoal-brown base */
   --foreground: 35 15% 94%;
   /* Warm off-white */
 
@@ -201,6 +208,39 @@
   --os-muted: hsl(var(--muted-foreground));
   --os-accent: hsl(var(--primary));
   --os-glow: 0 0 40px hsl(var(--primary) / 0.3);
+}
+
+/* ============================================================
+   SOLID SURFACE SYSTEM (INSTITUTIONAL WEIGHT)
+   Apple uses glassmorphism sparingly. Cards = solid.
+   Hermès principle: Physical weight over floating glass.
+   ============================================================ */
+.os-surface-solid {
+  background: var(--os-surface-solid);
+  border: 1px solid var(--os-stroke);
+  border-radius: var(--os-radius-md, 16px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+.os-surface-ivory {
+  background: var(--os-bg);
+  border: 1px solid var(--os-stroke);
+  border-radius: var(--os-radius-md, 16px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.os-surface-elevated {
+  background: var(--os-surface-solid);
+  border: 1px solid var(--os-stroke);
+  border-radius: var(--os-radius-lg, 24px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+/* Use glassmorphism ONLY for overlays, not content */
+.glass-surface-minimal {
+  background: var(--os-surface);
+  backdrop-filter: blur(10px) saturate(180%);
+  border: 1px solid var(--os-stroke);
 }
 
 /* ============================================================

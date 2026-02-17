@@ -121,7 +121,7 @@ export default function CorridorsPage() {
                                         {corridor.id === 'CI-FR-COCOA' && (
                                             <>
                                                 <span>•</span>
-                                                <span className="text-[#D4A937]">🎯 Featured</span>
+                                                <span className="text-os-accent">🎯 Featured</span>
                                             </>
                                         )}
                                     </div>

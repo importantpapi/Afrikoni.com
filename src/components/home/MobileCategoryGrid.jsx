@@ -10,14 +10,14 @@ import { ChevronRight } from 'lucide-react';
 
 // B2B Categories - precision hierarchy (show 5, expand to see rest)
 const B2B_CATEGORIES = [
-  { id: 'agriculture', name: 'Agriculture' },
-  { id: 'food-beverage', name: 'Food & Beverage' },
-  { id: 'textiles', name: 'Textiles' },
-  { id: 'construction', name: 'Construction' },
-  { id: 'energy', name: 'Energy' },
+  { id: 'agriculture', name: 'Agricultural Products' },
+  { id: 'food-beverage', name: 'Food & Beverages' },
+  { id: 'textiles', name: 'Textiles & Fashion' },
+  { id: 'minerals', name: 'Minerals & Mining' },
+  { id: 'electronics', name: 'Electronics' },
+  { id: 'machinery', name: 'Machinery & Equipment' },
   { id: 'manufacturing', name: 'Manufacturing' },
-  { id: 'packaging', name: 'Packaging' },
-  { id: 'logistics', name: 'Logistics' },
+  { id: 'packaging', name: 'Packaging' }
 ];
 
 export default function MobileCategoryGrid() {
@@ -32,7 +32,7 @@ export default function MobileCategoryGrid() {
   const displayedCategories = showAll ? B2B_CATEGORIES : B2B_CATEGORIES.slice(0, 5);
 
   return (
-    <section className="block lg:hidden py-8 bg-[#FDFBF7]">
+    <section className="block lg:hidden py-8 bg-os-bg">
       <div className="max-w-[1440px] mx-auto px-4">
         <h2 className="text-[14px] font-medium text-gray-500 uppercase tracking-wider mb-5">Categories</h2>
 

@@ -26,15 +26,15 @@ export default function MobileBottomNav({
         { icon: Package, label: 'Inventory', path: '/dashboard/products' },
         { divider: true }, // Placeholder for central button
         { icon: ShoppingCart, label: 'My Deals', path: '/dashboard/orders' },
-        { icon: MessageSquare, label: 'Signals', path: '/dashboard/notifications' }
+        { icon: MessageSquare, label: 'Alerts', path: '/dashboard/notifications' }
       ];
     } else {
       return [
         { icon: LayoutDashboard, label: 'Home', path: '/dashboard' },
         { icon: Package, label: 'Marketplace', path: '/marketplace' },
         { divider: true }, // Placeholder for central button
-        { icon: FileText, label: 'Find Buyers', path: '/dashboard/rfqs' },
-        { icon: MessageSquare, label: 'Signals', path: '/dashboard/notifications' }
+        { icon: FileText, label: 'My RFQs', path: '/dashboard/rfqs' },
+        { icon: MessageSquare, label: 'Alerts', path: '/dashboard/notifications' }
       ];
     }
   };
@@ -43,7 +43,7 @@ export default function MobileBottomNav({
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/80 dark:bg-[#0A0A0A]/80 backdrop-blur-xl border-t border-os-accent/10 shadow-[0_-4px_24px_rgba(0,0,0,0.1)] px-4 pb-safe"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-os-surface-solid/80 dark:bg-[#0A0A0A]/80 backdrop-blur-xl border-t border-os-accent/10 shadow-[0_-4px_24px_rgba(0,0,0,0.1)] px-4 pb-safe"
       role="navigation"
     >
       <div className="flex items-center justify-between h-16 max-w-lg mx-auto relative">
@@ -55,16 +55,16 @@ export default function MobileBottomNav({
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => navigate('/dashboard/rfqs/new')}
-                  className="w-14 h-14 rounded-full bg-gradient-to-tr from-[#D4A937] to-[#F5D485] shadow-[0_8px_20px_rgba(212,169,55,0.4)] flex items-center justify-center border-4 border-white dark:border-[#0A0A0A] relative group"
+                  className="w-14 h-14 rounded-full bg-gradient-to-tr from-os-accent to-[#F5D485] shadow-[0_8px_20px_rgba(212,169,55,0.4)] flex items-center justify-center border-4 border-white dark:border-[#0A0A0A] relative group"
                 >
                   <Plus className="w-7 h-7 text-black stroke-[3px]" />
                   <motion.div
                     animate={{ scale: [1, 1.2, 1], opacity: [0.5, 0.2, 0.5] }}
                     transition={{ duration: 2, repeat: Infinity }}
-                    className="absolute inset-0 rounded-full bg-[#D4A937] -z-10"
+                    className="absolute inset-0 rounded-full bg-os-accent -z-10"
                   />
                 </motion.button>
-                <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-os-xs font-black uppercase tracking-tighter text-[#D4A937]">NEW TRADE</span>
+                <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-os-xs font-black uppercase tracking-tighter text-os-accent">NEW TRADE</span>
               </div>
             );
           }
@@ -84,7 +84,7 @@ export default function MobileBottomNav({
               className={`
                 flex flex-col items-center justify-center gap-1
                 min-w-[56px] h-full transition-all relative
-                ${isActive ? 'text-[#D4A937]' : 'text-gray-400 dark:text-gray-500'}
+                ${isActive ? 'text-os-accent' : 'text-gray-400 dark:text-os-text-secondary'}
               `}
             >
               <div className="relative">
@@ -95,7 +95,7 @@ export default function MobileBottomNav({
                 {isActive && (
                   <motion.div
                     layoutId="mobileNavGlow"
-                    className="absolute -inset-2 bg-[#D4A937]/10 blur-md rounded-full -z-10"
+                    className="absolute -inset-2 bg-os-accent/10 blur-md rounded-full -z-10"
                   />
                 )}
               </div>
@@ -106,7 +106,7 @@ export default function MobileBottomNav({
               {isActive && (
                 <motion.div
                   layoutId="activeIndicator"
-                  className="absolute bottom-0 w-8 h-1 bg-[#D4A937] rounded-t-full"
+                  className="absolute bottom-0 w-8 h-1 bg-os-accent rounded-t-full"
                   transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
                 />
               )}

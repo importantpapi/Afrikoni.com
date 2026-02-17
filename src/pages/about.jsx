@@ -7,6 +7,7 @@ import { Link } from 'react-router-dom';
 import SEO from '@/components/SEO';
 import { useLanguage } from '@/i18n/LanguageContext';
 import BusinessModel from '@/components/home/BusinessModel';
+import OptimizedImage from '@/components/OptimizedImage';
 
 export default function About() {
   const { t } = useLanguage();

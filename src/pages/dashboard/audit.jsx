@@ -238,7 +238,7 @@ export default function AuditLogs() {
       case 'success': return 'bg-green-50 text-green-700 border-green-200';
       case 'failed': return 'bg-red-50 text-red-700 border-red-200';
       case 'warning': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-      default: return 'bg-gray-100 text-gray-600 border-gray-200';
+      default: return 'bg-gray-100 text-os-text-secondary border-os-stroke';
     }
   };
 
@@ -248,7 +248,7 @@ export default function AuditLogs() {
       case 'medium': return 'bg-os-accent/20 text-os-accent border-os-accent/30';
       case 'high': return 'bg-orange-50 text-orange-700 border-orange-200';
       case 'critical': return 'bg-red-50 text-red-700 border-red-200';
-      default: return 'bg-gray-100 text-gray-600 border-gray-200';
+      default: return 'bg-gray-100 text-os-text-secondary border-os-stroke';
     }
   };
 

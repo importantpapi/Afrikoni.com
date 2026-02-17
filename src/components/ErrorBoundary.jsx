@@ -2,6 +2,7 @@ import React from 'react';
 import { AlertTriangle, RefreshCw, Home, ShieldAlert } from 'lucide-react';
 import { Button } from '@/components/shared/ui/button';
 import { Surface } from '@/components/system/Surface';
+import { secureStorage } from '@/utils/secureStorage';
 
 import { telemetry } from '@/services/telemetryService';
 
@@ -59,8 +60,8 @@ class ErrorBoundary extends React.Component {
     telemetry.trackEvent('system_crash_hard_reset');
 
     try {
-      // Nuclear Option: Clear specific critical keys to force clean state
-      localStorage.removeItem('afrikoni_last_company_id');
+      // Nuclear Option: Clear specific critical keys to force clean state - NOW ENCRYPTED 🔒
+      secureStorage.remove('afrikoni_last_company_id');
       localStorage.removeItem('afrikoni_has_session');
     } catch (e) {
       console.warn('[ErrorBoundary] Storage clear failed:', e);

@@ -5,8 +5,8 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  CheckCircle, XCircle, DollarSign, Shield, 
+import {
+  CheckCircle, XCircle, DollarSign, Shield,
   TrendingUp, Users, Target, Zap, AlertCircle,
   Calculator, BarChart3, Lightbulb, Heart
 } from 'lucide-react';
@@ -94,315 +94,315 @@ export default function BusinessModel() {
   ];
 
   return (
-    <section className="py-16 md:py-24 lg:py-28 bg-gradient-to-b from-white to-afrikoni-offwhite">
+    <section className="py-12 md:py-20 lg:py-24 bg-[var(--os-bg)]">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
           className="text-center mb-12 md:mb-16"
         >
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-serif text-afrikoni-chestnut mb-4">
-            AFRIKONI: A LONG-TERM INFRASTRUCTURE PLAY
+          <h2 className="text-32 md:text-56 font-bold text-os-text-primary mb-6 uppercase tracking-tighter leading-[0.9]">
+            Institutional <span className="text-os-accent italic">Infrastructure.</span>
           </h2>
-          <p className="text-os-lg md:text-os-xl text-afrikoni-deep/80 max-w-3xl mx-auto mb-6">
-            Afrikoni is not a shortcut or a hype-driven marketplace. It is a long-term effort to build the structure African trade has historically lacked.
+          <p className="text-16 md:text-18 text-os-text-secondary font-medium max-w-2xl mx-auto leading-relaxed mb-10">
+            Afrikoni is a long-term architectural commitment to solving the core trust deficits in African B2B trade through systematic verification and institutional-grade protection.
           </p>
           <div className="inline-flex items-center gap-2 bg-os-accent/10 border border-os-accent/30 rounded-full px-6 py-3">
             <CheckCircle className="w-5 h-5 text-os-accent" aria-hidden="true" />
-            <span className="text-afrikoni-chestnut font-semibold">We believe this can work if built patiently, ethically, and in collaboration with real businesses on the ground.</span>
+            <span className="text-os-text-primary font-bold">We believe this can work if built patiently, ethically, and in collaboration with real businesses on the ground.</span>
           </div>
         </motion.div>
-        
+
         {/* Sticky Tabs */}
-        <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-os-accent/20 mb-8 -mx-4 px-4">
+        <div className="sticky top-0 z-40 bg-os-bg/95 backdrop-blur-sm border-b border-os-stroke mb-8 -mx-4 px-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-            <TabsList className="grid w-full grid-cols-4 bg-afrikoni-offwhite/50">
+            <TabsList className="grid w-full grid-cols-4 bg-os-surface-solid">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="challenges">Challenges</TabsTrigger>
               <TabsTrigger value="revenue">Revenue Model</TabsTrigger>
               <TabsTrigger value="pricing">Pricing</TabsTrigger>
             </TabsList>
 
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="space-y-8">
-            <div className="grid md:grid-cols-2 gap-6">
-              {/* Success Factors */}
-              <Card className="border-green-200 bg-green-50/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-green-800">
-                    <CheckCircle className="w-6 h-6" />
-                    IT CAN WORK IF:
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3">
-                    {successFactors.map((factor, idx) => {
-                      const Icon = factor.icon;
-                      return (
-                        <motion.li
-                          key={idx}
-                          initial={{ opacity: 0, x: -20 }}
-                          whileInView={{ opacity: 1, x: 0 }}
-                          viewport={{ once: true }}
-                          transition={{ duration: 0.4, delay: idx * 0.05 }}
-                          className="flex items-start gap-2"
-                        >
-                          <motion.div
-                            initial={{ scale: 0, rotate: -180 }}
-                            whileInView={{ scale: 1, rotate: 0 }}
+            {/* Overview Tab */}
+            <TabsContent value="overview" className="space-y-8">
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Success Factors */}
+                <Card className="border border-os-stroke bg-os-surface-solid rounded-[24px] shadow-premium overflow-hidden">
+                  <CardHeader className="bg-green-500/5 border-b border-os-stroke">
+                    <CardTitle className="flex items-center gap-2 text-green-700 text-16 uppercase tracking-widest font-black">
+                      <CheckCircle className="w-5 h-5" />
+                      Strategic Success Guards
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <ul className="space-y-4">
+                      {successFactors.map((factor, idx) => {
+                        const Icon = factor.icon;
+                        return (
+                          <motion.li
+                            key={idx}
+                            initial={{ opacity: 0, x: -20 }}
+                            whileInView={{ opacity: 1, x: 0 }}
                             viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: idx * 0.05, type: "spring" }}
+                            transition={{ duration: 0.4, delay: idx * 0.05 }}
+                            className="flex items-start gap-2"
                           >
-                            <Icon className="w-5 h-5 text-green-700 flex-shrink-0 mt-0.5" aria-hidden="true" />
-                          </motion.div>
-                          <span className="text-afrikoni-deep text-os-sm">{factor.text}</span>
-                        </motion.li>
-                      );
-                    })}
-                  </ul>
-                </CardContent>
-              </Card>
+                            <motion.div
+                              initial={{ scale: 0, rotate: -180 }}
+                              whileInView={{ scale: 1, rotate: 0 }}
+                              viewport={{ once: true }}
+                              transition={{ duration: 0.5, delay: idx * 0.05, type: "spring" }}
+                            >
+                              <Icon className="w-5 h-5 text-green-700 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                            </motion.div>
+                            <span className="text-os-text-primary text-os-sm font-medium">{factor.text}</span>
+                          </motion.li>
+                        );
+                      })}
+                    </ul>
+                  </CardContent>
+                </Card>
 
-              {/* Failure Factors */}
-              <Card className="border-red-200 bg-red-50/50">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-red-800">
-                    <XCircle className="w-6 h-6" />
-                    IT WILL FAIL IF:
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <ul className="space-y-3">
-                    {failureFactors.map((factor, idx) => {
-                      const Icon = factor.icon;
-                      return (
-                        <motion.li
-                          key={idx}
-                          initial={{ opacity: 0, x: -20 }}
-                          whileInView={{ opacity: 1, x: 0 }}
-                          viewport={{ once: true }}
-                          transition={{ duration: 0.4, delay: idx * 0.05 }}
-                          className="flex items-start gap-2"
-                        >
-                          <motion.div
-                            initial={{ scale: 0, rotate: 180 }}
-                            whileInView={{ scale: 1, rotate: 0 }}
+                {/* Failure Factors */}
+                <Card className="border border-os-stroke bg-os-surface-solid rounded-[24px] shadow-premium overflow-hidden">
+                  <CardHeader className="bg-red-500/5 border-b border-os-stroke">
+                    <CardTitle className="flex items-center gap-2 text-red-700 text-16 uppercase tracking-widest font-black">
+                      <XCircle className="w-5 h-5" />
+                      Mitigation Priorities
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-6">
+                    <ul className="space-y-4">
+                      {failureFactors.map((factor, idx) => {
+                        const Icon = factor.icon;
+                        return (
+                          <motion.li
+                            key={idx}
+                            initial={{ opacity: 0, x: -20 }}
+                            whileInView={{ opacity: 1, x: 0 }}
                             viewport={{ once: true }}
-                            transition={{ duration: 0.5, delay: idx * 0.05, type: "spring" }}
+                            transition={{ duration: 0.4, delay: idx * 0.05 }}
+                            className="flex items-start gap-2"
                           >
-                            <Icon className="w-5 h-5 text-red-700 flex-shrink-0 mt-0.5" aria-hidden="true" />
-                          </motion.div>
-                          <span className="text-afrikoni-deep text-os-sm">{factor.text}</span>
-                        </motion.li>
-                      );
-                    })}
-                  </ul>
-                </CardContent>
-              </Card>
-            </div>
+                            <motion.div
+                              initial={{ scale: 0, rotate: 180 }}
+                              whileInView={{ scale: 1, rotate: 0 }}
+                              viewport={{ once: true }}
+                              transition={{ duration: 0.5, delay: idx * 0.05, type: "spring" }}
+                            >
+                              <Icon className="w-5 h-5 text-red-700 flex-shrink-0 mt-0.5" aria-hidden="true" />
+                            </motion.div>
+                            <span className="text-os-text-primary text-os-sm font-medium">{factor.text}</span>
+                          </motion.li>
+                        );
+                      })}
+                    </ul>
+                  </CardContent>
+                </Card>
+              </div>
 
-            {/* Key Insight */}
-            <Card className="border-os-accent/30 bg-gradient-to-br from-os-accent/10 to-afrikoni-chestnut/10">
-              <CardContent className="p-8">
-                <div className="flex items-start gap-4">
-                  <Lightbulb className="w-8 h-8 text-os-accent flex-shrink-0" />
-                  <div>
-                    <h3 className="text-os-xl font-bold text-afrikoni-chestnut mb-3">
-                      The Honest Truth
-                    </h3>
-                    <p className="text-afrikoni-deep leading-relaxed mb-4">
-                      Afrikoni CAN work. The market is real ($2+ trillion African B2B trade). The problem is real (trust). The opportunity is MASSIVE.
-                    </p>
-                    <p className="text-afrikoni-deep leading-relaxed">
-                      But it requires: Brilliant execution, fair pricing, real value creation, patience, persistence, and a bit of luck.
-                    </p>
+              {/* Key Insight */}
+              <Card className="border-os-accent/30 bg-gradient-to-br from-os-accent/10 to-afrikoni-chestnut/10">
+                <CardContent className="p-8">
+                  <div className="flex items-start gap-4">
+                    <Lightbulb className="w-8 h-8 text-os-accent flex-shrink-0" />
+                    <div>
+                      <h3 className="text-os-xl font-bold text-os-text-primary mb-3">
+                        The Honest Truth
+                      </h3>
+                      <p className="text-os-text-secondary font-medium leading-relaxed mb-4">
+                        Afrikoni CAN work. The market is real ($2+ trillion African B2B trade). The problem is real (trust). The opportunity is MASSIVE.
+                      </p>
+                      <p className="text-os-text-secondary font-medium leading-relaxed">
+                        But it requires: Brilliant execution, fair pricing, real value creation, patience, persistence, and a bit of luck.
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          {/* Challenges Tab */}
-          <TabsContent value="challenges" className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              {challenges.map((challenge, idx) => {
-                const Icon = challenge.icon;
-            return (
-              <motion.div
-                key={idx}
-                    initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: idx * 0.1 }}
-              >
-                    <Card className="h-full border-os-accent/20">
-                      <CardHeader>
-                        <div className="flex items-center gap-3 mb-2">
-                          <div className="w-12 h-12 bg-os-accent/20 rounded-lg flex items-center justify-center">
-                            <Icon className="w-6 h-6 text-os-accent" />
-                          </div>
-                          <CardTitle className="text-os-xl">{challenge.title}</CardTitle>
-                        </div>
-                      </CardHeader>
-                      <CardContent>
-                        <div className="mb-4">
-                          <p className="text-afrikoni-deep mb-3">
-                            <strong className="text-afrikoni-chestnut">Problem:</strong> {challenge.description}
-                          </p>
-                        </div>
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                          <p className="text-os-sm text-afrikoni-deep">
-                            <strong className="text-green-800">Solution:</strong> {challenge.solution}
-                          </p>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                );
-              })}
-            </div>
-          </TabsContent>
-
-          {/* Revenue Model Tab */}
-          <TabsContent value="revenue" className="space-y-6">
-            <div className="grid md:grid-cols-2 gap-6">
-              {revenueStreams.map((stream, idx) => {
-                const Icon = stream.icon;
-                return (
-                <motion.div
-                    key={idx}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
+            {/* Challenges Tab */}
+            <TabsContent value="challenges" className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                {challenges.map((challenge, idx) => {
+                  const Icon = challenge.icon;
+                  return (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
                       viewport={{ once: true }}
-                    transition={{ duration: 0.5, delay: idx * 0.1 }}
-                  >
-                    <Card className="h-full border-os-accent/20 hover:border-os-accent transition-all">
-                      <CardHeader>
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 bg-os-accent/20 rounded-lg flex items-center justify-center">
-                            <Icon className="w-6 h-6 text-os-accent" />
-                      </div>
-                          <CardTitle>{stream.title}</CardTitle>
-                      </div>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-afrikoni-deep mb-4">{stream.description}</p>
-                        <div className="bg-os-accent/10 border border-os-accent/30 rounded-lg p-3">
-                          <p className="text-os-sm font-semibold text-afrikoni-chestnut">
-                            Revenue Potential: {stream.potential}
-                          </p>
-                        </div>
-                    </CardContent>
-                  </Card>
-              </motion.div>
-            );
-          })}
-        </div>
+                      transition={{ duration: 0.5, delay: idx * 0.1 }}
+                    >
+                      <Card className="h-full border-os-accent/20">
+                        <CardHeader>
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="w-12 h-12 bg-os-accent/20 rounded-lg flex items-center justify-center">
+                              <Icon className="w-6 h-6 text-os-accent" />
+                            </div>
+                            <CardTitle className="text-os-xl">{challenge.title}</CardTitle>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="mb-4">
+                            <p className="text-os-text-secondary font-medium mb-3">
+                              <strong className="text-os-text-primary">Problem:</strong> {challenge.description}
+                            </p>
+                          </div>
+                          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <p className="text-os-sm text-os-text-primary font-medium">
+                              <strong className="text-green-800">Solution:</strong> {challenge.solution}
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            </TabsContent>
 
-            {/* Disclaimer */}
-            <div className="bg-afrikoni-offwhite border-l-4 border-os-accent/50 p-4 rounded-r-lg mb-6">
-              <p className="text-os-sm text-afrikoni-deep/70 italic">
-                Illustrative projections based on modeled assumptions, not current performance.
-              </p>
-            </div>
+            {/* Revenue Model Tab */}
+            <TabsContent value="revenue" className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-6">
+                {revenueStreams.map((stream, idx) => {
+                  const Icon = stream.icon;
+                  return (
+                    <motion.div
+                      key={idx}
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true }}
+                      transition={{ duration: 0.5, delay: idx * 0.1 }}
+                    >
+                      <Card className="h-full border-os-accent/20 hover:border-os-accent transition-all">
+                        <CardHeader>
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 bg-os-accent/20 rounded-lg flex items-center justify-center">
+                              <Icon className="w-6 h-6 text-os-accent" />
+                            </div>
+                            <CardTitle>{stream.title}</CardTitle>
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-afrikoni-deep mb-4">{stream.description}</p>
+                          <div className="bg-os-accent/10 border border-os-accent/30 rounded-lg p-3">
+                            <p className="text-os-sm font-bold text-os-text-primary">
+                              Revenue Potential: {stream.potential}
+                            </p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  );
+                })}
+              </div>
 
-            {/* Total Revenue Projection */}
-            <Card className="border-os-accent bg-gradient-to-br from-os-accent/20 to-afrikoni-chestnut/20">
-              <CardContent className="p-8">
-                <div className="text-center">
-                  <h3 className="text-os-2xl font-bold text-afrikoni-chestnut mb-4">
-                    Year 2-3 Revenue Projection
-                  </h3>
-                  <div className="grid md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                      <p className="text-afrikoni-deep mb-2">Total Revenue</p>
-                      <p className="text-4xl font-bold text-os-accent">$4.9M</p>
+              {/* Disclaimer */}
+              <div className="bg-afrikoni-offwhite border-l-4 border-os-accent/50 p-4 rounded-r-lg mb-6">
+                <p className="text-os-sm text-os-text-secondary font-bold italic">
+                  Illustrative projections based on modeled assumptions, not current performance.
+                </p>
+              </div>
+
+              {/* Total Revenue Projection */}
+              <Card className="border border-os-stroke bg-os-surface-solid rounded-[28px] shadow-premium overflow-hidden">
+                <CardContent className="p-8 md:p-12">
+                  <div className="text-center">
+                    <h3 className="text-os-2xl font-bold text-afrikoni-chestnut mb-4">
+                      Year 2-3 Revenue Projection
+                    </h3>
+                    <div className="grid md:grid-cols-2 gap-6 mb-6">
+                      <div>
+                        <p className="text-os-text-secondary font-bold mb-2">Total Revenue</p>
+                        <p className="text-4xl font-bold text-os-accent">$4.9M</p>
+                      </div>
+                      <div>
+                        <p className="text-os-text-secondary font-bold mb-2">Profit Margin</p>
+                        <p className="text-4xl font-bold text-green-700">41%</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-afrikoni-deep mb-2">Profit Margin</p>
-                      <p className="text-4xl font-bold text-green-700">41%</p>
-                    </div>
+                    <p className="text-os-text-secondary font-bold text-os-sm">
+                      Based on 1,000 sellers, 5,000 buyers, $10M GMV
+                    </p>
                   </div>
-                  <p className="text-afrikoni-deep/80 text-os-sm">
-                    Based on 1,000 sellers, 5,000 buyers, $10M GMV
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                </CardContent>
+              </Card>
+            </TabsContent>
 
-          {/* Pricing Tab */}
-          <TabsContent value="pricing" className="space-y-6">
-            <Card className="border-os-accent/30">
-              <CardContent className="p-8">
-                <div className="text-center mb-8">
-                  <h3 className="text-os-2xl font-bold text-afrikoni-chestnut mb-4">
-                    Our Pricing Philosophy
-                  </h3>
-                  <p className="text-os-lg text-afrikoni-deep max-w-3xl mx-auto">
-                    "We only make money when you succeed. Our fees are designed to be fair, transparent, and aligned with the value we provide."
-                  </p>
-                </div>
+            {/* Pricing Tab */}
+            <TabsContent value="pricing" className="space-y-6">
+              <Card className="border-os-accent/30">
+                <CardContent className="p-8">
+                  <div className="text-center mb-8">
+                    <h3 className="text-os-2xl font-bold text-afrikoni-chestnut mb-4">
+                      Our Pricing Philosophy
+                    </h3>
+                    <p className="text-os-lg text-afrikoni-deep max-w-3xl mx-auto">
+                      "We only make money when you succeed. Our fees are designed to be fair, transparent, and aligned with the value we provide."
+                    </p>
+                  </div>
 
-                <div className="grid md:grid-cols-4 gap-4 mb-8">
-                  {[
-                    { tier: 'Bronze', fee: '3%', price: 'Free', color: 'from-amber-600 to-amber-700' },
-                    { tier: 'Silver', fee: '2%', price: '$49/mo', color: 'from-gray-400 to-gray-500' },
-                    { tier: 'Gold', fee: '1%', price: '$199/mo', color: 'from-os-accent to-os-accentDark' },
-                    { tier: 'Enterprise', fee: 'Custom', price: 'Custom', color: 'from-purple-600 to-purple-700' }
-                  ].map((tier, idx) => (
-                    <Card key={idx} className={`bg-gradient-to-br ${tier.color} text-white border-0`}>
-                      <CardContent className="p-6 text-center">
-                        <h4 className="text-os-xl font-bold mb-2">{tier.tier}</h4>
-                        <p className="text-os-2xl font-bold mb-1">{tier.fee}</p>
-                        <p className="text-os-sm opacity-90">{tier.price}</p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                  <div className="grid md:grid-cols-4 gap-4 mb-8">
+                    {[
+                      { tier: 'Bronze', fee: '3%', price: 'Free', color: 'from-amber-600 to-amber-700' },
+                      { tier: 'Silver', fee: '2%', price: '$49/mo', color: 'from-gray-400 to-gray-500' },
+                      { tier: 'Gold', fee: '1%', price: '$199/mo', color: 'from-os-accent to-os-accentDark' },
+                      { tier: 'Enterprise', fee: 'Custom', price: 'Custom', color: 'from-purple-600 to-purple-700' }
+                    ].map((tier, idx) => (
+                      <Card key={idx} className={`bg-gradient-to-br ${tier.color} text-[#1A1512] border-0 shadow-lg`}>
+                        <CardContent className="p-6 text-center">
+                          <h4 className="text-os-xl font-bold mb-2">{tier.tier}</h4>
+                          <p className="text-os-2xl font-bold mb-1">{tier.fee}</p>
+                          <p className="text-os-sm opacity-90">{tier.price}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
 
-                <div className="bg-afrikoni-offwhite rounded-lg p-6 mb-6">
-                  <h4 className="font-bold text-afrikoni-chestnut mb-4 flex items-center gap-2">
-                    <Calculator className="w-5 h-5" />
-                    Cost Calculator Example
-                  </h4>
-                  <p className="text-afrikoni-deep mb-2">
-                    For a <strong>$10,000 order</strong>, you'll pay <strong className="text-os-accent">$300 (3%)</strong>
-                  </p>
-                  <p className="text-os-sm text-afrikoni-deep/80">
-                    This includes: Escrow protection, fraud prevention, dispute resolution, payment processing, customer support, and platform maintenance.
-                  </p>
-                  <p className="text-os-sm text-afrikoni-deep/80 mt-2">
-                    Equivalent services separately would cost $500-800.
-                  </p>
-                </div>
+                  <div className="bg-afrikoni-offwhite rounded-lg p-6 mb-6">
+                    <h4 className="font-bold text-afrikoni-chestnut mb-4 flex items-center gap-2">
+                      <Calculator className="w-5 h-5" />
+                      Cost Calculator Example
+                    </h4>
+                    <p className="text-os-text-secondary font-medium mb-2">
+                      For a <strong>$10,000 order</strong>, you'll pay <strong className="text-os-accent">$300 (3%)</strong>
+                    </p>
+                    <p className="text-os-sm text-afrikoni-deep/80">
+                      This includes: Escrow protection, fraud prevention, dispute resolution, payment processing, customer support, and platform maintenance.
+                    </p>
+                    <p className="text-os-sm text-afrikoni-deep/80 mt-2">
+                      Equivalent services separately would cost $500-800.
+                    </p>
+                  </div>
 
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button
-                    onClick={() => navigate('/pricing')}
-                    className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut"
-                  >
-                    View Full Pricing Details
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate('/contact')}
-                    className="border-os-accent text-afrikoni-chestnut"
-                  >
-                    Contact Sales
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Button
+                      onClick={() => navigate('/pricing')}
+                      className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut"
+                    >
+                      View Full Pricing Details
+                    </Button>
+                    <Button
+                      variant="outline"
+                      onClick={() => navigate('/contact')}
+                      className="border-os-accent text-afrikoni-chestnut"
+                    >
+                      Contact Sales
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
           </Tabs>
         </div>
 
         {/* Final CTA */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -415,7 +415,7 @@ export default function BusinessModel() {
               <h3 className="text-os-2xl font-bold text-afrikoni-chestnut mb-4">
                 Ready to Build Something Meaningful?
               </h3>
-              <p className="text-afrikoni-deep mb-6 max-w-2xl mx-auto">
+              <p className="text-os-text-secondary font-bold mb-6 max-w-2xl mx-auto">
                 If you decide to build it, build it RIGHT. Build it with INTEGRITY. Build it to LAST.
               </p>
               <Button

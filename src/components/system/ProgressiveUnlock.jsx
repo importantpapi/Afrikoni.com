@@ -18,7 +18,8 @@ import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
 import { Surface } from '@/components/system/Surface';
 import { Button } from '@/components/shared/ui/button';
-import { Lock, CheckCircle2, Sparkles, TrendingUp } from 'lucide-react';
+import { Lock, CheckCircle2, Sparkles, TrendingUp, ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import confetti from 'canvas-confetti';
@@ -192,7 +193,7 @@ function LockedFeatureCard({ feature, stats }) {
 
                         <div className="h-2 bg-white/10 rounded-full overflow-hidden">
                             <motion.div
-                                className="h-full bg-[#D4A937]"
+                                className="h-full bg-os-accent"
                                 initial={{ width: 0 }}
                                 animate={{ width: `${progressPercent}%` }}
                                 transition={{ duration: 0.5 }}
@@ -202,6 +203,12 @@ function LockedFeatureCard({ feature, stats }) {
                         <p className="text-os-xs text-white/50">
                             {feature.requirement}
                         </p>
+                        <Link
+                            to="/dashboard/rfqs/new"
+                            className="inline-flex items-center gap-1 mt-3 text-os-xs font-semibold text-os-accent hover:text-os-accent/80 transition-colors"
+                        >
+                            Get started with your first trade <ArrowRight className="w-3 h-3" />
+                        </Link>
                     </div>
                 </div>
             </div>
@@ -225,20 +232,20 @@ function CelebrationModal({ feature }) {
                 exit={{ scale: 0.8, y: 20 }}
                 className="max-w-md mx-4"
             >
-                <Surface variant="glass" className="p-8 border border-[#D4A937]/30 text-center">
+                <Surface variant="glass" className="p-8 border border-os-accent/30 text-center">
                     <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ delay: 0.2, type: 'spring' }}
-                        className="w-20 h-20 rounded-full bg-[#D4A937]/20 flex items-center justify-center mx-auto mb-4"
+                        className="w-20 h-20 rounded-full bg-os-accent/20 flex items-center justify-center mx-auto mb-4"
                     >
-                        <Icon className="w-10 h-10 text-[#D4A937]" />
+                        <Icon className="w-10 h-10 text-os-accent" />
                     </motion.div>
 
                     <h2 className="text-os-2xl font-bold text-white mb-2">
                         Feature Unlocked!
                     </h2>
-                    <p className="text-os-lg text-[#D4A937] mb-4">
+                    <p className="text-os-lg text-os-accent mb-4">
                         {feature.label}
                     </p>
                     <p className="text-os-sm text-white/70">

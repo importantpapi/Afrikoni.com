@@ -182,7 +182,7 @@ export default function AuthConfirm() {
         subtitle="Please wait while we verify your account"
       >
         <div className="text-center py-8">
-          <Loader2 className="w-12 h-12 mx-auto mb-6 animate-spin text-[#D4A937]" />
+          <Loader2 className="w-12 h-12 mx-auto mb-6 animate-spin text-os-accent" />
           <p className="text-[14px] text-gray-600">This will only take a moment...</p>
         </div>
       </AuthLayout>
@@ -200,7 +200,7 @@ export default function AuthConfirm() {
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
           <p className="text-[14px] text-gray-600">Redirecting you to your dashboard...</p>
-          <Loader2 className="w-6 h-6 animate-spin text-[#D4A937] mx-auto" />
+          <Loader2 className="w-6 h-6 animate-spin text-os-accent mx-auto" />
         </div>
       </AuthLayout>
     );
@@ -225,7 +225,7 @@ export default function AuthConfirm() {
           <Button
             onClick={handleResendConfirmation}
             disabled={isResending}
-            className="w-full h-[52px] bg-[#D4A937] hover:bg-[#C29931] active:bg-[#B38A2C] text-white font-semibold text-[15px] rounded-[14px] transition-all shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(212,169,55,0.15)] hover:shadow-[0_2px_4px_rgba(0,0,0,0.1),0_6px_16px_rgba(212,169,55,0.2)] active:shadow-[0_1px_2px_rgba(0,0,0,0.12)] disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full h-[52px] bg-os-accent hover:bg-os-accent-dark active:bg-os-accent-dark text-white font-semibold text-[15px] rounded-[14px] transition-all shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(212,169,55,0.15)] hover:shadow-[0_2px_4px_rgba(0,0,0,0.1),0_6px_16px_rgba(212,169,55,0.2)] active:shadow-[0_1px_2px_rgba(0,0,0,0.12)] disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isResending ? (
               <>

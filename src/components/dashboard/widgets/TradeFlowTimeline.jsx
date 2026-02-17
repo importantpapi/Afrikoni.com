@@ -24,10 +24,10 @@ export const TradeFlowTimeline = ({ trades = [] }) => {
         <Surface variant="glass" className="p-6 border border-os-accent/10">
             <div className="flex items-center justify-between mb-6">
                 <h3 className="text-os-sm font-bold uppercase tracking-widest text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                    <Activity className="w-4 h-4 text-[#D4A937]" />
+                    <Activity className="w-4 h-4 text-os-accent" />
                     Active Trade Pipeline
                 </h3>
-                <button className="text-os-xs uppercase font-bold text-[#D4A937] hover:underline" onClick={() => navigate('/dashboard/trade-pipeline')}>
+                <button className="text-os-xs uppercase font-bold text-os-accent hover:underline" onClick={() => navigate('/dashboard/trade-pipeline')}>
                     View Full Map
                 </button>
             </div>
@@ -44,7 +44,7 @@ export const TradeFlowTimeline = ({ trades = [] }) => {
                                 <div className={`
                   w-9 h-9 rounded-full flex items-center justify-center border-[3px] transition-all
                   ${isActive
-                                        ? 'bg-white dark:bg-[#D4A937]/10 border-[#D4A937] text-[#D4A937] shadow-[0_0_15px_rgba(212,169,55,0.3)] scale-110'
+                                        ? 'bg-white dark:bg-os-accent/10 border-os-accent text-os-accent shadow-[0_0_15px_rgba(212,169,55,0.3)] scale-110'
                                         : 'bg-white dark:bg-white/5 border-gray-300 dark:border-white/10 text-gray-400'}
                 `}>
                                     <span className="text-os-xs font-bold">{stage.count}</span>

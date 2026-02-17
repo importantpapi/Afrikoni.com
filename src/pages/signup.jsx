@@ -84,7 +84,7 @@ export default function Signup() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#FDFBF7] via-[#F8F6F0] to-[#F5F2EA] flex items-center justify-center py-12 px-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-os-bg via-os-bg to-os-bg flex items-center justify-center py-12 px-4 relative overflow-hidden">
       {/* Subtle depth - calm, not dramatic */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(212,169,55,0.03),transparent_50%)]" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(212,169,55,0.02),transparent_50%)]" />
@@ -134,7 +134,7 @@ export default function Signup() {
                   type="text"
                   value={formData.fullName}
                   onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-                  className="w-full bg-white border border-gray-300 rounded-[13px] py-3.5 px-4 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D4A937]/20 focus:border-[#D4A937] transition-all"
+                  className="w-full bg-white border border-gray-300 rounded-[13px] py-3.5 px-4 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-os-accent/20 focus:border-os-accent transition-all"
                   placeholder="Ama Mensah"
                   required
                 />
@@ -148,7 +148,7 @@ export default function Signup() {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  className="w-full bg-white border border-gray-300 rounded-[13px] py-3.5 px-4 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D4A937]/20 focus:border-[#D4A937] transition-all"
+                  className="w-full bg-white border border-gray-300 rounded-[13px] py-3.5 px-4 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-os-accent/20 focus:border-os-accent transition-all"
                   placeholder="name@company.com"
                   required
                 />
@@ -162,7 +162,7 @@ export default function Signup() {
                   type={showPassword ? "text" : "password"}
                   value={formData.password}
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                  className="w-full bg-white border border-gray-300 rounded-[13px] py-3.5 px-4 pr-12 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#D4A937]/20 focus:border-[#D4A937] transition-all"
+                  className="w-full bg-white border border-gray-300 rounded-[13px] py-3.5 px-4 pr-12 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-os-accent/20 focus:border-os-accent transition-all"
                   placeholder="Minimum 8 characters"
                   required
                 />
@@ -181,7 +181,7 @@ export default function Signup() {
             <Button
               type="submit"
               disabled={isLoading}
-              className="w-full h-[52px] bg-[#D4A937] hover:bg-[#C29931] active:bg-[#B38A2C] text-white font-semibold text-[15px] rounded-[14px] transition-all shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(212,169,55,0.15)] hover:shadow-[0_2px_4px_rgba(0,0,0,0.1),0_6px_16px_rgba(212,169,55,0.2)] active:shadow-[0_1px_2px_rgba(0,0,0,0.12)] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+              className="w-full h-[52px] bg-os-accent hover:bg-os-accent-dark active:bg-os-accent-dark text-white font-semibold text-[15px] rounded-[14px] transition-all shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(212,169,55,0.15)] hover:shadow-[0_2px_4px_rgba(0,0,0,0.1),0_6px_16px_rgba(212,169,55,0.2)] active:shadow-[0_1px_2px_rgba(0,0,0,0.12)] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
             >
               {isLoading ? (
                 <>
@@ -203,7 +203,7 @@ export default function Signup() {
           <div className="text-center text-sm text-gray-600 mt-10 pt-8 border-t border-gray-100">
             <p>
               Already have an account?{' '}
-              <Link to="/login" className="text-[#D4A937] hover:text-[#C29931] font-medium transition-colors">
+              <Link to="/login" className="text-os-accent hover:text-os-accent-dark font-medium transition-colors">
                 Sign in
               </Link>
             </p>

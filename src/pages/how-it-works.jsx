@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
-import { 
+import {
   Search, MessageCircle, ShoppingCart, Building, Users, TrendingUp, CheckCircle,
   Shield, Lock, Globe, Award, FileText, ArrowRight, Sparkles, Clock, Package,
   BarChart3, Star, Zap, MapPin, Truck, DollarSign
@@ -47,7 +47,7 @@ export default function HowItWorks() {
 
         if (!companiesError && verifiedCompanies && verifiedCompanies.length > 0) {
           const verifiedCompanyIds = verifiedCompanies.map(c => c.id);
-          
+
           // Count active products from verified companies
           const { count: productsCount, error: productsError } = await supabase
             .from('products')
@@ -66,7 +66,7 @@ export default function HowItWorks() {
           .from('products')
           .select('*', { count: 'exact', head: true })
           .eq('status', 'active');
-        
+
         if (allProducts !== null) {
           verifiedListingsCount = allProducts;
         }
@@ -90,18 +90,18 @@ export default function HowItWorks() {
             .from('rfqs')
             .select('buyer_company_id')
             .limit(10000);
-          
+
           if (!rfqsError && rfqsData) {
             const uniqueBuyerCompanies = new Set(
               rfqsData.map(r => r.buyer_company_id).filter(Boolean)
             );
-            
+
             // Also check orders for additional buyer companies
             const { data: ordersData, error: ordersError } = await supabase
               .from('orders')
               .select('buyer_company_id')
               .limit(10000);
-            
+
             if (!ordersError && ordersData) {
               ordersData.forEach(order => {
                 if (order.buyer_company_id) {
@@ -109,7 +109,7 @@ export default function HowItWorks() {
                 }
               });
             }
-            
+
             activeBuyersCount = uniqueBuyerCompanies.size;
           }
         }
@@ -124,21 +124,21 @@ export default function HowItWorks() {
 
       // Always show the actual numbers, even if 0
       setStats([
-        { 
-          value: `${verifiedSuppliers || 0}`, 
-          label: 'Verified Suppliers' 
+        {
+          value: `${verifiedSuppliers || 0}`,
+          label: 'Verified Suppliers'
         },
-        { 
-          value: `${verifiedListingsCount || 0}`, 
-          label: 'Verified Listings' 
+        {
+          value: `${verifiedListingsCount || 0}`,
+          label: 'Verified Listings'
         },
         { value: '54', label: 'African Countries' },
-        { 
-          value: `${activeBuyersCount || 0}`, 
-          label: 'Active Buyers' 
+        {
+          value: `${activeBuyersCount || 0}`,
+          label: 'Active Buyers'
         }
       ]);
-      
+
       console.log('[How It Works] Real-time stats loaded:', {
         verifiedSuppliers: verifiedSuppliers || 0,
         verifiedListings: verifiedListingsCount || 0,
@@ -163,7 +163,7 @@ export default function HowItWorks() {
       title: 'Discover Verified Suppliers',
       description: 'Access our curated database of pre-verified suppliers. Every company undergoes KYC, business license verification, and quality checks before listing.',
       features: [
-        'AI-powered supplier matching', 
+        'AI-powered supplier matching',
         'Verified certifications & compliance docs',
         'Trust scores & performance metrics',
         '54 African countries coverage'
@@ -180,7 +180,7 @@ export default function HowItWorks() {
       title: 'Request Quotes & Negotiate',
       description: 'Post detailed RFQs that our AI matches to qualified suppliers. Receive competitive quotes within 24-48 hours. Our team reviews every RFQ for quality.',
       features: [
-        'Bulk RFQ creation with KoniAI', 
+        'Bulk RFQ creation with KoniAI',
         'Automated supplier matching',
         'Real-time quote comparison dashboard',
         'Direct negotiation with verified suppliers'
@@ -197,7 +197,7 @@ export default function HowItWorks() {
       title: 'Trade with Full Protection',
       description: 'Execute orders with Afrikoni Trade Shield: escrow protection, real-time tracking, quality inspection services, and guaranteed dispute resolution.',
       features: [
-        'Bank-grade escrow protection', 
+        'Bank-grade escrow protection',
         'Multi-currency support (USD, EUR, GBP, XAF)',
         'End-to-end shipment tracking',
         'White-glove dispute resolution'
@@ -356,7 +356,7 @@ export default function HowItWorks() {
 
   return (
     <>
-      <SEO 
+      <SEO
         title="How It Works - Afrikoni B2B Marketplace"
         description="Learn how Afrikoni works for buyers and sellers. Discover how to source products, connect with verified suppliers, and grow your business across Africa."
         url="/how-it-works"
@@ -389,7 +389,7 @@ export default function HowItWorks() {
               <p className="text-os-base md:text-os-lg text-afrikoni-cream/80 max-w-2xl mx-auto mb-8">
                 Every supplier is manually verified. Every transaction is protected. Every partnership is backed by our guarantee.
               </p>
-              
+
               {/* Premium Trust Badges */}
               <div className="flex flex-wrap items-center justify-center gap-4 mt-8">
                 <Badge className="bg-afrikoni-cream/10 backdrop-blur-sm border-os-accent/40 text-afrikoni-cream px-4 py-2">
@@ -432,6 +432,69 @@ export default function HowItWorks() {
             </motion.div>
           </div>
         </section>
+
+        {/* Choose Your Path Section - New addition for clarity */}
+        <section className="-mt-16 md:-mt-20 relative z-20 px-4 mb-20">
+          <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-6 md:gap-8">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-white rounded-2xl p-8 shadow-xl border-t-4 border-blue-600 hover:transform hover:-translate-y-1 transition-all"
+            >
+              <div className="w-14 h-14 bg-blue-100/50 rounded-xl flex items-center justify-center mb-6 text-blue-600">
+                <ShoppingCart className="w-7 h-7" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">I want to Source Products</h3>
+              <p className="text-gray-600 mb-6 min-h-[48px]">
+                For retailers, businesses, and procurement teams looking for verified African suppliers.
+              </p>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center gap-3 text-sm text-gray-600">
+                  <CheckCircle className="w-4 h-4 text-green-500" /> Free to join & request quotes
+                </li>
+                <li className="flex items-center gap-3 text-sm text-gray-600">
+                  <CheckCircle className="w-4 h-4 text-green-500" /> Access thousands of verified products
+                </li>
+                <li className="flex items-center gap-3 text-sm text-gray-600">
+                  <CheckCircle className="w-4 h-4 text-green-500" /> Secure escrow payments
+                </li>
+              </ul>
+              <Button onClick={() => document.getElementById('for-buyers').scrollIntoView({ behavior: 'smooth' })} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-6 text-lg">
+                See How Buying Works
+              </Button>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="bg-white rounded-2xl p-8 shadow-xl border-t-4 border-orange-500 hover:transform hover:-translate-y-1 transition-all"
+            >
+              <div className="w-14 h-14 bg-orange-100/50 rounded-xl flex items-center justify-center mb-6 text-orange-600">
+                <Building className="w-7 h-7" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-2">I want to Sell Products</h3>
+              <p className="text-gray-600 mb-6 min-h-[48px]">
+                For manufacturers, wholesalers, and producers wanting to export to global markets.
+              </p>
+              <ul className="space-y-3 mb-8">
+                <li className="flex items-center gap-3 text-sm text-gray-600">
+                  <CheckCircle className="w-4 h-4 text-green-500" /> Verify once, trade globally
+                </li>
+                <li className="flex items-center gap-3 text-sm text-gray-600">
+                  <CheckCircle className="w-4 h-4 text-green-500" /> Guaranteed payments on delivery
+                </li>
+                <li className="flex items-center gap-3 text-sm text-gray-600">
+                  <CheckCircle className="w-4 h-4 text-green-500" /> Manage orders & logistics
+                </li>
+              </ul>
+              <Button onClick={() => document.getElementById('for-sellers').scrollIntoView({ behavior: 'smooth' })} className="w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-6 text-lg">
+                See How Selling Works
+              </Button>
+            </motion.div>
+          </div>
+        </section >
 
         <div className="max-w-7xl mx-auto px-4 py-12 md:py-20">
           {/* Trust & Services Overview (moved from homepage) */}
@@ -763,7 +826,7 @@ export default function HowItWorks() {
               <p className="text-os-base text-afrikoni-cream/80 mb-8 max-w-2xl mx-auto">
                 Every account is manually reviewed. Every transaction is protected. Every partnership is backed by our guarantee.
               </p>
-              
+
               {/* Key Differentiators */}
               <div className="grid md:grid-cols-3 gap-4 max-w-3xl mx-auto mb-8">
                 <div className="bg-afrikoni-cream/10 backdrop-blur-sm rounded-lg p-4 border border-os-accent/30">

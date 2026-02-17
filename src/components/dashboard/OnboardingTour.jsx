@@ -129,7 +129,7 @@ export function OnboardingTour({ role = 'buyer', onComplete }) {
                             <Button
                                 size="sm"
                                 onClick={handleNext}
-                                className="bg-os-accent hover:bg-[#C09830] text-black font-bold text-os-xs"
+                                className="bg-os-accent hover:bg-os-accent-dark text-black font-bold text-os-xs"
                             >
                                 {currentStep === steps.length - 1 ? 'Finish' : 'Next Step'} <ChevronRight className="w-4 h-4 ml-1" />
                             </Button>

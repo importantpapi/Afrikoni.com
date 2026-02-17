@@ -1,6 +1,3 @@
-// SelectRole.jsx - FIXED VERSION
-// Added missing useAuth import
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthProvider'; // ← ADDED THIS IMPORT
@@ -11,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui
 import { ShoppingCart, Package } from 'lucide-react';
 import { toast } from 'sonner';
 import { setLastSelectedRole } from '@/lib/supabase-auth-helpers';
+import { secureStorage } from '@/utils/secureStorage';
 
 export default function SelectRole() {
   // Use centralized AuthProvider
@@ -80,9 +78,9 @@ export default function SelectRole() {
         console.warn('Failed to save last_selected_role:', prefError);
       }
 
-      // Store locally for quick client-side decisions
+      // Store locally for quick client-side decisions - NOW ENCRYPTED 🔒
       try {
-        localStorage.setItem('afr_last_selected_role', targetRole);
+        secureStorage.set('afr_last_selected_role', targetRole);
       } catch {
         // ignore
       }

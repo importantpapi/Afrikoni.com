@@ -266,6 +266,9 @@ export default function CompareProducts() {
                                     src={getProductImage(product)}
                                     alt={product.title}
                                     className="w-20 h-20 md:w-32 md:h-32 object-cover rounded-lg mb-2 mx-auto"
+                                    width="128"
+                                    height="128"
+                                    loading="lazy"
                                   />
                                 ) : (
                                   <div className="w-20 h-20 md:w-32 md:h-32 bg-afrikoni-cream rounded-lg flex items-center justify-center mb-2 mx-auto">

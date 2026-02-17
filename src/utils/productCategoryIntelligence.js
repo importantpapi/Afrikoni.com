@@ -108,24 +108,20 @@ export async function findOrCreateCategory(supabase, categoryName) {
     // First, try to find existing category
     console.log('[PCI] Querying existing category...');
 
-    const { data: existingCategory, error: findError } = await Promise.race([
-      supabase
-        .from('categories')
-        .select('id, name')
-        .ilike('name', categoryName)
-        .limit(1)
-        .maybeSingle(),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('Category lookup timed out after 10s')), 10000))
-    ]);
-
-    console.log('[PCI] Query result:', { existingCategory, findError });
+    const { data: existingCategory, error: findError } = await supabase
+      .from('categories')
+      .select('id, name')
+      .ilike('name', categoryName)
+      .limit(1)
+      .maybeSingle();
 
     if (findError) {
-      console.error('Error finding category:', findError);
+      console.warn('[PCI] Category lookup error (non-fatal):', findError);
       return null;
     }
 
     if (existingCategory) {
+      console.log('[PCI] Found existing category:', existingCategory.id);
       return existingCategory.id;
     }
 
@@ -161,7 +157,11 @@ export async function findOrCreateCategory(supabase, categoryName) {
       .single();
 
     if (createError) {
-      console.error('[PCI] Error creating category:', createError);
+      if (createError.code === '42501') {
+        console.warn('[PCI] Permission denied to create category (RLS). This is normal for non-admin users.');
+      } else {
+        console.error('[PCI] Error creating category:', createError);
+      }
       return null;
     }
 

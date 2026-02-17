@@ -18,7 +18,7 @@ export function ContentSurface({
 }) {
     return (
         <div
-            className="w-full h-full overflow-y-auto overflow-x-hidden bg-afrikoni-offwhite dark:bg-[#0A0A0A] transition-all duration-300 ease-in-out scroll-smooth"
+            className="w-full h-full overflow-y-auto overflow-x-hidden bg-os-bg transition-all duration-300 ease-in-out scroll-smooth"
             style={{
                 zIndex: 1
             }}

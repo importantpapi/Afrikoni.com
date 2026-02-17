@@ -69,8 +69,9 @@ export default function KoniAIHub() {
   const [matchingSuppliers, setMatchingSuppliers] = useState([]);
   const [autoFollowUpEnabled, setAutoFollowUpEnabled] = useState(false);
 
-  // API key check
-  const hasApiKey = !!import.meta.env.VITE_OPENAI_API_KEY;
+  // ✅ SECURITY FIX (ZONE 1): Check if user is authenticated (AI now requires login)
+  // OpenAI API key moved to Edge Function, so AI features require valid JWT
+  const hasAIAccess = !!userId; // AI available to all logged-in users
 
   // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
   if (!isSystemReady) {
@@ -152,8 +153,8 @@ export default function KoniAIHub() {
       return;
     }
 
-    if (!hasApiKey) {
-      toast.error('KoniAI is not configured. Please add your OpenAI API key.');
+    if (!hasAIAccess) {
+      toast.error('Please log in to use KoniAI features.');
       return;
     }
 
@@ -204,8 +205,8 @@ export default function KoniAIHub() {
       return;
     }
 
-    if (!hasApiKey) {
-      toast.error('KoniAI is not configured. Please add your OpenAI API key.');
+    if (!hasAIAccess) {
+      toast.error('Please log in to use KoniAI features.');
       return;
     }
 
@@ -245,8 +246,8 @@ export default function KoniAIHub() {
       return;
     }
 
-    if (!hasApiKey) {
-      toast.error('KoniAI is not configured. Please add your OpenAI API key.');
+    if (!hasAIAccess) {
+      toast.error('Please log in to use KoniAI features.');
       return;
     }
 
@@ -308,7 +309,7 @@ export default function KoniAIHub() {
         >
           <KoniAIHero />
 
-          {!hasApiKey && (
+          {!hasAIAccess && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -318,9 +319,9 @@ export default function KoniAIHub() {
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold mb-1">KoniAI is not configured yet</p>
+                  <p className="font-semibold mb-1">Authentication Required</p>
                   <p className="text-os-sm">
-                    Please add your OpenAI API key to the environment settings (VITE_OPENAI_API_KEY) to enable KoniAI features.
+                    Please log in to access KoniAI features. AI-powered tools are available to all authenticated users.
                   </p>
                 </div>
               </div>
@@ -391,7 +392,7 @@ export default function KoniAIHub() {
                   label={t('koniai.generateListing') || 'Generate Listing with KoniAI'}
                   onClick={handleGenerateProduct}
                   loading={productLoading}
-                  disabled={!hasApiKey}
+                  disabled={!hasAIAccess}
                   className="w-full"
                 />
 
@@ -523,7 +524,7 @@ export default function KoniAIHub() {
                   label="Find Suppliers"
                   onClick={handleFindSuppliers}
                   loading={supplierLoading}
-                  disabled={!hasApiKey}
+                  disabled={!hasAIAccess}
                   className="w-full"
                 />
 
@@ -632,7 +633,7 @@ export default function KoniAIHub() {
                   label="Draft Reply with KoniAI"
                   onClick={handleGenerateReply}
                   loading={rfqLoading}
-                  disabled={!hasApiKey}
+                  disabled={!hasAIAccess}
                   className="w-full"
                 />
 

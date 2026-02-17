@@ -365,6 +365,50 @@ const Payments = () => {
           </div>
         </div>
       </div>
+      {/* Manual Settlement Instructions (Concierge Beta) */}
+      <Surface variant="panel" className="p-8 border-t border-os-accent/20 bg-os-accent/5">
+        <div className="flex flex-col md:flex-row gap-8">
+          <div className="flex-1 space-y-4">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="p-2 bg-os-accent text-black rounded-full">
+                <Lock className="w-4 h-4" />
+              </div>
+              <h3 className="text-xl font-bold text-white">Manual Settlement Instructions</h3>
+            </div>
+            <p className="text-os-sm text-os-muted leading-relaxed">
+              For high-value trades or early access partners, you can fund your escrow account manually via Wire Transfer or Stablecoin.
+              Funds are held in a segregated client trust account until you verify delivery.
+            </p>
+            <div className="flex gap-4 pt-2">
+              <Button onClick={() => window.location.href = 'mailto:settlements@afrikoni.com?subject=Wire%20Instruction%20Request'} className="bg-white text-black hover:bg-gray-200 font-bold">
+                Request Wire Invoice
+              </Button>
+              <Button variant="outline" className="border-os-accent text-os-accent hover:bg-os-accent/10">
+                View Crypto Options
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex-1 bg-black/40 p-6 rounded-lg border border-white/10 space-y-4 font-mono text-os-sm">
+            <div className="flex justify-between border-b border-white/10 pb-2">
+              <span className="text-os-muted">Beneficiary</span>
+              <span className="text-white font-bold">Afrikoni Trade Trust Ltd</span>
+            </div>
+            <div className="flex justify-between border-b border-white/10 pb-2">
+              <span className="text-os-muted">Bank</span>
+              <span className="text-white">Citibank London (UK)</span>
+            </div>
+            <div className="flex justify-between border-b border-white/10 pb-2">
+              <span className="text-os-muted">IBAN</span>
+              <span className="text-white">GB82 CITI 1850 0852 **** **</span>
+            </div>
+            <div className="flex justify-between items-center pt-2">
+              <span className="text-os-muted">Reference</span>
+              <Badge className="bg-os-accent text-black">YOUR COMPANY ID</Badge>
+            </div>
+          </div>
+        </div>
+      </Surface>
     </div>
   );
 };

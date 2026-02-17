@@ -29,7 +29,7 @@ export default function MobileCountryFilters() {
   };
 
   return (
-    <section className="md:hidden py-8 bg-[#FDFBF7] border-b border-gray-100">
+    <section className="md:hidden py-8 bg-os-bg border-b border-gray-100">
       <div className="max-w-[1440px] mx-auto px-4">
         <div className="flex items-center justify-between mb-5">
           <h3 className="text-[14px] font-medium text-gray-500 uppercase tracking-wider">Source by Country</h3>

@@ -9,7 +9,7 @@ export default function TrustScore({ score = 85, entityName = "Supplier" }) {
 
     if (score >= 90) {
         color = 'text-koni-gold';
-        stroke = '#D4AF37';
+        stroke = 'var(--os-accent)';
         label = 'Elite Tier';
     } else if (score >= 70) {
         color = 'text-emerald-500';

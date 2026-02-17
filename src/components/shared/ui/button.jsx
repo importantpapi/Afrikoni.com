@@ -2,28 +2,28 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-const Button = React.forwardRef(({ 
-  className, 
-  variant = 'primary', 
-  size = 'md', 
+const Button = React.forwardRef(({
+  className,
+  variant = 'primary',
+  size = 'md',
   leftIcon: LeftIcon,
   rightIcon: RightIcon,
   children,
   asChild = false,
-  ...props 
+  ...props
 }, ref) => {
   const variants = {
-    primary: 'bg-os-accent text-afrikoni-chestnut hover:bg-os-accentLight shadow-os-gold hover:shadow-os-gold-lg rounded-[0.6rem]',
-    secondary: 'bg-transparent text-os-accent border-[1.5px] border-os-accent hover:bg-os-accentLight/20 hover:shadow-[0_0_10px_rgba(198,154,71,0.4)] rounded-[0.6rem]',
+    primary: 'bg-os-accent text-afrikoni-deep hover:bg-afrikoni-gold-crest shadow-os-gold hover:shadow-os-md rounded-os-md',
+    secondary: 'bg-transparent text-os-accent border-[1.5px] border-os-accent hover:bg-os-accent/5 hover:shadow-os-sm rounded-os-md',
     ghost: 'hover:bg-afrikoni-cream/50 text-afrikoni-deep',
-    link: 'text-os-accent hover:text-os-accentLight hover:underline p-0'
+    link: 'text-os-accent hover:text-os-accent/80 hover:underline p-0'
   };
-  
+
   const sizes = {
-    sm: 'h-9 sm:h-9 min-h-[44px] sm:min-h-0 px-3 text-os-sm rounded-[0.6rem] touch-manipulation',
-    md: 'h-10 sm:h-10 min-h-[44px] sm:min-h-0 px-4 py-2 rounded-[0.6rem] touch-manipulation',
-    lg: 'h-11 sm:h-11 min-h-[44px] sm:min-h-0 px-8 text-os-base rounded-[0.6rem] touch-manipulation',
-    icon: 'h-10 w-10 sm:h-10 sm:w-10 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 rounded-[0.6rem] touch-manipulation'
+    sm: 'h-9 sm:h-9 min-h-[44px] sm:min-h-0 px-3 text-os-sm rounded-os-md touch-manipulation',
+    md: 'h-10 sm:h-10 min-h-[44px] sm:min-h-0 px-4 py-2 rounded-os-md touch-manipulation',
+    lg: 'h-11 sm:h-11 min-h-[44px] sm:min-h-0 px-8 text-os-base rounded-os-md touch-manipulation',
+    icon: 'h-10 w-10 sm:h-10 sm:w-10 min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 rounded-os-md touch-manipulation'
   };
 
   const buttonContent = (

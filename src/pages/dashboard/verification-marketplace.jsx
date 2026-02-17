@@ -335,7 +335,7 @@ function VerificationMarketplaceInner() {
                 <Button
                   onClick={handlePurchase}
                   disabled={isProcessing || hasExistingPurchase}
-                  className="w-full bg-[#D4AF37] hover:bg-[#C5A028] text-black font-bold h-12 shadow-os-md hover:shadow-os-lg transition-all"
+                  className="w-full bg-os-accent hover:bg-[#C5A028] text-black font-bold h-12 shadow-os-md hover:shadow-os-lg transition-all"
                 >
                   {isProcessing ? (
                     'Processing...'

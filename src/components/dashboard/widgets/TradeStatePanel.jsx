@@ -17,7 +17,7 @@ export const TradeStatePanel = ({ label, value, subtext, icon: Icon, tone = 'neu
         w-8 h-8 rounded-lg flex items-center justify-center
         ${tone === 'good' ? 'bg-emerald-500/20 text-emerald-500' :
                     tone === 'bad' ? 'bg-red-500/20 text-os-red' :
-                        'bg-[#D4A937]/20 text-[#D4A937]'}
+                        'bg-os-accent/20 text-os-accent'}
       `}>
                 <Icon className="w-4 h-4" />
             </div>
@@ -28,13 +28,13 @@ export const TradeStatePanel = ({ label, value, subtext, icon: Icon, tone = 'neu
             <div className="text-os-2xl font-bold tracking-tight text-afrikoni-deep font-mono">
                 {value}
             </div>
-            <div className="text-os-xs uppercase tracking-wider font-semibold text-gray-600 mt-1">
+            <div className="text-os-xs uppercase tracking-wider font-semibold text-os-text-secondary mt-1">
                 {label}
             </div>
         </div>
 
         {subtext && (
-            <div className="z-10 text-os-xs text-gray-500 font-mono mt-2 border-t border-os-accent/10 pt-2 flex items-center gap-1">
+            <div className="z-10 text-os-xs text-os-text-secondary font-mono mt-2 border-t border-os-accent/10 pt-2 flex items-center gap-1">
                 {subtext}
             </div>
         )}

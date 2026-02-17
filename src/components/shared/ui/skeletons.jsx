@@ -66,7 +66,12 @@ export function CardSkeleton({ count = 3 }) {
           <CardContent className="p-5 md:p-6">
             <Skeleton className="h-6 w-3/4 mb-4" />
             <Skeleton className="h-4 w-full mb-2" />
-            <Skeleton className="h-4 w-2/3" />
+            <Skeleton className="h-4 w-5/6 mb-2" />
+            <Skeleton className="h-4 w-2/3 mb-4" />
+            <div className="flex justify-between items-center mt-4">
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-8 w-24 rounded-lg" />
+            </div>
           </CardContent>
         </Card>
       ))}

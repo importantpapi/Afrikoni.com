@@ -111,7 +111,7 @@ function TeamMembersInner() {
     try {
       // ✅ STALE-WHILE-REVALIDATE: Only set loading on first load
       // During background refresh, keep existing data visible
-      if (members.length === 0 && invitations.length === 0) {
+      if (teamMembers.length === 0) {
         setIsLoading(true);
       }
       setError(null);
@@ -322,7 +322,7 @@ function TeamMembersInner() {
 
   // ✅ STALE-WHILE-REVALIDATE: Only show skeleton on first load
   // If we have members data, keep showing it during background refresh
-  if (isLoading && members.length === 0 && invitations.length === 0) {
+  if (isLoading && teamMembers.length === 0) {
     return <CardSkeleton count={3} />;
   }
 
@@ -559,7 +559,7 @@ function TeamMembersInner() {
                   type="email"
                   value={inviteForm.email}
                   onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
-                  placeholder="team.member@example.com"
+                  placeholder="team.member@afrikoni.com"
                 />
               </div>
               <div>

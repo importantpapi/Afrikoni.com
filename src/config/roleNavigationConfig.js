@@ -30,7 +30,7 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
                 },
                 (isBuyer || isSeller) && {
                     id: 'rfqs',
-                    label: isSeller ? "Find Buyers" : "My Requests",
+                    label: isSeller ? "Buyer Requests" : "My Requests",
                     path: isSeller ? "/dashboard/supplier-rfqs" : "/dashboard/rfqs",
                     icon: FileText,
                     badge: notificationCounts.rfqs || 0,
@@ -98,7 +98,7 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
         {
             id: 'pay',
             divider: true,
-            label: 'Treasury',
+            label: 'Payments',
             items: [
                 {
                     id: 'finance',
@@ -119,7 +119,7 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
         {
             id: 'trust',
             divider: true,
-            label: 'Integrity',
+            label: 'Verification',
             items: [
                 {
                     id: 'trust-center',

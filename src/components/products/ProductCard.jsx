@@ -1,21 +1,20 @@
 /**
  * Product Card Component
- * Redesigned for Afrikoni UX Upgrade (Phase 1.4)
- * Mobile: 2 columns, Desktop: 4 columns
- * Edge-to-edge images, verified badge, country flag overlays
+ * Redesigned for Afrikoni LUXE 2026 (Phase 2.0)
+ * "Hermes Craftsmanship meets Apple Precision"
  */
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Shield, MapPin, Package, Zap, Truck, Check } from 'lucide-react';
+import { ShieldCheck, Package, Clock, Award, MoveRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/shared/ui/card';
 import OptimizedImage from '@/components/OptimizedImage';
 import { getPrimaryImageFromProduct } from '@/utils/productImages';
 import Price from '@/components/shared/ui/Price';
-import VerificationBadge from '@/components/shared/ui/VerificationBadge';
+import SaveButton from '@/components/shared/ui/SaveButton';
 import { cn } from '@/lib/utils';
 
-// Country name to flag mapping
+// Country name to flag mapping (retained for contextual intelligence)
 const COUNTRY_FLAGS = {
   'Nigeria': '🇳🇬', 'Kenya': '🇰🇪', 'Ghana': '🇬🇭', 'South Africa': '🇿🇦',
   'Ethiopia': '🇪🇹', 'Tanzania': '🇹🇿', 'Uganda': '🇺🇬', 'Egypt': '🇪🇬',
@@ -33,106 +32,152 @@ const COUNTRY_FLAGS = {
   'Eswatini': '🇸🇿', 'South Sudan': '🇸🇸', 'Angola': '🇦🇴'
 };
 
-const getCountryFlag = (countryName) => {
-  if (!countryName) return '';
-  return COUNTRY_FLAGS[countryName] || '';
+const getCountryFlagEmoji = (name) => {
+  if (!name) return '🌍';
+  const mapping = {
+    'Nigeria': '🇳🇬', 'Kenya': '🇰🇪', 'Ghana': '🇬🇭', 'South Africa': '🇿🇦',
+    'Ethiopia': '🇪🇹', 'Tanzania': '🇹🇿', 'Uganda': '🇺🇬', 'Egypt': '🇪🇬',
+    'Morocco': '🇲🇦', 'Algeria': '🇩🇿', 'Tunisia': '🇹🇳', 'Senegal': '🇸🇳',
+    "Côte d'Ivoire": '🇨🇮', 'Ivory Coast': '🇨🇮', 'Cameroon': '🇨🇲', 'Zimbabwe': '🇿🇼',
+    'Mozambique': '🇲🇿', 'Madagascar': '🇲🇬', 'Mali': '🇲🇱', 'Burkina Faso': '🇧🇫',
+    'Niger': '🇳🇪', 'Rwanda': '🇷🇼', 'Benin': '🇧🇯', 'Guinea': '🇬🇳', 'Chad': '🇹🇩',
+    'Zambia': '🇿🇲', 'Malawi': '🇲🇼', 'Somalia': '🇸🇴', 'Burundi': '🇧🇮',
+    'Togo': '🇹🇬', 'Sierra Leone': '🇸🇱', 'Libya': '🇱🇾', 'Mauritania': '🇲🇷',
+    'Eritrea': '🇪🇷', 'Gambia': '🇬🇲', 'Botswana': '🇧🇼', 'Namibia': '🇳🇦',
+    'Gabon': '🇬🇦', 'Lesotho': '🇱🇸', 'Guinea-Bissau': '🇬🇼', 'Liberia': '🇱🇷',
+    'Central African Republic': '🇨🇫', 'Congo': '🇨🇬', 'DR Congo': '🇨🇩',
+    'São Tomé and Príncipe': '🇸🇹', 'Seychelles': '🇸🇨', 'Cape Verde': '🇨🇻',
+    'Comoros': '🇰🇲', 'Mauritius': '🇲🇺', 'Equatorial Guinea': '🇬🇶',
+    'Eswatini': '🇸🇿', 'South Sudan': '🇸🇸', 'Angola': '🇦🇴'
+  };
+  return mapping[name] || '🌍';
 };
 
 export default function ProductCard({ product, priority = false }) {
   const imageUrl = getPrimaryImageFromProduct(product);
-  const countryName = product.country_of_origin || product.companies?.country || '';
-  const flag = getCountryFlag(countryName);
-  const verificationStatus = product.companies?.verification_status || 'unverified';
-  const isVerified = verificationStatus === 'verified' || verificationStatus === 'VERIFIED';
+
+  // Resolve country with fallback to company data
+  const countryName = product.country_of_origin || product.company_country || product.companies?.country || '';
+  const flag = getCountryFlagEmoji(countryName);
+  const isVerified = !!(product.companies?.verified || product.companies?.verification_status === 'verified' || product.companies?.verification_status === 'VERIFIED');
 
   // Format MOQ
   const moqDisplay = product.min_order_quantity
-    ? `MOQ: ${product.min_order_quantity} ${product.moq_unit || product.unit || 'units'}`
+    ? `${product.min_order_quantity} ${product.moq_unit || product.unit || 'units'}`
     : product.moq
-      ? `MOQ: ${product.moq} ${product.unit || 'units'}`
-      : 'MOQ: Contact supplier';
+      ? `${product.moq} ${product.unit || 'units'}`
+      : 'Contact supplier';
 
   return (
     <Link
-      to={`/product?id=${product.id}`}
+      to={`/product/${product.id}`}
       className="block h-full group"
     >
-      <Card className="border-none bg-gradient-to-br from-afrikoni-ivory to-white overflow-hidden transition-all duration-300 hover:shadow-[0_16px_40px_rgba(0,0,0,0.12)] hover:-translate-y-1 rounded-2xl relative shadow-[0_4px_16px_rgba(0,0,0,0.08)] h-full flex flex-col">
-        {/* IMAGE ZONE - Visual First (Premium Luxury) */}
-        <div className="relative h-48 overflow-hidden rounded-t-2xl bg-gradient-to-br from-afrikoni-ivory/30 to-afrikoni-warm-beige/20">
-          {imageUrl ? (
-            <>
-              <OptimizedImage
-                src={imageUrl}
-                alt={product.name || product.title || 'Product'}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                width={400}
-                height={300}
-                priority={priority}
-                quality={95}
-              />
-              <div className="absolute inset-0 bg-black/5" />
-            </>
-          ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-afrikoni-ivory/50 to-afrikoni-warm-beige/30 relative overflow-hidden">
-              <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjciIG51bU9jdGF2ZXM9IjQiLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsdGVyPSJ1cmwoI24pIiBvcGFjaXR5PSIuNSIvPjwvc3ZnPg==')]" />
-              <Package className="w-12 h-12 text-os-accent/30 mb-3 relative z-10" />
-              <p className="text-xs font-semibold text-os-text-secondary/40 relative z-10">Product Image Pending</p>
+      <Card className="border border-os-stroke bg-os-bg overflow-hidden transition-all duration-500 hover:shadow-os-lg rounded-[20px] relative h-full flex flex-col">
+        {/* IMAGE ZONE - Luxury Framing (Hermes Style) */}
+        <div className="relative aspect-[4/5] overflow-hidden bg-os-surface-solid">
+          {/* Save Button Overlay */}
+          <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <SaveButton itemId={product.id} itemType="product" className="bg-os-surface-solid/90 backdrop-blur-md border-none shadow-sm" />
+          </div>
+
+          {/* Verification Badge - Simple & Premium */}
+          {isVerified && (
+            <div className="absolute top-4 left-4 z-10">
+              <div className="flex items-center gap-2 bg-os-accent px-3 py-1.5 rounded-full shadow-lg">
+                <ShieldCheck className="w-3.5 h-3.5 text-[#1A1512]" />
+                <span className="text-[10px] font-black tracking-widest text-[#1A1512] uppercase">Verified</span>
+              </div>
             </div>
           )}
+
+          {imageUrl ? (
+            <OptimizedImage
+              src={imageUrl}
+              alt={product.name || product.title || 'Product'}
+              className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+              width={400}
+              height={500}
+              priority={priority}
+              quality={95}
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center relative overflow-hidden">
+              <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjciIG51bU9jdGF2ZXM9IjQiLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsdGVyPSJ1cmwoI24pIiBvcGFjaXR5PSIuNSIvPjwvc3ZnPg==')]" />
+              <Package className="w-10 h-10 text-os-text-secondary/20 mb-2 relative z-10" />
+              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-os-text-secondary/40 relative z-10">
+                Sourcing Original Imagery
+              </p>
+            </div>
+          )}
+
+          {/* Luxury Gradient Overlay (Bottom) */}
+          <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-[#221A15]/5 to-transparent pointer-events-none" />
         </div>
 
         {/* CONTENT ZONE - Premium Hierarchy */}
-        <CardContent className="p-5 flex flex-col flex-1 bg-transparent">
-          {/* Trust Layer - Always Visible (Luxury Differentiator) */}
-          <div className="flex items-center gap-2 text-xs text-os-text-secondary mb-3">
-            {isVerified && (
-              <>
-                <div className="flex items-center gap-1">
-                  <div className="w-3.5 h-3.5 bg-os-accent/10 rounded-full flex items-center justify-center border border-os-accent/30">
-                    <Check className="w-2 h-2 text-os-accent" />
-                  </div>
-                  <span className="text-[10px] font-semibold text-os-accent">Verified</span>
-                </div>
-                <span>•</span>
-              </>
-            )}
-            <span className="flex items-center gap-1">
-              {flag && <span>{flag}</span>}
-              <span className="text-[10px] font-medium">{countryName || 'Africa'}</span>
-            </span>
+        <CardContent className="p-5 flex flex-col flex-1 h-[180px]">
+          {/* Origin & Meta Layer */}
+          <div className="flex items-center justify-between mb-2 h-4">
+            <div className="flex items-center gap-2 text-[10px] font-black text-os-text-secondary uppercase tracking-[0.2em] opacity-60">
+              <span className="text-14 grayscale-[0.2] group-hover:grayscale-0 transition-all">{flag}</span>
+              {countryName ? (
+                <span className="truncate max-w-[120px]">Origin: {countryName}</span>
+              ) : (
+                <span className="text-os-accent/70 italic">Verification Pending</span>
+              )}
+            </div>
           </div>
 
           {/* Product Identity */}
-          <h3 className="text-lg font-semibold tracking-tight text-os-text-primary line-clamp-2 mb-1 leading-tight">
-            {product.name || product.title}
+          <h3 className="text-16 font-semibold tracking-tight text-os-text-primary line-clamp-2 mb-3 h-10 leading-snug group-hover:text-os-accent transition-colors duration-300 uppercase">
+            {product.name || product.title || 'Premium Sourcing'}
           </h3>
 
-          {/* Trade Meta */}
-          <div className="mt-auto pt-3 space-y-2">
-            {product.price_min || product.price ? (
-              <div className="flex items-baseline gap-1">
-                <span className="text-[10px] font-medium text-os-text-secondary">From</span>
-                <Price
-                  amount={product.price_min || product.price}
-                  fromCurrency={product.currency || 'USD'}
-                  unit={product.unit || 'kg'}
-                  className="text-base font-semibold text-os-text-primary"
-                />
+          {/* Trade Intelligence (Compact) */}
+          <div className="flex flex-wrap gap-1.5 mb-4 h-9 overflow-hidden">
+            {product.lead_time_min_days && (
+              <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-os-stroke/20 rounded-md text-[9px] font-bold uppercase text-os-text-secondary tracking-wider">
+                <Clock className="w-3 h-3 text-os-accent/70" />
+                <span>{product.lead_time_min_days}-{product.lead_time_max_days}D Delivery</span>
               </div>
-            ) : (
-              <span className="text-sm font-semibold text-os-accent">Request Quote</span>
             )}
+            {product.certifications && product.certifications.length > 0 && (
+              <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-os-accent/5 border border-os-accent/10 rounded-md text-[9px] font-bold uppercase text-os-accent tracking-wider">
+                <Award className="w-3 h-3" />
+                <span>{product.certifications[0]}</span>
+              </div>
+            )}
+            <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-green-500/5 border border-green-500/10 rounded-md text-[9px] font-bold uppercase text-green-600 tracking-wider">
+              <ShieldCheck className="w-3 h-3" />
+              <span>Protected Trade</span>
+            </div>
+          </div>
 
-            <p className="text-[10px] uppercase tracking-wide text-os-text-secondary">
-              {moqDisplay}
-            </p>
+          {/* Price & Action Layer */}
+          <div className="mt-auto pt-4 border-t border-os-stroke/40 flex items-center justify-between">
+            <div className="flex flex-col">
+              {product.price_min || product.price ? (
+                <>
+                  <div className="flex items-baseline gap-1">
+                    <Price
+                      amount={product.price_min || product.price}
+                      fromCurrency={product.currency || 'USD'}
+                      unit={product.unit || 'kg'}
+                      className="text-18 font-bold text-os-text-primary tracking-tight"
+                    />
+                  </div>
+                  <span className="text-[10px] text-os-text-secondary font-bold uppercase tracking-[0.1em]">
+                    MOQ: {moqDisplay}
+                  </span>
+                </>
+              ) : (
+                <span className="text-12 font-black text-os-accent uppercase tracking-[0.15em]">Direct Quote Only</span>
+              )}
+            </div>
 
-            {/* Primary Action - Subtle Luxury */}
-            <div className="pt-3 mt-3 border-t border-os-stroke/30">
-              <span className="inline-flex items-center gap-2 text-sm font-semibold text-os-accent group-hover:underline transition-all">
-                View Producer →
-              </span>
+            <div className="w-10 h-10 rounded-full bg-os-surface-solid border border-os-stroke flex items-center justify-center shadow-sm group-hover:bg-os-accent group-hover:border-os-accent group-hover:text-[#221A15] transition-all duration-500">
+              <MoveRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
             </div>
           </div>
         </CardContent>

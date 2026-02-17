@@ -1,16 +1,25 @@
 import { toast } from 'sonner';
-
-const OPENAI_BASE_URL =
-  import.meta.env.VITE_OPENAI_API_BASE_URL || 'https://api.openai.com/v1';
+import { supabase } from '@/api/supabaseClient';
 
 /**
  * Core AI client for Afrikoni.
+ *
+ * ✅ SECURITY FIX (ZONE 1): OpenAI API calls now go through Edge Function
+ * - API key secured on server-side (not exposed in frontend bundle)
+ * - JWT authentication (only logged-in users can call)
+ * - Rate limiting (20 requests/minute per user)
+ * - Content filtering (blocks prompt injection attacks)
+ * - Cost tracking (logs usage for billing)
  *
  * All AI calls should go through this helper so we have:
  * - centralized error handling
  * - consistent prompts
  * - easy swapping of providers if needed
  */
+
+// Edge Function URL for OpenAI proxy
+const EDGE_FUNCTION_BASE = import.meta.env.VITE_SUPABASE_URL + '/functions/v1';
+const OPENAI_PROXY_URL = `${EDGE_FUNCTION_BASE}/openai-proxy`;
 
 async function safeFetch(url, options) {
   try {
@@ -37,14 +46,14 @@ export async function callChat({
   temperature = 0.4,
   maxTokens = 768
 }) {
-  const apiKey = import.meta.env.VITE_OPENAI_API_KEY;
-
-  if (!apiKey) {
+  // ✅ SECURITY: Get user session token for Edge Function authentication
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  if (!session?.access_token) {
     if (import.meta.env.DEV) {
-      // eslint-disable-next-line no-console
-      console.warn('VITE_OPENAI_API_KEY is not set. AI features are disabled.');
+      console.warn('[AI Client] No active session. User must be logged in to use AI features.');
     }
-    return { success: false, content: null, raw: null, error: new Error('Missing API key') };
+    return { success: false, content: null, raw: null, error: new Error('Authentication required') };
   }
 
   const finalMessages = [];
@@ -66,11 +75,12 @@ export async function callChat({
     max_tokens: maxTokens
   };
 
-  const json = await safeFetch(`${OPENAI_BASE_URL}/chat/completions`, {
+  // ✅ SECURITY: Call Edge Function instead of OpenAI directly
+  const json = await safeFetch(OPENAI_PROXY_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`
+      'Authorization': `Bearer ${session.access_token}` // JWT token for auth
     },
     body: JSON.stringify(body)
   });

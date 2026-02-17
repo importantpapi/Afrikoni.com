@@ -34,7 +34,7 @@ export function OSDrawer({ open, onClose, title, widthClassName, children }: OSD
             transition={{ type: 'spring', stiffness: 300, damping: 30 }}
             className={cn(
               'fixed top-0 right-0 h-full',
-              'bg-[#FDFBF7]', // Warm ivory - fully opaque
+              'bg-os-bg', // Warm ivory - fully opaque
               'border-l border-os-accent/20',
               'shadow-[-8px_0_40px_rgba(0,0,0,0.12)]', // Premium left shadow
               'rounded-l-[28px]', // Soft rounded left edge

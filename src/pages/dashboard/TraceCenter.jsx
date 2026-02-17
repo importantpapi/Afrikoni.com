@@ -51,7 +51,7 @@ export default function TraceCenter() {
                     <div className="flex justify-between items-start mb-6">
                         <div>
                             <div className="flex items-center gap-2 mb-2">
-                                <Badge variant="outline" className="border-os-accent/30 text-gray-600 font-mono tracking-widest text-os-xs uppercase">
+                                <Badge variant="outline" className="border-os-accent/30 text-os-text-secondary font-mono tracking-widest text-os-xs uppercase">
                                     Trace ID: {state.tradeId || 'INITIALIZING...'}
                                 </Badge>
                                 {state.status === 'active' && (
@@ -72,7 +72,7 @@ export default function TraceCenter() {
                                 <Shield className="w-5 h-5" />
                             </div>
                             <div>
-                                <p className="text-os-xs text-gray-600 uppercase tracking-widest">Trust Score</p>
+                                <p className="text-os-xs text-os-text-secondary uppercase tracking-widest">Trust Score</p>
                                 <p className={`text-os-lg font-bold font-mono ${logistics.riskScore > 50 ? 'text-red-400' : 'text-emerald-400'}`}>
                                     {100 - logistics.riskScore}/100
                                 </p>
@@ -107,12 +107,12 @@ export default function TraceCenter() {
                     {/* FX Snapshot */}
                     <div className="flex items-center gap-6 mt-6 ml-2 p-3 rounded-lg bg-afrikoni-cream/20 w-fit backdrop-blur-sm border border-os-accent/10">
                         <div className="flex items-center gap-2">
-                            <span className="text-gray-600 text-os-xs">PIVOT CURRENCY</span>
+                            <span className="text-os-text-secondary text-os-xs">PIVOT CURRENCY</span>
                             <span className="text-afrikoni-deep font-mono font-bold">USD</span>
                         </div>
                         <div className="w-px h-4 bg-os-accent/20" />
                         <div className="flex items-center gap-2">
-                            <span className="text-gray-600 text-os-xs">{(financials?.localCurrency || 'LOCAL')} RATE</span>
+                            <span className="text-os-text-secondary text-os-xs">{(financials?.localCurrency || 'LOCAL')} RATE</span>
                             <span className="text-os-accent font-mono">₦{(financials?.exchangeRate || 0).toFixed(2)}</span>
                         </div>
                     </div>

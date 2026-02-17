@@ -37,7 +37,7 @@ const SystemIndicator = ({ icon: Icon, label, status, value, onClick }) => {
             onClick={onClick}
             className={cn(
                 "flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all backdrop-blur-sm",
-                statusColors[status] || 'text-gray-600 bg-gray-50/50 border-gray-200/50'
+                statusColors[status] || 'text-os-text-secondary bg-os-surface-solid border-os-stroke'
             )}
         >
             <Icon className="w-3.5 h-3.5" />
@@ -70,7 +70,7 @@ export const TradeReadinessBar = ({ systemState }) => {
             'Action Required';
 
     return (
-        <div className="w-full h-14 flex items-center px-3 md:px-6 gap-3 md:gap-6 sticky top-0 z-[60] bg-white/80 dark:bg-[#0A0A0A]/80 backdrop-blur-xl border-b border-os-accent/10">
+        <div className="w-full h-14 flex items-center px-3 md:px-6 gap-3 md:gap-6 sticky top-0 z-[60] bg-[var(--os-surface)] backdrop-blur-xl border-b border-os-stroke transition-colors">
             {/* Trade Readiness Score */}
             <div className="flex items-center gap-2 md:gap-3 flex-shrink-0">
                 <div className="relative w-8 h-8 md:w-10 md:h-10">
@@ -78,14 +78,14 @@ export const TradeReadinessBar = ({ systemState }) => {
                     <svg className="w-8 h-8 md:w-10 md:h-10 transform -rotate-90">
                         <circle
                             cx="16" cy="16" r="13"
-                            className="md:hidden text-gray-200"
+                            className="md:hidden text-os-stroke"
                             stroke="currentColor"
                             strokeWidth="2.5"
                             fill="none"
                         />
                         <circle
                             cx="20" cy="20" r="16"
-                            className="hidden md:block text-gray-200"
+                            className="hidden md:block text-os-stroke"
                             stroke="currentColor"
                             strokeWidth="3"
                             fill="none"
@@ -108,17 +108,17 @@ export const TradeReadinessBar = ({ systemState }) => {
                         />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-os-xs md:text-os-xs font-bold text-afrikoni-deep">
+                        <span className="text-os-xs md:text-os-xs font-bold text-os-text-primary">
                             {score}
                         </span>
                     </div>
                 </div>
 
                 <div className="hidden md:block">
-                    <div className="text-os-xs md:text-os-xs font-bold text-afrikoni-deep">
+                    <div className="text-os-xs md:text-os-xs font-bold text-os-text-primary">
                         Readiness
                     </div>
-                    <div className="text-os-xs md:text-os-xs text-gray-500 whitespace-nowrap">
+                    <div className="text-os-xs md:text-os-xs text-os-text-secondary whitespace-nowrap">
                         {statusText}
                     </div>
                 </div>

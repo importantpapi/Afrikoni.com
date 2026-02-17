@@ -60,12 +60,12 @@ export function LiteModeToggle({ className }) {
             <div className="flex items-center gap-2 flex-1">
                 <div className={cn(
                     "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-                    interfaceMode === 'simple' ? "bg-emerald-500/20" : "bg-[#D4A937]/20"
+                    interfaceMode === 'simple' ? "bg-emerald-500/20" : "bg-os-accent/20"
                 )}>
                     {interfaceMode === 'simple' ? (
                         <Sparkles className="w-4 h-4 text-emerald-400" />
                     ) : (
-                        <Zap className="w-4 h-4 text-[#D4A937]" />
+                        <Zap className="w-4 h-4 text-os-accent" />
                     )}
                 </div>
                 <div className="flex-1">
@@ -80,7 +80,7 @@ export function LiteModeToggle({ className }) {
             <Switch
                 checked={interfaceMode !== 'simple'}
                 onCheckedChange={() => toggleInterfaceMode()}
-                className="data-[state=checked]:bg-[#D4A937]"
+                className="data-[state=checked]:bg-os-accent"
             />
         </div>
     );

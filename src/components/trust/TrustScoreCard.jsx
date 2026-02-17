@@ -31,7 +31,7 @@ export default function TrustScoreCard({ trustData }) {
                     <div key={pillar.label} className="space-y-1">
                         <div className="flex justify-between text-os-xs">
                             <span className="flex items-center gap-1.5 text-white/80">
-                                <pillar.icon className="w-3 h-3 text-[#D4A937]" />
+                                <pillar.icon className="w-3 h-3 text-os-accent" />
                                 {pillar.label}
                             </span>
                             <span className="font-mono text-white/60">
@@ -41,7 +41,7 @@ export default function TrustScoreCard({ trustData }) {
                         {/* Progress Bar */}
                         <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
                             <div
-                                className="h-full bg-gradient-to-r from-[#D4A937]/50 to-[#D4A937] rounded-full"
+                                className="h-full bg-gradient-to-r from-os-accent/50 to-os-accent rounded-full"
                                 style={{ width: `${(pillar.score / pillar.max) * 100}%` }}
                             />
                         </div>

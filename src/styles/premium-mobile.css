@@ -1,4 +1,4 @@
-re /**
+/**
  * AFRIKONI PREMIUM MOBILE UX
  * Apple x Hermès level micro-interactions
  * 2026 OS-grade polish
@@ -16,6 +16,7 @@ re /**
 
 /* All interactive elements should feel "soft" on mobile */
 @media (max-width: 768px) {
+
   button,
   a[role="button"],
   [role="button"],
@@ -25,8 +26,8 @@ re /**
     touch-action: manipulation;
     user-select: none;
     transition: transform 140ms cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 140ms cubic-bezier(0.4, 0, 0.2, 1),
-                background-color 140ms cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow 140ms cubic-bezier(0.4, 0, 0.2, 1),
+      background-color 140ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* Active state: soft press-down feel */
@@ -62,13 +63,14 @@ nav[class*="fixed"][class*="top-0"] {
 
 /* Search input focus ring (Hermès gold glow) */
 @media (max-width: 768px) {
+
   input[type="text"]:focus,
   input[type="search"]:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(217, 156, 85, 0.15);
-    border-color: rgba(217, 156, 85, 0.5);
+    box-shadow: 0 0 0 3px rgba(197, 160, 55, 0.15);
+    border-color: rgba(197, 160, 55, 0.5);
     transition: box-shadow 160ms cubic-bezier(0.4, 0, 0.2, 1),
-                border-color 160ms cubic-bezier(0.4, 0, 0.2, 1);
+      border-color 160ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* Search bar elevation on focus */
@@ -83,6 +85,7 @@ nav[class*="fixed"][class*="top-0"] {
    =================================== */
 
 @media (max-width: 768px) {
+
   /* Bottom nav blur */
   nav[class*="bottom-0"] {
     backdrop-filter: blur(20px) saturate(180%);
@@ -91,7 +94,7 @@ nav[class*="fixed"][class*="top-0"] {
 
   /* Active nav item elevation */
   nav[class*="bottom-0"] a[class*="bg-os-accent"] {
-    box-shadow: 0 2px 8px rgba(217, 156, 85, 0.2);
+    box-shadow: 0 2px 8px rgba(197, 160, 55, 0.2);
   }
 
   /* Nav item press feedback */
@@ -114,13 +117,14 @@ nav[class*="fixed"][class*="top-0"] {
 
 /* Card press feedback on mobile */
 @media (max-width: 768px) {
-  a > div[class*="Card"],
-  button > div[class*="Card"] {
+
+  a>div[class*="Card"],
+  button>div[class*="Card"] {
     transition: transform 140ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
-  a:active > div[class*="Card"],
-  button:active > div[class*="Card"] {
+  a:active>div[class*="Card"],
+  button:active>div[class*="Card"] {
     transform: scale(0.98);
   }
 }
@@ -130,6 +134,7 @@ nav[class*="fixed"][class*="top-0"] {
    =================================== */
 
 @media (max-width: 768px) {
+
   /* All text inputs should have minimum 44px height (Apple guideline) */
   input[type="text"],
   input[type="email"],
@@ -139,7 +144,8 @@ nav[class*="fixed"][class*="top-0"] {
   textarea,
   select {
     min-height: 44px;
-    font-size: 16px; /* Prevents zoom on iOS */
+    font-size: 16px;
+    /* Prevents zoom on iOS */
   }
 
   /* Input focus: calm gold glow */
@@ -147,8 +153,8 @@ nav[class*="fixed"][class*="top-0"] {
   textarea:focus,
   select:focus {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(217, 156, 85, 0.15);
-    border-color: rgba(217, 156, 85, 0.5);
+    box-shadow: 0 0 0 3px rgba(197, 160, 55, 0.15);
+    border-color: rgba(197, 160, 55, 0.5);
     transition: box-shadow 160ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
@@ -175,7 +181,7 @@ nav[class*="fixed"][class*="top-0"] {
     scroll-behavior: smooth;
   }
 
-  .snap-scroll > * {
+  .snap-scroll>* {
     scroll-snap-align: center;
   }
 }
@@ -185,6 +191,7 @@ nav[class*="fixed"][class*="top-0"] {
    =================================== */
 
 @media (max-width: 768px) {
+
   /* Modal backdrop blur */
   [role="dialog"]::backdrop,
   .modal-backdrop {
@@ -202,6 +209,7 @@ nav[class*="fixed"][class*="top-0"] {
       transform: translateY(100%);
       opacity: 0;
     }
+
     to {
       transform: translateY(0);
       opacity: 1;
@@ -234,7 +242,7 @@ nav[class*="fixed"][class*="top-0"] {
 
 /* Empty product image fallback */
 .product-image-empty {
-  background: linear-gradient(135deg, rgba(217, 156, 85, 0.05) 0%, rgba(217, 156, 85, 0.02) 100%);
+  background: linear-gradient(135deg, rgba(197, 160, 55, 0.05) 0%, rgba(197, 160, 55, 0.02) 100%);
   position: relative;
   overflow: hidden;
 }
@@ -252,14 +260,13 @@ nav[class*="fixed"][class*="top-0"] {
    =================================== */
 
 @media (max-width: 768px) {
+
   /* Skeleton shimmer effect */
   .skeleton {
-    background: linear-gradient(
-      90deg,
-      rgba(217, 156, 85, 0.05) 0%,
-      rgba(217, 156, 85, 0.1) 50%,
-      rgba(217, 156, 85, 0.05) 100%
-    );
+    background: linear-gradient(90deg,
+        rgba(197, 160, 55, 0.05) 0%,
+        rgba(197, 160, 55, 0.1) 50%,
+        rgba(197, 160, 55, 0.05) 100%);
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
   }
@@ -268,6 +275,7 @@ nav[class*="fixed"][class*="top-0"] {
     0% {
       background-position: -200% 0;
     }
+
     100% {
       background-position: 200% 0;
     }
@@ -294,7 +302,12 @@ nav[class*="fixed"][class*="top-0"] {
   }
 
   /* Headings: tight tracking for luxury feel */
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     letter-spacing: -0.02em;
     font-feature-settings: 'kern' 1;
   }
@@ -331,7 +344,7 @@ nav[class*="fixed"][class*="top-0"] {
 
 /* Custom focus ring (gold, luxury) */
 *:focus-visible {
-  outline: 2px solid rgba(217, 156, 85, 0.6);
+  outline: 2px solid rgba(197, 160, 55, 0.6);
   outline-offset: 2px;
   border-radius: 0.375rem;
 }
@@ -346,14 +359,14 @@ nav[class*="fixed"][class*="top-0"] {
    =================================== */
 
 .shadow-premium {
-  box-shadow: 
+  box-shadow:
     0 1px 3px rgba(0, 0, 0, 0.04),
     0 4px 12px rgba(0, 0, 0, 0.06),
     0 16px 24px rgba(0, 0, 0, 0.08);
 }
 
 .shadow-premium-hover {
-  box-shadow: 
+  box-shadow:
     0 4px 12px rgba(0, 0, 0, 0.06),
     0 16px 32px rgba(0, 0, 0, 0.10),
     0 24px 48px rgba(0, 0, 0, 0.12);
@@ -361,9 +374,9 @@ nav[class*="fixed"][class*="top-0"] {
 
 /* Gold glow for primary actions */
 .shadow-gold-glow {
-  box-shadow: 
-    0 4px 16px rgba(217, 156, 85, 0.15),
-    0 8px 32px rgba(217, 156, 85, 0.10);
+  box-shadow:
+    0 4px 16px rgba(197, 160, 55, 0.15),
+    0 8px 32px rgba(197, 160, 55, 0.10);
 }
 
 /* ===================================
@@ -371,13 +384,16 @@ nav[class*="fixed"][class*="top-0"] {
    =================================== */
 
 @media (max-width: 768px) {
+
   /* Prevent double-tap zoom */
-  button, a {
+  button,
+  a {
     touch-action: manipulation;
   }
 
   /* Prevent text selection on UI elements */
-  button, [role="button"] {
+  button,
+  [role="button"] {
     user-select: none;
     -webkit-user-select: none;
   }
@@ -401,6 +417,7 @@ nav[class*="fixed"][class*="top-0"] {
    =================================== */
 
 @media print {
+
   nav,
   footer,
   .no-print {

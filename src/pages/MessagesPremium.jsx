@@ -86,7 +86,7 @@ export default function MessagesPremium() {
     }
   };
 
-  const createConversationWithRecipient = async (recipientCompanyId, productInfo = null) => {
+  const createConversationWithRecipient = async (recipientCompanyId, context = {}) => {
     if (!companyId || !recipientCompanyId) return;
 
     try {
@@ -102,10 +102,20 @@ export default function MessagesPremium() {
         return;
       }
 
-      // Create subject based on product if available
-      const subject = productInfo?.productTitle
-        ? `Inquiry about ${productInfo.productTitle}`
-        : t('messages.newConversation');
+      // Create subject based on context
+      let subject = t('messages.newConversation');
+      let relatedTo = null;
+      let relatedType = null;
+
+      if (context?.rfqId) {
+        subject = `Regarding RFQ: ${context.productTitle || 'New Request'}`;
+        relatedTo = context.rfqId;
+        relatedType = 'rfq';
+      } else if (context?.productId) {
+        subject = `Inquiry about ${context.productTitle || 'Product'}`;
+        relatedTo = context.productId;
+        relatedType = 'product';
+      }
 
       // Create conversation
       const { data: newConv, error: convError } = await supabase
@@ -114,6 +124,8 @@ export default function MessagesPremium() {
           buyer_company_id: companyId,
           seller_company_id: recipientCompanyId,
           subject: subject,
+          related_to: relatedTo,
+          related_type: relatedType,
           last_message: '',
           last_message_at: new Date().toISOString()
         })
@@ -125,13 +137,13 @@ export default function MessagesPremium() {
       setSelectedConversation(newConv.id);
 
       // If product context exists, generate smart message
-      if (productInfo && productInfo.productId) {
+      if (context?.productId) {
         try {
           // Load product details
           const { data: product } = await supabase
             .from('products')
             .select('*')
-            .eq('id', productInfo.productId)
+            .eq('id', context.productId)
             .single();
 
           if (product) {
@@ -176,15 +188,25 @@ export default function MessagesPremium() {
     const recipientParam = searchParams.get('recipient');
     const productParam = searchParams.get('product');
     const productTitleParam = searchParams.get('productTitle');
+    const rfqParam = searchParams.get('rfq');
 
     // Combine session context with URL params
-    let productInfo = sessionContextRef.current;
+    let context = sessionContextRef.current || {};
 
     // URL params take precedence or serve as fallback
-    if (productParam && productTitleParam) {
-      productInfo = {
+    if (productParam) {
+      context = {
+        ...context,
         productId: productParam,
-        productTitle: decodeURIComponent(productTitleParam)
+        productTitle: decodeURIComponent(productTitleParam || '')
+      };
+    }
+
+    if (rfqParam) {
+      context = {
+        ...context,
+        rfqId: rfqParam,
+        productTitle: decodeURIComponent(productTitleParam || '') // Context title
       };
     }
 
@@ -199,11 +221,11 @@ export default function MessagesPremium() {
       if (existingConv) {
         setSelectedConversation(existingConv.id);
         // Still generate smart message if product context exists
-        if (productInfo && productInfo.productId) {
+        if (context.productId) {
           supabase
             .from('products')
             .select('*')
-            .eq('id', productInfo.productId)
+            .eq('id', context.productId)
             .single()
             .then(({ data: product }) => {
               if (product) {
@@ -213,8 +235,8 @@ export default function MessagesPremium() {
             });
         }
       } else {
-        // Create new conversation with product context
-        createConversationWithRecipient(recipientParam, productInfo);
+        // Create new conversation with context
+        createConversationWithRecipient(recipientParam, context);
       }
     } else if (Array.isArray(conversations) && conversations.length > 0 && !selectedConversation) {
       setSelectedConversation(conversations[0].id);
@@ -906,7 +928,7 @@ export default function MessagesPremium() {
                     <div className="flex items-start gap-4">
                       <div className="relative shrink-0">
                         <div className="w-14 h-14 rounded-os-md bg-os-accent/5 border border-os-stroke flex items-center justify-center overflow-hidden">
-                          {conv.otherCompany?.logo_url ? <img src={conv.otherCompany.logo_url} className="w-full h-full object-cover" alt="" /> : <User className="w-6 h-6 text-os-muted" />}
+                          {conv.otherCompany?.logo_url ? <img src={conv.otherCompany.logo_url} className="w-full h-full object-cover" alt="" width="40" height="40" loading="lazy" /> : <User className="w-6 h-6 text-os-muted" />}
                         </div>
                         {conv.verified && <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-os-accent rounded-lg flex items-center justify-center border-2 border-os-surface-1 shadow-os-md"><ShieldCheck className="w-3 h-3 text-black" /></div>}
                       </div>
@@ -946,7 +968,7 @@ export default function MessagesPremium() {
                     <button onClick={() => setSelectedConversation(null)} className="lg:hidden h-10 w-10 rounded-os-sm bg-os-accent/5 flex items-center justify-center border border-os-stroke"> <ArrowLeft className="w-5 h-5" /> </button>
                     <div className="relative shrink-0">
                       <div className="w-16 h-16 rounded-os-md bg-os-accent/5 border border-os-stroke flex items-center justify-center overflow-hidden">
-                        {selectedConv.otherCompany?.logo_url ? <img src={selectedConv.otherCompany.logo_url} className="w-full h-full object-cover" alt="" /> : <User className="w-8 h-8 text-os-muted" />}
+                        {selectedConv.otherCompany?.logo_url ? <img src={selectedConv.otherCompany.logo_url} className="w-full h-full object-cover" alt="" width="48" height="48" loading="lazy" /> : <User className="w-8 h-8 text-os-muted" />}
                       </div>
                       {selectedConv.verified && <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-os-accent rounded-os-sm flex items-center justify-center border-3 border-os-surface-1 shadow-os-md"> <ShieldCheck className="w-3.5 h-3.5 text-black" /> </div>}
                     </div>

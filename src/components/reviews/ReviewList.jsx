@@ -90,9 +90,8 @@ const ReviewList = React.memo(function ReviewList({ reviews, companies, isSeller
             {[1, 2, 3, 4, 5].map((star) => (
               <Star
                 key={star}
-                className={`w-4 h-4 ${
-                  star <= existingReview.rating ? 'text-amber-500 fill-amber-500' : 'text-gray-300'
-                }`}
+                className={`w-4 h-4 ${star <= existingReview.rating ? 'text-amber-500 fill-amber-500' : 'text-gray-300'
+                  }`}
               />
             ))}
           </div>
@@ -128,7 +127,7 @@ const ReviewList = React.memo(function ReviewList({ reviews, companies, isSeller
         <div className="space-y-4">
           {reviews.map(review => {
             const reviewerCompany = companies?.find(c => c.id === review.reviewer_company_id);
-            const isUserReview = review.reviewer_company_id === userCompanyId;
+            const isUserReview = review.reviewer_company_id === profile?.company_id;
             return (
               <div key={review.id} className={`border-b border-os-accent/20 pb-4 last:border-0 ${isUserReview ? 'bg-os-accent/5 p-4 rounded-lg' : ''}`}>
                 <div className="flex items-start justify-between mb-2">
@@ -143,9 +142,8 @@ const ReviewList = React.memo(function ReviewList({ reviews, companies, isSeller
                       {[1, 2, 3, 4, 5].map((star) => (
                         <Star
                           key={star}
-                          className={`w-4 h-4 ${
-                            star <= review.rating ? 'text-amber-500 fill-amber-500' : 'text-afrikoni-deep/50'
-                          }`}
+                          className={`w-4 h-4 ${star <= review.rating ? 'text-amber-500 fill-amber-500' : 'text-afrikoni-deep/50'
+                            }`}
                         />
                       ))}
                       <span className="ml-2 text-os-xs">

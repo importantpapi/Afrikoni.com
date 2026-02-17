@@ -51,7 +51,7 @@ export default function EscrowWidget({ payment }) {
             ${releasedAmount.toLocaleString()}
           </span>
         </div>
-        <Progress value={releasedPercent} className="h-2 bg-white/10" indicatorClassName="bg-[#D4A937]" />
+        <Progress value={releasedPercent} className="h-2 bg-white/10" indicatorClassName="bg-os-accent" />
         <div className="flex items-center justify-between text-os-xs text-os-muted">
           <span>{releasedPercent.toFixed(0)}% released</span>
           <span>${totalAmount.toLocaleString()} total</span>
