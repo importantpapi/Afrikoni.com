@@ -83,6 +83,15 @@ export const COUNTRY_CURRENCY_MAP = {
   'DEFAULT': 'USD'
 };
 
+// Trade Bloc Mapping
+export const TRADE_BLOC_MAP = {
+  'EAC': ['KE', 'TZ', 'UG', 'RW', 'BI', 'SS', 'CD'],
+  'ECOWAS': ['NG', 'GH', 'SN', 'CI', 'BJ', 'BF', 'CV', 'GM', 'GN', 'GW', 'LR', 'ML', 'NE', 'SL', 'TG'],
+  'SADC': ['ZA', 'ZW', 'MZ', 'AO', 'BW', 'KM', 'LS', 'MG', 'MW', 'MU', 'NA', 'SC', 'SZ', 'TZ', 'ZM'],
+  'MAGHREB': ['MA', 'DZ', 'TN', 'LY', 'MR'],
+  'AFCFTA': ['NG', 'KE', 'ZA', 'EG', 'MA', 'GH', 'ET', 'TZ', 'UG', 'SN', 'CI', 'CM', 'RW', 'DZ', 'TN'] // Simplified all-Africa
+};
+
 // Country to language mapping
 const COUNTRY_LANGUAGE_MAP = {
   // English-speaking African countries
@@ -156,47 +165,87 @@ const COUNTRY_LANGUAGE_MAP = {
 };
 
 /**
- * Detect user's country from IP address
+ * Get the trade bloc for a country
+ * @param {string} countryCode 
+ * @returns {string|null}
+ */
+export function getTradeBloc(countryCode) {
+  for (const [bloc, countries] of Object.entries(TRADE_BLOC_MAP)) {
+    if (countries.includes(countryCode)) return bloc;
+  }
+  return null;
+}
+
+/**
+ * Detect user's country using Google Maps Geolocation API or fallback to Timezone
  */
 export async function detectCountry() {
-  // ✅ FIX: Skip ipapi.co entirely on production - causes CORS errors
-  // Use timezone-based detection instead (no network request needed)
-  if (typeof window !== 'undefined') {
-    // Always use timezone detection first (no CORS issues)
+  if (typeof window === 'undefined') return 'DEFAULT';
+
+  // 1. Try Google Maps Geolocation if API Key is present
+  const googleApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+  if (googleApiKey) {
     try {
-      const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      if (timezone.includes('Africa/')) {
-        const city = timezone.split('/')[1];
-        const cityToCountry = {
-          'Lagos': 'NG', 'Accra': 'GH', 'Nairobi': 'KE', 'Cairo': 'EG',
-          'Casablanca': 'MA', 'Dakar': 'SN', 'Dar_es_Salaam': 'TZ',
-          'Addis_Ababa': 'ET', 'Luanda': 'AO', 'Kinshasa': 'CD',
-          'Abidjan': 'CI', 'Kampala': 'UG', 'Algiers': 'DZ',
-          'Khartoum': 'SD', 'Maputo': 'MZ', 'Antananarivo': 'MG',
-          'Bamako': 'ML', 'Ouagadougou': 'BF', 'Niamey': 'NE',
-          'Kigali': 'RW', 'Porto-Novo': 'BJ', 'Conakry': 'GN',
-          'Ndjamena': 'TD', 'Harare': 'ZW', 'Lusaka': 'ZM',
-          'Lilongwe': 'MW', 'Banjul': 'GM', 'Monrovia': 'LR',
-          'Freetown': 'SL', 'Lome': 'TG', 'Nouakchott': 'MR',
-          'Windhoek': 'NA', 'Maseru': 'LS', 'Asmara': 'ER',
-          'Djibouti': 'DJ', 'Juba': 'SS', 'Bangui': 'CF',
-          'Brazzaville': 'CG', 'Malabo': 'GQ', 'Mbabane': 'SZ',
-          'Tripoli': 'LY', 'Tunis': 'TN', 'Johannesburg': 'ZA'
-        };
-        if (cityToCountry[city]) {
-          return cityToCountry[city];
+      // Get lat/lng from browser
+      const position = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+      });
+
+      const { latitude, longitude } = position.coords;
+
+      // Reverse geocode using Google Maps
+      const response = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?latlng=${latitude},${longitude}&key=${googleApiKey}`
+      );
+      const data = await response.json();
+
+      if (data.status === 'OK') {
+        // Find the country component
+        const countryComponent = data.results[0]?.address_components.find(
+          comp => comp.types.includes('country')
+        );
+        if (countryComponent?.short_name) {
+          return countryComponent.short_name;
         }
       }
-      // Europe detection
-      if (timezone.includes('Europe/Brussels')) return 'BE';
-      if (timezone.includes('Europe/Paris')) return 'FR';
-      if (timezone.includes('Europe/London')) return 'GB';
-      if (timezone.includes('Europe/Berlin')) return 'DE';
-      // Americas
-      if (timezone.includes('America/New_York') || timezone.includes('America/Los_Angeles')) return 'US';
-    } catch (e) {
-      // Timezone detection failed, continue to default
+    } catch (error) {
+      console.warn('Google Geolocation failed, falling back to timezone:', error.message);
     }
+  }
+
+  // 2. Fallback to Timezone-based detection (No CORS issues)
+  try {
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (timezone.includes('Africa/')) {
+      const city = timezone.split('/')[1];
+      const cityToCountry = {
+        'Lagos': 'NG', 'Accra': 'GH', 'Nairobi': 'KE', 'Cairo': 'EG',
+        'Casablanca': 'MA', 'Dakar': 'SN', 'Dar_es_Salaam': 'TZ',
+        'Addis_Ababa': 'ET', 'Luanda': 'AO', 'Kinshasa': 'CD',
+        'Abidjan': 'CI', 'Kampala': 'UG', 'Algiers': 'DZ',
+        'Khartoum': 'SD', 'Maputo': 'MZ', 'Antananarivo': 'MG',
+        'Bamako': 'ML', 'Ouagadougou': 'BF', 'Niamey': 'NE',
+        'Kigali': 'RW', 'Porto-Novo': 'BJ', 'Conakry': 'GN',
+        'Ndjamena': 'TD', 'Harare': 'ZW', 'Lusaka': 'ZM',
+        'Lilongwe': 'MW', 'Banjul': 'GM', 'Monrovia': 'LR',
+        'Freetown': 'SL', 'Lome': 'TG', 'Nouakchott': 'MR',
+        'Windhoek': 'NA', 'Maseru': 'LS', 'Asmara': 'ER',
+        'Djibouti': 'DJ', 'Juba': 'SS', 'Bangui': 'CF',
+        'Brazzaville': 'CG', 'Malabo': 'GQ', 'Mbabane': 'SZ',
+        'Tripoli': 'LY', 'Tunis': 'TN', 'Johannesburg': 'ZA'
+      };
+      if (cityToCountry[city]) {
+        return cityToCountry[city];
+      }
+    }
+
+    // Quick checks for major regions
+    if (timezone.includes('Europe/Brussels')) return 'BE';
+    if (timezone.includes('Europe/Paris')) return 'FR';
+    if (timezone.includes('Europe/London')) return 'GB';
+    if (timezone.includes('America/New_York')) return 'US';
+  } catch (e) {
+    // Ignore errors in fallback
   }
 
   return 'DEFAULT';
@@ -209,7 +258,7 @@ export function detectLanguage() {
   try {
     const browserLang = navigator.language || navigator.userLanguage;
     const langCode = browserLang.split('-')[0].toLowerCase();
-    
+
     // Map browser language to our supported languages
     const langMap = {
       'en': 'en',
@@ -233,7 +282,7 @@ export function detectLanguage() {
       'af': 'en', // Afrikaans -> English
       'xh': 'en', // Xhosa -> English
     };
-    
+
     return langMap[langCode] || 'en';
   } catch (error) {
     console.warn('Failed to detect language:', error);
@@ -263,10 +312,10 @@ export async function autoDetectUserPreferences() {
   const browserLanguage = detectLanguage();
   const countryLanguage = getLanguageForCountry(countryCode);
   const currency = getCurrencyForCountry(countryCode);
-  
+
   // Prefer country-based language over browser language for African countries
   const finalLanguage = countryCode !== 'DEFAULT' ? countryLanguage : browserLanguage;
-  
+
   return {
     countryCode,
     language: finalLanguage,

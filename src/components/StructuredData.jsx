@@ -1,4 +1,10 @@
+import { useLanguage } from '@/i18n/LanguageContext';
+
 export default function StructuredData({ type = 'Organization', data = {} }) {
+  const { language } = useLanguage();
+  const baseUrl = 'https://afrikoni.com';
+  const langUrl = `${baseUrl}/${language}`;
+
   const getStructuredData = () => {
     switch (type) {
       case 'Organization':
@@ -6,7 +12,7 @@ export default function StructuredData({ type = 'Organization', data = {} }) {
           '@context': 'https://schema.org',
           '@type': 'Organization',
           name: 'AFRIKONI',
-          url: 'https://afrikoni.com',
+          url: langUrl,
           logo: 'https://afrikoni.com/logo.png',
           description: 'Premier B2B marketplace connecting buyers and suppliers across Africa',
           address: {
@@ -20,7 +26,7 @@ export default function StructuredData({ type = 'Organization', data = {} }) {
             'https://facebook.com/afrikoni'
           ]
         };
-      
+
       case 'Product':
         return {
           '@context': 'https://schema.org',
@@ -39,20 +45,20 @@ export default function StructuredData({ type = 'Organization', data = {} }) {
             availability: 'https://schema.org/InStock'
           }
         };
-      
+
       case 'WebSite':
         return {
           '@context': 'https://schema.org',
           '@type': 'WebSite',
           name: 'AFRIKONI',
-          url: 'https://afrikoni.com',
+          url: langUrl,
           potentialAction: {
             '@type': 'SearchAction',
-            target: 'https://afrikoni.com/products?search={search_term_string}',
+            target: `${langUrl}/products?search={search_term_string}`,
             'query-input': 'required name=search_term_string'
           }
         };
-      
+
       case 'FAQPage':
         return {
           '@context': 'https://schema.org',
@@ -66,14 +72,14 @@ export default function StructuredData({ type = 'Organization', data = {} }) {
             }
           })) : []
         };
-      
+
       default:
         return null;
     }
   };
 
   const structuredData = getStructuredData();
-  
+
   if (!structuredData) return null;
 
   return (

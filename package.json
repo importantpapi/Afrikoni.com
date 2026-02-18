@@ -7,6 +7,15 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "test:unit": "vitest",
+    "test:unit:ui": "vitest --ui",
+    "test:unit:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "playwright show-report",
     "verify-migration": "node scripts/automated-verification.js",
     "verify": "node scripts/automated-verification.js",
     "check-all": "node scripts/complete-all-automation.js",
@@ -20,6 +29,7 @@
     "verify-backend-compliance": "node scripts/verify-backend-kernel-compliance.js"
   },
   "dependencies": {
+    "@google-cloud/translate": "^9.3.0",
     "@radix-ui/react-dialog": "^1.0.5",
     "@radix-ui/react-popover": "^1.0.5",
     "@radix-ui/react-select": "^2.0.0",
@@ -45,6 +55,7 @@
     "lucide-react": "^0.294.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-helmet-async": "^2.0.5",
     "react-i18next": "^16.5.0",
     "react-icons": "^5.5.0",
     "react-router-dom": "^6.20.0",
@@ -54,6 +65,10 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
     "@vitejs/plugin-react": "^4.2.1",
@@ -61,10 +76,12 @@
     "baseline-browser-mapping": "^2.9.19",
     "dotenv": "^16.6.1",
     "eslint-plugin-jsx-a11y": "^6.10.2",
+    "jsdom": "^28.1.0",
     "postcss": "^8.4.32",
     "sharp": "^0.34.5",
     "tailwindcss": "^3.3.6",
     "vercel": "^50.1.2",
-    "vite": "^5.4.21"
+    "vite": "^5.4.21",
+    "vitest": "^4.0.18"
   }
 }

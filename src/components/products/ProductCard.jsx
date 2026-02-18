@@ -1,11 +1,5 @@
-/**
- * Product Card Component
- * Redesigned for Afrikoni LUXE 2026 (Phase 2.0)
- * "Hermes Craftsmanship meets Apple Precision"
- */
-
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { ShieldCheck, Package, Clock, Award, MoveRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/shared/ui/card';
 import OptimizedImage from '@/components/OptimizedImage';
@@ -13,25 +7,9 @@ import { getPrimaryImageFromProduct } from '@/utils/productImages';
 import Price from '@/components/shared/ui/Price';
 import SaveButton from '@/components/shared/ui/SaveButton';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 
 // Country name to flag mapping (retained for contextual intelligence)
-const COUNTRY_FLAGS = {
-  'Nigeria': '🇳🇬', 'Kenya': '🇰🇪', 'Ghana': '🇬🇭', 'South Africa': '🇿🇦',
-  'Ethiopia': '🇪🇹', 'Tanzania': '🇹🇿', 'Uganda': '🇺🇬', 'Egypt': '🇪🇬',
-  'Morocco': '🇲🇦', 'Algeria': '🇩🇿', 'Tunisia': '🇹🇳', 'Senegal': '🇸🇳',
-  "Côte d'Ivoire": '🇨🇮', 'Ivory Coast': '🇨🇮', 'Cameroon': '🇨🇲', 'Zimbabwe': '🇿🇼',
-  'Mozambique': '🇲🇿', 'Madagascar': '🇲🇬', 'Mali': '🇲🇱', 'Burkina Faso': '🇧🇫',
-  'Niger': '🇳🇪', 'Rwanda': '🇷🇼', 'Benin': '🇧🇯', 'Guinea': '🇬🇳', 'Chad': '🇹🇩',
-  'Zambia': '🇿🇲', 'Malawi': '🇲🇼', 'Somalia': '🇸🇴', 'Burundi': '🇧🇮',
-  'Togo': '🇹🇬', 'Sierra Leone': '🇸🇱', 'Libya': '🇱🇾', 'Mauritania': '🇲🇷',
-  'Eritrea': '🇪🇷', 'Gambia': '🇬🇲', 'Botswana': '🇧🇼', 'Namibia': '🇳🇦',
-  'Gabon': '🇬🇦', 'Lesotho': '🇱🇸', 'Guinea-Bissau': '🇬🇼', 'Liberia': '🇱🇷',
-  'Central African Republic': '🇨🇫', 'Congo': '🇨🇬', 'DR Congo': '🇨🇩',
-  'São Tomé and Príncipe': '🇸🇹', 'Seychelles': '🇸🇨', 'Cape Verde': '🇨🇻',
-  'Comoros': '🇰🇲', 'Mauritius': '🇲🇺', 'Equatorial Guinea': '🇬🇶',
-  'Eswatini': '🇸🇿', 'South Sudan': '🇸🇸', 'Angola': '🇦🇴'
-};
-
 const getCountryFlagEmoji = (name) => {
   if (!name) return '🌍';
   const mapping = {
@@ -54,6 +32,8 @@ const getCountryFlagEmoji = (name) => {
 };
 
 export default function ProductCard({ product, priority = false }) {
+  const { t } = useTranslation();
+  const { lang = 'en' } = useParams();
   const imageUrl = getPrimaryImageFromProduct(product);
 
   // Resolve country with fallback to company data
@@ -63,14 +43,14 @@ export default function ProductCard({ product, priority = false }) {
 
   // Format MOQ
   const moqDisplay = product.min_order_quantity
-    ? `${product.min_order_quantity} ${product.moq_unit || product.unit || 'units'}`
+    ? `${product.min_order_quantity} ${product.moq_unit || product.unit || t('marketplace.units') || 'units'}`
     : product.moq
-      ? `${product.moq} ${product.unit || 'units'}`
-      : 'Contact supplier';
+      ? `${product.moq} ${product.unit || t('marketplace.units') || 'units'}`
+      : t('marketplace.contactSupplier') || 'Contact supplier';
 
   return (
     <Link
-      to={`/product/${product.id}`}
+      to={`/${lang}/product/${product.id}`}
       className="block h-full group"
     >
       <Card className="border border-os-stroke bg-os-bg overflow-hidden transition-all duration-500 hover:shadow-os-lg rounded-[20px] relative h-full flex flex-col">
@@ -86,7 +66,7 @@ export default function ProductCard({ product, priority = false }) {
             <div className="absolute top-4 left-4 z-10">
               <div className="flex items-center gap-2 bg-os-accent px-3 py-1.5 rounded-full shadow-lg">
                 <ShieldCheck className="w-3.5 h-3.5 text-[#1A1512]" />
-                <span className="text-[10px] font-black tracking-widest text-[#1A1512] uppercase">Verified</span>
+                <span className="text-[10px] font-black tracking-widest text-[#1A1512] uppercase">{t('marketplace.verified')}</span>
               </div>
             </div>
           )}
@@ -106,7 +86,7 @@ export default function ProductCard({ product, priority = false }) {
               <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjciIG51bU9jdGF2ZXM9IjQiLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsdGVyPSJ1cmwoI24pIiBvcGFjaXR5PSIuNSIvPjwvc3ZnPg==')]" />
               <Package className="w-10 h-10 text-os-text-secondary/20 mb-2 relative z-10" />
               <p className="text-[9px] font-black uppercase tracking-[0.2em] text-os-text-secondary/40 relative z-10">
-                Sourcing Original Imagery
+                {t('marketplace.noProductsDescription')?.split('.')[0] || 'Sourcing Original Imagery'}
               </p>
             </div>
           )}
@@ -122,16 +102,16 @@ export default function ProductCard({ product, priority = false }) {
             <div className="flex items-center gap-2 text-[10px] font-black text-os-text-secondary uppercase tracking-[0.2em] opacity-60">
               <span className="text-14 grayscale-[0.2] group-hover:grayscale-0 transition-all">{flag}</span>
               {countryName ? (
-                <span className="truncate max-w-[120px]">Origin: {countryName}</span>
+                <span className="truncate max-w-[120px]">{t('marketplace.origin')}: {countryName}</span>
               ) : (
-                <span className="text-os-accent/70 italic">Verification Pending</span>
+                <span className="text-os-accent/70 italic">{t('marketplace.verificationPending')}</span>
               )}
             </div>
           </div>
 
           {/* Product Identity */}
           <h3 className="text-16 font-semibold tracking-tight text-os-text-primary line-clamp-2 mb-3 h-10 leading-snug group-hover:text-os-accent transition-colors duration-300 uppercase">
-            {product.name || product.title || 'Premium Sourcing'}
+            {product.name || product.title || t('marketplace.premiumSourcing') || 'Premium Sourcing'}
           </h3>
 
           {/* Trade Intelligence (Compact) */}
@@ -139,7 +119,7 @@ export default function ProductCard({ product, priority = false }) {
             {product.lead_time_min_days && (
               <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-os-stroke/20 rounded-md text-[9px] font-bold uppercase text-os-text-secondary tracking-wider">
                 <Clock className="w-3 h-3 text-os-accent/70" />
-                <span>{product.lead_time_min_days}-{product.lead_time_max_days}D Delivery</span>
+                <span>{product.lead_time_min_days}-{product.lead_time_max_days}D {t('marketplace.delivery')}</span>
               </div>
             )}
             {product.certifications && product.certifications.length > 0 && (
@@ -150,7 +130,7 @@ export default function ProductCard({ product, priority = false }) {
             )}
             <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-green-500/5 border border-green-500/10 rounded-md text-[9px] font-bold uppercase text-green-600 tracking-wider">
               <ShieldCheck className="w-3 h-3" />
-              <span>Protected Trade</span>
+              <span>{t('marketplace.protectedTrade')}</span>
             </div>
           </div>
 
@@ -163,16 +143,16 @@ export default function ProductCard({ product, priority = false }) {
                     <Price
                       amount={product.price_min || product.price}
                       fromCurrency={product.currency || 'USD'}
-                      unit={product.unit || 'kg'}
+                      unit={product.unit || t('marketplace.units') || 'kg'}
                       className="text-18 font-bold text-os-text-primary tracking-tight"
                     />
                   </div>
                   <span className="text-[10px] text-os-text-secondary font-bold uppercase tracking-[0.1em]">
-                    MOQ: {moqDisplay}
+                    {t('marketplace.moq')}: {moqDisplay}
                   </span>
                 </>
               ) : (
-                <span className="text-12 font-black text-os-accent uppercase tracking-[0.15em]">Direct Quote Only</span>
+                <span className="text-12 font-black text-os-accent uppercase tracking-[0.15em]">{t('marketplace.directQuoteOnly')}</span>
               )}
             </div>
 

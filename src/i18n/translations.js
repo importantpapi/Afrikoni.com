@@ -1,6 +1,31 @@
 // Translation files for all supported languages
 
-export const translations = {
+import enJson from './en.json';
+import frJson from './fr.json';
+import ptJson from './pt.json';
+import arJson from './ar.json';
+
+// Helper to flatten nested JSON (dashboard.greeting -> "Good evening")
+const flatten = (obj, prefix = '', res = {}) => {
+  for (const key in obj) {
+    const val = obj[key];
+    const newKey = prefix ? `${prefix}.${key}` : key;
+    if (typeof val === 'object' && val !== null) {
+      flatten(val, newKey, res);
+    } else {
+      res[newKey] = val;
+    }
+  }
+  return res;
+};
+
+// Flatten new JSONs
+const enFlat = flatten(enJson);
+const frFlat = flatten(frJson);
+const ptFlat = flatten(ptJson);
+const arFlat = flatten(arJson);
+
+const legacyTranslations = {
   en: {
     // Navigation
     'nav.home': 'Home',
@@ -40,7 +65,7 @@ export const translations = {
     'nav.disputeResolution': 'Dispute Resolution',
     'nav.loadingCategories': 'Loading categories...',
     'nav.noCategories': 'No categories available',
-    
+
     // Hero Section
     'hero.title': 'Africa\'s leading B2B marketplace for trade across 54 countries',
     'hero.searchPlaceholder': 'What are you looking for?',
@@ -56,7 +81,7 @@ export const translations = {
     'hero.trending.leather': 'Leather goods',
     'hero.subtitle': 'What are you looking for?',
     'early_access_signal': 'Afrikoni is expanding its verified network',
-    
+
     // Trust Cards
     'trust.title': 'Trade with Confidence',
     'trust.subtitle': 'Everything you need for safe and successful B2B trading across Africa',
@@ -66,7 +91,7 @@ export const translations = {
     'trust.shield.description': 'Secure escrow protection and quality guarantees on every order',
     'trust.logistics.title': 'One-Stop Sourcing + Logistics',
     'trust.logistics.description': 'Complete sourcing solution with integrated shipping and logistics support',
-    
+
     // Common
     'common.loading': 'Loading...',
     'common.error': 'Error',
@@ -90,7 +115,7 @@ export const translations = {
     'common.learnMore': 'Learn More',
     'common.language': 'Language',
     'common.currency': 'Currency',
-    
+
     // 404 / Not Found
     'notFound.title': 'Page Not Found',
     'notFound.message': 'The page you\'re looking for doesn\'t exist or has been moved. Let\'s get you back on track.',
@@ -98,7 +123,7 @@ export const translations = {
     'notFound.browseMarketplace': 'Browse Marketplace',
     'notFound.goBack': 'Go Back',
     'notFound.popularPages': 'Popular Pages:',
-    
+
     // Onboarding
     'onboarding.completeProfile': 'Complete Your Profile',
     'onboarding.setupAccount': 'Let\'s set up your account to get started',
@@ -137,7 +162,7 @@ export const translations = {
     'onboarding.businessType.trader': 'Trader',
     'onboarding.businessType.serviceProvider': 'Service Provider',
     'onboarding.businessType.other': 'Other',
-    
+
     // Products
     'products.title': 'Products',
     'products.noProducts': 'No products found',
@@ -150,7 +175,7 @@ export const translations = {
     'products.moq': 'MOQ',
     'products.verified': 'Verified',
     'products.featured': 'Featured',
-    
+
     // Marketplace
     'marketplace.title': 'Marketplace',
     'marketplace.subtitle': 'Browse thousands of products from verified African suppliers',
@@ -164,20 +189,20 @@ export const translations = {
     'marketplace.priceLow': 'Price: Low to High',
     'marketplace.priceHigh': 'Price: High to Low',
     'marketplace.mostPopular': 'Most Popular',
-    
+
     // Categories
     'categories.title': 'Browse by Category',
     'categories.subtitle': 'Discover products across all major industries',
     'categories.all': 'All Categories',
     'categories.noCategories': 'No categories found',
-    
+
     // Countries
     'countries.title': 'All African Countries',
     'countries.subtitle': 'Discover products and suppliers from all 54 African countries',
     'countries.searchPlaceholder': 'Search countries by name...',
     'countries.comingSoon': 'Coming soon',
     'countries.products': 'products',
-    
+
     // Dashboard
     'dashboard.title': 'Dashboard',
     'dashboard.overview': 'Overview',
@@ -187,7 +212,7 @@ export const translations = {
     'dashboard.messages': 'Messages',
     'dashboard.analytics': 'Analytics',
     'dashboard.settings': 'Settings',
-    
+
     // Settings
     'settings.fullName': 'Full Name',
     'settings.fullNamePlaceholder': 'Your full name',
@@ -245,7 +270,7 @@ export const translations = {
     'dashboard.companyInfo': 'Company Info',
     'dashboard.profile': 'Profile & Settings',
     'dashboard.help': 'Help Center',
-    
+
     // Auth
     'auth.login': 'Login',
     'auth.signup': 'Sign Up',
@@ -257,14 +282,14 @@ export const translations = {
     'auth.createAccount': 'Create Account',
     'auth.alreadyHaveAccount': 'Already have an account?',
     'auth.dontHaveAccount': 'Don\'t have an account?',
-    
+
     // Messages
     'messages.title': 'Messages',
     'messages.noMessages': 'No messages yet',
     'messages.send': 'Send',
     'messages.typeMessage': 'Type a message...',
     'messages.newMessage': 'New Message',
-    
+
     // RFQ
     'rfq.title': 'Request for Quotation',
     'rfq.create': 'Create RFQ',
@@ -273,13 +298,13 @@ export const translations = {
     'rfq.status': 'Status',
     'rfq.open': 'Open',
     'rfq.closed': 'Closed',
-    
+
     // Verification
     'verification.title': 'Verification Center',
     'verification.verified': 'Verified',
     'verification.pending': 'Pending',
     'verification.rejected': 'Rejected',
-    
+
     // Empty States
     'empty.noData': 'No data available',
     'empty.tryAgain': 'Try again later',
@@ -291,7 +316,7 @@ export const translations = {
     'empty.noRFQsDesc': 'Your recent RFQs will appear here.',
     'empty.noMessages': 'No messages yet',
     'empty.noMessagesDesc': 'Your recent messages will appear here.',
-    
+
     // Marketplace Extended
     'marketplace.popularMarkets': 'Popular Markets',
     'marketplace.allCountries': 'All Countries',
@@ -377,7 +402,7 @@ export const translations = {
     'marketplace.noProductsFound': 'No products found',
     'marketplace.tryDifferentSearch': 'Try a different search or adjust your filters',
     'marketplace.loadingProducts': 'Loading products...',
-    
+
     // Product Details
     'product.home': 'Home',
     'product.products': 'Products',
@@ -413,7 +438,7 @@ export const translations = {
     'product.aiSummary': 'AI Summary',
     'product.shippingCalculator': 'Shipping Calculator',
     'product.actionsHelp': 'Use chat for quick questions and Request Quote when you are ready to receive offers.',
-    
+
     // Transparency Section
     'transparency.title': 'Transparent & Fair Pricing',
     'transparency.subtitle': 'Afrikoni earns only when trade happens successfully — no hidden fees.',
@@ -437,7 +462,7 @@ export const translations = {
     'transparency.principle3.title': 'Fair Pricing',
     'transparency.principle3.text': 'We keep fees low to make African trade accessible. Most features are free.',
     'transparency.footer': '💡 Most features on Afrikoni are completely free. Browse products, create RFQs, message suppliers, and discover opportunities at no cost. We only charge when you complete a transaction or choose premium features.',
-    
+
     // Add Product
     'addProduct.title': 'List Your Product',
     'addProduct.subtitle': 'Join thousands of successful sellers on Africa\'s leading B2B marketplace. Create compelling product listings that attract buyers and drive sales.',
@@ -503,7 +528,7 @@ export const translations = {
     'addProduct.remaining': 'remaining',
     'addProduct.submitProduct': 'Submit Product',
     'addProduct.submitting': 'Submitting...',
-    
+
     // Add Product Alibaba (Multi-step form)
     'addProductAlibaba.editProduct': 'Edit Product',
     'addProductAlibaba.addNewProduct': 'Add New Product',
@@ -580,7 +605,7 @@ export const translations = {
     'addProductAlibaba.aiDetectedCity': '📍 AI detected city: {city}',
     'addProductAlibaba.aiDescriptionSuccess': '✨ AI description generated successfully!',
     'addProductAlibaba.aiDescriptionError': 'AI generation failed - template created',
-    
+
     // Create RFQ
     'rfq.createTitle': 'Create Request for Quote',
     'rfq.createSubtitle': 'Describe what you need and get competitive quotes from trusted African suppliers.',
@@ -652,11 +677,11 @@ export const translations = {
     'rfq.aiError': 'Afrikoni AI could not generate the RFQ. Please try again.',
     'rfq.fileUploadSuccess': 'File uploaded successfully',
     'rfq.fileUploadError': 'Failed to upload file',
-    
+
     // KoniAI
     'koniai.generateListing': 'Generate Listing with KoniAI',
     'koniai.language': 'Language',
-    
+
     // Messages
     'messages.searchConversations': 'Search conversations...',
     'messages.noConversations': 'No conversations yet',
@@ -680,7 +705,7 @@ export const translations = {
     'messages.safetyWarning': 'Do not send money outside the platform',
     'messages.filesAttached': '{count} file(s) attached',
     'messages.uploadError': 'Failed to upload file(s)',
-    
+
     // Login
     'login.welcomeBack': 'Welcome back',
     'login.subtitle': 'Sign in to continue your African trade journey',
@@ -709,7 +734,7 @@ export const translations = {
     'login.continueWith': 'Or continue with',
     'login.signInWithGoogle': 'Sign in with Google',
     'login.signInWithFacebook': 'Sign in with Facebook',
-    
+
     // Signup
     'signup.joinAfrikoni': 'Join Afrikoni',
     'signup.subtitle': 'Create your account to start trading across Africa',
@@ -735,7 +760,7 @@ export const translations = {
     'signup.signUpWithGoogle': 'Sign up with Google',
     'signup.signUpWithFacebook': 'Sign up with Facebook',
   },
-  
+
   fr: {
     // Navigation
     'nav.home': 'Accueil',
@@ -775,7 +800,7 @@ export const translations = {
     'nav.disputeResolution': 'Résolution des litiges',
     'nav.loadingCategories': 'Chargement des catégories...',
     'nav.noCategories': 'Aucune catégorie disponible',
-    
+
     // Hero Section
     'hero.title': 'La principale place de marché B2B d\'Afrique pour le commerce dans 54 pays',
     'hero.searchPlaceholder': 'Rechercher des produits, fournisseurs ou services...',
@@ -791,7 +816,7 @@ export const translations = {
     'hero.trending.leather': 'Articles en cuir',
     'hero.subtitle': 'Que recherchez-vous?',
     'early_access_signal': 'Afrikoni étend son réseau vérifié',
-    
+
     // Trust Cards
     'trust.title': 'Commercez en toute confiance',
     'trust.subtitle': 'Tout ce dont vous avez besoin pour un commerce B2B sûr et réussi à travers l\'Afrique',
@@ -801,7 +826,7 @@ export const translations = {
     'trust.shield.description': 'Protection sécurisée par séquestre et garanties de qualité sur chaque commande',
     'trust.logistics.title': 'Approvisionnement et logistique tout-en-un',
     'trust.logistics.description': 'Solution d\'approvisionnement complète avec expédition et support logistique intégrés',
-    
+
     // Common
     'common.loading': 'Chargement...',
     'common.error': 'Erreur',
@@ -827,7 +852,7 @@ export const translations = {
     'common.currency': 'Devise',
     'common.contact': 'Nous contacter',
     'common.pricing': 'Tarification',
-    
+
     // 404 / Not Found
     'notFound.title': 'Page non trouvée',
     'notFound.message': 'La page que vous recherchez n\'existe pas ou a été déplacée. Revenons sur la bonne voie.',
@@ -835,7 +860,7 @@ export const translations = {
     'notFound.browseMarketplace': 'Parcourir le marché',
     'notFound.goBack': 'Retour',
     'notFound.popularPages': 'Pages populaires:',
-    
+
     // Onboarding
     'onboarding.completeProfile': 'Complétez votre profil',
     'onboarding.setupAccount': 'Configurons votre compte pour commencer',
@@ -873,7 +898,7 @@ export const translations = {
     'onboarding.businessType.trader': 'Commerçant',
     'onboarding.businessType.serviceProvider': 'Fournisseur de services',
     'onboarding.businessType.other': 'Autre',
-    
+
     // Products
     'products.title': 'Produits',
     'products.noProducts': 'Aucun produit trouvé',
@@ -886,7 +911,7 @@ export const translations = {
     'products.moq': 'CMD',
     'products.verified': 'Vérifié',
     'products.featured': 'En vedette',
-    
+
     // Marketplace
     'marketplace.title': 'Place de marché',
     'marketplace.subtitle': 'Parcourez des milliers de produits de fournisseurs africains vérifiés',
@@ -900,20 +925,20 @@ export const translations = {
     'marketplace.priceLow': 'Prix: Croissant',
     'marketplace.priceHigh': 'Prix: Décroissant',
     'marketplace.mostPopular': 'Le plus populaire',
-    
+
     // Categories
     'categories.title': 'Parcourir par catégorie',
     'categories.subtitle': 'Découvrez des produits dans toutes les industries majeures',
     'categories.all': 'Toutes les catégories',
     'categories.noCategories': 'Aucune catégorie trouvée',
-    
+
     // Countries
     'countries.title': 'Tous les pays africains',
     'countries.subtitle': 'Découvrez des produits et fournisseurs des 54 pays africains',
     'countries.searchPlaceholder': 'Rechercher des pays par nom...',
     'countries.comingSoon': 'Bientôt disponible',
     'countries.products': 'produits',
-    
+
     // Dashboard
     'dashboard.title': 'Tableau de bord',
     'dashboard.overview': 'Aperçu',
@@ -923,7 +948,7 @@ export const translations = {
     'dashboard.messages': 'Messages',
     'dashboard.analytics': 'Analyses',
     'dashboard.settings': 'Paramètres',
-    
+
     // Auth
     'auth.login': 'Connexion',
     'auth.signup': 'S\'inscrire',
@@ -935,14 +960,14 @@ export const translations = {
     'auth.createAccount': 'Créer un compte',
     'auth.alreadyHaveAccount': 'Vous avez déjà un compte?',
     'auth.dontHaveAccount': 'Vous n\'avez pas de compte?',
-    
+
     // Messages
     'messages.title': 'Messages',
     'messages.noMessages': 'Aucun message pour le moment',
     'messages.send': 'Envoyer',
     'messages.typeMessage': 'Tapez un message...',
     'messages.newMessage': 'Nouveau message',
-    
+
     // RFQ
     'rfq.title': 'Demande de devis',
     'rfq.create': 'Créer une demande',
@@ -951,13 +976,13 @@ export const translations = {
     'rfq.status': 'Statut',
     'rfq.open': 'Ouvert',
     'rfq.closed': 'Fermé',
-    
+
     // Verification
     'verification.title': 'Centre de vérification',
     'verification.verified': 'Vérifié',
     'verification.pending': 'En attente',
     'verification.rejected': 'Rejeté',
-    
+
     // Empty States
     'empty.noData': 'Aucune donnée disponible',
     'empty.tryAgain': 'Réessayez plus tard',
@@ -969,7 +994,7 @@ export const translations = {
     'empty.noRFQsDesc': 'Vos demandes de devis récentes apparaîtront ici.',
     'empty.noMessages': 'Aucun message pour le moment',
     'empty.noMessagesDesc': 'Vos messages récents apparaîtront ici.',
-    
+
     // Marketplace Extended
     'marketplace.popularMarkets': 'Marchés populaires',
     'marketplace.allCountries': 'Tous les pays',
@@ -1031,7 +1056,7 @@ export const translations = {
     'marketplace.bestMatchForYou': 'Meilleur match pour vous',
     'marketplace.grid': 'Grille',
     'marketplace.list': 'Liste',
-    
+
     // Product Details
     'product.home': 'Accueil',
     'product.products': 'Produits',
@@ -1066,7 +1091,7 @@ export const translations = {
     'reviews.quality': 'Qualité',
     'reviews.communication': 'Communication',
     'reviews.delivery': 'Livraison',
-    
+
     // Transparency Section
     'transparency.title': '100% Transparence : Comment nous gagnons de l\'argent',
     'transparency.subtitle': 'Nous croyons en une transparence totale. Voici exactement comment Afrikoni génère des revenus pour maintenir et améliorer la plateforme.',
@@ -1086,7 +1111,7 @@ export const translations = {
     'transparency.principle3.title': 'Tarification équitable',
     'transparency.principle3.text': 'Nous gardons les frais bas pour rendre le commerce africain accessible. La plupart des fonctionnalités sont gratuites.',
     'transparency.footer': '💡 La plupart des fonctionnalités sur Afrikoni sont complètement gratuites. Parcourez les produits, créez des demandes de devis, contactez les fournisseurs et découvrez des opportunités sans frais. Nous ne facturons que lorsque vous complétez une transaction ou choisissez des fonctionnalités premium.',
-    
+
     // Add Product
     'addProduct.title': 'Lister votre produit',
     'addProduct.subtitle': 'Rejoignez des milliers de vendeurs prospères sur la principale place de marché B2B d\'Afrique. Créez des annonces de produits attrayantes qui attirent les acheteurs et stimulent les ventes.',
@@ -1134,7 +1159,7 @@ export const translations = {
     'addProduct.generateError': 'Échec de la génération de la description.',
     'addProduct.uploadSuccess': 'Images téléchargées avec succès',
     'addProduct.uploadError': 'Échec du téléchargement des images',
-    
+
     // Add Product Alibaba (Multi-step form) - French
     'addProductAlibaba.editProduct': 'Modifier le produit',
     'addProductAlibaba.addNewProduct': 'Ajouter un nouveau produit',
@@ -1206,7 +1231,7 @@ export const translations = {
     'addProductAlibaba.aiDetectedCity': '📍 L\'IA a détecté la ville: {city}',
     'addProductAlibaba.aiDescriptionSuccess': '✨ Description générée par l\'IA avec succès!',
     'addProductAlibaba.aiDescriptionError': 'Échec de la génération par l\'IA - modèle créé',
-    
+
     // Create RFQ
     'rfq.createTitle': 'Créer une demande de devis',
     'rfq.createSubtitle': 'Décrivez ce dont vous avez besoin et obtenez des devis compétitifs de fournisseurs africains de confiance.',
@@ -1249,11 +1274,11 @@ export const translations = {
     'rfq.aiError': 'L\'IA Afrikoni n\'a pas pu générer la demande de devis. Veuillez réessayer.',
     'rfq.fileUploadSuccess': 'Fichier téléchargé avec succès',
     'rfq.fileUploadError': 'Échec du téléchargement du fichier',
-    
+
     // KoniAI
     'koniai.generateListing': 'Générer une annonce avec KoniAI',
     'koniai.language': 'Langue',
-    
+
     // Messages
     'messages.searchConversations': 'Rechercher des conversations...',
     'messages.noConversations': 'Aucune conversation pour le moment',
@@ -1277,7 +1302,7 @@ export const translations = {
     'messages.safetyWarning': 'Ne envoyez pas d\'argent en dehors de la plateforme',
     'messages.filesAttached': '{count} fichier(s) joint(s)',
     'messages.uploadError': 'Échec du téléchargement du(des) fichier(s)',
-    
+
     // Login
     'login.welcomeBack': 'Bon retour',
     'login.subtitle': 'Connectez-vous pour continuer votre parcours commercial africain',
@@ -1306,7 +1331,7 @@ export const translations = {
     'login.continueWith': 'Ou continuer avec',
     'login.signInWithGoogle': 'Se connecter avec Google',
     'login.signInWithFacebook': 'Se connecter avec Facebook',
-    
+
     // Signup
     'signup.joinAfrikoni': 'Rejoindre Afrikoni',
     'signup.subtitle': 'Créez votre compte pour commencer à commercer à travers l\'Afrique',
@@ -1332,7 +1357,7 @@ export const translations = {
     'signup.signUpWithGoogle': 'S\'inscrire avec Google',
     'signup.signUpWithFacebook': 'S\'inscrire avec Facebook',
   },
-  
+
   ar: {
     // Navigation
     'nav.home': 'الرئيسية',
@@ -1372,7 +1397,7 @@ export const translations = {
     'nav.disputeResolution': 'حل النزاعات',
     'nav.loadingCategories': 'جاري تحميل الفئات...',
     'nav.noCategories': 'لا توجد فئات متاحة',
-    
+
     // Hero Section
     'hero.title': 'السوق الرائدة بين الشركات في أفريقيا للتجارة عبر 54 دولة',
     'hero.searchPlaceholder': 'ابحث عن المنتجات أو الموردين أو الخدمات...',
@@ -1388,7 +1413,7 @@ export const translations = {
     'hero.trending.leather': 'منتجات الجلد',
     'hero.subtitle': 'ماذا تبحث عنه?',
     'early_access_signal': 'أفريكوني يوسع شبكته المتحقق منها',
-    
+
     // Trust Cards
     'trust.title': 'تداول بثقة',
     'trust.subtitle': 'كل ما تحتاجه للتجارة الآمنة والناجحة بين الشركات عبر أفريقيا',
@@ -1398,7 +1423,7 @@ export const translations = {
     'trust.shield.description': 'حماية آمنة بالضمان وضمانات الجودة على كل طلب',
     'trust.logistics.title': 'التوريد والخدمات اللوجستية الشاملة',
     'trust.logistics.description': 'حل توريد كامل مع شحن ودعم لوجستي متكامل',
-    
+
     // Common
     'common.loading': 'جاري التحميل...',
     'common.error': 'خطأ',
@@ -1424,7 +1449,7 @@ export const translations = {
     'common.currency': 'العملة',
     'common.contact': 'اتصل بنا',
     'common.pricing': 'التسعير',
-    
+
     // Settings
     'settings.fullName': 'الاسم الكامل',
     'settings.fullNamePlaceholder': 'اسمك الكامل',
@@ -1451,7 +1476,7 @@ export const translations = {
     'settings.uploadAvatar': 'رفع صورة رمزية',
     'settings.changeAvatar': 'تغيير الصورة الرمزية',
     'settings.uploading': 'جارٍ الرفع...',
-    
+
     // 404 / Not Found
     'notFound.title': 'الصفحة غير موجودة',
     'notFound.message': 'الصفحة التي تبحث عنها غير موجودة أو تم نقلها. دعنا نعيدك إلى المسار الصحيح.',
@@ -1459,7 +1484,7 @@ export const translations = {
     'notFound.browseMarketplace': 'تصفح السوق',
     'notFound.goBack': 'رجوع',
     'notFound.popularPages': 'صفحات شائعة:',
-    
+
     // Onboarding
     'onboarding.completeProfile': 'أكمل ملفك الشخصي',
     'onboarding.setupAccount': 'دعنا نعد حسابك للبدء',
@@ -1497,7 +1522,7 @@ export const translations = {
     'onboarding.businessType.trader': 'تاجر',
     'onboarding.businessType.serviceProvider': 'مقدم خدمة',
     'onboarding.businessType.other': 'أخرى',
-    
+
     // Products
     'products.title': 'المنتجات',
     'products.noProducts': 'لم يتم العثور على منتجات',
@@ -1510,7 +1535,7 @@ export const translations = {
     'products.moq': 'الحد الأدنى للطلب',
     'products.verified': 'موثق',
     'products.featured': 'مميز',
-    
+
     // Marketplace
     'marketplace.title': 'السوق',
     'marketplace.subtitle': 'تصفح آلاف المنتجات من موردين أفارقة موثقين',
@@ -1524,20 +1549,20 @@ export const translations = {
     'marketplace.priceLow': 'السعر: من الأقل إلى الأعلى',
     'marketplace.priceHigh': 'السعر: من الأعلى إلى الأقل',
     'marketplace.mostPopular': 'الأكثر شعبية',
-    
+
     // Categories
     'categories.title': 'تصفح حسب الفئة',
     'categories.subtitle': 'اكتشف المنتجات عبر جميع الصناعات الرئيسية',
     'categories.all': 'جميع الفئات',
     'categories.noCategories': 'لم يتم العثور على فئات',
-    
+
     // Countries
     'countries.title': 'جميع الدول الأفريقية',
     'countries.subtitle': 'اكتشف المنتجات والموردين من جميع الدول الأفريقية الـ 54',
     'countries.searchPlaceholder': 'ابحث عن الدول بالاسم...',
     'countries.comingSoon': 'قريباً',
     'countries.products': 'منتجات',
-    
+
     // Dashboard
     'dashboard.title': 'لوحة التحكم',
     'dashboard.overview': 'نظرة عامة',
@@ -1547,7 +1572,7 @@ export const translations = {
     'dashboard.messages': 'الرسائل',
     'dashboard.analytics': 'التحليلات',
     'dashboard.settings': 'الإعدادات',
-    
+
     // Auth
     'auth.login': 'تسجيل الدخول',
     'auth.signup': 'إنشاء حساب',
@@ -1559,7 +1584,7 @@ export const translations = {
     'auth.createAccount': 'إنشاء حساب',
     'auth.alreadyHaveAccount': 'لديك حساب بالفعل?',
     'auth.dontHaveAccount': 'ليس لديك حساب?',
-    
+
     // Messages
     'messages.title': 'الرسائل',
     'messages.noMessages': 'لا توجد رسائل بعد',
@@ -1571,7 +1596,7 @@ export const translations = {
     'messages.safetyWarning': 'لا ترسل الأموال خارج المنصة',
     'messages.filesAttached': '{count} ملف(ملفات) مرفق(ة)',
     'messages.uploadError': 'فشل رفع الملف(الملفات)',
-    
+
     // RFQ
     'rfq.title': 'طلب عرض سعر',
     'rfq.create': 'إنشاء طلب',
@@ -1580,13 +1605,13 @@ export const translations = {
     'rfq.status': 'الحالة',
     'rfq.open': 'مفتوح',
     'rfq.closed': 'مغلق',
-    
+
     // Verification
     'verification.title': 'مركز التحقق',
     'verification.verified': 'موثق',
     'verification.pending': 'قيد الانتظار',
     'verification.rejected': 'مرفوض',
-    
+
     // Empty States
     'empty.noData': 'لا توجد بيانات متاحة',
     'empty.tryAgain': 'حاول مرة أخرى لاحقاً',
@@ -1598,7 +1623,7 @@ export const translations = {
     'empty.noRFQsDesc': 'ستظهر طلبات العروض الأخيرة هنا.',
     'empty.noMessages': 'لا توجد رسائل بعد',
     'empty.noMessagesDesc': 'ستظهر رسائلك الأخيرة هنا.',
-    
+
     // Marketplace Extended
     'marketplace.popularMarkets': 'الأسواق الشائعة',
     'marketplace.allCountries': 'جميع الدول',
@@ -1623,7 +1648,7 @@ export const translations = {
     'marketplace.readyToShip': 'جاهز للشحن',
     'marketplace.fastResponse': 'استجابة سريعة',
     'marketplace.verifiedOnly': 'موثقون فقط',
-    
+
     // Product Details
     'product.home': 'الرئيسية',
     'product.products': 'المنتجات',
@@ -1658,7 +1683,7 @@ export const translations = {
     'product.rewriteDescription': 'إعادة كتابة الوصف',
     'product.aiSummary': 'ملخص الذكاء الاصطناعي',
     'product.shippingCalculator': 'حاسبة الشحن',
-    
+
     // Transparency Section
     'transparency.title': 'شفافية 100%: كيف نجني المال',
     'transparency.subtitle': 'نؤمن بالشفافية الكاملة. إليك بالضبط كيف يولد أفريكوني الإيرادات للحفاظ على المنصة وتحسينها.',
@@ -1678,7 +1703,7 @@ export const translations = {
     'transparency.principle3.title': 'تسعير عادل',
     'transparency.principle3.text': 'نحافظ على انخفاض الرسوم لجعل التجارة الأفريقية في المتناول. معظم الميزات مجانية.',
     'transparency.footer': '💡 معظم الميزات على أفريكوني مجانية تمامًا. تصفح المنتجات، وأنشئ طلبات عروض الأسعار، واتصل بالموردين، واكتشف الفرص دون أي تكلفة. نحن نفرض الرسوم فقط عند إكمال معاملة أو اختيار ميزات مميزة.',
-    
+
     // Add Product
     'addProduct.title': 'إدراج منتجك',
     'addProduct.subtitle': 'انضم إلى آلاف البائعين الناجحين في السوق الرائدة بين الشركات في أفريقيا. أنشئ قوائم منتجات مقنعة تجذب المشترين وتدفع المبيعات.',
@@ -1726,7 +1751,7 @@ export const translations = {
     'addProduct.generateError': 'فشل إنشاء الوصف.',
     'addProduct.uploadSuccess': 'تم رفع الصور بنجاح',
     'addProduct.uploadError': 'فشل رفع الصور',
-    
+
     // Add Product Alibaba (Multi-step form) - Arabic
     'addProductAlibaba.editProduct': 'تعديل المنتج',
     'addProductAlibaba.addNewProduct': 'إضافة منتج جديد',
@@ -1798,7 +1823,7 @@ export const translations = {
     'addProductAlibaba.aiDetectedCity': '📍 اكتشف الذكاء الاصطناعي المدينة: {city}',
     'addProductAlibaba.aiDescriptionSuccess': '✨ تم إنشاء الوصف بالذكاء الاصطناعي بنجاح!',
     'addProductAlibaba.aiDescriptionError': 'فشل الإنشاء بالذكاء الاصطناعي - تم إنشاء قالب',
-    
+
     // Create RFQ
     'rfq.createTitle': 'إنشاء طلب عرض سعر',
     'rfq.createSubtitle': 'صف ما تحتاجه واحصل على عروض أسعار تنافسية من موردين أفارقة موثوقين.',
@@ -1851,11 +1876,11 @@ export const translations = {
     'rfq.aiError': 'لم يتمكن الذكاء الاصطناعي لأفريكوني من إنشاء طلب العرض. يرجى المحاولة مرة أخرى.',
     'rfq.fileUploadSuccess': 'تم رفع الملف بنجاح',
     'rfq.fileUploadError': 'فشل رفع الملف',
-    
+
     // KoniAI
     'koniai.generateListing': 'إنشاء قائمة مع KoniAI',
     'koniai.language': 'اللغة',
-    
+
     // Messages
     'messages.searchConversations': 'البحث في المحادثات...',
     'messages.noConversations': 'لا توجد محادثات بعد',
@@ -1874,7 +1899,7 @@ export const translations = {
     'messages.createError': 'فشل إنشاء المحادثة',
     'messages.sendError': 'فشل إرسال الرسالة',
     'messages.loading': 'جارٍ تحميل الرسائل...',
-    
+
     // Login
     'login.welcomeBack': 'مرحباً بعودتك',
     'login.subtitle': 'قم بتسجيل الدخول لمتابعة رحلتك التجارية الأفريقية',
@@ -1903,7 +1928,7 @@ export const translations = {
     'login.continueWith': 'أو المتابعة باستخدام',
     'login.signInWithGoogle': 'تسجيل الدخول باستخدام Google',
     'login.signInWithFacebook': 'تسجيل الدخول باستخدام Facebook',
-    
+
     // Signup
     'signup.joinAfrikoni': 'انضم إلى أفريكوني',
     'signup.subtitle': 'أنشئ حسابك لبدء التجارة عبر أفريقيا',
@@ -1929,7 +1954,7 @@ export const translations = {
     'signup.signUpWithGoogle': 'إنشاء حساب باستخدام Google',
     'signup.signUpWithFacebook': 'إنشاء حساب باستخدام Facebook',
   },
-  
+
   pt: {
     // Navigation
     'nav.home': 'Início',
@@ -1969,7 +1994,7 @@ export const translations = {
     'nav.disputeResolution': 'Resolução de Disputas',
     'nav.loadingCategories': 'Carregando categorias...',
     'nav.noCategories': 'Nenhuma categoria disponível',
-    
+
     // Hero Section
     'hero.title': 'O principal mercado B2B da África para comércio em 54 países',
     'hero.searchPlaceholder': 'Pesquisar produtos, fornecedores ou serviços...',
@@ -1985,7 +2010,7 @@ export const translations = {
     'hero.trending.leather': 'Artigos de couro',
     'hero.subtitle': 'O que você está procurando?',
     'early_access_signal': 'Afrikoni está expandindo sua rede verificada',
-    
+
     // Trust Cards
     'trust.title': 'Comercie com Confiança',
     'trust.subtitle': 'Tudo que você precisa para comércio B2B seguro e bem-sucedido em toda a África',
@@ -1995,7 +2020,7 @@ export const translations = {
     'trust.shield.description': 'Proteção segura de garantia e garantias de qualidade em cada pedido',
     'trust.logistics.title': 'Sourcing e Logística Tudo-em-Um',
     'trust.logistics.description': 'Solução de sourcing completa com envio e suporte logístico integrados',
-    
+
     // Common
     'common.loading': 'Carregando...',
     'common.error': 'Erro',
@@ -2021,7 +2046,7 @@ export const translations = {
     'common.currency': 'Moeda',
     'common.contact': 'Entre em Contato',
     'common.pricing': 'Preços',
-    
+
     // Settings
     'settings.fullName': 'Nome Completo',
     'settings.fullNamePlaceholder': 'Seu nome completo',
@@ -2048,7 +2073,7 @@ export const translations = {
     'settings.uploadAvatar': 'Enviar Avatar',
     'settings.changeAvatar': 'Alterar Avatar',
     'settings.uploading': 'Enviando...',
-    
+
     // 404 / Not Found
     'notFound.title': 'Página Não Encontrada',
     'notFound.message': 'A página que você está procurando não existe ou foi movida. Vamos colocá-lo de volta nos trilhos.',
@@ -2056,7 +2081,7 @@ export const translations = {
     'notFound.browseMarketplace': 'Navegar Mercado',
     'notFound.goBack': 'Voltar',
     'notFound.popularPages': 'Páginas Populares:',
-    
+
     // Onboarding
     'onboarding.completeProfile': 'Complete Seu Perfil',
     'onboarding.setupAccount': 'Vamos configurar sua conta para começar',
@@ -2094,7 +2119,7 @@ export const translations = {
     'onboarding.businessType.trader': 'Comerciante',
     'onboarding.businessType.serviceProvider': 'Prestador de Serviços',
     'onboarding.businessType.other': 'Outro',
-    
+
     // Products
     'products.title': 'Produtos',
     'products.noProducts': 'Nenhum produto encontrado',
@@ -2107,7 +2132,7 @@ export const translations = {
     'products.moq': 'QMO',
     'products.verified': 'Verificado',
     'products.featured': 'Destaque',
-    
+
     // Marketplace
     'marketplace.title': 'Mercado',
     'marketplace.subtitle': 'Navegue por milhares de produtos de fornecedores africanos verificados',
@@ -2121,20 +2146,20 @@ export const translations = {
     'marketplace.priceLow': 'Preço: Menor para Maior',
     'marketplace.priceHigh': 'Preço: Maior para Menor',
     'marketplace.mostPopular': 'Mais Popular',
-    
+
     // Categories
     'categories.title': 'Navegar por Categoria',
     'categories.subtitle': 'Descubra produtos em todas as principais indústrias',
     'categories.all': 'Todas as Categorias',
     'categories.noCategories': 'Nenhuma categoria encontrada',
-    
+
     // Countries
     'countries.title': 'Todos os Países Africanos',
     'countries.subtitle': 'Descubra produtos e fornecedores de todos os 54 países africanos',
     'countries.searchPlaceholder': 'Pesquisar países por nome...',
     'countries.comingSoon': 'Em breve',
     'countries.products': 'produtos',
-    
+
     // Dashboard
     'dashboard.title': 'Painel',
     'dashboard.overview': 'Visão Geral',
@@ -2144,7 +2169,7 @@ export const translations = {
     'dashboard.messages': 'Mensagens',
     'dashboard.analytics': 'Análises',
     'dashboard.settings': 'Configurações',
-    
+
     // Auth
     'auth.login': 'Entrar',
     'auth.signup': 'Cadastrar',
@@ -2156,14 +2181,14 @@ export const translations = {
     'auth.createAccount': 'Criar Conta',
     'auth.alreadyHaveAccount': 'Já tem uma conta?',
     'auth.dontHaveAccount': 'Não tem uma conta?',
-    
+
     // Messages
     'messages.title': 'Mensagens',
     'messages.noMessages': 'Ainda não há mensagens',
     'messages.send': 'Enviar',
     'messages.typeMessage': 'Digite uma mensagem...',
     'messages.newMessage': 'Nova Mensagem',
-    
+
     // RFQ
     'rfq.title': 'Solicitação de Cotação',
     'rfq.create': 'Criar Solicitação',
@@ -2172,13 +2197,13 @@ export const translations = {
     'rfq.status': 'Status',
     'rfq.open': 'Aberto',
     'rfq.closed': 'Fechado',
-    
+
     // Verification
     'verification.title': 'Centro de Verificação',
     'verification.verified': 'Verificado',
     'verification.pending': 'Pendente',
     'verification.rejected': 'Rejeitado',
-    
+
     // Empty States
     'empty.noData': 'Nenhum dado disponível',
     'empty.tryAgain': 'Tente novamente mais tarde',
@@ -2190,7 +2215,7 @@ export const translations = {
     'empty.noRFQsDesc': 'Suas solicitações de cotação recentes aparecerão aqui.',
     'empty.noMessages': 'Ainda não há mensagens',
     'empty.noMessagesDesc': 'Suas mensagens recentes aparecerão aqui.',
-    
+
     // Marketplace Extended
     'marketplace.popularMarkets': 'Mercados Populares',
     'marketplace.allCountries': 'Todos os Países',
@@ -2215,7 +2240,7 @@ export const translations = {
     'marketplace.readyToShip': 'Pronto para Enviar',
     'marketplace.fastResponse': 'Resposta Rápida',
     'marketplace.verifiedOnly': 'Apenas Verificados',
-    
+
     // Product Details
     'product.home': 'Início',
     'product.products': 'Produtos',
@@ -2250,7 +2275,7 @@ export const translations = {
     'product.rewriteDescription': 'Reescrever descrição',
     'product.aiSummary': 'Resumo IA',
     'product.shippingCalculator': 'Calculadora de Envio',
-    
+
     // Transparency Section
     'transparency.title': '100% Transparência: Como Ganhamos Dinheiro',
     'transparency.subtitle': 'Acreditamos em transparência total. Aqui está exatamente como a Afrikoni gera receita para manter e melhorar a plataforma.',
@@ -2270,7 +2295,7 @@ export const translations = {
     'transparency.principle3.title': 'Preços Justos',
     'transparency.principle3.text': 'Mantemos as taxas baixas para tornar o comércio africano acessível. A maioria dos recursos é gratuita.',
     'transparency.footer': '💡 A maioria dos recursos na Afrikoni é completamente gratuita. Navegue por produtos, crie RFQs, envie mensagens para fornecedores e descubra oportunidades sem custo. Cobramos apenas quando você completa uma transação ou escolhe recursos premium.',
-    
+
     // Add Product
     'addProduct.title': 'Liste Seu Produto',
     'addProduct.subtitle': 'Junte-se a milhares de vendedores bem-sucedidos no principal mercado B2B da África. Crie listagens de produtos atraentes que atraem compradores e impulsionam vendas.',
@@ -2318,7 +2343,7 @@ export const translations = {
     'addProduct.generateError': 'Falha ao gerar descrição.',
     'addProduct.uploadSuccess': 'Imagens enviadas com sucesso',
     'addProduct.uploadError': 'Falha ao enviar imagens',
-    
+
     // Create RFQ
     'rfq.createTitle': 'Criar Solicitação de Cotação',
     'rfq.createSubtitle': 'Descreva o que você precisa e obtenha cotações competitivas de fornecedores africanos confiáveis.',
@@ -2371,11 +2396,11 @@ export const translations = {
     'rfq.aiError': 'A IA Afrikoni não pôde gerar a solicitação de cotação. Por favor, tente novamente.',
     'rfq.fileUploadSuccess': 'Arquivo enviado com sucesso',
     'rfq.fileUploadError': 'Falha ao enviar arquivo',
-    
+
     // KoniAI
     'koniai.generateListing': 'Gerar Listagem com KoniAI',
     'koniai.language': 'Idioma',
-    
+
     // Messages
     'messages.searchConversations': 'Pesquisar conversas...',
     'messages.noConversations': 'Ainda não há conversas',
@@ -2399,7 +2424,7 @@ export const translations = {
     'messages.safetyWarning': 'Não envie dinheiro fora da plataforma',
     'messages.filesAttached': '{count} arquivo(s) anexado(s)',
     'messages.uploadError': 'Falha ao enviar arquivo(s)',
-    
+
     // Login
     'login.welcomeBack': 'Bem-vindo de volta',
     'login.subtitle': 'Entre para continuar sua jornada comercial africana',
@@ -2428,7 +2453,7 @@ export const translations = {
     'login.continueWith': 'Ou continue com',
     'login.signInWithGoogle': 'Entrar com Google',
     'login.signInWithFacebook': 'Entrar com Facebook',
-    
+
     // Signup
     'signup.joinAfrikoni': 'Junte-se ao Afrikoni',
     'signup.subtitle': 'Crie sua conta para começar a comercializar em toda a África',
@@ -2456,9 +2481,26 @@ export const translations = {
   }
 };
 
+// Merge Legacy + New JSON Translations
+export const translations = {
+  en: { ...legacyTranslations.en, ...enFlat },
+  fr: { ...legacyTranslations.fr, ...frFlat },
+  pt: { ...legacyTranslations.pt, ...ptFlat },
+  ar: { ...legacyTranslations.ar, ...arFlat }
+};
+
 // Get translation for a key
-export function t(key, lang = 'en') {
-  return translations[lang]?.[key] || translations.en[key] || key;
+export function t(key, lang = 'en', options = {}) {
+  let template = translations[lang]?.[key] || translations.en[key] || key;
+
+  // Interpolation: Replace {{param}} with options[param]
+  if (template && typeof template === 'string' && options) {
+    Object.keys(options).forEach(param => {
+      template = template.replace(new RegExp(`{{${param}}}`, 'g'), options[param]);
+    });
+  }
+
+  return template;
 }
 
 // Get current language from localStorage or default to 'en'

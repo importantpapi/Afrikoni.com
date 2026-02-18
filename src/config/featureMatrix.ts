@@ -1,4 +1,4 @@
-import type { UserRole } from '@/context/RoleContext';
+import type { UserRole } from '@/contexts/RoleContext';
 
 export const featureMatrix: Record<UserRole, string[]> = {
   buyer: ['rfqs', 'orders', 'messages'],

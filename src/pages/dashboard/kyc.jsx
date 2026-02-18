@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { supabase } from '@/api/supabaseClient';
 import {
   Shield, ArrowLeft, CheckCircle, XCircle, Clock, AlertTriangle,
   User, Building, FileText, Upload, Eye, RefreshCw, Search,
@@ -21,6 +22,7 @@ import { CardSkeleton } from '@/components/shared/ui/skeletons';
 import ErrorState from '@/components/shared/ui/ErrorState';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { getCountryCodeFromCoords } from '@/utils/geoDetectionGoogle';
 
 // --- Components ---
 
@@ -78,6 +80,21 @@ export default function IntegrityPortal() {
 
   const [isSyncing, setIsSyncing] = useState(false);
   const [uploadingDoc, setUploadingDoc] = useState(null);
+  const [detectedCountry, setDetectedCountry] = useState(null);
+
+  // Google Geo-Intelligence: Detect User Location for Compliance
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(async (position) => {
+        const { latitude, longitude } = position.coords;
+        const countryCode = await getCountryCodeFromCoords(latitude, longitude);
+        if (countryCode) {
+          setDetectedCountry(countryCode);
+          console.log(`📍 Compliance Node detected user in: ${countryCode}`);
+        }
+      });
+    }
+  }, []);
 
   const kycSummary = useMemo(() => {
     if (kycVerifications.length === 0) {
@@ -100,24 +117,71 @@ export default function IntegrityPortal() {
     };
   }, [kycVerifications, organization]);
 
-  const handleSync = () => {
+  const handleSync = async () => {
     setIsSyncing(true);
-    setTimeout(() => {
-      setIsSyncing(false);
-      toast.success("Sovereign Node Synchronized", {
-        description: "Verified all integrity commits against the AfCFTA Ledger."
+    try {
+      const { data, error } = await supabase
+        .from('kyc_verifications')
+        .select('*')
+        .eq('company_id', profileCompanyId)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      toast.success("Integrity Node Synchronized", {
+        description: `${data?.length || 0} verification records found.`
       });
-    }, 2000);
+    } catch (err) {
+      toast.error("Sync failed", { description: err.message });
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
-  const simulateUpload = (type) => {
-    setUploadingDoc(type);
-    setTimeout(() => {
-      setUploadingDoc(null);
-      toast.success(`${type.toUpperCase()} Uploaded`, {
-        description: "Document DNA extracted. Audit queued for processing."
-      });
-    }, 3500);
+  const handleDocumentUpload = async (type) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.pdf,.jpg,.jpeg,.png';
+    input.onchange = async (e) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("File too large", { description: "Maximum file size is 10MB." });
+        return;
+      }
+
+      setUploadingDoc(type);
+      try {
+        const filePath = `kyc/${profileCompanyId}/${type.toLowerCase()}-${Date.now()}.${file.name.split('.').pop()}`;
+        const { error: uploadError } = await supabase.storage
+          .from('kyc-documents')
+          .upload(filePath, file, { upsert: true });
+
+        if (uploadError) throw uploadError;
+
+        const { error: dbError } = await supabase
+          .from('kyc_verifications')
+          .upsert({
+            company_id: profileCompanyId,
+            user_id: userId,
+            type: type.toLowerCase() === 'passport' ? 'identity' : 'business',
+            document_path: filePath,
+            status: 'pending',
+            submitted_at: new Date().toISOString()
+          });
+
+        if (dbError) throw dbError;
+
+        toast.success(`${type} Uploaded`, {
+          description: "Document submitted for verification review."
+        });
+      } catch (err) {
+        toast.error("Upload failed", { description: err.message });
+      } finally {
+        setUploadingDoc(null);
+      }
+    };
+    input.click();
   };
 
   if (isLoading) return <CardSkeleton count={3} />;
@@ -260,7 +324,7 @@ export default function IntegrityPortal() {
 
                 <div className="flex gap-4 pt-4">
                   <Button
-                    onClick={() => simulateUpload('Passport')}
+                    onClick={() => handleDocumentUpload('Passport')}
                     disabled={!!uploadingDoc}
                     className="flex-1 h-14 bg-white/5 border border-white/10 rounded-os-md hover:bg-white/10 transition-all gap-3 text-os-muted font-black uppercase tracking-widest text-os-xs"
                   >
@@ -346,7 +410,9 @@ export default function IntegrityPortal() {
                       <FileCheck className="w-5 h-5 text-emerald-500" />
                     </div>
                     <div className="flex-1">
-                      <div className="text-os-xs font-black uppercase tracking-widest text-emerald-500">Certificate of Good Standing</div>
+                      <div className="text-os-xs font-black uppercase tracking-widest text-emerald-500">
+                        {detectedCountry === 'NG' || organization?.country === 'Nigeria' || organization?.country === 'NG' ? 'CAC Certificate of Incorporation' : 'Certificate of Good Standing'}
+                      </div>
                       <div className="text-os-xs font-medium text-os-muted">Verified on: 01 Feb 2026</div>
                     </div>
                   </div>

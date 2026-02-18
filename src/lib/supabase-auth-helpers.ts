@@ -66,24 +66,38 @@ export async function logAuthEvent(
   });
 }
 
-// Check login attempts (rate limiting)
-export async function checkLoginAttempts(email: string) {
-  const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+// Maximum failed login attempts before lockout
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_WINDOW_MS = 5 * 60 * 1000; // 5 minutes
+
+// Check login attempts and enforce lockout
+export async function checkLoginAttempts(email: string): Promise<{ allowed: boolean; attempts: number; retryAfterMs: number }> {
+  const fiveMinutesAgo = new Date(Date.now() - LOCKOUT_WINDOW_MS).toISOString();
 
   const { data, error } = await supabase
     .from('login_attempts')
-    .select('*')
+    .select('attempted_at')
     .eq('email', email)
     .eq('success', false)
-    .gte('attempted_at', fiveMinutesAgo);
+    .gte('attempted_at', fiveMinutesAgo)
+    .order('attempted_at', { ascending: false });
 
   if (error) {
-    // If table missing or RLS issues, fail open but log to console
     console.debug('checkLoginAttempts error', error);
-    return 0;
+    return { allowed: true, attempts: 0, retryAfterMs: 0 };
   }
 
-  return data?.length || 0;
+  const attempts = data?.length || 0;
+
+  if (attempts >= MAX_LOGIN_ATTEMPTS) {
+    const oldestAttempt = data[data.length - 1]?.attempted_at;
+    const retryAfterMs = oldestAttempt
+      ? LOCKOUT_WINDOW_MS - (Date.now() - new Date(oldestAttempt).getTime())
+      : LOCKOUT_WINDOW_MS;
+    return { allowed: false, attempts, retryAfterMs: Math.max(0, retryAfterMs) };
+  }
+
+  return { allowed: true, attempts, retryAfterMs: 0 };
 }
 
 // Record login attempt

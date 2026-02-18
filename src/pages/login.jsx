@@ -8,7 +8,7 @@ import GoogleSignIn from '@/components/auth/GoogleSignIn';
 import { login as authServiceLogin } from '@/services/AuthService';
 import { isNetworkError, handleNetworkError } from '@/utils/networkErrorHandler';
 import { useAuth } from '@/contexts/AuthProvider';
-import { useCapability } from '@/context/CapabilityContext';
+import { useCapability } from '@/contexts/CapabilityContext';
 import { Button } from '@/components/shared/ui/button';
 import AuthLayout from '@/components/auth/AuthLayout';
 

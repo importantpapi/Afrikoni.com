@@ -9,7 +9,8 @@ import SEO from '@/components/SEO';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 // ✅ FINAL 3% FIX: Removed getCurrentUserAndRole import - not used in this file
-import { useCapability } from '@/context/CapabilityContext';
+import { useCapability } from '@/contexts/CapabilityContext';
+import { useAuth } from '@/contexts/AuthProvider';
 import EmptyState from '@/components/shared/ui/EmptyState';
 import ErrorBoundary from '@/components/ErrorBoundary';
 
@@ -38,7 +39,7 @@ function LogisticsContent() {
       } catch (error) {
         console.error('Analytics error:', error);
       }
-      
+
       // GUARD: Wait for auth to be ready
       if (!authReady || authLoading) {
         return;
@@ -46,7 +47,7 @@ function LogisticsContent() {
 
       await loadData();
     };
-    
+
     initialize();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authReady, authLoading]);
@@ -54,12 +55,12 @@ function LogisticsContent() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      
+
       // Load logistics partners from companies table
       // First, try to get all verified companies and filter by role
       let allCompanies = [];
       let allError = null;
-      
+
       try {
         const result = await supabase
           .from('companies')
@@ -67,14 +68,14 @@ function LogisticsContent() {
           .eq('verified', true)
           .order('created_at', { ascending: false })
           .limit(100);
-        
+
         allCompanies = result.data || [];
         allError = result.error;
       } catch (queryError) {
         console.error('Query error:', queryError);
         allError = queryError;
       }
-      
+
       if (allError) {
         console.error('Error loading companies:', allError);
         // Don't throw, just set empty state
@@ -88,7 +89,7 @@ function LogisticsContent() {
         setIsLoading(false);
         return;
       }
-      
+
       // Filter for logistics partners client-side (more reliable)
       const partners = (allCompanies || []).filter(company => {
         const role = company?.role;
@@ -222,10 +223,10 @@ function LogisticsContent() {
 
   const handleBecomePartner = () => {
     // ✅ FOUNDATION FIX: Check capabilities instead of role
-    const isLogisticsApproved = capabilities.ready && 
-                                 capabilities.can_logistics === true && 
-                                 capabilities.logistics_status === 'approved';
-    
+    const isLogisticsApproved = capabilities.ready &&
+      capabilities.can_logistics === true &&
+      capabilities.logistics_status === 'approved';
+
     if (user && isLogisticsApproved) {
       // User is already a logistics partner, go to dashboard
       navigate('/dashboard/logistics');
@@ -237,10 +238,10 @@ function LogisticsContent() {
 
   const handleRequestQuote = () => {
     // ✅ FOUNDATION FIX: Check capabilities instead of role
-    const isLogisticsApproved = capabilities.ready && 
-                                 capabilities.can_logistics === true && 
-                                 capabilities.logistics_status === 'approved';
-    
+    const isLogisticsApproved = capabilities.ready &&
+      capabilities.can_logistics === true &&
+      capabilities.logistics_status === 'approved';
+
     if (user && isLogisticsApproved) {
       navigate('/dashboard/logistics?tab=quotes');
     } else if (user) {
@@ -281,22 +282,22 @@ function LogisticsContent() {
                 Connect with Afrikoni-approved logistics partners for reliable shipping across Africa
               </p>
               <div className="flex flex-wrap justify-center gap-4">
-                <Button 
-                  size="lg" 
+                <Button
+                  size="lg"
                   className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut text-os-lg px-8 py-6"
                   onClick={handleRequestQuote}
                 >
                   Request Shipping Quote
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
+                <Button
+                  size="lg"
+                  variant="outline"
                   className="border-2 border-white text-white hover:bg-white/10 text-os-lg px-8 py-6"
                   onClick={handleBecomePartner}
                 >
-                  {user && isLogistics(userRole) ? 'Go to Dashboard' : 'Become a Partner'}
-                  </Button>
+                  {user && capabilities?.can_logistics ? 'Go to Dashboard' : 'Become a Partner'}
+                </Button>
               </div>
             </motion.div>
 
@@ -362,8 +363,8 @@ function LogisticsContent() {
                   description="Be the first to join our network! Apply now to become a verified logistics partner."
                 />
                 <div className="mt-8">
-                  <Button 
-                    size="lg" 
+                  <Button
+                    size="lg"
                     className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut"
                     onClick={handleBecomePartner}
                   >
@@ -373,88 +374,88 @@ function LogisticsContent() {
                 </div>
               </div>
             ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {(logisticsPartners || []).filter(p => p && p.id).map((partner, idx) => (
-                <motion.div
-                  key={partner?.id || idx}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.6, delay: idx * 0.1 }}
-                >
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {(logisticsPartners || []).filter(p => p && p.id).map((partner, idx) => (
+                  <motion.div
+                    key={partner?.id || idx}
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.6, delay: idx * 0.1 }}
+                  >
                     <Card className="h-full hover:shadow-os-lg transition-all border-os-accent/20">
-                    <CardHeader>
-                      <div className="flex items-start justify-between mb-2">
+                      <CardHeader>
+                        <div className="flex items-start justify-between mb-2">
                           <div className="flex-1">
                             <CardTitle className="text-os-xl mb-1">{partner?.company_name || 'Logistics Partner'}</CardTitle>
-                          <div className="flex items-center gap-2 text-afrikoni-deep">
-                            <MapPin className="w-4 h-4" />
+                            <div className="flex items-center gap-2 text-afrikoni-deep">
+                              <MapPin className="w-4 h-4" />
                               <span className="text-os-sm">{partner?.city || ''}, {partner?.country || ''}</span>
                             </div>
                           </div>
                           {partner?.verified && (
                             <Badge className="bg-green-100 text-green-700 border-green-300">
                               <CheckCircle className="w-3 h-3 mr-1" />
-                          Verified
-                        </Badge>
+                              Verified
+                            </Badge>
                           )}
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      {/* Services */}
-                      <div>
-                        <p className="text-os-sm font-semibold text-afrikoni-deep mb-2">Services:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {(partner?.services || []).map((service, sIdx) => {
-                            const ServiceIcon = getServiceIcon(service);
-                            return (
-                                <Badge key={sIdx} variant="outline" className="flex items-center gap-1 border-os-accent/30">
-                                <ServiceIcon className="w-3 h-3" />
-                                {service}
-                              </Badge>
-                            );
-                          })}
                         </div>
-                      </div>
-
-                      {/* Coverage */}
-                      <div>
-                        <p className="text-os-sm font-semibold text-afrikoni-deep mb-1">Coverage:</p>
-                          <p className="text-os-sm text-afrikoni-deep/80">{partner?.coverage || 'Regional'}</p>
-                      </div>
-
-                      {/* Stats */}
-                      <div className="flex items-center justify-between pt-2 border-t border-os-accent/20">
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {/* Services */}
                         <div>
-                          <p className="text-os-xs text-afrikoni-deep/70">Rating</p>
+                          <p className="text-os-sm font-semibold text-afrikoni-deep mb-2">Services:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {(partner?.services || []).map((service, sIdx) => {
+                              const ServiceIcon = getServiceIcon(service);
+                              return (
+                                <Badge key={sIdx} variant="outline" className="flex items-center gap-1 border-os-accent/30">
+                                  <ServiceIcon className="w-3 h-3" />
+                                  {service}
+                                </Badge>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Coverage */}
+                        <div>
+                          <p className="text-os-sm font-semibold text-afrikoni-deep mb-1">Coverage:</p>
+                          <p className="text-os-sm text-afrikoni-deep/80">{partner?.coverage || 'Regional'}</p>
+                        </div>
+
+                        {/* Stats */}
+                        <div className="flex items-center justify-between pt-2 border-t border-os-accent/20">
+                          <div>
+                            <p className="text-os-xs text-afrikoni-deep/70">Rating</p>
                             <div className="flex items-center gap-1">
                               <p className="text-os-sm font-semibold text-os-accent">
                                 {typeof partner?.rating === 'number' ? partner.rating.toFixed(1) : '4.5'}
                               </p>
                               <Star className="w-4 h-4 text-os-accent fill-os-accent" />
                             </div>
-                        </div>
-                        <div>
-                          <p className="text-os-xs text-afrikoni-deep/70">Shipments</p>
+                          </div>
+                          <div>
+                            <p className="text-os-xs text-afrikoni-deep/70">Shipments</p>
                             <p className="text-os-sm font-semibold text-afrikoni-deep">
                               {typeof partner?.shipments === 'number' ? partner.shipments.toLocaleString() : '0'}+
                             </p>
+                          </div>
                         </div>
-                      </div>
 
-                      {/* CTA */}
-                        <Button 
+                        {/* CTA */}
+                        <Button
                           className="w-full bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut"
                           onClick={handleRequestQuote}
                         >
-                        Request Quote
+                          Request Quote
                           <ArrowRight className="ml-2 w-4 h-4" />
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
             )}
           </section>
 
@@ -500,11 +501,11 @@ function LogisticsContent() {
                     Become a Logistics Partner
                   </h2>
                   <p className="text-os-xl text-afrikoni-cream/90 mb-8 max-w-2xl mx-auto">
-                    Join Afrikoni's logistics network and help facilitate trade across Africa. 
+                    Join Afrikoni's logistics network and help facilitate trade across Africa.
                     Get verified, access our platform, and grow your business.
                   </p>
-                  <Button 
-                    size="lg" 
+                  <Button
+                    size="lg"
                     className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut text-os-lg px-8 py-6"
                     onClick={handleBecomePartner}
                   >
@@ -694,22 +695,22 @@ function LogisticsContent() {
                 Request a quote from our verified logistics partners or join our network
               </p>
               <div className="flex flex-wrap justify-center gap-4">
-                <Button 
-                  size="lg" 
+                <Button
+                  size="lg"
                   className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut text-os-lg px-8 py-6"
                   onClick={handleRequestQuote}
                 >
-                    Request Quote
+                  Request Quote
                   <ArrowRight className="ml-2 w-5 h-5" />
-                  </Button>
-                <Button 
-                  size="lg" 
-                  variant="outline" 
+                </Button>
+                <Button
+                  size="lg"
+                  variant="outline"
                   className="border-os-accent text-os-accent hover:bg-os-accent/10 text-os-lg px-8 py-6"
                   onClick={handleBecomePartner}
                 >
-                  {user && isLogistics(userRole) ? 'Go to Dashboard' : 'Become a Partner'}
-                  </Button>
+                  {user && capabilities?.can_logistics ? 'Go to Dashboard' : 'Become a Partner'}
+                </Button>
               </div>
             </motion.div>
           </section>

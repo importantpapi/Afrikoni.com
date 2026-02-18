@@ -2,8 +2,24 @@
  * PDF Generator Service
  * Converts Forensic HTML into an Institutional-Grade Digital Certificate.
  */
+
+function sanitizeHTML(html) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const scripts = doc.querySelectorAll('script, iframe, object, embed, form');
+    scripts.forEach(el => el.remove());
+    const allElements = doc.body.querySelectorAll('*');
+    allElements.forEach(el => {
+        for (const attr of [...el.attributes]) {
+            if (attr.name.startsWith('on') || attr.value.includes('javascript:')) {
+                el.removeAttribute(attr.name);
+            }
+        }
+    });
+    return doc.body.innerHTML;
+}
+
 export async function generateForensicPDF(reportHtml, fileName = 'Forensic_Audit_Report.pdf') {
-    // ✅ PERFORMANCE OPTIMIZATION: Dynamic imports for heavy libraries
     const [{ jsPDF }, html2canvas] = await Promise.all([
         import('jspdf'),
         import('html2canvas').then(m => m.default)
@@ -11,13 +27,12 @@ export async function generateForensicPDF(reportHtml, fileName = 'Forensic_Audit
 
     return new Promise(async (resolve, reject) => {
         try {
-            // Create a hidden container for rendering the HTML
             const container = document.createElement('div');
             container.style.position = 'absolute';
             container.style.left = '-9999px';
             container.style.top = '-9999px';
-            container.style.width = '800px'; // Standard A4-ish width for rendering
-            container.innerHTML = reportHtml;
+            container.style.width = '800px';
+            container.innerHTML = sanitizeHTML(reportHtml);
             document.body.appendChild(container);
 
             // Give elements time to render if needed

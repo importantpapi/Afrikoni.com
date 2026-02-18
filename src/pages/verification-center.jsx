@@ -16,7 +16,7 @@ import { useAuth } from '@/contexts/AuthProvider';
 import { isEmailVerified } from '@/utils/authHelpers';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { getOrCreateCompany } from '@/utils/companyHelper';
-import { useCapability } from '@/context/CapabilityContext';
+import { useCapability } from '@/contexts/CapabilityContext';
 import { toast } from 'sonner';
 import { logVerificationEvent } from '@/utils/auditLogger';
 import SEO from '@/components/SEO';

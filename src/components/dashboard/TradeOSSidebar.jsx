@@ -1,11 +1,9 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Logo } from '@/components/shared/ui/Logo';
 import { getRoleNavigation } from '@/config/roleNavigationConfig';
 import { cn as utilsCn } from '@/lib/utils';
-
 // Bulletproof helper to prevent ReferenceError: cn is not defined
 const cn = (...args) => {
   try {
@@ -24,10 +22,24 @@ export default function TradeOSSidebar({
   workspaceMode = 'simple',
 }) {
   const location = useLocation();
+  const { lang = 'en' } = useParams(); // ✅ Fix: Get lang param
+
   const isActive = (path, matchFn) => {
+    // Check against the localized path if needed, or just part of pathname
+    const localizedPath = `/${lang}${path}`;
     if (matchFn) return matchFn(location.pathname);
-    if (path === '/dashboard') return location.pathname === '/dashboard';
-    return location.pathname.startsWith(path);
+    if (path === '/dashboard') return location.pathname === `/${lang}/dashboard` || location.pathname === `/${lang}/dashboard/`;
+    return location.pathname.startsWith(localizedPath);
+  };
+
+  const getLocalizedPath = (path) => {
+    if (!path) return '#';
+    if (path.startsWith('http')) return path;
+    // Already has lang?
+    if (path.startsWith(`/${lang}/`)) return path;
+    // Strip leading slash
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `/${lang}${cleanPath}`;
   };
 
   const { sections, systemApps } = getRoleNavigation({ capabilities, workspaceMode, notificationCounts });
@@ -45,8 +57,8 @@ export default function TradeOSSidebar({
       `}
     >
       {/* OS Logo - Official Afrikoni Mark */}
-      <Link 
-        to="/dashboard" 
+      <Link
+        to={getLocalizedPath("/dashboard")}
         onClick={onClose}
         className={cn("my-6 relative group z-50 flex items-center gap-3", sidebarOpen ? "w-full px-6" : "px-2 justify-center")}
       >
@@ -87,7 +99,7 @@ export default function TradeOSSidebar({
               {(section.items || []).map(item => (
                 <Link
                   key={item.id}
-                  to={item.path}
+                  to={getLocalizedPath(item.path)}
                   className={cn(
                     "relative group flex items-center transition-all duration-200 h-10 rounded-lg",
                     sidebarOpen ? "w-full px-4 gap-3 mx-auto" : "w-11 justify-center",
@@ -137,7 +149,7 @@ export default function TradeOSSidebar({
         {(systemApps || []).map(item => (
           <Link
             key={item.id}
-            to={item.path}
+            to={getLocalizedPath(item.path)}
             className={cn(
               "relative group flex items-center transition-all duration-200 h-10 rounded-lg",
               sidebarOpen ? "w-full px-4 gap-3" : "w-10 justify-center",

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Globe,
@@ -28,8 +28,7 @@ import { autoDetectUserPreferences, getCurrencyForCountry, getLanguageForCountry
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { getUserInitial } from '@/utils/userHelpers';
 import { useAuth } from '@/contexts/AuthProvider';
-// ✅ KERNEL-TO-UI ALIGNMENT: Removed useCapability import - Navbar doesn't need capabilities
-import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 // Country code to country name mapping
 const COUNTRY_NAMES = {
@@ -76,10 +75,10 @@ const ALL_COUNTRIES = Object.keys(COUNTRY_NAMES).filter(key => key !== 'DEFAULT'
 }));
 
 export default function Navbar({ user, onLogout }) {
+  const { language, setLanguage } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const { i18n } = useTranslation();
-  const language = i18n.language;
   const { currency: contextCurrency, setCurrency: setContextCurrency } = useCurrency();
   const [megaOpen, setMegaOpen] = useState(false);
   const [languageOpen, setLanguageOpen] = useState(false);
@@ -319,7 +318,7 @@ export default function Navbar({ user, onLogout }) {
   };
 
   const handleLanguageChange = (langCode) => {
-    i18n.changeLanguage(langCode);
+    setLanguage(langCode);
     setSettingsOpen(false);
   };
 
@@ -369,7 +368,7 @@ export default function Navbar({ user, onLogout }) {
   };
 
   return (
-    <nav className={`fixed top-0 left-0 right-0 w-full bg-[var(--os-surface)] backdrop-blur-xl text-os-text-primary border-b border-os-stroke z-[10000] transition-all duration-300 ${isScrolled ? 'shadow-premium' : 'shadow-none'} overflow-visible`} style={{ height: '72px' }}>
+    <nav className={`fixed top-0 start-0 end-0 w-full bg-[var(--os-surface)] backdrop-blur-xl text-os-text-primary border-b border-os-stroke z-[10000] transition-all duration-300 ${isScrolled ? 'shadow-premium' : 'shadow-none'} overflow-visible`} style={{ height: '72px' }}>
       {/* Top bar */}
       <div className="max-w-[1440px] mx-auto px-3 sm:px-4 flex items-center justify-between gap-2 sm:gap-4 lg:gap-6 h-full overflow-visible">
         {/* Left: logo + explore + quick link */}
@@ -379,17 +378,17 @@ export default function Navbar({ user, onLogout }) {
           </div>
 
           {/* Marketplace Link */}
-          <Link to="/marketplace" className="hidden sm:flex items-center gap-1 text-os-xs sm:text-os-sm font-semibold text-os-text-primary/70 hover:text-os-accent transition-colors whitespace-nowrap uppercase tracking-widest">
+          <Link to={`/${language}/marketplace`} className="hidden sm:flex items-center gap-1 text-os-xs sm:text-os-sm font-semibold text-os-text-primary/70 hover:text-os-accent transition-colors whitespace-nowrap uppercase tracking-widest">
             Marketplace
           </Link>
 
           {/* How It Works Link */}
-          <Link to="/how-it-works" className="hidden sm:flex items-center gap-1 text-os-xs sm:text-os-sm font-semibold text-os-text-primary/70 hover:text-os-accent transition-colors whitespace-nowrap uppercase tracking-widest">
+          <Link to={`/${language}/how-it-works`} className="hidden sm:flex items-center gap-1 text-os-xs sm:text-os-sm font-semibold text-os-text-primary/70 hover:text-os-accent transition-colors whitespace-nowrap uppercase tracking-widest">
             How It Works
           </Link>
 
           {compareCount > 0 && (
-            <Link to="/compare" className="relative hidden sm:block">
+            <Link to={`/${language}/compare`} className="relative hidden sm:block">
               <Button
                 variant="ghost"
                 size="sm"
@@ -434,7 +433,7 @@ export default function Navbar({ user, onLogout }) {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2, ease: 'easeOut' }}
-                    className="absolute right-0 mt-2 w-96 max-w-[calc(100vw-2rem)] bg-os-card rounded-lg shadow-2xl border-2 border-os-accent/30 z-[70] p-6 max-h-[600px] overflow-y-auto"
+                    className="absolute end-0 mt-2 w-96 max-w-[calc(100vw-2rem)] bg-os-card rounded-lg shadow-2xl border-2 border-os-accent/30 z-[70] p-6 max-h-[600px] overflow-y-auto"
                   >
                     <h3 className="text-os-lg font-bold text-os-text-primary mb-2">Select Delivery Country</h3>
                     <p className="text-os-sm text-os-text-secondary/70 mb-4">
@@ -526,7 +525,7 @@ export default function Navbar({ user, onLogout }) {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2, ease: 'easeOut' }}
-                    className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-os-card rounded-lg shadow-2xl border-2 border-os-accent/30 z-[70] p-6 max-h-[80vh] overflow-y-auto"
+                    className="absolute end-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-os-card rounded-lg shadow-2xl border-2 border-os-accent/30 z-[70] p-6 max-h-[80vh] overflow-y-auto"
                   >
                     <h3 className="text-os-lg font-bold text-os-text-primary mb-2">Set Language & Currency</h3>
                     <p className="text-os-sm text-os-text-secondary/70 mb-6">
@@ -652,7 +651,7 @@ export default function Navbar({ user, onLogout }) {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2, ease: 'easeOut' }}
-                        className="absolute right-0 mt-2 w-64 md:w-72 max-w-[90vw] bg-os-card border border-os-accent/20 rounded-lg shadow-os-lg z-[70] overflow-hidden"
+                        className="absolute end-0 mt-2 w-64 md:w-72 max-w-[90vw] bg-os-card border border-os-accent/20 rounded-lg shadow-os-lg z-[70] overflow-hidden"
                       >
                         <div className="py-1">
                           <div className="px-4 py-3 border-b border-os-accent/20">
@@ -663,11 +662,11 @@ export default function Navbar({ user, onLogout }) {
                               {user.user_role || 'User'}
                             </div>
                             {isVerified ? (
-                              <div className="absolute top-2 right-2 bg-os-surface-0/90 backdrop-blur-sm rounded-full shadow-sm">
+                              <div className="absolute top-2 end-2 bg-os-surface-0/90 backdrop-blur-sm rounded-full shadow-sm">
                                 <VerificationBadge status="VERIFIED" size="xs" showLabel variant="badge" />
                               </div>
                             ) : verificationStatus === 'PENDING' ? (
-                              <div className="absolute top-2 right-2 bg-os-surface-0/90 backdrop-blur-sm rounded-full shadow-sm">
+                              <div className="absolute top-2 end-2 bg-os-surface-0/90 backdrop-blur-sm rounded-full shadow-sm">
                                 <VerificationBadge status="PENDING" size="xs" variant="badge" />
                               </div>
                             ) : null}
@@ -801,7 +800,7 @@ export default function Navbar({ user, onLogout }) {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.2, ease: 'easeOut' }}
-              className="absolute left-0 top-full w-full bg-os-card shadow-os-lg border-t border-os-stroke z-[50] max-h-[calc(100vh-4rem)] overflow-y-auto"
+              className="absolute start-0 top-full w-full bg-os-card shadow-os-lg border-t border-os-stroke z-[50] max-h-[calc(100vh-4rem)] overflow-y-auto"
             >
               <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
                 {/* Main Categories Section - Alibaba Style */}

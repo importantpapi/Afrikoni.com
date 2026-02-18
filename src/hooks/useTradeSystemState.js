@@ -13,7 +13,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
-import { useCapability } from '@/context/CapabilityContext';
+import { useCapability } from '@/contexts/CapabilityContext';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { generateRecommendations } from '@/services/aiRecommendationService';
 

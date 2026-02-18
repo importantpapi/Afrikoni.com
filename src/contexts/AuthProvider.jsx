@@ -31,7 +31,9 @@ async function ensureProfileExists(user) {
       return null;
     }
 
-    console.log('[Auth] ✅ Fallback profile created:', { id: user.id, role });
+    if (import.meta.env.DEV) {
+      console.log('[Auth] ✅ Fallback profile created:', { id: user.id, role });
+    }
     return data;
   } catch (err) {
     console.error('[Auth] Fallback profile creation exception:', err);

@@ -10,9 +10,11 @@
 
 import CryptoJS from 'crypto-js';
 
-// Encryption secret - should be unique per deployment
-// In production, this should be set via environment variable
-const SECRET = import.meta.env.VITE_STORAGE_SECRET || 'afrikoni-2026-secure-storage-key';
+// Encryption secret - MUST be set via VITE_STORAGE_SECRET environment variable
+const SECRET = import.meta.env.VITE_STORAGE_SECRET;
+if (!SECRET) {
+  console.error('[SecureStorage] VITE_STORAGE_SECRET is not set. Encrypted storage will not function correctly.');
+}
 
 /**
  * Secure localStorage wrapper with AES encryption

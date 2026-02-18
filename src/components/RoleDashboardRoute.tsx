@@ -1,6 +1,6 @@
 import React, { ReactNode, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useRole, UserRole, getDashboardHomePath } from '@/context/RoleContext';
+import { useRole, UserRole, getDashboardHomePath } from '@/contexts/RoleContext';
 
 type Props = {
   allowedRoles: UserRole[];

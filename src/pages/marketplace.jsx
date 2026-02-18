@@ -68,7 +68,9 @@ import { trackProductView } from '@/lib/supabaseQueries/products';
 import { Logo } from '@/components/shared/ui/Logo';
 import ProductCard from '@/components/products/ProductCard';
 import { Surface } from '@/components/system/Surface';
+import { useLanguage } from '@/i18n/LanguageContext';
 import { cn } from '@/lib/utils';
+import { getCountryCodeFromCoords, getTradeBloc } from '@/utils/geoDetectionGoogle';
 
 export default function Marketplace() {
   const { t } = useTranslation();
@@ -205,6 +207,50 @@ export default function Marketplace() {
 
     loadCategoriesAndCountries();
   }, [searchParams]);
+
+  // 🌍 GEO-INTELLIGENCE: Auto-detect user location (Free Tier / IP Fallback)
+  useEffect(() => {
+    const detectLocation = async () => {
+      // Only run if no country is selected
+      if (selectedFilters.country !== 'All') return;
+
+      try {
+        // 1. Try to get user's country code (uses IP fallback internally if coords missing)
+        const countryCode = await getCountryCodeFromCoords();
+
+        if (countryCode) {
+          // 2. Convert ISO code (e.g. 'NG') to Full Name (e.g. 'Nigeria')
+          const regionNames = new Intl.DisplayNames(['en'], { type: 'region' });
+          const countryName = regionNames.of(countryCode);
+
+          if (countryName) {
+            // 3. Verify it's an African country we support
+            const supportedCountry = AFRICAN_COUNTRIES.find(c => c.toLowerCase() === countryName.toLowerCase());
+
+            if (supportedCountry) {
+              console.log(`📍 User detected in ${supportedCountry}`);
+
+              // 4. Update Filter
+              setSelectedFilters(prev => ({ ...prev, country: supportedCountry }));
+
+              // 5. Show Toast
+              toast.success(`Welcome! Showing products from ${supportedCountry}`, {
+                icon: '🌍',
+                description: 'Location detected via secure IP analysis.'
+              });
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Geo-detection failed:", error);
+      }
+    };
+
+    // Small delay to allow initial load
+    const timer = setTimeout(detectLocation, 1500);
+    return () => clearTimeout(timer);
+  }, []); // Run once on mount
+
   const verificationOptions = ['All', 'Verified', 'Premium Partner'];
   const POPULAR_COUNTRIES = ['Nigeria', 'Ghana', 'Kenya', 'South Africa', 'Egypt', 'Morocco'];
   const SORT_OPTIONS = [
@@ -541,14 +587,46 @@ export default function Marketplace() {
     AFRICAN_COUNTRIES.find((c) => c.toLowerCase() === urlCountryParam.toLowerCase())
     : '';
 
-  const selectedCountryForSeo =
-    selectedFilters.country && selectedFilters.country !== t('marketplace.allCountries')
-      ? selectedFilters.country
-      : urlCountryName || '';
+  const { language: currentLang } = useLanguage();
+  // Fix: Define selectedCountryForSeo derived from filters
+  const selectedCountryForSeo = selectedFilters.country !== 'All' ? selectedFilters.country : null;
+
+  // 🏛️ GEO Fact-Density Handshake (JSON-LD)
+  const itemListSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "numberOfItems": products.length,
+    "itemListElement": products.slice(0, 10).map((product, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "item": {
+        "@type": "Product",
+        "name": product.name,
+        "description": product.description,
+        "url": `${window.location.origin}/${currentLang}/product/${product.id}`,
+        "image": getPrimaryImageFromProduct(product),
+        "offers": {
+          "@type": "Offer",
+          "price": product.price || 0,
+          "priceCurrency": product.currency || "USD",
+          "availability": "https://schema.org/InStock"
+        },
+        "brand": {
+          "@type": "Brand",
+          "name": product.companies?.name || "Verified African Supplier"
+        },
+        "countryOfOrigin": {
+          "@type": "Country",
+          "name": product.country || product.companies?.country
+        }
+      }
+    }))
+  };
 
   return (
     <>
       <SEO
+        lang={currentLang}
         title={
           selectedCountryForSeo
             ? `Marketplace – ${selectedCountryForSeo} Suppliers & Products`
@@ -564,8 +642,8 @@ export default function Marketplace() {
             ? `/marketplace?country=${encodeURIComponent(selectedCountryForSeo)}`
             : '/marketplace'
         }
+        structuredData={itemListSchema}
       />
-      <StructuredData type="WebSite" />
 
       <div className="min-h-screen bg-os-bg text-os-text-primary relative overflow-hidden">
         {/* 🌿 LUXE NOISE OVERLAY */}
@@ -573,28 +651,43 @@ export default function Marketplace() {
 
         <div className="relative z-10">
           {/* 🏛️ 2026 Discovery Maison Hero */}
-          <section className="relative pt-24 pb-16 px-6 border-b border-os-stroke/20">
-            <div className="max-w-4xl mx-auto text-center space-y-10">
+          <section className="relative pt-24 pb-16 px-6 border-b border-os-stroke/20 bg-gradient-to-b from-os-surface-solid/50 to-transparent">
+            <div className="max-w-5xl mx-auto text-center space-y-10">
               <div className="space-y-5">
-                <h1 className="text-os-6xl font-bold text-os-text-primary tracking-tighter leading-[0.9] uppercase">
-                  Trusted African <br />
-                  <span className="text-os-accent italic">Production.</span>
-                </h1>
-                <p className="text-os-base md:text-os-lg text-os-text-secondary/80 font-medium max-w-xl mx-auto tracking-tight leading-relaxed">
-                  Connecting global buyers with verified institutional-grade manufacturers, producers, and suppliers across the continent.
-                </p>
+                <motion.h1
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, ease: "easeOut" }}
+                  className="text-os-6xl md:text-os-7xl font-bold text-os-text-primary tracking-tighter leading-[0.9] uppercase"
+                >
+                  {t('marketplace.heroTitle')} <br />
+                  <span className="text-os-accent italic">{t('marketplace.heroTitleAccent')}</span>
+                </motion.h1>
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.3, duration: 0.8 }}
+                  className="text-os-base md:text-os-lg text-os-text-secondary/80 font-medium max-w-2xl mx-auto tracking-tight leading-relaxed"
+                >
+                  {t('marketplace.heroSubtitle')}
+                </motion.p>
 
-                <div className="flex items-center justify-center gap-6 pt-2">
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                  className="flex items-center justify-center gap-6 pt-2"
+                >
                   <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.25em] font-black text-os-text-secondary/40">
                     <ShieldCheck className="w-4 h-4 text-os-accent" />
-                    Institutional Trust Layer
+                    {t('marketplace.institutionalTrustLayer')}
                   </div>
                   <div className="w-1 h-1 rounded-full bg-os-stroke/40" />
                   <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.25em] font-black text-os-text-secondary/40">
                     <Globe className="w-4 h-4 text-os-blue/60" />
-                    Pan-African Reach
+                    {t('marketplace.panAfricanReach')}
                   </div>
-                </div>
+                </motion.div>
               </div>
 
               <div className="relative max-w-2xl mx-auto">
@@ -604,7 +697,7 @@ export default function Marketplace() {
                     <Search className="w-5 h-5 text-os-text-secondary/30 mr-4" />
                     <Input
                       type="text"
-                      placeholder="Search verified producers, materials, or supply capabilities..."
+                      placeholder={t('marketplace.searchPlaceholderLong')}
                       className="bg-transparent border-none focus:ring-0 text-os-base h-auto p-0 placeholder:text-os-text-secondary/20 w-full"
                       value={searchQuery}
                       onChange={(e) => {
@@ -650,7 +743,7 @@ export default function Marketplace() {
                   )}>
                     {stats.producers > 0 ? stats.producers : ''}
                   </span>
-                  <span className="text-[9px] uppercase tracking-widest text-os-text-secondary/50 font-black italic">Verified Producers</span>
+                  <span className="text-[9px] uppercase tracking-widest text-os-text-secondary/50 font-black italic">{t('marketplace.verifiedProducers')}</span>
                 </div>
                 <div className="w-px h-8 bg-os-stroke/40" />
                 <div className="flex flex-col items-center gap-1" title="Institutional Supply Ready for Trade">
@@ -660,7 +753,7 @@ export default function Marketplace() {
                   )}>
                     {stats.listings > 0 ? stats.listings : ''}
                   </span>
-                  <span className="text-[9px] uppercase tracking-widest text-os-text-secondary/50 font-black italic">Trade Listings</span>
+                  <span className="text-[9px] uppercase tracking-widest text-os-text-secondary/50 font-black italic">{t('marketplace.tradeListings')}</span>
                 </div>
                 <div className="w-px h-8 bg-os-stroke/40" />
                 <div className="flex flex-col items-center gap-1" title="Active African Markets Represented">
@@ -670,7 +763,7 @@ export default function Marketplace() {
                   )}>
                     {stats.nations > 0 ? stats.nations : ''}
                   </span>
-                  <span className="text-[9px] uppercase tracking-widest text-os-text-secondary/50 font-black italic">Member Nations</span>
+                  <span className="text-[9px] uppercase tracking-widest text-os-text-secondary/50 font-black italic">{t('marketplace.memberNations')}</span>
                 </div>
               </div>
             </div>
@@ -684,7 +777,7 @@ export default function Marketplace() {
             <div className="flex flex-wrap items-center justify-between gap-4 mb-6 px-6 py-4 bg-os-surface-solid border border-os-stroke rounded-os-lg shadow-os-sm">
               <div className="flex flex-wrap items-center gap-6">
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-[10px] uppercase tracking-widest text-os-text-secondary/60 font-black">Supplier Tier</span>
+                  <span className="text-[10px] uppercase tracking-widest text-os-text-secondary/60 font-black">{t('marketplace.supplierTier')}</span>
                   <div className="flex items-center gap-2">
                     <Button
                       variant="ghost"
@@ -695,14 +788,14 @@ export default function Marketplace() {
                         selectedFilters.verified ? "bg-os-accent text-[#1A1512] border-os-accent" : "hover:bg-os-accent/5 text-os-text-primary"
                       )}
                     >
-                      Verified
+                      {t('marketplace.verified')}
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
                       className="rounded-none border border-os-stroke/40 px-4 h-9 text-[10px] uppercase font-bold tracking-widest opacity-30 cursor-not-allowed"
                     >
-                      Boutique
+                      {t('marketplace.boutique')}
                     </Button>
                   </div>
                 </div>
@@ -710,13 +803,13 @@ export default function Marketplace() {
                 <div className="h-8 w-px bg-os-stroke mx-1 hidden md:block" />
 
                 <div className="flex flex-col gap-1.5 min-w-[240px]">
-                  <span className="text-[10px] uppercase tracking-widest text-os-text-secondary/60 font-black">Production Origin</span>
+                  <span className="text-[10px] uppercase tracking-widest text-os-text-secondary/60 font-black">{t('marketplace.productionOrigin')}</span>
                   <Select value={selectedFilters.country} onValueChange={(val) => setSelectedFilters({ ...selectedFilters, country: val })}>
                     <SelectTrigger className="rounded-none border border-os-stroke h-9 text-[11px] font-bold bg-os-surface-solid hover:border-os-accent transition-colors">
-                      <SelectValue placeholder="All 54 Member Nations" />
+                      <SelectValue placeholder={t('marketplace.all54MemberNations')} />
                     </SelectTrigger>
                     <SelectContent className="max-h-[400px] border-os-stroke shadow-premium">
-                      <SelectItem value="All">All Nations</SelectItem>
+                      <SelectItem value="All">{t('marketplace.allCountries')}</SelectItem>
                       {[...AFRICAN_COUNTRIES].sort().map(country => (
                         <SelectItem key={country} value={country}>
                           <div className="flex items-center gap-3">
@@ -732,19 +825,19 @@ export default function Marketplace() {
                 <div className="h-8 w-px bg-os-stroke mx-1 hidden md:block" />
 
                 <div className="flex flex-col gap-1.5">
-                  <span className="text-[10px] uppercase tracking-widest text-os-text-secondary/60 font-black">Quick Action</span>
+                  <span className="text-[10px] uppercase tracking-widest text-os-text-secondary/60 font-black">{t('marketplace.quickAction')}</span>
                   <Button
                     onClick={() => navigate('/dashboard/rfqs/new')}
                     className="rounded-none bg-[#1A1512] text-white px-6 h-9 text-[10px] uppercase font-black tracking-widest hover:bg-os-accent hover:text-[#1A1512] transition-all flex items-center gap-2"
                   >
                     <Plus className="w-3.5 h-3.5" />
-                    Trade Inquiry
+                    {t('marketplace.tradeInquiry')}
                   </Button>
                 </div>
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <span className="text-[10px] uppercase tracking-widest text-os-text-secondary/60 font-black">Sort Logic</span>
+                <span className="text-[10px] uppercase tracking-widest text-os-text-secondary/60 font-black">{t('marketplace.sortLogic')}</span>
                 <Select value={sortBy} onValueChange={setSortBy}>
                   <SelectTrigger className="w-44 h-9 bg-transparent border-os-stroke rounded-none text-[11px] font-bold text-os-text-primary hover:border-os-accent transition-colors">
                     <SelectValue />
@@ -805,15 +898,15 @@ export default function Marketplace() {
                 <div className="flex items-center justify-between gap-4 mb-4 p-3 bg-os-surface-solid/60 border border-os-stroke rounded-os-lg shadow-sm">
                   <div className="flex flex-col">
                     <span className="text-[8px] font-black text-os-text-primary uppercase tracking-[0.5em] mb-0.5">
-                      Recommended For You
+                      {t('marketplace.recommendedForYou')}
                     </span>
                     <span className="text-[10px] text-os-text-secondary/60 font-bold uppercase tracking-widest italic">
-                      Products from verified suppliers matching your interests
+                      {t('marketplace.interestMatchSubtitle')}
                     </span>
                   </div>
                   <div className="flex items-center gap-3 flex-wrap">
                     <AICopilotButton
-                      label="AI Sourcing Intelligence"
+                      label={t('marketplace.aiSourcingIntelligence')}
                       size="sm"
                       variant="secondary"
                       className="bg-os-accent/10 border border-os-accent/30 text-os-accent hover:bg-os-accent/20 font-semibold"
@@ -945,19 +1038,17 @@ export default function Marketplace() {
                       {/* Header */}
                       <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-os-accent/10 rounded-full mb-6 relative z-10">
                         <span className="w-1.5 h-1.5 rounded-full bg-os-accent animate-pulse" />
-                        <span className="text-[10px] font-bold text-os-accent uppercase tracking-[0.25em]">Concierge Sourcing Active</span>
+                        <span className="text-[10px] font-bold text-os-accent uppercase tracking-[0.25em]">{t('marketplace.conciergeSourcingActive')}</span>
                       </div>
 
                       {/* Title */}
                       <h3 className="text-os-3xl font-bold text-os-text-primary mb-4 text-center tracking-tighter relative z-10 uppercase">
-                        {t('marketplace.noProductsFound') || 'Matching Sourcing Capabilities'}
+                        {t('marketplace.noProductsFound')}
                       </h3>
 
                       {/* Description */}
                       <p className="text-os-base text-os-text-secondary font-medium max-w-xl text-center mb-12 leading-relaxed relative z-10">
-                        We are currently matching verified suppliers against your trade profile.
-                        Institutional-grade producers in this sector typically interact via <span className="text-os-text-primary font-bold">Private RFQs</span>.
-                        Initiate a trade request to unlock curated results within 24–48 hours.
+                        {t('marketplace.noProductsDescription')}
                       </p>
 
                       {/* Action */}
@@ -970,13 +1061,13 @@ export default function Marketplace() {
                           asChild
                         >
                           <Link to="/rfq/create">
-                            Post Trade Request
+                            {t('marketplace.postTradeRequest')}
                             <Plus className="w-4 h-4" />
                           </Link>
                         </Button>
                         <div className="flex flex-col items-start px-6 text-left border-l border-os-stroke h-14 justify-center">
-                          <span className="text-[10px] uppercase tracking-widest text-os-text-secondary font-black">Sourcing SLA</span>
-                          <span className="text-[11px] font-bold text-os-text-primary">Direct Factory Access</span>
+                          <span className="text-[10px] uppercase tracking-widest text-os-text-secondary font-black">{t('marketplace.sourcingSLA')}</span>
+                          <span className="text-[11px] font-bold text-os-text-primary">{t('marketplace.directFactoryAccess')}</span>
                         </div>
                       </div>
                     </div>
@@ -1008,16 +1099,16 @@ export default function Marketplace() {
                             <Plus className="w-8 h-8 text-os-accent" />
                           </div>
                           <div className="space-y-3 mb-8">
-                            <h3 className="text-18 font-bold text-os-text-primary uppercase tracking-tight">Post Trade Request</h3>
+                            <h3 className="text-18 font-bold text-os-text-primary uppercase tracking-tight">{t('marketplace.postTradeRequest')}</h3>
                             <p className="text-12 text-os-text-secondary leading-relaxed max-w-[200px] mx-auto">
-                              Can't find the perfect producer? Post a request and our sourcing team will match you.
+                              {t('marketplace.perfectProducerNotFound')}
                             </p>
                           </div>
                           <Button
                             className="bg-os-accent text-[#1A1512] hover:bg-os-accent/90 font-black uppercase tracking-[0.2em] text-[10px] h-12 px-8 rounded-full shadow-lg"
                             asChild
                           >
-                            <Link to="/rfq/create">Start Sourcing</Link>
+                            <Link to="/rfq/create">{t('marketplace.startSourcing')}</Link>
                           </Button>
                         </Surface>
                       )}
@@ -1042,12 +1133,12 @@ export default function Marketplace() {
             open={filtersOpen}
             onOpenChange={setFiltersOpen}
             position="right"
-            title="Refine Selection"
+            title={t('marketplace.refineSelection')}
           >
             <div className="space-y-10 p-2">
               {/* Markets Section */}
               <div>
-                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-os-text-secondary/40 mb-6">Browse Categories</h3>
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-os-text-secondary/40 mb-6">{t('marketplace.browseCategories')}</h3>
                 <div className="grid grid-cols-2 gap-3">
                   {categories.map((cat) => (
                     <button
@@ -1066,7 +1157,7 @@ export default function Marketplace() {
 
               {/* Origin Section */}
               <div>
-                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-os-text-secondary/40 mb-6">Origin of Goods</h3>
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-os-text-secondary/40 mb-6">{t('marketplace.originOfGoods')}</h3>
                 <div className="flex flex-wrap gap-2 max-h-[240px] overflow-y-auto pr-2 custom-scrollbar">
                   <button
                     onClick={() => setSelectedFilters({ ...selectedFilters, country: 'All' })}
@@ -1075,7 +1166,7 @@ export default function Marketplace() {
                       : 'bg-os-surface-solid border-os-stroke text-os-text-primary/60 hover:border-os-accent'
                       }`}
                   >
-                    🌍 All Nations
+                    🌍 {t('marketplace.allCountries')}
                   </button>
                   {[...AFRICAN_COUNTRIES].sort().map((country) => (
                     <button
@@ -1095,10 +1186,10 @@ export default function Marketplace() {
 
               {/* Thresholds Section */}
               <div className="space-y-6">
-                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-os-text-secondary/40 mb-6">Scale & Capacity</h3>
+                <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-os-text-secondary/40 mb-6">{t('marketplace.scaleCapacity')}</h3>
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-os-text-secondary/60">Min Order</label>
+                    <label className="text-[9px] font-black uppercase tracking-widest text-os-text-secondary/60">{t('marketplace.minOrder')}</label>
                     <Input
                       type="number"
                       placeholder="0"
@@ -1108,7 +1199,7 @@ export default function Marketplace() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-os-text-secondary/60">Max Price</label>
+                    <label className="text-[9px] font-black uppercase tracking-widest text-os-text-secondary/60">{t('marketplace.maxPrice')}</label>
                     <Input
                       type="number"
                       placeholder="∞"
@@ -1126,7 +1217,7 @@ export default function Marketplace() {
                   className="w-full h-14 rounded-full bg-os-action text-white font-black uppercase tracking-[0.2em] text-xs shadow-os-sm"
                   onClick={() => setFiltersOpen(false)}
                 >
-                  Show Results
+                  {t('marketplace.showResults')}
                 </Button>
               </div>
             </div>

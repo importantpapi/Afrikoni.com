@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthProvider'; // ← ADDED THIS IMPORT
-import { useCapability } from '@/context/CapabilityContext';
+import { useCapability } from '@/contexts/CapabilityContext';
 import { Logo } from '@/components/shared/ui/Logo';
 import { Button } from '@/components/shared/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';

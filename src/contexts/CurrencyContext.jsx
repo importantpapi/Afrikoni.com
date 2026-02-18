@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../api/supabaseClient';
 
 const CurrencyContext = createContext();
 
@@ -25,18 +26,30 @@ export function CurrencyProvider({ children }) {
   const loadExchangeRates = async () => {
     setRatesLoading(true);
     try {
-      // Using a free exchange rate API (exchangerate-api.com or similar)
-      // Fallback to approximate rates if API fails
-      const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
-      if (response.ok) {
-        const data = await response.json();
-        setExchangeRates(data.rates || {});
+      // Fetch from Supabase exchange_rates table which contains the "locked" rates with 3% buffer
+      // If rates are expired, we trust the background process (GAS) will update them,
+      // but we always use the latest "locked" rate from the table.
+      const { data, error } = await supabase
+        .from('exchange_rates')
+        .select('currency_code, final_rate');
+
+      if (error) throw error;
+
+      if (data && data.length > 0) {
+        const rates = {};
+        data.forEach(item => {
+          rates[item.currency_code] = item.final_rate;
+        });
+        // Ensure USD is ALWAYS 1
+        rates['USD'] = 1;
+        setExchangeRates(rates);
       } else {
-        // Fallback to approximate rates
+        // Fallback to approximate rates if table is empty
+        console.warn('No exchange rates found in Supabase, using approximate rates');
         setExchangeRates(getApproximateRates());
       }
     } catch (error) {
-      console.warn('Failed to load exchange rates, using approximate rates:', error);
+      console.warn('Failed to load exchange rates from Supabase, using approximate rates:', error);
       setExchangeRates(getApproximateRates());
     } finally {
       setRatesLoading(false);
@@ -131,7 +144,7 @@ export function CurrencyProvider({ children }) {
   // Format price with currency symbol
   const formatPrice = (amount, fromCurrency = 'USD', showSymbol = true) => {
     if (amount === null || amount === undefined) return 'Price on request';
-    
+
     const convertedAmount = convertPrice(amount, fromCurrency, currency);
     const formatted = convertedAmount.toLocaleString('en-US', {
       minimumFractionDigits: 2,
@@ -225,7 +238,7 @@ export function useCurrency() {
     // Fallback if not wrapped in provider
     return {
       currency: 'USD',
-      setCurrency: () => {},
+      setCurrency: () => { },
       convertPrice: (amount) => amount,
       formatPrice: (amount) => `$${amount?.toLocaleString() || '0.00'}`,
       getCurrencySymbol: () => '$',

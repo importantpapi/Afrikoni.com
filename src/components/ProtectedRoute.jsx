@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 import { LoadingScreen } from '@/components/shared/ui/LoadingScreen';
 import AccessDenied from './AccessDenied';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
-import { useCapability } from '@/context/CapabilityContext';
+import { useCapability } from '@/contexts/CapabilityContext';
 
 /**
  * Protects a route - requires authentication

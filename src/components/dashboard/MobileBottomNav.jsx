@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Package, ShoppingCart, FileText, MessageSquare, Plus, Zap
 } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 // PHASE 6: MobileBottomNav with Central Command Button
 export default function MobileBottomNav({
@@ -16,25 +16,30 @@ export default function MobileBottomNav({
 }) {
   const location = useLocation();
   const navigate = useNavigate();
+  const { lang = 'en' } = useParams(); // ✅ Correctly get lang
   const { t } = useLanguage();
+
+  const getLocalizedPath = (path) => {
+    return `/${lang}${path}`;
+  };
 
   const getNavItems = () => {
     // We want 4 main tabs + 1 central command button
     if (isSeller || isHybrid) {
       return [
-        { icon: LayoutDashboard, label: 'Home', path: '/dashboard' },
-        { icon: Package, label: 'Inventory', path: '/dashboard/products' },
+        { icon: LayoutDashboard, label: 'Home', path: getLocalizedPath('/dashboard') },
+        { icon: Package, label: 'Inventory', path: getLocalizedPath('/dashboard/products') },
         { divider: true }, // Placeholder for central button
-        { icon: ShoppingCart, label: 'My Deals', path: '/dashboard/orders' },
-        { icon: MessageSquare, label: 'Alerts', path: '/dashboard/notifications' }
+        { icon: ShoppingCart, label: 'My Deals', path: getLocalizedPath('/dashboard/orders') },
+        { icon: MessageSquare, label: 'Alerts', path: getLocalizedPath('/dashboard/notifications') }
       ];
     } else {
       return [
-        { icon: LayoutDashboard, label: 'Home', path: '/dashboard' },
-        { icon: Package, label: 'Marketplace', path: '/marketplace' },
+        { icon: LayoutDashboard, label: 'Home', path: getLocalizedPath('/dashboard') },
+        { icon: Package, label: 'Marketplace', path: getLocalizedPath('/marketplace') }, // Marketplace is public, likely /en/marketplace
         { divider: true }, // Placeholder for central button
-        { icon: FileText, label: 'My RFQs', path: '/dashboard/rfqs' },
-        { icon: MessageSquare, label: 'Alerts', path: '/dashboard/notifications' }
+        { icon: FileText, label: 'My RFQs', path: getLocalizedPath('/dashboard/rfqs') },
+        { icon: MessageSquare, label: 'Alerts', path: getLocalizedPath('/dashboard/notifications') }
       ];
     }
   };
@@ -54,7 +59,7 @@ export default function MobileBottomNav({
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.9 }}
-                  onClick={() => navigate('/dashboard/rfqs/new')}
+                  onClick={() => navigate(getLocalizedPath('/dashboard/rfqs/new'))}
                   className="w-14 h-14 rounded-full bg-gradient-to-tr from-os-accent to-[#F5D485] shadow-[0_8px_20px_rgba(212,169,55,0.4)] flex items-center justify-center border-4 border-white dark:border-[#0A0A0A] relative group"
                 >
                   <Plus className="w-7 h-7 text-black stroke-[3px]" />
@@ -70,8 +75,10 @@ export default function MobileBottomNav({
           }
 
           const Icon = item.icon;
+          const dashboardRoot = getLocalizedPath('/dashboard');
+
           const isActive = location.pathname === item.path ||
-            (item.path === '/dashboard' && location.pathname.startsWith('/dashboard') &&
+            (item.path === dashboardRoot && location.pathname.startsWith(dashboardRoot) &&
               !location.pathname.includes('/orders') &&
               !location.pathname.includes('/rfqs') &&
               !location.pathname.includes('/products') &&

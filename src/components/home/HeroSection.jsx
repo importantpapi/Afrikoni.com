@@ -238,7 +238,7 @@ export default function HeroSection({ categories = [] }) {
                   { name: 'Browse Marketplace', icon: ShoppingBag, path: '/marketplace' },
                   { name: 'Source Suppliers', icon: Store, path: '/suppliers' },
                   { name: 'Global Logistics', icon: Truck, path: '/logistics' },
-                  { name: 'Verified Network', icon: Users, path: '/network' }
+                  { name: 'Verified Network', icon: Users, path: '/trust' }
                 ].map((item) => (
                   <Link
                     key={item.name}

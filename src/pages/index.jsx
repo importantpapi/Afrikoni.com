@@ -22,7 +22,10 @@ import StructuredData from '@/components/StructuredData';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { detectCountry } from '@/utils/geoDetection';
 
+import { useLanguage } from '@/i18n/LanguageContext';
+
 export default function Home() {
+  const { language } = useLanguage();
   const [categories, setCategories] = useState([]);
   const [detectedCountry, setDetectedCountry] = useState(null);
   const { trackPageView } = useAnalytics();
@@ -80,10 +83,10 @@ export default function Home() {
       // Silently fail - country detection is optional
     }
   };
-
   return (
     <>
       <SEO
+        lang={language}
         title="AFRIKONI - AI-Powered African B2B Marketplace with Verified Suppliers"
         description="The AI-powered B2B marketplace connecting Africa and the world. Verified African suppliers, assisted and secured transaction workflows, Afrikoni Shield™ compliance, and cross-border logistics across African markets."
         url="/"

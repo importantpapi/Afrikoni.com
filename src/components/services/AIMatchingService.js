@@ -1,30 +1,39 @@
-// AI Matching Service - Converted from Base44 to use direct API calls
+import { supabase } from '@/api/supabaseClient';
 
 export const AIMatchingService = {
-  findMatchingSuppliers: async ({ requirements, suppliers, products }) => {
+  findMatchingSuppliers: async ({ requirements }) => {
     try {
-      // TODO: Replace with your LLM API call
-      // This should analyze requirements and match with suppliers/products
+      // Server-side AI Matching (RPC)
+      // Analyzes requirements against verified supplier capabilities via Postgres
+      const { data, error } = await supabase.rpc('match_suppliers', {
+        requirements: requirements,
+        match_limit: 5
+      });
 
-      // Placeholder: Simple keyword matching for now
-      const requirementsLower = requirements.toLowerCase();
-      const matches = (Array.isArray(suppliers) ? suppliers : [])
-        .filter(supplier => {
-          const supplierText = `${supplier.company_name} ${supplier.description} ${supplier.country}`.toLowerCase();
-          return requirementsLower.split(' ').some(word =>
-            word.length > 3 && supplierText.includes(word)
-          );
-        })
-        .slice(0, 5)
-        .map(supplier => ({
-          supplier,
-          match_score: 0, // 0 = Calculating (Kernel Priority)
-          reason: `Analyzing requirements against verified supplier corridor data.`
-        }));
+      if (error) {
+        console.error('AI Matching RPC Error:', error);
+        throw error;
+      }
+
+      // Map RPC result to UI-friendly format
+      const matches = (data || []).map(match => ({
+        supplier: {
+          id: match.supplier_id,
+          company_name: match.company_name,
+          description: match.description,
+          country: match.country,
+          city: match.city,
+          logo_url: match.logo_url,
+          verified: match.verified
+        },
+        match_score: Math.round(match.match_score * 100),
+        reason: match.reason
+      }));
 
       return { matches };
     } catch (error) {
-      // Error logged (removed for production)
+      // Error logged (kept silent for UI unless critical)
+      console.error('AI Service Error:', error);
       throw error;
     }
   }

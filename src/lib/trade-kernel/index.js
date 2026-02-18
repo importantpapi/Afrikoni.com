@@ -1,288 +1,77 @@
-export const mockProducts = [
-  {
-    id: 'prd_001',
-    name: 'Ghanaian Cocoa Beans (Grade 1)',
-    category: 'Agriculture',
-    pricePerUnit: 2450,
-    unit: 'ton',
-    minOrderQuantity: 5,
-    originCountry: 'Ghana',
-    hsCode: '1801.00',
-    views: 1280,
-    inquiries: 14,
-    status: 'active',
-  },
-  {
-    id: 'prd_002',
-    name: 'Organic Cashew Kernels',
-    category: 'Agri-Processing',
-    pricePerUnit: 6.8,
-    unit: 'kg',
-    minOrderQuantity: 500,
-    originCountry: 'Benin',
-    hsCode: '0801.32',
-    views: 740,
-    inquiries: 9,
-    status: 'pending_review',
-  },
-  {
-    id: 'prd_003',
-    name: 'Shea Butter (Cosmetic Grade)',
-    category: 'Cosmetics',
-    pricePerUnit: 4.2,
-    unit: 'kg',
-    minOrderQuantity: 300,
-    originCountry: 'Nigeria',
-    hsCode: '1515.90',
-    views: 512,
-    inquiries: 6,
-    status: 'active',
-  },
-  {
-    id: 'prd_004',
-    name: 'Copper Cathodes 99.99%',
-    category: 'Mining',
-    pricePerUnit: 8200,
-    unit: 'ton',
-    minOrderQuantity: 20,
-    originCountry: 'Zambia',
-    hsCode: '7403.11',
-    views: 210,
-    inquiries: 2,
-    status: 'draft',
-  },
-  {
-    id: 'prd_005',
-    name: 'Kente Fabric Rolls',
-    category: 'Textiles',
-    pricePerUnit: 28,
-    unit: 'roll',
-    minOrderQuantity: 100,
-    originCountry: 'Ghana',
-    hsCode: '5801.36',
-    views: 980,
-    inquiries: 11,
-    status: 'paused',
-  },
-  {
-    id: 'prd_006',
-    name: 'Dried Hibiscus Flowers',
-    category: 'Herbal Goods',
-    pricePerUnit: 3.1,
-    unit: 'kg',
-    minOrderQuantity: 1000,
-    originCountry: 'Sudan',
-    hsCode: '1211.90',
-    views: 430,
-    inquiries: 5,
-    status: 'rejected',
-  },
-];
+import { supabase } from '../../api/supabaseClient';
 
-export const mockRFQs = [
-  {
-    id: 'rfq_001',
-    productName: 'Organic Shea Butter (Food Grade)',
-    buyerCompany: 'Nordic Naturals GmbH',
-    deliveryCountry: 'Germany',
-    quantity: 20,
-    unit: 'tons',
-    targetPrice: 4.1,
-    quotesReceived: 3,
-    requirements: 'Food-grade certification, AfCFTA eligible, SGS inspection.',
-    deadline: '2026-03-05',
-    status: 'sent',
-  },
-  {
-    id: 'rfq_002',
-    productName: 'Cocoa Beans Grade 1',
-    buyerCompany: 'Bernhardt Foods BV',
-    deliveryCountry: 'Netherlands',
-    quantity: 50,
-    unit: 'tons',
-    targetPrice: 2450,
-    quotesReceived: 5,
-    requirements: 'Moisture < 7.5%, UTZ certified.',
-    deadline: '2026-02-20',
-    status: 'viewed',
-  },
-  {
-    id: 'rfq_003',
-    productName: 'Cashew Kernels WW320',
-    buyerCompany: 'Sunrise Traders FZE',
-    deliveryCountry: 'UAE',
-    quantity: 12,
-    unit: 'tons',
-    targetPrice: 6.9,
-    quotesReceived: 1,
-    requirements: 'Vacuum packed, origin West Africa.',
-    deadline: '2026-02-14',
-    status: 'quoted',
-  },
-  {
-    id: 'rfq_004',
-    productName: 'Premium Arabica Coffee',
-    buyerCompany: 'Roast Collective',
-    deliveryCountry: 'USA',
-    quantity: 8,
-    unit: 'tons',
-    targetPrice: 5.2,
-    quotesReceived: 0,
-    requirements: 'Specialty grade, traceable lots.',
-    deadline: '2026-02-12',
-    status: 'sent',
-  },
-  {
-    id: 'rfq_005',
-    productName: 'Palm Oil RBD',
-    buyerCompany: 'Mediterranean Foods SA',
-    deliveryCountry: 'Spain',
-    quantity: 100,
-    unit: 'tons',
-    targetPrice: 980,
-    quotesReceived: 0,
-    requirements: 'Sustainable certification required.',
-    deadline: '2026-02-08',
-    status: 'expired',
-  },
-];
+/**
+ * AFRIKONI TRADE KERNEL
+ * Real-time trade engine powered by Supabase.
+ * Fetches products, RFQs, orders, and logistics data from the database.
+ */
 
-export const mockTradeOrders = [
-  {
-    id: 'ord_1001',
-    productName: 'Organic Shea Butter',
-    quantity: 20,
-    unit: 'tons',
-    unitPrice: 4100,
-    totalValue: 82000,
-    status: 'in_transit',
-    corridor: {
-      originCountry: 'Ghana',
-      destinationCountry: 'Germany',
-      risk: 'low',
-    },
-    milestones: [
-      { id: 'm1', name: 'RFQ', status: 'completed' },
-      { id: 'm2', name: 'Quote', status: 'completed' },
-      { id: 'm3', name: 'Contract', status: 'completed' },
-      { id: 'm4', name: 'Escrow', status: 'completed' },
-      { id: 'm5', name: 'Production', status: 'completed' },
-      { id: 'm6', name: 'Shipment', status: 'in_progress' },
-      { id: 'm7', name: 'Delivery', status: 'pending' },
-    ],
-  },
-  {
-    id: 'ord_1002',
-    productName: 'Cocoa Beans Grade 1',
-    quantity: 50,
-    unit: 'tons',
-    unitPrice: 2450,
-    totalValue: 122500,
-    status: 'production',
-    corridor: {
-      originCountry: 'Cote d\'Ivoire',
-      destinationCountry: 'Netherlands',
-      risk: 'medium',
-    },
-    milestones: [
-      { id: 'm1', name: 'RFQ', status: 'completed' },
-      { id: 'm2', name: 'Quote', status: 'completed' },
-      { id: 'm3', name: 'Contract', status: 'completed' },
-      { id: 'm4', name: 'Escrow', status: 'in_progress' },
-      { id: 'm5', name: 'Production', status: 'in_progress' },
-      { id: 'm6', name: 'Shipment', status: 'pending' },
-      { id: 'm7', name: 'Delivery', status: 'pending' },
-    ],
-  },
-  {
-    id: 'ord_1003',
-    productName: 'Cashew Kernels WW320',
-    quantity: 12,
-    unit: 'tons',
-    unitPrice: 6900,
-    totalValue: 82800,
-    status: 'customs_clearance',
-    corridor: {
-      originCountry: 'Benin',
-      destinationCountry: 'UAE',
-      risk: 'high',
-    },
-    milestones: [
-      { id: 'm1', name: 'RFQ', status: 'completed' },
-      { id: 'm2', name: 'Quote', status: 'completed' },
-      { id: 'm3', name: 'Contract', status: 'completed' },
-      { id: 'm4', name: 'Escrow', status: 'completed' },
-      { id: 'm5', name: 'Production', status: 'completed' },
-      { id: 'm6', name: 'Shipment', status: 'completed' },
-      { id: 'm7', name: 'Delivery', status: 'in_progress' },
-    ],
-  },
-  {
-    id: 'ord_1004',
-    productName: 'Kente Fabric Rolls',
-    quantity: 200,
-    unit: 'rolls',
-    unitPrice: 28,
-    totalValue: 5600,
-    status: 'negotiating',
-    corridor: {
-      originCountry: 'Ghana',
-      destinationCountry: 'USA',
-      risk: 'low',
-    },
-    milestones: [
-      { id: 'm1', name: 'RFQ', status: 'completed' },
-      { id: 'm2', name: 'Quote', status: 'in_progress' },
-      { id: 'm3', name: 'Contract', status: 'pending' },
-      { id: 'm4', name: 'Escrow', status: 'pending' },
-      { id: 'm5', name: 'Production', status: 'pending' },
-      { id: 'm6', name: 'Shipment', status: 'pending' },
-      { id: 'm7', name: 'Delivery', status: 'pending' },
-    ],
-  },
-];
+export async function fetchProducts({ companyId, status, limit = 50 } = {}) {
+  let query = supabase
+    .from('products')
+    .select('*, companies(company_name, country, verified)')
+    .order('created_at', { ascending: false })
+    .limit(limit);
 
-export const mockKernelState = {
-  logistics: {
-    carrier: 'Maersk Line',
-    trackingNumber: 'MSK-7742-AF',
-    estimatedArrival: '2026-03-02T10:00:00.000Z',
-    currentLocation: { city: 'Port Said', country: 'Egypt' },
-    events: [
-      {
-        id: 'evt_001',
-        type: 'pickup',
-        description: 'Container picked up at origin warehouse',
-        location: 'Tema, Ghana',
-        timestamp: '2026-02-01T09:12:00.000Z',
-      },
-      {
-        id: 'evt_002',
-        type: 'transit',
-        description: 'Vessel departed origin port',
-        location: 'Tema Port, Ghana',
-        timestamp: '2026-02-03T18:40:00.000Z',
-      },
-      {
-        id: 'evt_003',
-        type: 'customs',
-        description: 'Customs inspection completed',
-        location: 'Port Said, Egypt',
-        timestamp: '2026-02-18T08:05:00.000Z',
-      },
-      {
-        id: 'evt_004',
-        type: 'transit',
-        description: 'En route to destination port',
-        location: 'Mediterranean Sea',
-        timestamp: '2026-02-20T16:20:00.000Z',
-      },
-    ],
-  },
-  payment: {
-    totalAmount: 64000,
-    releasedAmount: 20500,
-    heldAmount: 43500,
-    fxRate: '0.92',
-  },
-};
+  if (companyId) query = query.eq('company_id', companyId);
+  if (status) query = query.eq('status', status);
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+}
+
+export async function fetchRFQs({ companyId, status, limit = 50 } = {}) {
+  let query = supabase
+    .from('rfqs')
+    .select('*, companies(company_name, country)')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (companyId) query = query.eq('company_id', companyId);
+  if (status) query = query.eq('status', status);
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+}
+
+export async function fetchTradeOrders({ companyId, status, limit = 50 } = {}) {
+  let query = supabase
+    .from('orders')
+    .select(`
+      *,
+      products(name, category),
+      buyer:buyer_company_id(company_name, country),
+      seller:seller_company_id(company_name, country)
+    `)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+
+  if (companyId) {
+    query = query.or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId}`);
+  }
+  if (status) query = query.eq('status', status);
+
+  const { data, error } = await query;
+  if (error) throw error;
+  return data || [];
+}
+
+export async function fetchKernelState(orderId) {
+  if (!orderId) return null;
+
+  const { data: order, error } = await supabase
+    .from('orders')
+    .select(`
+      *,
+      products(name, category),
+      escrow_transactions(amount, status, released_amount),
+      shipments(carrier, tracking_number, estimated_arrival, current_location, events)
+    `)
+    .eq('id', orderId)
+    .single();
+
+  if (error) throw error;
+  return order;
+}

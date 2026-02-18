@@ -47,7 +47,9 @@ async function createProfileFallback(user) {
       return null;
     }
 
-    console.log('[AuthService] ✅ Fallback profile created successfully:', { id: user.id, role });
+    if (import.meta.env.DEV) {
+      console.log('[AuthService] ✅ Fallback profile created successfully:', { id: user.id, role });
+    }
     return newProfile;
   } catch (err) {
     console.error('[AuthService] Fallback profile creation exception:', err);
@@ -95,13 +97,17 @@ export async function login(email, password) {
             if (profileError.code === 'PGRST116') {
               if (attempt < maxAttempts) {
                 const delayMs = 500 * Math.pow(2, attempt - 1); // Exponential backoff
-                console.log(`[AuthService] Profile not found (attempt ${attempt}/${maxAttempts}), retrying in ${delayMs}ms...`);
+                if (import.meta.env.DEV) {
+                  console.log(`[AuthService] Profile not found (attempt ${attempt}/${maxAttempts}), retrying in ${delayMs}ms...`);
+                }
                 await new Promise(resolve => setTimeout(resolve, delayMs));
                 continue;
               }
               // Last attempt failed - create profile client-side as fallback
               // This handles cases where the database trigger didn't fire
-              console.log(`[AuthService] Profile not found after ${maxAttempts} attempts - creating profile client-side`);
+              if (import.meta.env.DEV) {
+                console.log(`[AuthService] Profile not found after ${maxAttempts} attempts - creating profile client-side`);
+              }
               return await createProfileFallback(authData.user);
             }
             // Network errors or other errors - throw
@@ -121,7 +127,9 @@ export async function login(email, password) {
           }
           // Wait before retry with exponential backoff
           const delayMs = 500 * Math.pow(2, attempt - 1);
-          console.log(`[AuthService] Profile fetch error (attempt ${attempt}/${maxAttempts}), retrying in ${delayMs}ms...`, error);
+          if (import.meta.env.DEV) {
+            console.log(`[AuthService] Profile fetch error (attempt ${attempt}/${maxAttempts}), retrying in ${delayMs}ms...`, error);
+          }
           await new Promise(resolve => setTimeout(resolve, delayMs));
         }
       }
@@ -143,12 +151,14 @@ export async function login(email, password) {
               is_admin: profileData?.is_admin || false
             }
           });
-          
+
           if (updateError) {
             throw updateError;
           }
-          
-          console.log(`[AuthService] Admin flag synced to JWT metadata (attempt ${attempt}/${maxAttempts}):`, profileData?.is_admin || false);
+
+          if (import.meta.env.DEV) {
+            console.log(`[AuthService] Admin flag synced to JWT metadata (attempt ${attempt}/${maxAttempts}):`, profileData?.is_admin || false);
+          }
 
           // ✅ ENTERPRISE FIX: Make session refresh fire-and-forget
           // Don't await - this prevents triggering TOKEN_REFRESHED events during login
@@ -157,7 +167,9 @@ export async function login(email, password) {
             console.warn('[AuthService] Session refresh failed (non-blocking):', err);
           });
 
-          console.log(`[AuthService] Session refresh triggered (non-blocking)`);
+          if (import.meta.env.DEV) {
+            console.log(`[AuthService] Session refresh triggered (non-blocking)`);
+          }
           return; // Success - exit retry loop
         } catch (metadataError) {
           if (attempt === maxAttempts) {
@@ -172,7 +184,7 @@ export async function login(email, password) {
         }
       }
     };
-    
+
     await syncMetadataWithRetry();
 
     // Step 3: Return user and profile (profile may be null if not created yet)

@@ -2,7 +2,8 @@
 // Replace your entire src/App.jsx with this
 
 import { Suspense, lazy, useEffect } from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation, useParams, Outlet } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import { Toaster } from 'sonner';
 import { motion } from 'framer-motion';
 import Layout from './layout';
@@ -13,17 +14,18 @@ import { Button } from '@/components/shared/ui/button';
 import { Logo } from '@/components/shared/ui/Logo';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import ChunkErrorBoundary from '@/components/ChunkErrorBoundary';
+import HreflangTags from '@/components/HreflangTags';
 import { LanguageProvider } from './i18n/LanguageContext';
 import { CurrencyProvider } from './contexts/CurrencyContext';
 import { AuthProvider } from './contexts/AuthProvider';
 import { UserProvider } from './contexts/UserContext';
-import { RoleProvider } from './context/RoleContext';
-import { CapabilityProvider } from './context/CapabilityContext';
-import { TradeProvider } from './context/TradeContext';
+import { RoleProvider } from './contexts/RoleContext';
+import { CapabilityProvider } from './contexts/CapabilityContext';
+import { TradeProvider } from './contexts/TradeContext';
 import { WorkspaceModeProvider } from './contexts/WorkspaceModeContext';
 import RequireCapability from './guards/RequireCapability';
 import { useAuth } from './contexts/AuthProvider';
-import { useCapability } from './context/CapabilityContext';
+import { useCapability } from './contexts/CapabilityContext';
 import { supabase } from './api/supabaseClient';
 import { useIdlePreloading, setupLinkPreloading } from './utils/preloadData';
 import { useSessionRefresh } from './hooks/useSessionRefresh';
@@ -147,6 +149,8 @@ const PrivacyPolicy = lazy(() => import('./pages/privacy-policy'));
 const TermsAndConditions = lazy(() => import('./pages/terms-and-conditions'));
 const TermsEnforcement = lazy(() => import('./pages/terms-enforcement'));
 const CookiePolicy = lazy(() => import('./pages/cookie-policy'));
+const TermsOfService = lazy(() => import('./pages/legal/TermsOfService'));
+const PrivacyPolicyPage = lazy(() => import('./pages/legal/PrivacyPolicy'));
 const Countries = lazy(() => import('./pages/countries'));
 const HowItWorks = lazy(() => import('./pages/how-it-works'));
 
@@ -291,34 +295,41 @@ const RFQMobileWizard = lazy(() => import('./pages/rfq-mobile-wizard'));
 // ============================================
 // MAIN APP COMPONENT
 // ============================================
+// ✅ ROUTING GUARD: Redirects non-language paths to default language
+// e.g. /supplier-hub -> /en/supplier-hub
+const LanguageWrapper = () => {
+  const { lang } = useParams();
+  const location = useLocation();
+  const supportedLangs = ['en', 'fr', 'pt', 'ar'];
+
+  if (!supportedLangs.includes(lang)) {
+    return <Navigate to={`/en${location.pathname}`} replace />;
+  }
+
+  return <Outlet />;
+};
+
+// Helper for smart redirects preserving path
+const SmartRedirect = ({ prefix = '/en' }) => {
+  const location = useLocation();
+  return <Navigate to={`${prefix}${location.pathname}`} replace />;
+};
+
+// ============================================
+// MAIN APP COMPONENT
+// ============================================
 function AppContent() {
-  const { user, profile, authReady, authResolutionComplete } = useAuth();
-  const { ready: kernelReady, kernelError, resetKernel } = useCapability();
+  const { authReady } = useAuth();
+  const { kernelError, ready: isSystemReady } = useCapability();
   const location = useLocation();
 
   // ✅ SOVEREIGN SYNC: Parallel Handshake
-  const { isPrimed, isSystemReady, handshakeStatus } = useSovereignHandshake();
+  const { handshakeStatus } = useSovereignHandshake();
 
   useSessionRefresh();
   useBrowserNavigation();
   useVersionCheck();
 
-  // ✅ THEME: Managed by ThemeContext — dashboard/onboarding = dark, public = light (ivory)
-
-  // ✅ KERNEL-CENTRIC: Clean Logout
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event) => {
-        if (event === 'SIGNED_OUT') {
-          resetKernel();
-          // Purge Query Cache for security
-          // queryClient.clear(); // Ensure queryClient is available or commented if not
-          localStorage.removeItem('AFRIKONI_SOVEREIGN_CACHE'); // Manual purge to be safe
-        }
-      }
-    );
-    return () => subscription.unsubscribe();
-  }, [resetKernel]);
 
   useEffect(() => {
     if (authReady) {
@@ -329,13 +340,11 @@ function AppContent() {
     }
   }, [authReady]);
 
-  const isDashboardRoute = location.pathname.startsWith('/dashboard') ||
-    location.pathname.startsWith('/onboarding');
+  const isDashboardRoute = location.pathname.includes('/dashboard') ||
+    location.pathname.includes('/onboarding');
 
-  // ✅ KERNEL-SCHEMA ALIGNMENT: system is ready if public route OR (auth resolved AND (no user OR kernel is primed/ready))
   const systemAccessReady = !isDashboardRoute || isSystemReady;
 
-  // ✅ HANDSHAKE GATE RENDER
   if (!systemAccessReady) {
     return <BootScreen status={handshakeStatus} error={kernelError} />;
   }
@@ -344,242 +353,136 @@ function AppContent() {
     <Layout>
       <ChunkErrorBoundary>
         <Routes>
-          {/* Public */}
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
-          <Route path="/signup-surgery" element={<SignupSurgery />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/auth/callback" element={<AuthCallback />} />
-          <Route path="/auth/post-login" element={<PostLoginRouter />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/marketplace" element={<Marketplace />} />
-          <Route path="/product" element={<ProductDetail />} />
-          <Route path="/product/:productId" element={<ProductDetail />} />
-          <Route path="/compare" element={<CompareProducts />} />
-          <Route path="/rfq" element={<RFQMarketplace />} />
-          <Route path="/rfq/detail" element={<RFQDetail />} />
-          <Route path="/suppliers" element={<Suppliers />} />
-          <Route path="/supplier" element={<SupplierProfile />} />
-          <Route path="/business/:id" element={<BusinessProfile />} />
-          <Route path="/categories" element={<Categories />} />
-          <Route path="/countries" element={<Countries />} />
-          <Route path="/how-it-works" element={<HowItWorks />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/help" element={<Help />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/about-us" element={<About />} /> {/* ✅ KERNEL ROUTING: Alias for About page to prevent broken links */}
-          <Route path="/afrikoni-code" element={<AfrikoniCode />} /> {/* ✅ PUBLIC ROUTING: Afrikoni Code page */}
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/buyer-hub" element={<BuyerHub />} />
-          <Route path="/supplier-hub" element={<SupplierHub />} />
-          <Route path="/trust" element={<Trust />} />
-          <Route path="/order-protection" element={<OrderProtection />} />
-          <Route path="/community" element={<Community />} />
-          {/* Verification Center moved to Dashboard routes */}
-          <Route path="/trending" element={<Trending />} />
-          <Route path="/saved" element={<SavedPage />} />
-          <Route path="/logistics" element={<Logistics />} />
-          <Route path="/become-supplier" element={<BecomeSupplier />} />
-          <Route path="/services/suppliers" element={<ServiceSuppliers />} />
-          <Route path="/services/buyers" element={<ServiceBuyers />} />
-          <Route path="/protection" element={<TradeProtection />} />
-          <Route path="/escrow-policy" element={<EscrowPolicy />} />
+          {/* SEO Authority Handshake: Redirect root to default lang */}
+          <Route path="/" element={<Navigate to="/en" replace />} />
 
-          {/* ✅ ENTERPRISE FIX: Mobile-specific routes */}
-          <Route path="/inbox-mobile" element={
-            <ProtectedRoute>
-              <InboxMobile />
-            </ProtectedRoute>
-          } />
-          <Route path="/rfq/create-mobile" element={
-            <ProtectedRoute>
-              <RFQMobileWizard />
-            </ProtectedRoute>
-          } />
+          {/* Supported Language Subdirectories */}
+          <Route path="/:lang" element={<LanguageWrapper />}>
+            {/* Public */}
+            <Route index element={<Home />} />
+            <Route path="login" element={<Login />} />
+            <Route path="signup" element={<Signup />} />
+            <Route path="signup-surgery" element={<SignupSurgery />} />
+            <Route path="forgot-password" element={<ForgotPassword />} />
+            <Route path="auth/callback" element={<AuthCallback />} />
+            <Route path="auth/post-login" element={<PostLoginRouter />} />
+            <Route path="products" element={<Products />} />
+            <Route path="marketplace" element={<Marketplace />} />
+            <Route path="product" element={<ProductDetail />} />
+            <Route path="product/:productId" element={<ProductDetail />} />
+            <Route path="compare" element={<CompareProducts />} />
+            <Route path="rfq" element={<RFQMarketplace />} />
+            <Route path="rfq/detail" element={<RFQDetail />} />
+            <Route path="suppliers" element={<Suppliers />} />
+            <Route path="supplier" element={<SupplierProfile />} />
+            <Route path="business/:id" element={<BusinessProfile />} />
+            <Route path="categories" element={<Categories />} />
+            <Route path="countries" element={<Countries />} />
+            <Route path="how-it-works" element={<HowItWorks />} />
+            <Route path="contact" element={<Contact />} />
+            <Route path="help" element={<Help />} />
+            <Route path="about" element={<About />} />
+            <Route path="about-us" element={<About />} />
+            <Route path="afrikoni-code" element={<AfrikoniCode />} />
+            <Route path="pricing" element={<Pricing />} />
+            <Route path="buyer-hub" element={<BuyerHub />} />
+            <Route path="supplier-hub" element={<SupplierHub />} />
+            <Route path="trust" element={<Trust />} />
+            <Route path="order-protection" element={<OrderProtection />} />
+            <Route path="community" element={<Community />} />
+            <Route path="trending" element={<Trending />} />
+            <Route path="saved" element={<SavedPage />} />
+            <Route path="logistics" element={<Logistics />} />
+            <Route path="become-supplier" element={<BecomeSupplier />} />
+            <Route path="services/suppliers" element={<ServiceSuppliers />} />
+            <Route path="services/buyers" element={<ServiceBuyers />} />
+            <Route path="protection" element={<TradeProtection />} />
+            <Route path="escrow-policy" element={<EscrowPolicy />} />
 
-          {/* Onboarding */}
-          <Route
-            path="/onboarding/company"
-            element={
+            <Route path="inbox-mobile" element={
               <ProtectedRoute>
-                <SupplierOnboarding />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* Legal */}
-          <Route path="/sitemap.xml" element={<SitemapXML />} />
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
-          <Route path="/terms-enforcement" element={<TermsEnforcement />} />
-          <Route path="/cookie-policy" element={<CookiePolicy />} />
-
-          {/* PHASE 4: Legacy role-based dashboard routes - redirect to /dashboard */}
-          {/* These routes are deprecated but kept for backward compatibility (bookmarks, external links) */}
-          <Route
-            path="/dashboard/buyer"
-            element={
-              <ProtectedRoute requireCompanyId={true}>
-                <Navigate to="/dashboard" replace />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard/seller"
-            element={
-              <ProtectedRoute requireCompanyId={true}>
-                <Navigate to="/dashboard" replace />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard/hybrid"
-            element={
-              <ProtectedRoute requireCompanyId={true}>
-                <Navigate to="/dashboard" replace />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/dashboard/logistics"
-            element={
-              <ProtectedRoute requireCompanyId={true}>
-                <Navigate to="/dashboard" replace />
-              </ProtectedRoute>
-            }
-          />
-
-          {/* ✅ AFRIKONI OS KERNEL - Unified Dashboard Router */}
-          {/* ============================================================ */}
-          {/* 🏛️ INFRASTRUCTURE ARCHITECTURE: */}
-          {/* - OSShell stays mounted (persistent modular layout) */}
-          {/* - CapabilityProvider is now GLOBAL (wraps entire app) */}
-          {/* - RequireCapability guards entry (ensures capabilities.ready) */}
-          {/* - All routes are nested under /dashboard/* (unified tree) */}
-          {/* - <Outlet /> swaps pages while layout persists */}
-          {/* ============================================================ */}
-          <Route
-            path="/dashboard/*"
-            element={
-              <RequireCapability require={null}>
-                <Dashboard />
-              </RequireCapability>
-            }
-          >
-            {/* 0. SYSTEM HOME */}
-            <Route index element={<DashboardHome />} />
-
-            {/* 1. SELLER ENGINE (Supply Chain) */}
-            <Route path="products" element={<ProductsPage />} />
-            <Route path="products/new" element={<ProductsNewPage />} />
-            <Route path="products/edit/:productId" element={<ProductsEditPage />} />
-            <Route path="products/quick-add" element={<ProductsNewPage />} />
-            <Route path="products/quick-add/:id" element={<ProductsNewPage />} />
-            <Route path="sales" element={<TradeMonitor viewMode="sell" />} />
-            <Route path="supplier-rfqs" element={<RFQMonitor viewMode="supplier" />} />
-            <Route path="supplier-analytics" element={<SupplierAnalyticsPage />} />
-
-            {/* 2. BUYER ENGINE (Sourcing) */}
-            <Route path="orders" element={<TradeMonitor viewMode="buy" />} />
-            <Route path="orders/:id" element={<TradeWorkspacePage />} />
-            <Route path="rfqs" element={<RFQMonitor viewMode="buyer" />} />
-            <Route path="rfqs/new" element={<RFQsNewPage />} />
-            <Route path="rfqs/:id" element={<TradeWorkspacePage />} />
-            <Route path="trade/:id" element={<TradeWorkspacePage />} />
-            <Route path="saved" element={<SavedItemsPage />} />
-
-            {/* 3. LOGISTICS ENGINE (Fulfillment) */}
-            <Route path="shipments" element={<ShipmentsPage />} />
-            <Route path="shipments/:id" element={<ShipmentDetailPage />} />
-            <Route path="shipments/new" element={<ShipmentNewPage />} />
-            <Route path="fulfillment" element={<FulfillmentPage />} />
-            <Route path="logistics-quote" element={<LogisticsQuotePage />} />
-            <Route path="logistics-portal" element={<LogisticsPartnerPortalPage />} />
-
-            {/* 4. FINANCIAL ENGINE */}
-            <Route path="payments" element={<PaymentsPage />} />
-            <Route path="invoices" element={<InvoicesPage />} />
-            <Route path="invoices/:id" element={<InvoiceDetailPage />} />
-            <Route path="returns" element={<ReturnsPage />} />
-            <Route path="returns/:id" element={<ReturnDetailPage />} />
-            <Route path="escrow/:orderId" element={<EscrowPage />} />
-
-            {/* 5. GOVERNANCE & SECURITY (The Firewall) */}
-            <Route path="compliance" element={<CompliancePage />} />
-            <Route path="risk" element={<RiskPage />} />
-            <Route path="trust-center" element={<TrustHealthPage />} />
-            <Route path="trust-health" element={<Navigate to="trust-center" replace />} /> {/* Legacy Redirect */}
-            <Route path="kyc" element={<KYCPage />} />
-            <Route path="verification-status" element={<VerificationStatusPage />} />
-            <Route path="verification-marketplace" element={<VerificationMarketplacePage />} />
-            <Route path="verification-center" element={<VerificationCenter />} />
-            <Route path="verification" element={<VerificationCenter />} />
-            <Route path="network" element={<NetworkDashboard />} />
-            <Route path="anticorruption" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AnticorruptionPage />
+                <InboxMobile />
               </ProtectedRoute>
             } />
-            <Route path="audit" element={
-              <ProtectedRoute requireAdmin={true}>
-                <AuditPage />
+            <Route path="rfq/create-mobile" element={
+              <ProtectedRoute>
+                <RFQMobileWizard />
               </ProtectedRoute>
             } />
-            <Route path="protection" element={<ProtectionPage />} />
 
-            {/* 6. COMMUNITY & ENGAGEMENT */}
-            <Route path="reviews" element={<ReviewsPage />} />
-            <Route path="disputes" element={<DisputesPage />} />
-            <Route path="notifications" element={<NotificationsPage />} />
-            <Route path="support-chat" element={<SupportChatPage />} />
-            <Route path="help" element={<HelpPage />} />
+            <Route
+              path="onboarding/company"
+              element={
+                <ProtectedRoute>
+                  <SupplierOnboarding />
+                </ProtectedRoute>
+              }
+            />
 
-            {/* TRADE PIPELINE */}
-            <Route path="trade-pipeline" element={<TradePipelinePage />} />
-            <Route path="trace-center" element={<TraceCenterPage />} /> {/* [NEW] Visual Command */}
+            <Route path="sitemap.xml" element={<SitemapXML />} />
 
-            {/* QUICK TRADE WIZARD (The Killer Flow) */}
-            <Route path="quick-trade/new" element={<QuickTradeWizard />} />
+            {/* Legal Pages - P0 Priority from Audit */}
+            <Route path="legal/terms" element={<TermsOfService />} />
+            <Route path="legal/privacy" element={<PrivacyPolicyPage />} />
 
-            {/* 7. ANALYTICS & INTELLIGENCE */}
-            <Route path="analytics" element={<AnalyticsPage />} />
-            <Route path="performance" element={<PerformancePage />} />
-            <Route path="koniai" element={<KoniAIPage />} />
+            {/* Legacy Legal Routes (redirect to new paths) */}
+            <Route path="privacy-policy" element={<Navigate to="/en/legal/privacy" replace />} />
+            <Route path="terms-and-conditions" element={<Navigate to="/en/legal/terms" replace />} />
+            <Route path="terms-enforcement" element={<TermsEnforcement />} />
+            <Route path="cookie-policy" element={<CookiePolicy />} />
 
-            {/* TRADE OS CONTROL PLANE (Mission Control) */}
-            <Route path="control-plane" element={<ControlPlanePage />} />
-
-
-            {/* 8. SYSTEM SETTINGS & UTILITIES */}
-            <Route path="settings" element={
-              <ErrorBoundary>
-                <SettingsPage />
-              </ErrorBoundary>
-            } />
-            <Route path="company-info" element={<CompanyInfoPage />} />
-            <Route path="team-members" element={<TeamMembersPage />} />
-            <Route path="subscriptions" element={<SubscriptionsPage />} />
-
-            {/* 10. TRADE OS MODULES */}
-            <Route path="corridors" element={<CorridorsPage />} />
-            <Route path="documents" element={<DocumentsPage />} />
-            <Route path="revenue" element={<RevenuePage />} />
-            <Route path="messages" element={<MessagesPage />} />
-            <Route path="agent-onboarding" element={<AgentOnboarding />} />
-
-            {/* 9. DEV TOOLS (Development only - hidden in production) */}
-            {import.meta.env.DEV && (
-              <>
-                <Route path="test-emails" element={<TestEmailsPage />} />
-                <Route path="design-demo" element={<DesignDemoPage />} />
-              </>
-            )}
-            {/* Add more nested routes here as needed */}
+            {/* Unified Dashboard Router */}
+            <Route
+              path="dashboard/*"
+              element={
+                <RequireCapability require={null}>
+                  <Dashboard />
+                </RequireCapability>
+              }
+            >
+              <Route index element={<DashboardHome />} />
+              <Route path="products" element={<ProductsPage />} />
+              <Route path="products/new" element={<ProductsNewPage />} />
+              <Route path="products/edit/:productId" element={<ProductsEditPage />} />
+              <Route path="sales" element={<TradeMonitor viewMode="sell" />} />
+              <Route path="supplier-rfqs" element={<RFQMonitor viewMode="supplier" />} />
+              <Route path="supplier-analytics" element={<SupplierAnalyticsPage />} />
+              <Route path="orders" element={<TradeMonitor viewMode="buy" />} />
+              <Route path="orders/:id" element={<TradeWorkspacePage />} />
+              <Route path="rfqs" element={<RFQMonitor viewMode="buyer" />} />
+              <Route path="rfqs/new" element={<RFQsNewPage />} />
+              <Route path="rfqs/:id" element={<TradeWorkspacePage />} />
+              <Route path="trade/:id" element={<TradeWorkspacePage />} />
+              <Route path="saved" element={<SavedItemsPage />} />
+              <Route path="shipments" element={<ShipmentsPage />} />
+              <Route path="shipments/:id" element={<ShipmentDetailPage />} />
+              <Route path="payments" element={<PaymentsPage />} />
+              <Route path="invoices" element={<InvoicesPage />} />
+              <Route path="compliance" element={<CompliancePage />} />
+              <Route path="trust-center" element={<TrustHealthPage />} />
+              <Route path="verification-center" element={<VerificationCenter />} />
+              <Route path="network" element={<NetworkDashboard />} />
+              <Route path="analytics" element={<AnalyticsPage />} />
+              <Route path="performance" element={<PerformancePage />} />
+              <Route path="koniai" element={<KoniAIPage />} />
+              <Route path="control-plane" element={<ControlPlanePage />} />
+              <Route path="settings" element={<SettingsPage />} />
+              <Route path="company-info" element={<CompanyInfoPage />} />
+              <Route path="team-members" element={<TeamMembersPage />} />
+              <Route path="messages" element={<MessagesPage />} />
+              <Route path="revenue" element={<RevenuePage />} />
+            </Route>
           </Route>
 
+
+          {/* Legacy Support Redirects */}
+          <Route path="/marketplace" element={<SmartRedirect />} />
+          <Route path="/products" element={<SmartRedirect />} />
+          <Route path="/product/*" element={<SmartRedirect />} />
+          <Route path="/dashboard/*" element={<SmartRedirect />} />
+
           {/* Fallback */}
-          <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<Navigate to="/en" replace />} />
         </Routes>
       </ChunkErrorBoundary>
     </Layout>
@@ -587,16 +490,10 @@ function AppContent() {
 }
 
 function App() {
-  if (import.meta.env.DEV) {
-    console.log('🚀 Afrikoni app booting');
-    console.log('ENV:', import.meta.env.VITE_SUPABASE_URL ? 'OK' : 'MISSING');
-  }
-
   // 🔒 SECURITY: Migrate unencrypted localStorage to encrypted storage on boot
   useEffect(() => {
     try {
       migrateToSecureStorage();
-      console.log('✅ localStorage migration to secure storage complete');
     } catch (error) {
       console.error('❌ localStorage migration failed:', error);
       // Non-blocking - app continues even if migration fails
@@ -605,33 +502,36 @@ function App() {
 
   return (
     <ErrorBoundary fallbackMessage="System error. Please refresh the page or contact support.">
-      <LanguageProvider>
-        <CurrencyProvider>
-          {/* ✅ CRITICAL: AuthProvider MUST come before UserProvider and RoleProvider */}
-          <AuthProvider>
-            <UserProvider>
-              {/* ✅ RoleProvider uses AuthProvider's data */}
-              <RoleProvider>
-                {/* ✅ KERNEL ALIGNMENT: CapabilityProvider lifted to global level */}
-                {/* This enables NotificationBell and other global components to access capabilities */}
-                {/* even on public routes (/, /products, /marketplace, etc.) */}
-                <CapabilityProvider>
-                  <TradeProvider>
-                    <WorkspaceModeProvider>
-                      <ScrollToTop />
-                      <Toaster position="top-right" />
+      <HelmetProvider>
+        <LanguageProvider>
+          <CurrencyProvider>
+            <HreflangTags />
+            {/* ✅ CRITICAL: AuthProvider MUST come before UserProvider and RoleProvider */}
+            <AuthProvider>
+              <UserProvider>
+                {/* ✅ RoleProvider uses AuthProvider's data */}
+                <RoleProvider>
+                  {/* ✅ KERNEL ALIGNMENT: CapabilityProvider lifted to global level */}
+                  {/* This enables NotificationBell and other global components to access capabilities */}
+                  {/* even on public routes (/, /products, /marketplace, etc.) */}
+                  <CapabilityProvider>
+                    <TradeProvider>
+                      <WorkspaceModeProvider>
+                        <ScrollToTop />
+                        <Toaster position="top-right" />
 
-                      {/* Debug component to detect stuck auth */}
+                        {/* Debug component to detect stuck auth */}
 
-                      <AppContent />
-                    </WorkspaceModeProvider>
-                  </TradeProvider>
-                </CapabilityProvider>
-              </RoleProvider>
-            </UserProvider>
-          </AuthProvider>
-        </CurrencyProvider>
-      </LanguageProvider>
+                        <AppContent />
+                      </WorkspaceModeProvider>
+                    </TradeProvider>
+                  </CapabilityProvider>
+                </RoleProvider>
+              </UserProvider>
+            </AuthProvider>
+          </CurrencyProvider>
+        </LanguageProvider>
+      </HelmetProvider>
     </ErrorBoundary>
   );
 }

@@ -1,10 +1,12 @@
-// SEO component - using document.title for now (can add react-helmet-async later)
-
 import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 
 /**
  * SEO component for managing page meta tags
- * Uses document manipulation for now (can upgrade to react-helmet-async later)
+ * Implements 2026 SEO Authority Blueprint:
+ * 1. Subdirectory-aware canonicals
+ * 2. Hreflang Reciprocity (Handshake)
+ * 3. GEO (Generative Engine Optimization) via JSON-LD
  */
 export default function SEO({
   title = 'AFRIKONI - African B2B Marketplace',
@@ -12,13 +14,18 @@ export default function SEO({
   image = '/og-image.jpg',
   url = '',
   type = 'website',
-  ogType = 'website',
-  ogImage = '/og-image.jpg',
-  structuredData = null
+  structuredData = null,
+  lang = 'en'
 }) {
+  const location = useLocation();
   const fullTitle = title?.includes('AFRIKONI') ? title : `${title} | AFRIKONI`;
-  const fullUrl = url ? `https://afrikoni.com${url}` : 'https://afrikoni.com';
-  const fullImage = image.startsWith('http') ? image : `https://afrikoni.com${image}`;
+  const domain = 'https://afrikoni.com';
+
+  // URL logic: Ensure subdirectories are used (2026 Juice Concentration)
+  const currentPath = url || location.pathname;
+  const cleanPath = currentPath.startsWith('/') ? currentPath : `/${currentPath}`;
+  const fullUrl = `${domain}/${lang}${cleanPath}`.replace(/\/+/g, '/').replace('https:/', 'https://');
+  const fullImage = image.startsWith('http') ? image : `${domain}${image}`;
 
   useEffect(() => {
     // Update document title
@@ -56,7 +63,7 @@ export default function SEO({
     updateMetaTag('twitter:description', description);
     updateMetaTag('twitter:image', fullImage);
 
-    // Canonical URL
+    // Canonical URL (Concentrates juice into main domain)
     let canonical = document.querySelector('link[rel="canonical"]');
     if (!canonical) {
       canonical = document.createElement('link');
@@ -65,7 +72,31 @@ export default function SEO({
     }
     canonical.setAttribute('href', fullUrl);
 
-    // Structured Data (JSON-LD)
+    // Hreflang Tags (Reciprocal Handshake)
+    const languages = ['en', 'fr', 'pt', 'ar'];
+    languages.forEach(l => {
+      let link = document.querySelector(`link[hreflang="${l}"]`);
+      if (!link) {
+        link = document.createElement('link');
+        link.setAttribute('rel', 'alternate');
+        link.setAttribute('hreflang', l);
+        document.head.appendChild(link);
+      }
+      // Handshake logic: all languages point to their respective subdirectory versions
+      link.setAttribute('href', `${domain}/${l}${cleanPath}`.replace(/\/+/g, '/').replace('https:/', 'https://'));
+    });
+
+    // x-default (usually points to the main version, here 'en')
+    let xDefault = document.querySelector('link[hreflang="x-default"]');
+    if (!xDefault) {
+      xDefault = document.createElement('link');
+      xDefault.setAttribute('rel', 'alternate');
+      xDefault.setAttribute('hreflang', 'x-default');
+      document.head.appendChild(xDefault);
+    }
+    xDefault.setAttribute('href', `${domain}/en${cleanPath}`.replace(/\/+/g, '/').replace('https:/', 'https://'));
+
+    // Structured Data (GEO Fact-Density)
     if (structuredData) {
       let script = document.querySelector('script[type="application/ld+json"][data-seo="true"]');
       if (!script) {
@@ -76,7 +107,12 @@ export default function SEO({
       }
       script.textContent = JSON.stringify(structuredData);
     }
-  }, [fullTitle, description, fullImage, fullUrl, type, structuredData]);
+
+    return () => {
+      // Clean up hreflang and structured data if component unmounts? 
+      // Usually keep for crawlers, but in SPA transitions we might want to update
+    };
+  }, [fullTitle, description, fullImage, fullUrl, type, structuredData, cleanPath, lang]);
 
   return null;
 }

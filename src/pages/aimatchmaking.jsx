@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { supabase, supabaseHelpers } from '@/api/supabaseClient';
+
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Textarea } from '@/components/shared/ui/textarea';
@@ -8,7 +8,7 @@ import { Sparkles, Building, MapPin, Star, Shield } from 'lucide-react';
 import { toast } from 'sonner';
 import { AIMatchingService } from '@/components/services/AIMatchingService';
 import { Link } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
+
 
 export default function AIMatchmaking() {
   const [requirements, setRequirements] = useState('');
@@ -22,49 +22,24 @@ export default function AIMatchmaking() {
     }
 
     setIsMatching(true);
+    setMatches([]); // Clear previous matches to show "thinking" state if needed
+
     try {
-      // ✅ KERNEL COMPLIANCE: Query capability-based instead of role-based
-      // First, get company IDs from company_capabilities where can_sell=true and sell_status='approved'
-      const { data: sellerCapabilities, error: capError } = await supabase
-        .from('company_capabilities')
-        .select('company_id')
-        .eq('can_sell', true)
-        .eq('sell_status', 'approved');
-
-      if (capError) throw capError;
-
-      const sellerCompanyIds = sellerCapabilities?.map(c => c.company_id).filter(Boolean) || [];
-      
-      if (sellerCompanyIds.length === 0) {
-        setMatches([]);
-        toast.info('No verified sellers found');
-        setIsMatching(false);
-        return;
-      }
-
-      const [suppliersRes, productsRes] = await Promise.all([
-        // Query companies with seller capability IDs
-        supabase.from('companies').select('*').in('id', sellerCompanyIds),
-        supabase.from('products').select('*').eq('status', 'active')
-      ]);
-
-      if (suppliersRes.error) throw suppliersRes.error;
-      if (productsRes.error) throw productsRes.error;
-
-      const suppliers = Array.isArray(suppliersRes.data) ? suppliersRes.data : [];
-      const products = Array.isArray(productsRes.data) ? productsRes.data : [];
-
+      // ✅ SCALABLE ARCHITECTURE: Delegated to server-side RPC via Service
       const result = await AIMatchingService.findMatchingSuppliers({
-        requirements,
-        suppliers,
-        products
+        requirements
       });
 
       setMatches(result.matches || []);
-      toast.success(`Found ${result.matches?.length || 0} matching suppliers!`);
+
+      if (result.matches?.length > 0) {
+        toast.success(`Found ${result.matches.length} verified suppliers!`);
+      } else {
+        toast.info('No matching suppliers found yet. Try simpler keywords.');
+      }
     } catch (error) {
-      // Error logged (removed for production)
-      toast.error('Failed to find matches');
+      console.error('Matchmaking Error:', error);
+      toast.error('Unable to connect to Trade Intelligence Engine.');
     } finally {
       setIsMatching(false);
     }

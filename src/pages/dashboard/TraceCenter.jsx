@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
-import { useTradeContext } from '@/context/TradeContext';
+import { useTradeContext } from '@/contexts/TradeContext';
 import { SystemPageSection } from '@/components/system/SystemPageLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Badge } from '@/components/shared/ui/badge';

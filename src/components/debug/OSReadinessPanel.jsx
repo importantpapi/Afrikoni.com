@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthProvider';
-import { useCapability } from '@/context/CapabilityContext';
+import { useCapability } from '@/contexts/CapabilityContext';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { X, Activity, Database, Shield, GitBranch, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/shared/ui/button';

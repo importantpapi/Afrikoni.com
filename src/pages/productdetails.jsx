@@ -25,7 +25,8 @@ import { toast } from 'sonner';
 import NewMessageDialog from '@/components/messaging/NewMessageDialog';
 import ReviewList from '@/components/reviews/ReviewList';
 import SEO from '@/components/SEO';
-import StructuredData from '@/components/StructuredData';
+import StructuralData from '@/components/StructuredData';
+import ProductSchema from '@/components/ProductSchema';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { isValidUUID } from '@/utils/security';
 import { cn } from '@/lib/utils';
@@ -393,45 +394,66 @@ export default function ProductDetail() {
     }
   };
 
+  const { language } = useLanguage();
+
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-os-accent" />
+      <div className="min-h-screen bg-os-bg flex flex-col items-center justify-center gap-6 p-6">
+        <div className="w-16 h-16 rounded-full border-4 border-os-accent/20 border-t-os-accent animate-spin" />
+        <div className="flex flex-col items-center gap-2">
+          <p className="text-os-sm font-black uppercase tracking-[0.3em] text-os-accent animate-pulse">
+            Authenticating Origin
+          </p>
+          <p className="text-os-xs text-os-text-secondary/60">Fetching verified product specifications...</p>
+        </div>
       </div>
     );
   }
 
   if (!product) return null;
 
+  // 🏛️ GEO Fact-Density (AI Engine Optimization)
+  const productSchema = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": product.title,
+    "description": product.description,
+    "image": getPrimaryImageFromProduct(product),
+    "sku": product.id,
+    "offers": {
+      "@type": "Offer",
+      "price": product.price || 0,
+      "priceCurrency": product.currency || "USD",
+      "availability": "https://schema.org/InStock",
+      "url": `${window.location.origin}/${language}/product/${product.id}`
+    },
+    "brand": {
+      "@type": "Brand",
+      "name": supplier?.company_name || "Verified African Supplier"
+    },
+    "countryOfOrigin": {
+      "@type": "Country",
+      "name": product.country || supplier?.country
+    }
+  };
+
   return (
     <>
       <SEO
-        title={product.title || 'Product Details'}
-        description={product.description || `View details for ${product.title}`}
-        url={`/product?id=${product.id}`}
-        type="product"
+        lang={language}
+        title={`${product.title} – Verified ${product.country || supplier?.country || 'African'} Supplier`}
+        description={product.description?.substring(0, 160) || `Buy ${product.title} directly from verified suppliers on AFRIKONI. Secured cross-border trade workflows with Afrikoni Shield™ protection.`}
+        url={`/product/${product.id}`}
       />
-      {product && (
-        <StructuredData
-          type="Product"
-          data={{
-            name: product.title,
-            description: product.description,
-            image: product.images?.[0] || '',
-            price: product.price,
-            currency: product.currency || 'USD',
-            brand: supplier?.company_name || 'AFRIKONI Supplier'
-          }}
-        />
-      )}
+      <ProductSchema product={product} />
       <div className="min-h-screen bg-os-bg selection:bg-os-accent selection:text-white">
         {/* INSTITUTIONAL HEADER / BREADCRUMB */}
         <div className="max-w-screen-2xl mx-auto px-6 pt-12">
           <Breadcrumb
             items={[
-              { path: '/', label: 'Home' },
-              { path: '/marketplace', label: 'Marketplace' },
-              { path: `/product/${product.id}`, label: product.title }
+              { path: `/${language}`, label: 'Home' },
+              { path: `/${language}/marketplace`, label: 'Marketplace' },
+              { path: `/${language}/product/${product.id}`, label: product.title }
             ]}
             className="mb-8 opacity-60 hover:opacity-100 transition-opacity"
           />
@@ -827,7 +849,7 @@ export default function ProductDetail() {
                         )}
                       </div>
                       <div className="flex-1">
-                        <Link to={`/business/${supplier.id}`} className="block group/link">
+                        <Link to={`/${language}/business/${supplier.id}`} className="block group/link">
                           <h4 className="text-lg font-black tracking-tight text-os-text-primary group-hover/link:text-os-accent transition-colors">
                             {supplier.company_name}
                           </h4>

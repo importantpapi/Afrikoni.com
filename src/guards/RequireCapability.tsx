@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useCapability } from '@/context/CapabilityContext';
+import { useCapability } from '@/contexts/CapabilityContext';
 import { useAuth } from '@/contexts/AuthProvider';
 import AccessDenied from '@/components/AccessDenied';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
