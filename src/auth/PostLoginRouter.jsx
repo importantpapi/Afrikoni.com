@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { useLanguage } from '@/i18n/LanguageContext';
 import { LoadingScreen } from '@/components/shared/ui/LoadingScreen';
 
 /**
@@ -14,8 +15,8 @@ import { LoadingScreen } from '@/components/shared/ui/LoadingScreen';
  */
 export default function PostLoginRouter() {
   // FIX: Use authReady (not authResolutionComplete) to allow fast-path routing
-  // Profile may still be loading when authReady=true, use timeouts to handle
   const { user, profile, authReady } = useAuth();
+  const { language } = useLanguage();
 
   /**
    * ✅ ALIBABA FLOW: Determine onboarding path based on role
@@ -24,7 +25,7 @@ export default function PostLoginRouter() {
     // 🚀 MASTER AUDIT FIX: All roles go to dashboard first.
     // We defer the "Company Wall" until the user needs to perform a meaningful action.
     // This stops the 25% drop-off at the mandatory company profile form.
-    return '/dashboard';
+    return `/${language}/dashboard`;
   };
 
   /**
@@ -33,7 +34,7 @@ export default function PostLoginRouter() {
   const getDashboardPath = (userRole) => {
     // For now, all roles go to same dashboard
     // Future: role-specific dashboard views
-    return '/dashboard';
+    return `/${language}/dashboard`;
   };
 
   // ✅ KERNEL MANIFESTO: Get Kernel state for full routing
@@ -64,7 +65,7 @@ export default function PostLoginRouter() {
       if (profile.onboarding_completed) {
         console.log('🚀 FAST-PATH: Onboarding completed but no company_id → dashboard');
         hasNavigatedRef.current = true;
-        navigate('/dashboard', { replace: true });
+        navigate(`/${language}/dashboard`, { replace: true });
         return;
       }
       const userRole = profile.role || 'buyer';

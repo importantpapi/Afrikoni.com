@@ -5,7 +5,7 @@ import { StatusBadge } from '@/components/system/StatusBadge';
 import { SignalChip } from '@/components/system/SignalChip';
 import { Button } from '@/components/shared/ui/button';
 import EmptyState from '@/components/shared/ui/EmptyState';
-import { AlertTriangle, FileText, Clock, CheckCircle2 } from 'lucide-react';
+import { FileText, CheckCircle2, AlertCircle } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 
@@ -15,10 +15,19 @@ const statusTone = {
   escalated: 'rejected',
 };
 
+function formatDate(date) {
+  try {
+    return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  } catch {
+    return '—';
+  }
+}
+
 export default function Disputes() {
   const { profileCompanyId, canLoadData, isSystemReady } = useDashboardKernel();
   const [disputes, setDisputes] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -33,39 +42,30 @@ export default function Disputes() {
         if (error) throw error;
         setDisputes(data || []);
       } catch (err) {
-        console.warn('[Disputes] falling back to mock:', err?.message);
-        setDisputes([
-          {
-            id: 'DSP-2026-001',
-            order: 'TRD-2026-0042',
-            amount: 12500,
-            status: 'in_review',
-            opened_at: '2026-01-18T10:00:00Z',
-            summary: 'Quality variance on delivered lot; buyer requesting re-inspection.',
-          },
-          {
-            id: 'DSP-2026-002',
-            order: 'TRD-2026-0035',
-            amount: 4200,
-            status: 'resolved',
-            opened_at: '2026-01-05T14:00:00Z',
-            summary: 'Late pickup fee dispute resolved; partial credit issued.',
-          },
-        ]);
+        if (active) setError(err?.message || 'Failed to load disputes');
       } finally {
         if (active) setIsLoading(false);
       }
     };
     load();
-    return () => {
-      active = false;
-    };
+    return () => { active = false; };
   }, [profileCompanyId, canLoadData, isSystemReady]);
 
   if (isLoading) {
     return (
       <div className="os-page os-stagger space-y-4">
         <Surface className="p-6">Loading disputes…</Surface>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="os-page os-stagger space-y-4">
+        <Surface className="p-6 flex items-center gap-3 text-destructive">
+          <AlertCircle className="w-5 h-5 shrink-0" />
+          <p className="text-os-sm">Could not load disputes. Please refresh the page or contact support.</p>
+        </Surface>
       </div>
     );
   }
@@ -96,7 +96,7 @@ export default function Disputes() {
           <EmptyState
             icon={CheckCircle2}
             title="No disputes"
-            description="Great news—there are no active disputes."
+            description="Great news — there are no active disputes on your account."
           />
         </Surface>
       ) : (
@@ -116,13 +116,8 @@ export default function Disputes() {
                 </div>
                 <div className="text-right min-w-[120px]">
                   <p className="text-os-xs text-os-muted">Amount</p>
-                  <p className="text-os-lg font-semibold text-foreground">${d.amount.toLocaleString()}</p>
-                  <div className="flex flex-col gap-2 mt-3">
-                    <Button size="sm" variant="outline">View Case</Button>
-                    <Button size="sm" className="gap-1">
-                      <AlertTriangle className="w-4 h-4" /> Add Evidence
-                    </Button>
-                  </div>
+                  <p className="text-os-lg font-semibold text-foreground">${d.amount?.toLocaleString()}</p>
+                  <p className="text-os-xs text-os-muted mt-3">Contact support to manage this dispute.</p>
                 </div>
               </div>
             </Surface>
@@ -131,12 +126,4 @@ export default function Disputes() {
       )}
     </div>
   );
-}
-
-function formatDate(date) {
-  try {
-    return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  } catch {
-    return '—';
-  }
 }

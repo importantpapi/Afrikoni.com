@@ -20,6 +20,7 @@ import { useTheme } from '@/contexts/ThemeContext';
 import { useNavigate, Link } from 'react-router-dom';
 import UserAvatar from '@/components/headers/UserAvatar';
 import { useAuth } from '@/contexts/AuthProvider';
+import { useLanguage } from '@/i18n/LanguageContext';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn as utilsCn } from '@/lib/utils';
 
@@ -49,6 +50,7 @@ export function IdentityLayer({
     const { theme, toggleTheme } = useTheme();
     const { signOut } = useAuth();
     const navigate = useNavigate();
+    const { language = 'en' } = useLanguage();
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
     const userMenuButtonRef = React.useRef(null);
@@ -64,7 +66,7 @@ export function IdentityLayer({
 
     const handleLogout = async () => {
         await signOut();
-        navigate('/login');
+        navigate(`/${language}/login`);
     };
 
     const userName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
@@ -144,7 +146,7 @@ export function IdentityLayer({
                 <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => navigate('/dashboard/notifications')}
+                    onClick={() => navigate(`/${language}/dashboard/notifications`)}
                     className="relative w-10 h-10 rounded-full"
                 >
                     <Bell className="w-4 h-4 text-os-text-secondary" />
@@ -208,13 +210,13 @@ export function IdentityLayer({
                                     </div>
                                 </div>
                                 {[
-                                    { to: '/dashboard', icon: LayoutDashboard, label: 'Command Center' },
-                                    { to: '/dashboard/settings', icon: UserIcon, label: 'Profile' },
-                                    { to: '/dashboard/notifications', icon: MessageSquare, label: 'Trade Signals' },
-                                    { to: '/dashboard/orders', icon: Package, label: 'Orders' },
-                                    { to: '/dashboard/rfqs', icon: FileText, label: 'RFQs' },
-                                    { to: '/dashboard/verification-center', icon: Shield, label: 'Verification' },
-                                    { to: '/dashboard/settings', icon: Settings, label: 'Settings' },
+                                    { to: `/${language}/dashboard`, icon: LayoutDashboard, label: 'Command Center' },
+                                    { to: `/${language}/dashboard/settings`, icon: UserIcon, label: 'Profile' },
+                                    { to: `/${language}/dashboard/notifications`, icon: MessageSquare, label: 'Trade Signals' },
+                                    { to: `/${language}/dashboard/orders`, icon: Package, label: 'Orders' },
+                                    { to: `/${language}/dashboard/rfqs`, icon: FileText, label: 'RFQs' },
+                                    { to: `/${language}/dashboard/verification-center`, icon: Shield, label: 'Verification' },
+                                    { to: `/${language}/dashboard/settings`, icon: Settings, label: 'Settings' },
                                 ].map(item => (
                                     <Link
                                         key={item.to}

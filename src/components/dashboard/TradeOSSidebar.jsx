@@ -1,4 +1,5 @@
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { useLanguage } from '@/i18n/LanguageContext';
 import { X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Logo } from '@/components/shared/ui/Logo';
@@ -22,13 +23,21 @@ export default function TradeOSSidebar({
   workspaceMode = 'simple',
 }) {
   const location = useLocation();
-  const { lang = 'en' } = useParams(); // ✅ Fix: Get lang param
+  const { language: lang = 'en' } = useLanguage();
 
   const isActive = (path, matchFn) => {
-    // Check against the localized path if needed, or just part of pathname
-    const localizedPath = `/${lang}${path}`;
+    const pathParts = location.pathname.split('/');
+    const isDashboard = pathParts.includes('dashboard');
+
     if (matchFn) return matchFn(location.pathname);
-    if (path === '/dashboard') return location.pathname === `/${lang}/dashboard` || location.pathname === `/${lang}/dashboard/`;
+
+    // Exact match for dashboard home
+    if (path === '/dashboard') {
+      return location.pathname === `/${lang}/dashboard` || location.pathname === `/${lang}/dashboard/`;
+    }
+
+    // Sub-route match
+    const localizedPath = `/${lang}${path}`;
     return location.pathname.startsWith(localizedPath);
   };
 

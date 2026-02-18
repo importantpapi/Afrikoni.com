@@ -1,14 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/i18n/LanguageContext';
 import { FileText, ArrowRight } from 'lucide-react';
 import { Card, CardContent } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import RFQProcessPanel from './RFQProcessPanel';
 
 export default function RFQCard() {
-  const { t } = useTranslation();
+  const { t, language } = useLanguage();
   return (
     <section className="py-8 md:py-16 bg-gradient-to-br from-os-accent/10 via-os-accentDark/10 to-afrikoni-chestnut/10">
       <div className="max-w-7xl mx-auto px-4">
@@ -30,7 +30,7 @@ export default function RFQCard() {
                   <p className="text-os-sm text-afrikoni-chestnut font-medium mb-2">
                     Post an RFQ — suppliers send you quotes
                   </p>
-                  <Link to="/rfq/create" className="block">
+                  <Link to={`/${language}/rfq/create`} className="block">
                     <Button
                       size="sm"
                       className="w-full bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut font-semibold text-os-sm py-2"
@@ -62,7 +62,7 @@ export default function RFQCard() {
                   </div>
                 </div>
                 <div className="flex-shrink-0 w-full md:w-auto">
-                  <Link to="/rfq/create" className="block">
+                  <Link to={`/${language}/rfq/create`} className="block">
                     <motion.div
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}

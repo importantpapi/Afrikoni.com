@@ -8,7 +8,7 @@ import { Logo } from '@/components/shared/ui/Logo';
 import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function AuthCallback() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { authReady, user, profile } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -43,7 +43,7 @@ export default function AuthCallback() {
         // Wait for AuthProvider to process the OAuth session
         let attempts = 0;
         const maxAttempts = 30; // 3 seconds max wait
-        
+
         while (attempts < maxAttempts) {
           // Wait for authReady and user to be available
           if (authReady && user) {
@@ -52,11 +52,11 @@ export default function AuthCallback() {
           await new Promise(resolve => setTimeout(resolve, 100));
           attempts++;
         }
-        
+
         if (!authReady) {
           throw new Error('Authentication timeout. Please try signing in again.');
         }
-        
+
         if (!user) {
           throw new Error('No session found. Please try signing in again.');
         }
@@ -116,14 +116,14 @@ export default function AuthCallback() {
         if (redirectUrl && redirectUrl !== window.location.origin && !redirectUrl.includes('/dashboard') && !redirectUrl.includes('/auth/')) {
           navigate(redirectUrl);
         } else {
-          navigate('/auth/post-login', { replace: true });
+          navigate(`/${language}/auth/post-login`, { replace: true });
         }
       } catch (err) {
         console.error('Auth callback error:', err);
         setError(err.message || 'Authentication failed');
         toast.error(err.message || 'Authentication failed');
         setTimeout(() => {
-          navigate('/login');
+          navigate(`/${language}/login`);
         }, 3000);
       } finally {
         setIsLoading(false);
@@ -134,7 +134,7 @@ export default function AuthCallback() {
     if (authReady) {
       handleAuthCallback();
     }
-  // Note: isEmailVerification intentionally NOT in deps - it's set inside the effect
+    // Note: isEmailVerification intentionally NOT in deps - it's set inside the effect
   }, [navigate, searchParams, t, authReady, user, profile]);
 
   return (

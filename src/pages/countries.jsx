@@ -7,6 +7,7 @@ import { Input } from '@/components/shared/ui/input';
 import { Button } from '@/components/shared/ui/button';
 import { supabase } from '@/api/supabaseClient';
 import SEO from '@/components/SEO';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 // All 54 African countries with flags (alphabetically sorted)
 const ALL_AFRICAN_COUNTRIES = [
@@ -67,6 +68,7 @@ const ALL_AFRICAN_COUNTRIES = [
 ];
 
 export default function Countries() {
+  const { language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [productCounts, setProductCounts] = useState({});
   const [isLoading, setIsLoading] = useState(true);
@@ -124,145 +126,146 @@ export default function Countries() {
   return (
     <>
       <SEO
+        lang={language}
         title="Source by Country - African Suppliers by Country | Afrikoni"
         description="Discover products and verified suppliers across all 54 African countries. Browse by country of origin and explore regional opportunities on Afrikoni."
         url="/countries"
       />
       <div className="min-h-screen bg-afrikoni-offwhite py-8 md:py-12">
-      <div className="max-w-7xl mx-auto px-4">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-8 md:mb-12"
-        >
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold font-serif text-afrikoni-chestnut mb-4">
-            All African Countries
-          </h1>
-          <p className="text-os-lg md:text-os-xl text-afrikoni-deep max-w-2xl mx-auto mb-6">
-            Discover products and suppliers from all 54 African countries
-          </p>
-
-          {/* Search Bar */}
-          <div className="max-w-2xl mx-auto">
-            <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
-              <Input
-                type="text"
-                placeholder="Search countries by name..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-12 pr-4 py-6 text-os-lg border-2 border-os-accent/30 focus:border-os-accent bg-afrikoni-cream"
-              />
-            </div>
-            {searchQuery && (
-              <p className="text-os-sm text-afrikoni-deep/70 mt-3">
-                {filteredCountries.length} {filteredCountries.length === 1 ? 'country' : 'countries'} found
-              </p>
-            )}
-          </div>
-        </motion.div>
-
-        {/* Countries Grid */}
-        {isLoading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-os-accent" />
-          </div>
-        ) : (
+        <div className="max-w-7xl mx-auto px-4">
+          {/* Header */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-8 md:mb-12"
           >
-            {filteredCountries.map((country, idx) => {
-              const productCount = getProductCount(country.name);
-              const hasProducts = productCounts[country.name] > 0;
-
-              return (
-                <motion.div
-                  key={country.code}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, delay: idx * 0.02 }}
-                  whileHover={{ y: -4, scale: 1.02 }}
-                >
-                  <Link to={`/marketplace?country=${country.code}`}>
-                    <Card className="h-full hover:shadow-os-gold-lg transition-all cursor-pointer border-[1.5px] border-os-accent/30 bg-afrikoni-cream hover:border-os-accent">
-                      <CardContent className="p-3 md:p-4 text-center">
-                        <div className="text-3xl md:text-4xl mb-2">{country.flag}</div>
-                        <h3 className="font-bold text-afrikoni-chestnut mb-1 text-os-sm md:text-os-base leading-tight whitespace-normal break-words">
-                          {country.name}
-                        </h3>
-                        <p className={`text-os-xs md:text-os-sm mb-2 ${hasProducts ? 'text-afrikoni-deep' : 'text-afrikoni-deep/60'}`}>
-                          {productCount} {hasProducts ? 'products' : ''}
-                        </p>
-                        <div className="flex items-center justify-center gap-1 text-os-accent text-os-xs md:text-os-sm font-medium">
-                          <span>Explore</span>
-                          <ArrowRight className="w-3 h-3 md:w-4 md:h-4" />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                </motion.div>
-              );
-            })}
-          </motion.div>
-        )}
-
-        {/* Empty State */}
-        {!isLoading && filteredCountries.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-20"
-          >
-            <MapPin className="w-16 h-16 mx-auto mb-4 text-afrikoni-deep/50" />
-            <h3 className="text-os-xl font-semibold text-afrikoni-chestnut mb-2">No countries found</h3>
-            <p className="text-afrikoni-deep/70 mb-4">
-              Try a different search term
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold font-serif text-afrikoni-chestnut mb-4">
+              All African Countries
+            </h1>
+            <p className="text-os-lg md:text-os-xl text-afrikoni-deep max-w-2xl mx-auto mb-6">
+              Discover products and suppliers from all 54 African countries
             </p>
-            <Button onClick={() => setSearchQuery('')} variant="outline">
-              Clear Search
-            </Button>
-          </motion.div>
-        )}
 
-        {/* Info Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="mt-12 md:mt-16 text-center"
-        >
-          <Card className="bg-gradient-to-br from-os-accent/10 to-os-accent/5 border-os-accent/30">
-            <CardContent className="p-6 md:p-8">
-              <h3 className="text-os-xl md:text-os-2xl font-bold text-afrikoni-chestnut mb-3">
-                Trade Across All 54 African Countries
-              </h3>
-              <p className="text-afrikoni-deep max-w-2xl mx-auto mb-4">
-                Afrikoni connects you with verified suppliers and buyers across every African nation. 
-                Whether you're sourcing from North, South, East, West, or Central Africa, we've got you covered.
-              </p>
-              <div className="flex flex-wrap justify-center gap-4 text-os-sm text-afrikoni-deep/70">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4 text-os-accent" />
-                  <span>54 Countries</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span>•</span>
-                  <span>Verified Suppliers</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span>•</span>
-                  <span>Secure Transactions</span>
-                </div>
+            {/* Search Bar */}
+            <div className="max-w-2xl mx-auto">
+              <div className="relative">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-afrikoni-deep/70" />
+                <Input
+                  type="text"
+                  placeholder="Search countries by name..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-12 pr-4 py-6 text-os-lg border-2 border-os-accent/30 focus:border-os-accent bg-afrikoni-cream"
+                />
               </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-      </div>
+              {searchQuery && (
+                <p className="text-os-sm text-afrikoni-deep/70 mt-3">
+                  {filteredCountries.length} {filteredCountries.length === 1 ? 'country' : 'countries'} found
+                </p>
+              )}
+            </div>
+          </motion.div>
+
+          {/* Countries Grid */}
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-os-accent" />
+            </div>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4"
+            >
+              {filteredCountries.map((country, idx) => {
+                const productCount = getProductCount(country.name);
+                const hasProducts = productCounts[country.name] > 0;
+
+                return (
+                  <motion.div
+                    key={country.code}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: idx * 0.02 }}
+                    whileHover={{ y: -4, scale: 1.02 }}
+                  >
+                    <Link to={`/${language}/marketplace?country=${country.code}`}>
+                      <Card className="h-full hover:shadow-os-gold-lg transition-all cursor-pointer border-[1.5px] border-os-accent/30 bg-afrikoni-cream hover:border-os-accent">
+                        <CardContent className="p-3 md:p-4 text-center">
+                          <div className="text-3xl md:text-4xl mb-2">{country.flag}</div>
+                          <h3 className="font-bold text-afrikoni-chestnut mb-1 text-os-sm md:text-os-base leading-tight whitespace-normal break-words">
+                            {country.name}
+                          </h3>
+                          <p className={`text-os-xs md:text-os-sm mb-2 ${hasProducts ? 'text-afrikoni-deep' : 'text-afrikoni-deep/60'}`}>
+                            {productCount} {hasProducts ? 'products' : ''}
+                          </p>
+                          <div className="flex items-center justify-center gap-1 text-os-accent text-os-xs md:text-os-sm font-medium">
+                            <span>Explore</span>
+                            <ArrowRight className="w-3 h-3 md:w-4 md:h-4" />
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </Link>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          )}
+
+          {/* Empty State */}
+          {!isLoading && filteredCountries.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-center py-20"
+            >
+              <MapPin className="w-16 h-16 mx-auto mb-4 text-afrikoni-deep/50" />
+              <h3 className="text-os-xl font-semibold text-afrikoni-chestnut mb-2">No countries found</h3>
+              <p className="text-afrikoni-deep/70 mb-4">
+                Try a different search term
+              </p>
+              <Button onClick={() => setSearchQuery('')} variant="outline">
+                Clear Search
+              </Button>
+            </motion.div>
+          )}
+
+          {/* Info Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+            className="mt-12 md:mt-16 text-center"
+          >
+            <Card className="bg-gradient-to-br from-os-accent/10 to-os-accent/5 border-os-accent/30">
+              <CardContent className="p-6 md:p-8">
+                <h3 className="text-os-xl md:text-os-2xl font-bold text-afrikoni-chestnut mb-3">
+                  Trade Across All 54 African Countries
+                </h3>
+                <p className="text-afrikoni-deep max-w-2xl mx-auto mb-4">
+                  Afrikoni connects you with verified suppliers and buyers across every African nation.
+                  Whether you're sourcing from North, South, East, West, or Central Africa, we've got you covered.
+                </p>
+                <div className="flex flex-wrap justify-center gap-4 text-os-sm text-afrikoni-deep/70">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-os-accent" />
+                    <span>54 Countries</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span>•</span>
+                    <span>Verified Suppliers</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span>•</span>
+                    <span>Secure Transactions</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
       </div>
     </>
   );

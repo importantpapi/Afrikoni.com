@@ -13,7 +13,7 @@ import { Button } from '@/components/shared/ui/button';
 import AuthLayout from '@/components/auth/AuthLayout';
 
 export default function Login() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -27,18 +27,18 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const redirectUrl = searchParams.get('redirect') || createPageUrl('Home');
+  const redirectUrl = searchParams.get('redirect') || createPageUrl('Home', language);
 
   // Redirect logged-in users
   useEffect(() => {
     if (authReady !== true || ready !== true || !hasUser) return;
 
     if (!profile) {
-      navigate('/onboarding/company', { replace: true });
+      navigate(`/${language}/onboarding/company`, { replace: true });
     } else {
-      navigate('/dashboard', { replace: true });
+      navigate(`/${language}/dashboard`, { replace: true });
     }
-  }, [authReady, ready, hasUser, profile, navigate]);
+  }, [authReady, ready, hasUser, profile, navigate, language]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -51,7 +51,7 @@ export default function Login() {
     try {
       await authServiceLogin(email.trim(), password);
       toast.success('Welcome back to Afrikoni');
-      navigate('/auth/post-login', { replace: true });
+      navigate(`/${language}/auth/post-login`, { replace: true });
     } catch (err) {
       if (isNetworkError(err)) {
         toast.error(handleNetworkError(err));
@@ -64,7 +64,7 @@ export default function Login() {
   };
 
   const getOAuthRedirectPath = () => {
-    return redirectUrl && redirectUrl !== createPageUrl('Home') ? redirectUrl : '/dashboard';
+    return redirectUrl && redirectUrl !== createPageUrl('Home', language) ? redirectUrl : `/${language}/dashboard`;
   };
 
   // Loading state
@@ -84,7 +84,7 @@ export default function Login() {
       footerText={
         <>
           Don't have an account?{' '}
-          <Link to="/signup" className="text-os-accent hover:text-os-accent-dark font-medium transition-colors">
+          <Link to={`/${language}/signup`} className="text-os-accent hover:text-os-accent-dark font-medium transition-colors">
             Create account
           </Link>
         </>
@@ -127,7 +127,7 @@ export default function Login() {
           <div className="flex items-center justify-between">
             <label className="text-[13px] font-medium text-gray-700 block">Password</label>
             <Link
-              to="/forgot-password"
+              to={`/${language}/forgot-password`}
               className="text-[13px] font-medium text-os-accent hover:text-os-accent-dark transition-colors"
             >
               Forgot password?

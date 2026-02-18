@@ -49,7 +49,7 @@ export default function BusinessProfile() {
   useEffect(() => {
     if (!id || !isValidUUID(id)) {
       toast.error('Invalid business ID');
-      navigate('/marketplace');
+      navigate(`/${language}/marketplace`);
       return;
     }
     loadBusinessData();
@@ -178,7 +178,7 @@ export default function BusinessProfile() {
     } catch (error) {
       console.error('Failed to load business profile:', error);
       toast.error(error.message || 'Failed to load business profile');
-      navigate('/marketplace');
+      navigate(`/${language}/marketplace`);
     } finally {
       setIsLoading(false);
     }
@@ -282,7 +282,7 @@ export default function BusinessProfile() {
         lang={language}
         title={`${business.company_name} - Business Profile | Afrikoni`}
         description={business.description || `View ${business.company_name}'s profile, products, and certifications on Afrikoni B2B marketplace.`}
-        url={`/business/${id}`}
+        url={`/${language}/business/${id}`}
         structuredData={organizationSchema}
       />
 

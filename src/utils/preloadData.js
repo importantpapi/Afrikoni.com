@@ -140,8 +140,8 @@ export async function preloadMarketplaceData() {
   try {
     // Don't preload on signup/login pages - user hasn't signed up yet
     if (typeof window !== 'undefined') {
-      const currentPath = window.location.pathname;
-      if (currentPath === '/signup' || currentPath === '/login' || currentPath.startsWith('/auth/')) {
+      const pathParts = window.location.pathname.split('/');
+      if (pathParts.includes('signup') || pathParts.includes('login') || pathParts.includes('auth')) {
         return; // Skip preloading on auth pages
       }
     }
@@ -224,15 +224,15 @@ export function setupLinkPreloading() {
 export function useIdlePreloading() {
   if (typeof window === 'undefined') return;
 
-  const currentPath = window.location.pathname;
+  const pathParts = window.location.pathname.split('/');
 
   // ✅ FIX: Skip preloading on auth pages
-  if (currentPath === '/signup' || currentPath === '/login' || currentPath.startsWith('/auth/')) {
+  if (pathParts.includes('signup') || pathParts.includes('login') || pathParts.includes('auth')) {
     return; // Skip preloading on auth pages
   }
 
   // ✅ FIX: Skip marketplace preload on dashboard pages (dashboard has its own preload)
-  const isDashboardPage = currentPath.startsWith('/dashboard');
+  const isDashboardPage = pathParts.includes('dashboard');
 
   if (!('requestIdleCallback' in window)) {
     // Fallback for browsers without requestIdleCallback

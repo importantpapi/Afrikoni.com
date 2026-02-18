@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { DashboardSkeleton } from '@/components/shared/ui/skeletons';
 import { useTrades } from '@/hooks/queries/useTrades';
+import { useRFQs } from '@/hooks/queries/useRFQs';
 import {
   Box, CreditCard, Ship, Sparkles, Lock as LockIcon,
   Globe, ShieldCheck, ChevronRight, Package
@@ -21,9 +22,10 @@ export default function DashboardHome() {
     profileCompanyId
   } = useDashboardKernel();
   const { data: { activeTrades = [] } = {}, isLoading: tradesLoading } = useTrades();
+  const { data: allRFQs = [], isLoading: rfqsLoading } = useRFQs();
   const { profile } = useAuth();
   const navigate = useNavigate();
-  const { t } = useLanguage();
+  const { language, t } = useLanguage();
 
   // Extract first name for personal greeting
   const firstName = profile?.full_name?.split(' ')[0] || profile?.name?.split(' ')[0] || 'there';
@@ -41,6 +43,18 @@ export default function DashboardHome() {
   const isSeller = profile?.can_sell === true;
   const isBuyer = profile?.can_buy === true;
 
+  // Real metrics from actual data only
+  const activeDeals = activeTrades.filter(t => !['settled', 'closed'].includes(t.status));
+  const completedDeals = activeTrades.filter(t => ['settled', 'closed'].includes(t.status));
+  const hasTradeHistory = activeTrades.length > 0;
+
+  // Filter open RFQs
+  const openRFQs = allRFQs.filter(r => r.status === 'open' || r.status === 'active');
+
+  // Calculate escrow value from active trades
+  const totalEscrowValue = activeDeals.reduce((sum, trade) => sum + (Number(trade.value) || 0), 0);
+  const totalCompletedValue = completedDeals.reduce((sum, trade) => sum + (Number(trade.value) || 0), 0);
+
   // Determines what user should do next based on their role
   const getNextBestAction = () => {
     if (activeDeals.length > 0) {
@@ -49,7 +63,7 @@ export default function DashboardHome() {
         title: t('dashboard.track_shipment_title', { product: nextTrade.productName || 'trade' }),
         description: t('dashboard.shipment_on_way_desc'),
         actionLabel: t('dashboard.view_shipment'),
-        onAction: () => navigate(`/dashboard/trade/${nextTrade.id}`),
+        onAction: () => navigate(`/${language}/dashboard/trade/${nextTrade.id}`),
         icon: Ship,
         status: t('dashboard.active_deal_status')
       };
@@ -60,7 +74,7 @@ export default function DashboardHome() {
         title: t('dashboard.find_buyers_title'),
         description: t('dashboard.find_buyers_desc'),
         actionLabel: t('dashboard.browse_requests'),
-        onAction: () => navigate('/dashboard/rfqs'),
+        onAction: () => navigate(`/${language}/dashboard/rfqs`),
         icon: Sparkles,
         status: t('dashboard.ready_to_trade_status')
       };
@@ -70,30 +84,45 @@ export default function DashboardHome() {
       title: t('dashboard.find_what_need_title'),
       description: t('dashboard.find_what_need_desc'),
       actionLabel: t('dashboard.browse_suppliers'),
-      onAction: () => navigate('/suppliers'),
+      onAction: () => navigate(`/${language}/suppliers`),
       icon: Sparkles,
       status: t('dashboard.ready_to_trade_status')
     };
   };
 
-  // Real metrics from actual data only
-  const activeDeals = activeTrades.filter(t => !['settled', 'closed'].includes(t.status));
-  const completedDeals = activeTrades.filter(t => ['settled', 'closed'].includes(t.status));
-  const hasTradeHistory = activeTrades.length > 0;
-
-  const stats = hasTradeHistory ? [
-    { label: t('dashboard.active_deals'), value: activeDeals.length.toString(), sub: t('dashboard.active_deals_sub'), color: "text-os-accent", trend: activeDeals.length > 0 ? "Active" : "None" },
-    { label: t('dashboard.completed'), value: completedDeals.length.toString(), sub: t('dashboard.completed_sub'), color: "text-os-green", trend: completedDeals.length > 0 ? "Done" : "—" },
-    { label: t('dashboard.total_trades'), value: activeTrades.length.toString(), sub: t('dashboard.total_trades_sub'), color: "text-os-blue", trend: "Total" },
-    { label: t('dashboard.open_rfqs'), value: "—", sub: t('dashboard.open_rfqs_sub'), color: "text-purple-400", trend: "—" },
-  ] : [
-    { label: t('dashboard.active_deals'), value: "0", sub: t('dashboard.active_deals_sub'), color: "text-os-accent", trend: "Get started" },
-    { label: t('dashboard.completed'), value: "0", sub: t('dashboard.completed_sub'), color: "text-os-green", trend: "—" },
-    { label: t('dashboard.products'), value: "0", sub: t('dashboard.add_product_sub'), color: "text-os-blue", trend: "Add one" },
-    { label: "Trust Score", value: "—", sub: "Complete a trade to earn", color: "text-purple-400", trend: "—" },
-  ];
-
   const nba = getNextBestAction();
+
+  // 🏛️ DYNAMIC METRICS: Horizon 2026 Sovereign Architecture
+  const stats = [
+    {
+      label: t('dashboard.active_deals'),
+      value: activeDeals.length.toString(),
+      sub: t('dashboard.active_deals_sub'),
+      color: "text-os-accent",
+      trend: activeDeals.length > 0 ? "Active" : "None"
+    },
+    {
+      label: t('dashboard.in_escrow'),
+      value: `$${totalEscrowValue.toLocaleString()}`,
+      sub: "Protected by Sovereign Bridge",
+      color: "text-os-blue",
+      trend: "Secure"
+    },
+    {
+      label: t('dashboard.totalvalue'),
+      value: `$${totalCompletedValue.toLocaleString()}`,
+      sub: "Settled volume",
+      color: "text-os-green",
+      trend: "+100%"
+    },
+    {
+      label: t('dashboard.open_rfqs'),
+      value: openRFQs.length.toString(),
+      sub: t('dashboard.open_rfqs_sub'),
+      color: "text-purple-400",
+      trend: "Live"
+    }
+  ];
 
   const getGreeting = () => {
     const hours = new Date().getHours();
@@ -159,13 +188,13 @@ export default function DashboardHome() {
       {/* Quick Actions - role-aware */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {(isSeller ? [
-          { label: t('dashboard.view_buy_requests_label'), sub: t('dashboard.view_buy_requests_sub'), icon: Globe, link: "/dashboard/rfqs", color: "text-os-blue", bg: "bg-os-blue/10" },
-          { label: t('dashboard.add_product_label'), sub: t('dashboard.add_product_sub'), icon: Package, link: "/dashboard/products/new", color: "text-os-green", bg: "bg-os-green/10" },
-          { label: t('dashboard.my_orders_label'), sub: t('dashboard.my_orders_sub'), icon: Ship, link: "/dashboard/orders", color: "text-purple-500", bg: "bg-purple-500/10" },
+          { label: t('dashboard.view_buy_requests_label'), sub: t('dashboard.view_buy_requests_sub'), icon: Globe, link: `/${language}/dashboard/rfqs`, color: "text-os-blue", bg: "bg-os-blue/10" },
+          { label: t('dashboard.add_product_label'), sub: t('dashboard.add_product_sub'), icon: Package, link: `/${language}/dashboard/products/new`, color: "text-os-green", bg: "bg-os-green/10" },
+          { label: t('dashboard.my_orders_label'), sub: t('dashboard.my_orders_sub'), icon: Ship, link: `/${language}/dashboard/orders`, color: "text-purple-500", bg: "bg-purple-500/10" },
         ] : [
-          { label: t('dashboard.create_rfq_label'), sub: t('dashboard.create_rfq_sub'), icon: Globe, link: "/dashboard/rfqs/new", color: "text-os-blue", bg: "bg-os-blue/10" },
-          { label: t('dashboard.browse_suppliers_label'), sub: t('dashboard.browse_suppliers_sub'), icon: Package, link: "/suppliers", color: "text-os-green", bg: "bg-os-green/10" },
-          { label: t('dashboard.my_orders_label'), sub: t('dashboard.my_orders_sub'), icon: Ship, link: "/dashboard/orders", color: "text-purple-500", bg: "bg-purple-500/10" },
+          { label: t('dashboard.create_rfq_label'), sub: t('dashboard.create_rfq_sub'), icon: Globe, link: `/${language}/dashboard/rfqs/new`, color: "text-os-blue", bg: "bg-os-blue/10" },
+          { label: t('dashboard.browse_suppliers_label'), sub: t('dashboard.browse_suppliers_sub'), icon: Package, link: `/${language}/suppliers`, color: "text-os-green", bg: "bg-os-green/10" },
+          { label: t('dashboard.my_orders_label'), sub: t('dashboard.my_orders_sub'), icon: Ship, link: `/${language}/dashboard/orders`, color: "text-purple-500", bg: "bg-purple-500/10" },
         ]).map((item, i) => (
           <Surface
             key={i}
@@ -243,7 +272,7 @@ export default function DashboardHome() {
                   </p>
                   <Button
                     className="bg-os-accent hover:bg-os-accent/90 text-black font-bold rounded-os-sm px-8 h-12"
-                    onClick={() => navigate('/dashboard/rfqs')}
+                    onClick={() => navigate(`/${language}/dashboard/rfqs`)}
                   >
                     {t('dashboard.browse_buy_requests')}
                   </Button>
@@ -263,14 +292,14 @@ export default function DashboardHome() {
             <Surface variant="glass" className="p-8 group relative overflow-hidden bg-emerald-500/[0.02]">
               <div className="flex items-center justify-between mb-8">
                 <div className="space-y-1">
-                  <div className="text-3xl font-black font-mono">$0.00</div>
+                  <div className="text-3xl font-black font-mono">${totalCompletedValue.toLocaleString()}</div>
                   <div className="text-os-xs font-bold uppercase tracking-widest text-emerald-500">{t('dashboard.balance')}</div>
                 </div>
               </div>
               <div className="space-y-4">
                 <div className="flex justify-between text-os-xs pb-3 border-b border-os-stroke">
                   <span className="text-os-text-secondary font-bold uppercase tracking-widest">{t('dashboard.in_escrow')}</span>
-                  <span className="font-black text-os-text-primary tabular-nums font-mono">$0.00</span>
+                  <span className="font-black text-os-text-primary tabular-nums font-mono">${totalEscrowValue.toLocaleString()}</span>
                 </div>
                 <div className="flex justify-between text-os-xs">
                   <span className="text-os-text-secondary font-bold uppercase tracking-widest">{t('dashboard.earn_hint')}</span>
@@ -278,7 +307,7 @@ export default function DashboardHome() {
                 </div>
               </div>
               <Button
-                onClick={() => navigate('/dashboard/payments')}
+                onClick={() => navigate(`/${language}/dashboard/payments`)}
                 variant="outline"
                 className="w-full mt-8 border-white/10 bg-white/5 hover:bg-white/10 rounded-os-md py-6 text-os-xs font-black uppercase tracking-widest"
               >

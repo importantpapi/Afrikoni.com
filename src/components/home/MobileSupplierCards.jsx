@@ -7,6 +7,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/i18n/LanguageContext';
 import { motion } from 'framer-motion';
 import { Shield, MapPin, Building, MessageSquare, ChevronRight, Clock } from 'lucide-react';
 import { Card, CardContent } from '@/components/shared/ui/card';
@@ -65,6 +66,7 @@ const isSupplierOnline = (lastActivity) => {
 
 export default function MobileSupplierCards() {
   const navigate = useNavigate();
+  const { language = 'en' } = useLanguage();
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -124,8 +126,8 @@ export default function MobileSupplierCards() {
           }
 
           // Get last activity (most recent quote)
-          const lastActivity = quotesData && quotesData.length > 0 
-            ? quotesData[0].created_at 
+          const lastActivity = quotesData && quotesData.length > 0
+            ? quotesData[0].created_at
             : company.updated_at || company.created_at;
 
           return {
@@ -156,7 +158,7 @@ export default function MobileSupplierCards() {
               Verified Suppliers
             </h2>
             <Link
-              to="/marketplace?verified=true"
+              to={`/${language}/marketplace?verified=true`}
               className="text-os-sm text-os-accent font-medium"
             >
               View All →
@@ -194,8 +196,9 @@ export default function MobileSupplierCards() {
             <Shield className="w-5 h-5 text-os-accent" />
             Verified Suppliers
           </h2>
+          Label:
           <Link
-            to="/marketplace?verified=true"
+            to={`/${language}/marketplace?verified=true`}
             className="text-os-sm text-os-accent font-medium"
           >
             View All →
@@ -215,9 +218,9 @@ export default function MobileSupplierCards() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <Card 
+                <Card
                   className="border border-os-accent/15 hover:border-os-accent/30 transition-all bg-white overflow-hidden active:scale-[0.98]"
-                  onClick={() => navigate(`/business/${supplier.id}`)}
+                  onClick={() => navigate(`/${language}/business/${supplier.id}`)}
                 >
                   <CardContent className="p-3">
                     <div className="flex items-center gap-3">
@@ -261,14 +264,14 @@ export default function MobileSupplierCards() {
                             <span className="text-os-xs font-semibold text-os-accent">Verified</span>
                           </div>
                         </div>
-                        
+
                         {/* Location & Trust Signals */}
                         <div className="flex items-center gap-1.5 mb-1 flex-wrap">
                           {flag && <span className="text-os-xs">{flag}</span>}
                           <span className="text-os-xs text-afrikoni-deep/70 line-clamp-1">
                             {supplier.country || 'N/A'}
                           </span>
-                          
+
                           {/* Years on Platform */}
                           {getYearsOnPlatform(supplier.created_at) && (
                             <span className="text-os-xs bg-os-accent/10 text-os-accent px-1.5 py-0.5 rounded-full font-medium">

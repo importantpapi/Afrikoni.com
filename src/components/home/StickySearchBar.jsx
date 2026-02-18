@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/i18n/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, Sparkles } from 'lucide-react';
 import SearchSuggestions from '@/components/search/SearchSuggestions';
@@ -33,6 +34,7 @@ const AI_QUICK_ACTIONS = [
 
 export default function StickySearchBar() {
   const navigate = useNavigate();
+  const { language = 'en' } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchFocused, setSearchFocused] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -71,7 +73,7 @@ export default function StickySearchBar() {
   const handleSearch = () => {
     if (searchQuery.trim()) {
       addSearchToHistory(searchQuery.trim());
-      navigate(`/marketplace?search=${encodeURIComponent(searchQuery.trim())}`);
+      navigate(`/${language}/marketplace?search=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
       setShowSuggestions(false);
     }

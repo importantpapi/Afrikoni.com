@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, useCallback, useRef } f
 import { supabase } from '@/api/supabaseClient';
 import { verifySchemaIntegrity, getSchemaErrorMessage } from '@/services/SchemaValidator';
 import { secureStorage } from '@/utils/secureStorage';
+import { logger } from '@/utils/logger';
 
 /**
  * Client-side fallback: Create profile when database trigger doesn't fire.
@@ -27,16 +28,14 @@ async function ensureProfileExists(user) {
       .single();
 
     if (error) {
-      console.error('[Auth] Failed to create fallback profile:', error.message);
+      logger.error('Failed to create fallback profile', { error: error.message, userId: user.id });
       return null;
     }
 
-    if (import.meta.env.DEV) {
-      console.log('[Auth] ✅ Fallback profile created:', { id: user.id, role });
-    }
+    logger.info('Fallback profile created', { id: user.id, role });
     return data;
   } catch (err) {
-    console.error('[Auth] Fallback profile creation exception:', err);
+    logger.error('Fallback profile creation exception', err);
     return null;
   }
 }
@@ -64,13 +63,13 @@ export function AuthProvider({ children }) {
     try {
       const validation = await verifySchemaIntegrity();
       if (!validation.valid) {
-        console.error('[Auth] Schema validation failed:', validation.error);
+        logger.error('Schema validation failed', { error: validation.error });
         return false;
       }
       schemaValidatedRef.current = true;
       return true;
     } catch (err) {
-      console.error('[Auth] Schema validation error:', err);
+      logger.error('Schema validation error', err);
       return true;
     }
   }, []);
@@ -83,12 +82,12 @@ export function AuthProvider({ children }) {
 
     try {
       if (resolvingInProgressRef.current) {
-        if (import.meta.env.DEV) console.log('[Auth] Resolution already in progress, skipping redundant call.');
+        logger.info('Resolution already in progress, skipping redundant call');
         return;
       }
 
       resolvingInProgressRef.current = true;
-      if (import.meta.env.DEV) console.log('[Auth] Resolving...');
+      logger.info('Resolving auth...');
 
       // Race the resolution against the safety timeout
       const resolutionPromise = (async () => {
@@ -113,7 +112,7 @@ export function AuthProvider({ children }) {
             .rpc('get_institutional_handshake');
 
           if (handshakeError) {
-            console.error('[Auth] Handshake failed, falling back to legacy hydration:', handshakeError);
+            logger.error('Handshake failed, falling back to legacy hydration', handshakeError);
             // Fallback to legacy single-fetch profile
             const { data: profileData } = await supabase
               .from('profiles')
@@ -130,7 +129,7 @@ export function AuthProvider({ children }) {
             setProfile(resolvedProfile);
             setRole(resolvedProfile?.role || null);
           } else {
-            if (import.meta.env.DEV) console.log('[Auth] ⚡ Handshake successful:', handshake);
+            logger.info('⚡ Handshake successful', handshake);
 
             setUser(session.user);
             setProfile(handshake.profile);
@@ -149,9 +148,9 @@ export function AuthProvider({ children }) {
       await Promise.race([resolutionPromise, timeoutPromise]);
     } catch (err) {
       if (err.message === 'Auth Resolution Timeout') {
-        console.warn('[Auth] Resolution timed out (30s) - Fostering Fail-Open boot sequence');
+        logger.warn('Resolution timed out - Fostering Fail-Open boot sequence');
       } else {
-        console.warn('[Auth] Resolution failed:', err.message);
+        logger.warn('Resolution failed', { error: err.message });
       }
 
       // Fail-Open: Allow OS to boot even if auth is taking too long
@@ -176,7 +175,7 @@ export function AuthProvider({ children }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!isMounted) return;
-        if (import.meta.env.DEV) console.log('[Auth] Event:', event);
+        logger.info('Auth Event', { event });
 
         if (event === 'SIGNED_OUT') {
           setUser(null);
@@ -226,7 +225,7 @@ export function AuthProvider({ children }) {
       setRole(null);
       secureStorage.remove('afrikoni_last_company_id'); // NOW ENCRYPTED 🔒
     } catch (error) {
-      console.error('[Auth] Logout error:', error);
+      logger.error('Logout error', error);
     }
   }, []);
 

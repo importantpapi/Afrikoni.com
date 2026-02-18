@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { useLanguage } from '@/i18n/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, X, CheckCircle, Globe, Shield, Lock, TrendingUp, ArrowRight, Store, ShoppingBag, Truck, Users, MessageCircle } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
@@ -94,6 +95,7 @@ function SocialProofSection() {
 
 export default function HeroSection({ categories = [] }) {
   const { t } = useTranslation();
+  const { language = 'en' } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchFocused, setSearchFocused] = useState(false);
@@ -167,7 +169,7 @@ export default function HeroSection({ categories = [] }) {
     const params = new URLSearchParams();
     if (searchQuery) params.set('q', searchQuery);
     if (selectedCategory !== 'all') params.set('category', selectedCategory);
-    navigate(`/marketplace?${params.toString()}`);
+    navigate(`/${language}/marketplace?${params.toString()}`);
     setShowSuggestions(false);
   };
 
@@ -178,7 +180,7 @@ export default function HeroSection({ categories = [] }) {
     const params = new URLSearchParams();
     params.set('q', text);
     if (type === 'category' && id) params.set('category', id);
-    navigate(`/marketplace?${params.toString()}`);
+    navigate(`/${language}/marketplace?${params.toString()}`);
   };
 
   useEffect(() => {
@@ -235,10 +237,10 @@ export default function HeroSection({ categories = [] }) {
 
               <nav className="flex flex-col gap-1">
                 {[
-                  { name: 'Browse Marketplace', icon: ShoppingBag, path: '/marketplace' },
-                  { name: 'Source Suppliers', icon: Store, path: '/suppliers' },
-                  { name: 'Global Logistics', icon: Truck, path: '/logistics' },
-                  { name: 'Verified Network', icon: Users, path: '/trust' }
+                  { name: 'Browse Marketplace', icon: ShoppingBag, path: `/${language}/marketplace` },
+                  { name: 'Source Suppliers', icon: Store, path: `/${language}/suppliers` },
+                  { name: 'Global Logistics', icon: Truck, path: `/${language}/logistics` },
+                  { name: 'Verified Network', icon: Users, path: `/${language}/trust` }
                 ].map((item) => (
                   <Link
                     key={item.name}
@@ -301,7 +303,7 @@ export default function HeroSection({ categories = [] }) {
                 <button
                   onClick={() => {
                     if (searchQuery.trim()) addSearchToHistory(searchQuery);
-                    navigate(`/marketplace?q=${searchQuery}`);
+                    navigate(`/${language}/marketplace?q=${searchQuery}`);
                     setShowSuggestions(false);
                   }}
                   className="bg-os-accent hover:bg-os-accent/90 text-[#1A1512] px-8 py-4 rounded-[22px] font-bold text-16 transition-all active:scale-95 shadow-lg shadow-os-accent/20"
@@ -325,7 +327,7 @@ export default function HeroSection({ categories = [] }) {
                         onSelect={(suggestion) => {
                           setSearchQuery(suggestion);
                           if (suggestion.trim()) addSearchToHistory(suggestion);
-                          navigate(`/marketplace?q=${suggestion}`);
+                          navigate(`/${language}/marketplace?q=${suggestion}`);
                           setShowSuggestions(false);
                         }}
                         showHistory={!searchQuery}
@@ -391,7 +393,7 @@ export default function HeroSection({ categories = [] }) {
               </div>
 
               <button
-                onClick={() => navigate('/signup')}
+                onClick={() => navigate(`/${language}/signup`)}
                 className="w-full py-4 bg-os-accent hover:bg-os-accent/90 text-[#1A1512] rounded-2xl font-bold text-14 transition-all flex items-center justify-center gap-2 group shadow-lg"
               >
                 Get Started Free

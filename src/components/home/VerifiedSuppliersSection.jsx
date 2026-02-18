@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/i18n/LanguageContext';
 import { motion } from 'framer-motion';
 import { Shield, MapPin, Building, MessageSquare } from 'lucide-react';
 import { Card, CardContent } from '@/components/shared/ui/card';
@@ -39,6 +40,7 @@ const getCountryFlag = (countryName) => {
 
 export default function VerifiedSuppliersSection() {
   const navigate = useNavigate();
+  const { language = 'en' } = useLanguage();
   const [suppliers, setSuppliers] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -75,7 +77,7 @@ export default function VerifiedSuppliersSection() {
               Verified African Suppliers
             </h2>
             <Link
-              to="/marketplace?verified=true"
+              to={`/${language}/marketplace?verified=true`}
               className="text-os-sm md:text-os-base text-os-accent font-medium hover:underline"
             >
               View All →
@@ -110,7 +112,7 @@ export default function VerifiedSuppliersSection() {
             Verified African Suppliers
           </h2>
           <Link
-            to="/marketplace?verified=true"
+            to={`/${language}/marketplace?verified=true`}
             className="text-os-sm md:text-os-base text-os-accent font-medium hover:underline"
           >
             View All →
@@ -179,7 +181,7 @@ export default function VerifiedSuppliersSection() {
                       variant="outline"
                       size="sm"
                       className="w-full text-os-xs md:text-os-sm border-os-accent/30 text-afrikoni-chestnut hover:bg-os-accent/10 min-h-[36px] md:min-h-[40px]"
-                      onClick={() => navigate(`/business/${supplier.id}`)}
+                      onClick={() => navigate(`/${language}/business/${supplier.id}`)}
                     >
                       <MessageSquare className="w-3 h-3 md:w-4 md:h-4 mr-1" />
                       Contact

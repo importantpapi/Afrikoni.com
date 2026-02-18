@@ -11,8 +11,9 @@ const ThemeContext = createContext({
 export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(() => {
     try {
-      if (!window.location.pathname.startsWith('/dashboard') &&
-        !window.location.pathname.startsWith('/onboarding')) {
+      const pathParts = window.location.pathname.split('/');
+      const isAppSpace = pathParts.includes('dashboard') || pathParts.includes('onboarding');
+      if (!isAppSpace) {
         return 'light';
       }
       const stored = localStorage.getItem('afrikoni-theme');
@@ -63,7 +64,8 @@ export function ThemeProvider({ children }) {
 
   useEffect(() => {
     const root = document.documentElement;
-    const isAppSpace = pathname.startsWith('/dashboard') || pathname.startsWith('/onboarding');
+    const pathParts = pathname.split('/');
+    const isAppSpace = pathParts.includes('dashboard') || pathParts.includes('onboarding');
 
     // Theme Class — single source of truth for dark/light
     if (isAppSpace && theme === 'dark') {

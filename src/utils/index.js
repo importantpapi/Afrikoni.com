@@ -1,4 +1,4 @@
-export const createPageUrl = (pageName) => {
+export const createPageUrl = (pageName, lang = 'en') => {
   const routes = {
     'Home': '/',
     'Products': '/products',
@@ -36,6 +36,9 @@ export const createPageUrl = (pageName) => {
     'Contact': '/contact',
     'Investors': '/investors'
   };
-  return routes[pageName] || '/';
+
+  const route = routes[pageName] || '/';
+  // Ensure the route starts with the language prefix
+  return `/${lang}${route}`.replace(/\/+/g, '/');
 };
 

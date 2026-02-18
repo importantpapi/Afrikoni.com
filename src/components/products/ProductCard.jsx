@@ -84,10 +84,7 @@ export default function ProductCard({ product, priority = false }) {
           ) : (
             <div className="w-full h-full flex flex-col items-center justify-center relative overflow-hidden">
               <div className="absolute inset-0 opacity-[0.03] bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZmlsdGVyIGlkPSJuIj48ZmVUdXJidWxlbmNlIHR5cGU9ImZyYWN0YWxOb2lzZSIgYmFzZUZyZXF1ZW5jeT0iLjciIG51bU9jdGF2ZXM9IjQiLz48L2ZpbHRlcj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsdGVyPSJ1cmwoI24pIiBvcGFjaXR5PSIuNSIvPjwvc3ZnPg==')]" />
-              <Package className="w-10 h-10 text-os-text-secondary/20 mb-2 relative z-10" />
-              <p className="text-[9px] font-black uppercase tracking-[0.2em] text-os-text-secondary/40 relative z-10">
-                {t('marketplace.noProductsDescription')?.split('.')[0] || 'Sourcing Original Imagery'}
-              </p>
+              <Package className="w-10 h-10 text-os-text-secondary/20 relative z-10" />
             </div>
           )}
 
@@ -104,7 +101,7 @@ export default function ProductCard({ product, priority = false }) {
               {countryName ? (
                 <span className="truncate max-w-[120px]">{t('marketplace.origin')}: {countryName}</span>
               ) : (
-                <span className="text-os-accent/70 italic">{t('marketplace.verificationPending')}</span>
+                <span className="text-os-text-secondary/50 italic">Origin not listed</span>
               )}
             </div>
           </div>
@@ -128,10 +125,12 @@ export default function ProductCard({ product, priority = false }) {
                 <span>{product.certifications[0]}</span>
               </div>
             )}
-            <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-green-500/5 border border-green-500/10 rounded-md text-[9px] font-bold uppercase text-green-600 tracking-wider">
-              <ShieldCheck className="w-3 h-3" />
-              <span>{t('marketplace.protectedTrade')}</span>
-            </div>
+            {isVerified && (
+              <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-green-500/5 border border-green-500/10 rounded-md text-[9px] font-bold uppercase text-green-600 tracking-wider">
+                <ShieldCheck className="w-3 h-3" />
+                <span>{t('marketplace.verifiedSupplier')}</span>
+              </div>
+            )}
           </div>
 
           {/* Price & Action Layer */}

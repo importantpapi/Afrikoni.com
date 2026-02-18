@@ -8,6 +8,7 @@ import { Button } from '@/components/shared/ui/button';
 import { Mail, Phone, MapPin, Lock, Shield, Award, CheckCircle, Linkedin, Twitter, Facebook, Instagram, Youtube, ChevronDown, MessageCircle } from 'lucide-react';
 // Note: TikTok and Pinterest icons may need to be added via custom SVG or icon library
 import Navbar from './components/layout/Navbar';
+import { useLanguage } from '@/i18n/LanguageContext';
 import { Logo } from '@/components/shared/ui/Logo';
 import WhatsAppButton from '@/components/shared/ui/WhatsAppButton';
 import CookieBanner from '@/components/shared/ui/CookieBanner';
@@ -18,6 +19,7 @@ import { PageLoader } from '@/components/shared/ui/skeletons';
 const MobileLayout = lazy(() => import('@/layouts/MobileLayout'));
 
 function Footer() {
+  const { language = 'en' } = useLanguage();
   const [openSections, setOpenSections] = useState({
     company: false,
     buyers: false,
@@ -43,32 +45,32 @@ function Footer() {
   };
 
   const buyerLinks = [
-    { to: '/products', label: 'Browse Products' },
-    { to: '/suppliers', label: 'Find Suppliers' },
-    { to: '/signup', label: 'Join as Buyer' },
-    { to: '/dashboard/rfqs/new', label: 'Request Quotes' },
-    { to: '/dashboard', label: 'Buyer Central' }
+    { to: `/${language}/products`, label: 'Browse Products' },
+    { to: `/${language}/suppliers`, label: 'Find Suppliers' },
+    { to: `/${language}/signup`, label: 'Join as Buyer' },
+    { to: `/${language}/dashboard/rfqs/new`, label: 'Request Quotes' },
+    { to: `/${language}/dashboard`, label: 'Buyer Central' }
   ];
 
   const sellerLinks = [
-    { to: '/supplier-hub', label: 'Supplier Hub' },
-    { to: '/signup', label: 'Start Selling' },
-    { to: '/dashboard/products/new', label: 'List Products' },
-    { to: '/dashboard', label: 'Seller Dashboard' },
-    { to: '/dashboard/verification-center', label: 'Get Verified' }
+    { to: `/${language}/supplier-hub`, label: 'Supplier Hub' },
+    { to: `/${language}/signup`, label: 'Start Selling' },
+    { to: `/${language}/dashboard/products/new`, label: 'List Products' },
+    { to: `/${language}/dashboard`, label: 'Seller Dashboard' },
+    { to: `/${language}/dashboard/verification-center`, label: 'Get Verified' }
   ];
 
   const companyLinks = [
-    { to: '/buyer-hub', label: 'How Sourcing Works' },
-    { to: '/supplier-hub', label: 'How Selling Works' },
-    { to: '/trust', label: 'Marketplace Rules' },
-    { to: '/about', label: 'About Us' },
-    { to: '/logistics', label: 'Logistics' },
-    { to: '/order-protection', label: 'Trust & Safety' },
-    { to: '/pricing', label: 'Pricing' },
-    { to: '/help', label: 'Help Center' },
-    { to: '/contact', label: 'Contact Us' },
-    { to: '/community', label: 'Join Community', icon: MessageCircle, highlight: true }
+    { to: `/${language}/buyer-hub`, label: 'How Sourcing Works' },
+    { to: `/${language}/supplier-hub`, label: 'How Selling Works' },
+    { to: `/${language}/trust`, label: 'Marketplace Rules' },
+    { to: `/${language}/about`, label: 'About Us' },
+    { to: `/${language}/logistics`, label: 'Logistics' },
+    { to: `/${language}/order-protection`, label: 'Trust & Safety' },
+    { to: `/${language}/pricing`, label: 'Pricing' },
+    { to: `/${language}/help`, label: 'Help Center' },
+    { to: `/${language}/contact`, label: 'Contact Us' },
+    { to: `/${language}/community`, label: 'Join Community', icon: MessageCircle, highlight: true }
   ];
 
   return (
@@ -326,7 +328,7 @@ function Footer() {
             <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 text-os-xs md:text-os-xs lg:text-os-sm">
               <motion.div whileHover={{ x: 2 }}>
                 <Link
-                  to="/trust"
+                  to={`/${language}/trust`}
                   className="text-afrikoni-cream/70 hover:text-os-accent transition-colors whitespace-nowrap"
                 >
                   Marketplace Rules
@@ -334,7 +336,7 @@ function Footer() {
               </motion.div>
               <motion.div whileHover={{ x: 2 }}>
                 <Link
-                  to="/privacy-policy"
+                  to={`/${language}/legal/privacy`}
                   className="text-afrikoni-cream/70 hover:text-os-accent transition-colors whitespace-nowrap"
                 >
                   Privacy Policy
@@ -342,7 +344,7 @@ function Footer() {
               </motion.div>
               <motion.div whileHover={{ x: 2 }}>
                 <Link
-                  to="/terms-enforcement"
+                  to={`/${language}/legal/terms`}
                   className="text-afrikoni-cream/70 hover:text-os-accent transition-colors whitespace-nowrap"
                 >
                   Terms of Use
@@ -350,13 +352,13 @@ function Footer() {
               </motion.div>
               <motion.div whileHover={{ x: 2 }}>
                 <Link
-                  to="/cookie-policy"
+                  to={`/${language}/cookie-policy`}
                   className="text-afrikoni-cream/70 hover:text-os-accent transition-colors whitespace-nowrap"
                 >
                   Cookie Policy
                 </Link>
               </motion.div>
-              <span className="text-afrikoni-cream/70 whitespace-nowrap">© 2025 Afrikoni. All rights reserved.</span>
+              <span className="text-afrikoni-cream/70 whitespace-nowrap">© 2026 Afrikoni. All rights reserved.</span>
             </div>
           </div>
         </div>
@@ -380,16 +382,10 @@ export default function Layout({ children }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ✅ THEME ENFORCEMENT: Public pages must be LIGHT mode
-  // The "Trade OS" dark theme is exclusive to the Dashboard
-  // This fixes the "black thing" issue on landing pages
-
-  // Theme is user-controlled; do not force light mode here.
-
-  // Check if we're on a dashboard route - don't show main layout for dashboard
-  const isDashboardRoute = location.pathname.startsWith('/dashboard');
+  const pathParts = location.pathname.split('/');
+  const isDashboardRoute = pathParts.includes('dashboard');
   // Check if we're on a product page (where sticky CTA will be shown)
-  const isProductPage = location.pathname.startsWith('/product');
+  const isProductPage = pathParts.includes('product');
 
   // Check mobile viewport
   useEffect(() => {

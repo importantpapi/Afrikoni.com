@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { useLanguage } from '@/i18n/LanguageContext';
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/shared/ui/card';
@@ -90,7 +91,7 @@ const popularCategories = [
 ];
 
 export default function ExploreAfricanSupply() {
-  const { t } = useTranslation();
+  const { t, language = 'en' } = useLanguage();
   const { currency, formatPrice } = useCurrency();
   const [countryScrollPosition, setCountryScrollPosition] = useState(0);
   const [categoryProducts, setCategoryProducts] = useState({});
@@ -312,7 +313,7 @@ export default function ExploreAfricanSupply() {
                 Source by region and country
               </p>
             </div>
-            <Link to="/countries">
+            <Link to={`/${language}/countries`}>
               <Button variant="outline" className="border-os-stroke hover:border-os-accent hover:bg-os-accent/5 px-8 rounded-xl font-bold text-12 h-12">
                 {t('view_all_countries')}
               </Button>
@@ -331,7 +332,7 @@ export default function ExploreAfricanSupply() {
                   whileHover={{ y: -8 }}
                   className="flex-shrink-0"
                 >
-                  <Link to={`/marketplace?country=${country.code}`} className="block">
+                  <Link to={`/${language}/marketplace?country=${country.code}`} className="block">
                     <Card className="w-36 md:w-44 bg-os-surface-solid border border-os-stroke hover:border-os-accent hover:shadow-xl transition-all duration-500 cursor-pointer rounded-2xl overflow-hidden group/country-card">
                       <CardContent className="p-6 text-center">
                         <div className="text-4xl md:text-5xl mb-4 group-hover/country-card:scale-110 transition-transform duration-500">{country.flag}</div>
@@ -402,7 +403,7 @@ export default function ExploreAfricanSupply() {
                     </div>
                   </div>
                   <Link
-                    to={`/marketplace?category=${encodeURIComponent(category.name.toLowerCase())}`}
+                    to={`/${language}/marketplace?category=${encodeURIComponent(category.name.toLowerCase())}`}
                     className="group flex items-center gap-3 px-6 h-14 bg-os-surface-solid border border-os-stroke rounded-xl hover:border-os-accent transition-all duration-300 shadow-sm"
                   >
                     <span className="text-13 font-bold text-os-text-primary uppercase tracking-[0.1em]">{t('view_all_category')}</span>
@@ -435,7 +436,7 @@ export default function ExploreAfricanSupply() {
                           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
                           className={products.length < 4 ? 'w-full max-w-[300px]' : ''}
                         >
-                          <Link to={`/product/${product.id}`} className="block group/product">
+                          <Link to={`/${language}/product/${product.id}`} className="block group/product">
                             <Card className="h-full bg-os-surface-solid border border-os-stroke hover:border-os-accent hover:shadow-xl transition-all duration-500 rounded-[24px] overflow-hidden flex flex-col relative">
                               {/* Verification Badge */}
                               <div className="absolute top-4 left-4 z-10">
@@ -504,7 +505,7 @@ export default function ExploreAfricanSupply() {
                         Request automated matching to be connected within 24–48 hours.
                       </p>
                       <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                        <Link to="/dashboard/rfqs/new">
+                        <Link to={`/${language}/dashboard/rfqs/new`}>
                           <Button className="bg-os-accent hover:bg-os-accent/90 text-[#1A1512] h-14 px-10 rounded-xl font-bold uppercase tracking-[0.1em] shadow-lg flex items-center gap-3">
                             Initiate Trade Request
                             <ArrowRight className="w-5 h-5" />

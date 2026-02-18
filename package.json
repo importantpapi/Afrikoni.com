@@ -26,7 +26,8 @@
     "check-deploy": "node scripts/prepare-deployment.js",
     "verify-metadata": "node scripts/verify-metadata-migration.js",
     "verify-backend": "node scripts/verify-backend-via-api.js",
-    "verify-backend-compliance": "node scripts/verify-backend-kernel-compliance.js"
+    "verify-backend-compliance": "node scripts/verify-backend-kernel-compliance.js",
+    "lint": "eslint src --ext .js,.jsx"
   },
   "dependencies": {
     "@google-cloud/translate": "^9.3.0",
@@ -65,6 +66,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.58.2",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -76,6 +78,8 @@
     "baseline-browser-mapping": "^2.9.19",
     "dotenv": "^16.6.1",
     "eslint-plugin-jsx-a11y": "^6.10.2",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^7.0.1",
     "jsdom": "^28.1.0",
     "postcss": "^8.4.32",
     "sharp": "^0.34.5",

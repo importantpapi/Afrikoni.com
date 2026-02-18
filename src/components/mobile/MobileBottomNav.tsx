@@ -28,7 +28,7 @@ interface MobileBottomNavProps {
 
 export default function MobileBottomNav({ user, userRole = 'buyer' }: MobileBottomNavProps) {
   const location = useLocation();
-  const { t, i18n } = useLanguage();
+  const { language = 'en', t, i18n } = useLanguage();
 
   // Ensure translations are initialized
   const isTranslationsReady = i18n.isInitialized;
@@ -36,41 +36,41 @@ export default function MobileBottomNav({ user, userRole = 'buyer' }: MobileBott
   // Core navigation items for main site
   // Use unique keys to prevent React duplicate key warnings
   const navItems = [
-    { 
+    {
       key: 'bottom-nav-home',
-      icon: Home, 
-      label: isTranslationsReady ? (t('nav.home') || 'Home') : 'Home', 
-      path: '/',
+      icon: Home,
+      label: isTranslationsReady ? (t('nav.home') || 'Home') : 'Home',
+      path: `/${language}`,
       ariaLabel: 'Go to homepage'
     },
-    { 
+    {
       key: 'bottom-nav-marketplace',
-      icon: ShoppingBag, 
-      label: isTranslationsReady ? (t('nav.marketplace') || 'Marketplace') : 'Marketplace', 
-      path: '/marketplace',
+      icon: ShoppingBag,
+      label: isTranslationsReady ? (t('nav.marketplace') || 'Marketplace') : 'Marketplace',
+      path: `/${language}/marketplace`,
       ariaLabel: 'Browse marketplace'
     },
-    { 
+    {
       key: 'bottom-nav-rfq',
-      icon: FileText, 
-      label: isTranslationsReady ? (t('nav.rfq') || 'RFQ') : 'RFQ', 
-      path: '/rfq/create-mobile',
+      icon: FileText,
+      label: isTranslationsReady ? (t('nav.rfq') || 'RFQ') : 'RFQ',
+      path: `/${language}/rfq/create-mobile`,
       ariaLabel: 'Create RFQ'
     },
-    { 
+    {
       key: 'bottom-nav-messages',
-      icon: MessageSquare, 
-      label: isTranslationsReady ? (t('nav.messages') || 'Messages') : 'Messages', 
-      path: user ? '/inbox-mobile' : '/login',
+      icon: MessageSquare,
+      label: isTranslationsReady ? (t('nav.messages') || 'Messages') : 'Messages',
+      path: user ? `/${language}/inbox-mobile` : `/${language}/login`,
       ariaLabel: 'View messages'
     },
-    { 
+    {
       key: 'bottom-nav-profile',
-      icon: User, 
-      label: user 
+      icon: User,
+      label: user
         ? (isTranslationsReady ? (t('nav.profile') || 'Profile') : 'Profile')
-        : (isTranslationsReady ? (t('nav.login') || 'Login') : 'Login'), 
-      path: user ? '/dashboard' : '/login',
+        : (isTranslationsReady ? (t('nav.login') || 'Login') : 'Login'),
+      path: user ? `/${language}/dashboard` : `/${language}/login`,
       ariaLabel: user ? 'Go to dashboard' : 'Login or signup'
     }
   ];
@@ -86,13 +86,14 @@ export default function MobileBottomNav({ user, userRole = 'buyer' }: MobileBott
       <div className="flex items-center justify-around px-1 py-2 pb-safe h-full">
         {navItems.map((item) => {
           const Icon = item.icon;
+          const pathParts = location.pathname.split('/');
           const isActive =
             location.pathname === item.path ||
-            (item.path === '/' && location.pathname === '/') ||
-            (item.path === '/marketplace' && location.pathname.startsWith('/marketplace')) ||
-            (item.path === '/rfq/create-mobile' && location.pathname.startsWith('/rfq')) ||
-            (item.path === '/inbox-mobile' && location.pathname.startsWith('/messages')) ||
-            (item.path === '/dashboard' && location.pathname.startsWith('/dashboard'));
+            (item.path === `/${language}` && location.pathname === `/${language}`) ||
+            (item.path === `/${language}/marketplace` && location.pathname.startsWith(`/${language}/marketplace`)) ||
+            (item.key === 'bottom-nav-rfq' && (pathParts.includes('rfq') || pathParts.includes('requests'))) ||
+            (item.key === 'bottom-nav-messages' && (pathParts.includes('inbox') || pathParts.includes('messages'))) ||
+            (item.key === 'bottom-nav-profile' && (pathParts.includes('dashboard') || pathParts.includes('login')));
 
           return (
             <Link
@@ -113,9 +114,8 @@ export default function MobileBottomNav({ user, userRole = 'buyer' }: MobileBott
                 aria-hidden="true"
               />
               <span
-                className={`text-[9px] font-normal leading-tight text-center ${
-                  isActive ? 'text-gray-900' : 'text-gray-400'
-                }`}
+                className={`text-[9px] font-normal leading-tight text-center ${isActive ? 'text-gray-900' : 'text-gray-400'
+                  }`}
               >
                 {item.label}
               </span>

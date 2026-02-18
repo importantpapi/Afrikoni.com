@@ -15,6 +15,7 @@
  */
 
 import { supabase } from '@/api/supabaseClient';
+import { logger } from '@/utils/logger';
 
 /**
  * Client-side fallback: Create profile when database trigger doesn't fire.
@@ -43,16 +44,14 @@ async function createProfileFallback(user) {
       .single();
 
     if (error) {
-      console.error('[AuthService] Failed to create fallback profile:', error.message);
+      logger.error('Failed to create fallback profile', { error: error.message, userId: user.id });
       return null;
     }
 
-    if (import.meta.env.DEV) {
-      console.log('[AuthService] ✅ Fallback profile created successfully:', { id: user.id, role });
-    }
+    logger.info('Fallback profile created successfully', { id: user.id, role });
     return newProfile;
   } catch (err) {
-    console.error('[AuthService] Fallback profile creation exception:', err);
+    logger.error('Fallback profile creation exception', err);
     return null;
   }
 }
@@ -97,17 +96,12 @@ export async function login(email, password) {
             if (profileError.code === 'PGRST116') {
               if (attempt < maxAttempts) {
                 const delayMs = 500 * Math.pow(2, attempt - 1); // Exponential backoff
-                if (import.meta.env.DEV) {
-                  console.log(`[AuthService] Profile not found (attempt ${attempt}/${maxAttempts}), retrying in ${delayMs}ms...`);
-                }
+                logger.info(`Profile not found (attempt ${attempt}/${maxAttempts}), retrying...`, { delayMs });
                 await new Promise(resolve => setTimeout(resolve, delayMs));
                 continue;
               }
               // Last attempt failed - create profile client-side as fallback
-              // This handles cases where the database trigger didn't fire
-              if (import.meta.env.DEV) {
-                console.log(`[AuthService] Profile not found after ${maxAttempts} attempts - creating profile client-side`);
-              }
+              logger.info(`Profile not found after ${maxAttempts} attempts - creating profile client-side`);
               return await createProfileFallback(authData.user);
             }
             // Network errors or other errors - throw
@@ -120,16 +114,14 @@ export async function login(email, password) {
           // If it's the last attempt and not PGRST116, throw
           if (attempt === maxAttempts) {
             if (error.code === 'PGRST116') {
-              console.log(`[AuthService] Profile not found after ${maxAttempts} attempts - creating profile client-side`);
+              logger.info(`Profile not found after ${maxAttempts} attempts - creating profile client-side`);
               return await createProfileFallback(authData.user);
             }
             throw error;
           }
           // Wait before retry with exponential backoff
           const delayMs = 500 * Math.pow(2, attempt - 1);
-          if (import.meta.env.DEV) {
-            console.log(`[AuthService] Profile fetch error (attempt ${attempt}/${maxAttempts}), retrying in ${delayMs}ms...`, error);
-          }
+          logger.warn(`Profile fetch error (attempt ${attempt}/${maxAttempts}), retrying...`, { delayMs, error });
           await new Promise(resolve => setTimeout(resolve, delayMs));
         }
       }
@@ -156,20 +148,16 @@ export async function login(email, password) {
             throw updateError;
           }
 
-          if (import.meta.env.DEV) {
-            console.log(`[AuthService] Admin flag synced to JWT metadata (attempt ${attempt}/${maxAttempts}):`, profileData?.is_admin || false);
-          }
+          logger.info(`Admin flag synced to JWT metadata (attempt ${attempt}/${maxAttempts})`, { isAdmin: profileData?.is_admin || false });
 
           // ✅ ENTERPRISE FIX: Make session refresh fire-and-forget
           // Don't await - this prevents triggering TOKEN_REFRESHED events during login
           // The session will refresh naturally on next request
           supabase.auth.refreshSession().catch(err => {
-            console.warn('[AuthService] Session refresh failed (non-blocking):', err);
+            logger.warn('Session refresh failed (non-blocking)', err);
           });
 
-          if (import.meta.env.DEV) {
-            console.log(`[AuthService] Session refresh triggered (non-blocking)`);
-          }
+          logger.info('Session refresh triggered (non-blocking)');
           return; // Success - exit retry loop
         } catch (metadataError) {
           if (attempt === maxAttempts) {
@@ -193,7 +181,7 @@ export async function login(email, password) {
       profile: profileData
     };
   } catch (error) {
-    console.error('[AuthService] Login error:', error);
+    logger.error('Login error', error);
     throw error;
   }
 }

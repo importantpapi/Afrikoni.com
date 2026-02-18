@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/i18n/LanguageContext';
 import { motion } from 'framer-motion';
 import { FileText, ArrowRight, PlayCircle, CheckCircle2, ShieldCheck, ChevronRight } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthProvider';
@@ -20,8 +21,9 @@ const triggerHapticFeedback = () => {
 export default function MobileActionZones() {
   const auth = useAuth();
   const navigate = useNavigate();
+  const { language = 'en' } = useLanguage();
   const [onboardingStep, setOnboardingStep] = useState(null);
-  
+
   // Safely access auth data (may be null for guests)
   const user = auth?.user || null;
   const profile = auth?.profile || null;
@@ -42,9 +44,9 @@ export default function MobileActionZones() {
     triggerHapticFeedback();
     // ✅ AUTH CHECK: Redirect to login if not authenticated, otherwise to RFQ creation
     if (!user) {
-      navigate('/login?redirect=/dashboard/rfqs/new');
+      navigate(`/${language}/login?redirect=/${language}/dashboard/rfqs/new`);
     } else {
-      navigate('/dashboard/rfqs/new');
+      navigate(`/${language}/dashboard/rfqs/new`);
     }
   };
 
@@ -74,7 +76,7 @@ export default function MobileActionZones() {
         <div className="space-y-2">
           {/* Onboarding or How It Works */}
           {isNewUser && onboardingStep ? (
-            <Link to="/dashboard/onboarding">
+            <Link to={`/${language}/dashboard/onboarding`}>
               <div className="px-4 py-3.5 bg-white border border-gray-100 rounded-[8px] hover:bg-gray-50 active:bg-gray-100 transition-all">
                 <div className="flex items-center gap-3">
                   <CheckCircle2 className="w-5 h-5 text-gray-400 flex-shrink-0" />
@@ -90,7 +92,7 @@ export default function MobileActionZones() {
           ) : null}
 
           {/* Find Suppliers - always show */}
-          <Link to="/suppliers">
+          <Link to={`/${language}/suppliers`}>
             <div className="px-4 py-3.5 bg-white border border-gray-100 rounded-[8px] hover:bg-gray-50 active:bg-gray-100 transition-all">
               <div className="flex items-center gap-3">
                 <ShieldCheck className="w-5 h-5 text-gray-400 flex-shrink-0" />

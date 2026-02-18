@@ -312,6 +312,32 @@ export default function TraceCenter() {
                     </div>
                 </div>
 
+                {/* 5. POST-TRADE ACTIONS (Review Flow) */}
+                {moneyProgress === 100 && (
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-os-accent/10 border-2 border-os-accent/20 rounded-os-md p-8 text-center space-y-4"
+                    >
+                        <div className="w-16 h-16 bg-os-accent/20 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <Star className="w-8 h-8 text-os-accent fill-os-accent" />
+                        </div>
+                        <div>
+                            <h3 className="text-os-xl font-bold text-afrikoni-deep">Trade Completed Successfully</h3>
+                            <p className="text-os-sm text-slate-600 max-w-md mx-auto">
+                                The funds have been released and the protocol has baseline-verified this exchange. How was your experience?
+                            </p>
+                        </div>
+                        <Button
+                            className="bg-os-accent text-black font-bold px-8 h-12 rounded-full"
+                            onClick={() => {
+                                window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                            }}
+                        >
+                            Rate this Trade
+                        </Button>
+                    </motion.div>
+                )}
             </div>
         </div>
     );

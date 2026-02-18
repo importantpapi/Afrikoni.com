@@ -54,7 +54,7 @@ import { createTrade, TRADE_STATE } from '@/services/tradeKernel';
 export default function ProductDetail() {
   // Use centralized AuthProvider
   const { user, profile, role, authReady } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [product, setProduct] = useState(null);
   const [supplier, setSupplier] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -102,7 +102,7 @@ export default function ProductDetail() {
 
     if (!productId) {
       toast.error('Product not found');
-      navigate('/marketplace');
+      navigate(`/${language}/marketplace`);
       return;
     }
 
@@ -130,7 +130,7 @@ export default function ProductDetail() {
         }
 
         toast.error('Product not found or you do not have permission to view it');
-        navigate('/marketplace');
+        navigate(`/${language}/marketplace`);
         return;
       }
 
@@ -150,12 +150,12 @@ export default function ProductDetail() {
 
           if (!isOwner) {
             toast.error('Product not found or you do not have permission to view it');
-            navigate('/marketplace');
+            navigate(`/${language}/marketplace`);
             return;
           }
         } else {
           toast.error('Product not found or you do not have permission to view it');
-          navigate('/marketplace');
+          navigate(`/${language}/marketplace`);
           return;
         }
       }
@@ -180,6 +180,12 @@ export default function ProductDetail() {
         companies: companiesRes.data || null,
         product_variants: variantsRes.data || []
       };
+
+      // Ensure language prefix in canonical URL
+      const currentUrl = new URL(window.location.href);
+      if (!currentUrl.pathname.startsWith(`/${language}/`)) {
+        // This might be a legacy URL or refresh, but handled by router usually
+      }
 
       // Get primary image or first image using helper functions
       const primaryImage = getPrimaryImageFromProduct(productWithJoins);
@@ -232,17 +238,19 @@ export default function ProductDetail() {
         setAiRecommendations([]);
       }
 
-      // Load similar and recommended products (fallback)
-      const allProductsRes = await supabase
+      // Load similar and recommended products (efficient category-scoped lookup)
+      const similarityRes = await supabase
         .from('products')
         .select('*')
         .eq('status', 'active')
-        .limit(100);
+        .eq('category_id', foundProduct.category_id)
+        .neq('id', foundProduct.id)
+        .limit(20);
 
-      if (allProductsRes.data) {
-        setSimilarProducts(getSimilarProducts(foundProduct, allProductsRes.data));
+      if (similarityRes.data) {
+        setSimilarProducts(getSimilarProducts(foundProduct, similarityRes.data));
         const viewHistory = getViewHistory('product');
-        setRecommendedProducts(getRecommendedProducts(viewHistory, allProductsRes.data));
+        setRecommendedProducts(getRecommendedProducts(viewHistory, similarityRes.data));
       }
 
       // Load supplier company
@@ -269,8 +277,8 @@ export default function ProductDetail() {
 
   const handleContactSupplier = () => {
     if (!user) {
-      const redirect = `/product?id=${product.id}`;
-      navigate(`/login?redirect=${encodeURIComponent(redirect)}&intent=message`);
+      const redirect = `/${language}/product?id=${product.id}`;
+      navigate(`/${language}/login?redirect=${encodeURIComponent(redirect)}&intent=message`);
       return;
     }
     setShowMessageDialog(true);
@@ -284,7 +292,7 @@ export default function ProductDetail() {
       return;
     }
     if (!user) {
-      navigate(`/login?redirect=${encodeURIComponent(targetUrl)}&intent=rfq`);
+      navigate(`/${language}/login?redirect=${encodeURIComponent(targetUrl)}&intent=rfq`);
       return;
     }
     navigate(targetUrl);
@@ -292,8 +300,8 @@ export default function ProductDetail() {
 
   const handleBuyNow = async () => {
     if (!user) {
-      const redirect = `/product?id=${product.id}`;
-      navigate(`/login?redirect=${encodeURIComponent(redirect)}&intent=buy`);
+      const redirect = `/${language}/product?id=${product.id}`;
+      navigate(`/${language}/login?redirect=${encodeURIComponent(redirect)}&intent=buy`);
       return;
     }
 
@@ -324,7 +332,7 @@ export default function ProductDetail() {
 
       if (result.success) {
         toast.success('Trade Initialized on the Rail', { id: toastId });
-        navigate(`/dashboard/one-flow/${result.data.id}`);
+        navigate(`/${language}/dashboard/one-flow/${result.data.id}`);
       } else {
         toast.error(`Kernel Blocked Trade: ${result.error}`, { id: toastId });
       }
@@ -369,7 +377,7 @@ export default function ProductDetail() {
 
   const handleGenerateRFQWithAI = async () => {
     if (!user) {
-      navigate('/login');
+      navigate(`/${language}/login`);
       return;
     }
     if (!product) return;
@@ -385,7 +393,7 @@ export default function ProductDetail() {
           // ignore encoding issues, still pass product id
         }
         toast.success('AI RFQ draft ready');
-        navigate(`/dashboard/rfqs/new?${params.toString()}`);
+        navigate(`/${language}/dashboard/rfqs/new?${params.toString()}`);
       }
     } catch {
       // Silent failure beyond aiClient handling
@@ -393,8 +401,6 @@ export default function ProductDetail() {
       setAiRFQLoading(false);
     }
   };
-
-  const { language } = useLanguage();
 
   if (isLoading) {
     return (
@@ -469,7 +475,7 @@ export default function ProductDetail() {
                 </div>
                 <Button
                   variant="ghost"
-                  onClick={() => navigate('/dashboard/products')}
+                  onClick={() => navigate(`/${language}/dashboard/products`)}
                   className="text-os-xs font-black uppercase tracking-widest text-os-accent hover:bg-os-accent/10"
                 >
                   Return to Command Center

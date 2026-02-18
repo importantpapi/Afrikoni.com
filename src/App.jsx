@@ -52,86 +52,99 @@ import { migrateToSecureStorage } from './utils/secureStorage';
  * BOOT SCREEN - Handshake UI (Horizon 2026)
  * =============================================================================
  */
-const BootScreen = ({ status, error }) => (
-  <div className="fixed inset-0 bg-background z-[9999] flex flex-col items-center justify-center p-6 text-center select-none overflow-hidden">
-    {/* Background Ambient Depth */}
-    <div className="absolute top-1/4 left-1/4 w-[50vw] h-[50vh] bg-primary/5 rounded-full blur-[120px] animate-pulse" />
-    <div className="absolute bottom-1/4 right-1/4 w-[40vw] h-[40vh] bg-blue-500/5 rounded-full blur-[100px] animate-pulse delay-1000" />
+const BootScreen = ({ status, error }) => {
+  // Map internal status codes to user-friendly messages
+  const statusLabels = {
+    'RESOLVING_IDENTITY': 'Verifying Identity...',
+    'HYDRATING_KERNEL': 'Syncing Trade Data...',
+    'READY': 'Connection Established',
+    'Syncing': 'Optimizing Global Trade Route...',
+  };
 
-    <div className="relative mb-12">
-      <div className="absolute inset-0 animate-ping bg-primary/20 rounded-full blur-2xl" />
-      <div className="w-24 h-24 border-[3px] border-primary/10 border-t-primary rounded-full animate-spin" />
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className="p-3 bg-os-accent/5 border border-os-accent/10 rounded-os-md flex items-center justify-center backdrop-blur-md shadow-glow">
-          <Logo type="icon" size="sm" className="text-os-accent" />
+  const displayStatus = error || statusLabels[status] || status || "Optimizing your trade experience...";
+
+  return (
+    <div className="fixed inset-0 bg-background z-[9999] flex flex-col items-center justify-center p-6 text-center select-none overflow-hidden">
+      {/* Background Ambient Depth */}
+      <div className="absolute top-1/4 left-1/4 w-[50vw] h-[50vh] bg-primary/5 rounded-full blur-[120px] animate-pulse" />
+      <div className="absolute bottom-1/4 right-1/4 w-[40vw] h-[40vh] bg-blue-500/5 rounded-full blur-[100px] animate-pulse delay-1000" />
+
+      <div className="relative mb-12">
+        <div className="absolute inset-0 animate-ping bg-primary/20 rounded-full blur-2xl" />
+        <div className="w-24 h-24 border-[3px] border-primary/10 border-t-primary rounded-full animate-spin" />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="p-3 bg-os-accent/5 border border-os-accent/10 rounded-os-md flex items-center justify-center backdrop-blur-md shadow-glow">
+            <Logo type="icon" size="sm" className="text-os-accent" />
+          </div>
         </div>
       </div>
-    </div>
 
-    <div className="max-w-md w-full relative z-10">
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-4"
-      >
-        <h2 className="text-foreground font-black text-3xl tracking-tighter uppercase">
-          AFRIKONI <span className="text-primary">HORIZON</span>
-        </h2>
+      <div className="max-w-md w-full relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="space-y-4"
+        >
+          <h2 className="text-foreground font-black text-3xl tracking-tighter uppercase">
+            AFRIKONI <span className="text-primary">HORIZON</span>
+          </h2>
 
-        <div className="flex items-center justify-center gap-3 bg-os-surface-1 py-3.5 px-6 rounded-os-md border border-os-stroke mb-8 backdrop-blur-xl shadow-os-md">
-          {error ? (
-            <AlertCircle className="w-4 h-4 text-destructive" />
-          ) : (
-            <div className="flex items-center gap-1.5">
-              <span className="w-1 h-1 rounded-full bg-primary animate-bounce [animation-delay:-0.32s]" />
-              <span className="w-1 h-1 rounded-full bg-primary animate-bounce [animation-delay:-0.16s]" />
-              <span className="w-1 h-1 rounded-full bg-primary animate-bounce" />
-            </div>
-          )}
-          <span className="text-foreground/90 text-os-sm font-mono uppercase tracking-wider">
-            {error || status || "Synchronizing with Command Net..."}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-3 gap-5">
-          {[
-            { icon: ShieldCheck, label: 'Kernel', active: status?.includes('profile') || status?.includes('kernel') || status?.includes('Ready') || status?.includes('Sync') },
-            { icon: UserCheck, label: 'Identity', active: status?.includes('kernel') || status?.includes('Ready') || status?.includes('Sync') },
-            { icon: Globe, label: 'Network', active: status?.includes('Ready') }
-          ].map((step, idx) => (
-            <div key={idx} className="flex flex-col items-center gap-3">
-              <div className={`w-14 h-14 rounded-os-md flex items-center justify-center border transition-all duration-700 ${step.active
-                ? 'bg-primary/5 border-primary/30 text-primary shadow-glow'
-                : 'bg-os-surface-1 border-os-stroke text-foreground/20'
-                }`}>
-                <step.icon className={`w-6 h-6 ${step.active ? 'animate-pulse' : ''}`} />
+          <div className="flex items-center justify-center gap-3 bg-os-surface-1 py-3.5 px-6 rounded-os-md border border-os-stroke mb-8 backdrop-blur-xl shadow-os-md">
+            {error ? (
+              <AlertCircle className="w-4 h-4 text-destructive" />
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <span className="w-1 h-1 rounded-full bg-primary animate-bounce [animation-delay:-0.32s]" />
+                <span className="w-1 h-1 rounded-full bg-primary animate-bounce [animation-delay:-0.16s]" />
+                <span className="w-1 h-1 rounded-full bg-primary animate-bounce" />
               </div>
-              <span className={`text-os-xs uppercase tracking-[0.2em] font-black transition-colors ${step.active ? 'text-primary' : 'text-foreground/20'}`}>
-                {step.label}
-              </span>
-            </div>
-          ))}
-        </div>
+            )}
+            <span className="text-foreground/90 text-os-sm font-mono uppercase tracking-wider">
+              {displayStatus}
+            </span>
+          </div>
 
-        {error && (
-          <Button
-            variant="ghost"
-            onClick={() => window.location.reload()}
-            className="mt-8 text-primary hover:bg-primary/10 rounded-full text-os-xs uppercase tracking-widest font-bold"
-          >
-            Force Restart Engine
-          </Button>
-        )}
-      </motion.div>
-    </div>
+          <div className="grid grid-cols-3 gap-5">
+            {[
+              { icon: ShieldCheck, label: 'Kernel', active: status === 'HYDRATING_KERNEL' || status === 'READY' },
+              { icon: UserCheck, label: 'Identity', active: status === 'RESOLVING_IDENTITY' || status === 'HYDRATING_KERNEL' || status === 'READY' },
+              { icon: Globe, label: 'Network', active: status === 'READY' }
+            ].map((step, idx) => (
+              <div key={idx} className="flex flex-col items-center gap-3">
+                <div className={`w-14 h-14 rounded-os-md flex items-center justify-center border transition-all duration-700 ${step.active
+                  ? 'bg-primary/5 border-primary/30 text-primary shadow-glow'
+                  : 'bg-os-surface-1 border-os-stroke text-foreground/20'
+                  }`}>
+                  <step.icon className={`w-6 h-6 ${step.active ? 'animate-pulse' : ''}`} />
+                </div>
+                <span className={`text-os-xs uppercase tracking-[0.2em] font-black transition-colors ${step.active ? 'text-primary' : 'text-foreground/20'}`}>
+                  {step.label}
+                </span>
+              </div>
+            ))}
+          </div>
 
-    <div className="absolute bottom-10 left-0 right-0">
-      <p className="text-foreground/10 text-os-xs uppercase tracking-[0.5em] font-black">
-        Infrastructure-Grade OS &copy; 2026 HORIZON PROTOCOL
-      </p>
+          {error && (
+            <Button
+              variant="ghost"
+              onClick={() => window.location.reload()}
+              className="mt-8 text-primary hover:bg-primary/10 rounded-full text-os-xs uppercase tracking-widest font-bold"
+            >
+              Force Restart Engine
+            </Button>
+          )}
+        </motion.div>
+      </div>
+
+      <div className="absolute bottom-10 left-0 right-0">
+        <p className="text-foreground/10 text-os-xs uppercase tracking-[0.5em] font-black">
+          Global Trade OS &copy; 2026 HORIZON
+        </p>
+      </div>
     </div>
-  </div>
-);
+  );
+};
+
 
 /* ===== Public pages (eager) ===== */
 import Home from './pages/index';

@@ -14,8 +14,10 @@ import { getPrimaryImageFromProduct } from '@/utils/productImages';
 import { getProductRecommendations } from '@/lib/supabaseQueries/ai';
 import { trackProductView } from '@/lib/supabaseQueries/products';
 import EmptyState from '@/components/shared/ui/EmptyState';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function ProductRecommendations({ productId, currentUserId, currentCompanyId }) {
+  const { language } = useLanguage();
   const [recommendations, setRecommendations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -54,14 +56,14 @@ export default function ProductRecommendations({ productId, currentUserId, curre
   };
 
   const nextSlide = () => {
-    setCurrentIndex((prev) => 
+    setCurrentIndex((prev) =>
       prev + itemsPerView >= recommendations.length ? 0 : prev + itemsPerView
     );
   };
 
   const prevSlide = () => {
-    setCurrentIndex((prev) => 
-      prev - itemsPerView < 0 
+    setCurrentIndex((prev) =>
+      prev - itemsPerView < 0
         ? Math.max(0, Math.floor((recommendations.length - 1) / itemsPerView) * itemsPerView)
         : prev - itemsPerView
     );
@@ -141,7 +143,7 @@ export default function ProductRecommendations({ productId, currentUserId, curre
                 transition={{ delay: idx * 0.1 }}
               >
                 <Link
-                  to={`/product?id=${product.id}`}
+                  to={`/${language}/product?id=${product.id}`}
                   onClick={() => handleViewProduct(product)}
                 >
                   <Card hover className="h-full">

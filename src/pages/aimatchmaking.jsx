@@ -49,8 +49,17 @@ export default function AIMatchmaking() {
     <div className="min-h-screen bg-stone-50 py-8">
       <div className="max-w-7xl mx-auto px-4">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-afrikoni-chestnut mb-2">AI Supplier Matchmaking</h1>
-          <p className="text-os-lg text-afrikoni-deep">Describe your needs and let AI find the perfect suppliers</p>
+          <div className="flex items-center gap-2 mb-2">
+            <h1 className="text-3xl font-bold text-afrikoni-chestnut">Smart Supplier Matching</h1>
+            <div className="group relative">
+              <Shield className="w-5 h-5 text-os-accent cursor-help" />
+              <div className="absolute left-full ml-3 top-0 w-64 p-3 bg-white shadow-xl rounded-lg border border-os-stroke opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 text-os-xs leading-relaxed">
+                <p className="font-bold mb-1">How it works:</p>
+                Our "Smart Matching" algorithm uses historical trade data, verification status, and fulfillment reliability scores to connect you with the most compatible African suppliers.
+              </div>
+            </div>
+          </div>
+          <p className="text-os-lg text-afrikoni-deep">Direct sourcing from verified African industries, powered by smart trade analytics.</p>
         </div>
 
         <Card className="border-os-accent/20 mb-6">

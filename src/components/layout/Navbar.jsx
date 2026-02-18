@@ -146,7 +146,8 @@ export default function Navbar({ user, onLogout }) {
 
   // SAFETY: Never render Public Navbar on Dashboard routes
   // This prevents layout collision if the parent Layout fails to unmount it
-  if (location.pathname.startsWith('/dashboard')) {
+  const isDashboardRoute = location.pathname.split('/').includes('dashboard');
+  if (isDashboardRoute) {
     return null;
   }
 

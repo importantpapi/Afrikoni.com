@@ -6,6 +6,7 @@
 
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/i18n/LanguageContext';
 import { ChevronRight } from 'lucide-react';
 
 // Top 5 Active Countries - institutional text presentation
@@ -19,13 +20,14 @@ const ACTIVE_COUNTRIES = [
 
 export default function MobileCountryFilters() {
   const navigate = useNavigate();
+  const { language = 'en' } = useLanguage();
 
   const handleCountryClick = (country) => {
-    navigate(`/marketplace?country=${encodeURIComponent(country.name)}`);
+    navigate(`/${language}/marketplace?country=${encodeURIComponent(country.name)}`);
   };
 
   const handleViewAll = () => {
-    navigate('/countries');
+    navigate(`/${language}/countries`);
   };
 
   return (

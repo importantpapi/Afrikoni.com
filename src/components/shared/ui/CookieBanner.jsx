@@ -12,7 +12,7 @@ import CookieSettingsModal from './CookieSettingsModal';
 export default function CookieBanner() {
   const [showBanner, setShowBanner] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  
+
   useEffect(() => {
     // Check if user has already consented using new system
     const consent = localStorage.getItem('afrikoni-cookie-consent');
@@ -21,7 +21,7 @@ export default function CookieBanner() {
       setShowBanner(true);
     }
   }, []);
-  
+
   const handleAcceptAll = () => {
     const consentData = {
       necessary: true,
@@ -33,7 +33,7 @@ export default function CookieBanner() {
     localStorage.setItem('afrikoni-cookie-consent', JSON.stringify(consentData));
     setShowBanner(false);
   };
-  
+
   const handleReject = () => {
     const consentData = {
       necessary: true, // Always true
@@ -55,7 +55,7 @@ export default function CookieBanner() {
     setShowBanner(false);
     setShowModal(false);
   };
-  
+
   return (
     <>
       {showBanner && (
@@ -72,7 +72,7 @@ export default function CookieBanner() {
           >
             <div className="max-w-7xl mx-auto px-4 py-4 md:py-6">
               <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                <motion.div 
+                <motion.div
                   className="flex items-start gap-3 flex-1"
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -85,19 +85,19 @@ export default function CookieBanner() {
                     <Cookie className="w-6 h-6 text-os-accent flex-shrink-0 mt-1" aria-hidden="true" />
                   </motion.div>
                   <div className="flex-1">
-                    <h3 
+                    <h3
                       id="cookie-banner-title"
                       className="text-os-lg md:text-os-xl font-bold text-afrikoni-cream mb-2"
                     >
                       Afrikoni respects your privacy
                     </h3>
-                    <p 
+                    <p
                       id="cookie-banner-description"
                       className="text-os-sm md:text-os-base text-afrikoni-cream/90 mb-2"
                     >
-                      Afrikoni and 3rd parties use essential and non-essential cookies to provide, secure, analyze and improve our Services, and to show you relevant ads (including professional and job ads) on and off Afrikoni. 
-                      <Link 
-                        to="/cookie-policy" 
+                      Afrikoni and 3rd parties use essential and non-essential cookies to provide, secure, analyze and improve our Services, and to show you relevant ads (including professional and job ads) on and off Afrikoni.
+                      <Link
+                        to="/cookie-policy"
                         className="text-os-accent hover:underline ml-1 font-semibold"
                         aria-label="Learn more about our cookie policy"
                       >
@@ -107,13 +107,13 @@ export default function CookieBanner() {
                     <p className="text-os-xs md:text-os-sm text-afrikoni-cream/80">
                       Select Accept to consent or Reject to decline non-essential cookies for this use. You can update your choices at any time in your settings.
                     </p>
-                    <motion.div 
+                    <motion.div
                       className="flex flex-wrap gap-2 text-os-xs text-afrikoni-cream/80"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.3, delay: 0.2 }}
                     >
-                      <Link to="/privacy-policy" className="hover:text-os-accent hover:underline">
+                      <Link to="/legal/privacy" className="hover:text-os-accent hover:underline">
                         Privacy Policy
                       </Link>
                       <span>•</span>
@@ -123,7 +123,7 @@ export default function CookieBanner() {
                     </motion.div>
                   </div>
                 </motion.div>
-                <motion.div 
+                <motion.div
                   className="flex items-center gap-2 w-full md:w-auto flex-wrap"
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -173,7 +173,7 @@ export default function CookieBanner() {
           </motion.div>
         </AnimatePresence>
       )}
-      
+
       {/* Cookie Settings Modal */}
       <CookieSettingsModal
         isOpen={showModal}

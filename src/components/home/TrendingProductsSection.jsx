@@ -6,11 +6,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/i18n/LanguageContext';
 import { supabase } from '@/api/supabaseClient';
 import ProductCard from '@/components/products/ProductCard';
 
 export default function TrendingProductsSection() {
   const navigate = useNavigate();
+  const { language = 'en' } = useLanguage();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -87,7 +89,7 @@ export default function TrendingProductsSection() {
               📈 Trending Products
             </h2>
             <button
-              onClick={() => navigate('/marketplace')}
+              onClick={() => navigate(`/${language}/marketplace`)}
               className="text-os-sm md:text-os-base text-os-accent font-medium hover:underline"
             >
               View All →
@@ -121,7 +123,7 @@ export default function TrendingProductsSection() {
             📈 Trending Products
           </h2>
           <button
-            onClick={() => navigate('/marketplace')}
+            onClick={() => navigate(`/${language}/marketplace`)}
             className="text-os-sm md:text-os-base text-os-accent font-medium hover:underline"
           >
             View All →

@@ -7,7 +7,7 @@ import { Logo } from '@/components/shared/ui/Logo';
 import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function NotFound() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   return (
     <div className="min-h-screen bg-afrikoni-offwhite flex items-center justify-center px-4 py-12">
       <motion.div
@@ -19,7 +19,7 @@ export default function NotFound() {
         <div className="mb-8">
           <Logo type="full" size="lg" link={true} />
         </div>
-        
+
         <motion.div
           initial={{ scale: 0.9 }}
           animate={{ scale: 1 }}
@@ -36,13 +36,13 @@ export default function NotFound() {
         </motion.div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-          <Link to="/">
+          <Link to={`/${language}`}>
             <Button className="bg-os-accent text-afrikoni-chestnut hover:bg-os-accentLight px-6 py-3 rounded-full font-semibold shadow-os-md flex items-center gap-2">
               <Home className="w-5 h-5" />
               {t('notFound.goHome')}
             </Button>
           </Link>
-          <Link to="/marketplace">
+          <Link to={`/${language}/marketplace`}>
             <Button variant="outline" className="border-os-accent/70 text-afrikoni-chestnut hover:bg-os-accent/10 px-6 py-3 rounded-full font-semibold flex items-center gap-2">
               <Search className="w-5 h-5" />
               {t('notFound.browseMarketplace')}
@@ -62,10 +62,10 @@ export default function NotFound() {
           <p className="text-os-sm text-afrikoni-deep/70 mb-4">{t('notFound.popularPages')}</p>
           <div className="flex flex-wrap justify-center gap-3">
             {[
-              { to: '/marketplace', label: t('nav.marketplace') },
-              { to: '/become-supplier', label: t('nav.becomeSupplier') },
-              { to: '/help', label: t('nav.help') },
-              { to: '/contact', label: t('common.contact') || 'Contact Us' },
+              { to: `/${language}/marketplace`, label: t('nav.marketplace') },
+              { to: `/${language}/become-supplier`, label: t('nav.becomeSupplier') },
+              { to: `/${language}/help`, label: t('nav.help') },
+              { to: `/${language}/contact`, label: t('common.contact') || 'Contact Us' },
             ].map((link, idx) => (
               <Link
                 key={idx}

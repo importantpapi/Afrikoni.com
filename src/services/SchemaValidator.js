@@ -6,6 +6,7 @@
  */
 
 import { supabase } from '@/api/supabaseClient';
+import { logger } from '@/utils/logger';
 
 const CRITICAL_TABLES = [
   { table: 'profiles', column: 'id' },
@@ -69,7 +70,7 @@ export async function verifySchemaIntegrity() {
   for (const result of results) {
     if (result.networkError) {
       // Network error on any table - fail safe but don't block
-      console.warn(`[SchemaValidator] Network error checking '${result.tableName}':`, result.networkError);
+      logger.warn(`Network error checking '${result.tableName}'`, { networkError: result.networkError });
       return {
         valid: true, // Fail open - RLS will enforce security
         missing: [],
@@ -81,7 +82,7 @@ export async function verifySchemaIntegrity() {
       errors.push(`Table '${result.tableName}' does not exist: ${result.error}`);
     }
     if (result.warning) {
-      console.warn(`[SchemaValidator] Warning for table '${result.tableName}':`, result.warning);
+      logger.warn(`Warning for table '${result.tableName}'`, { warning: result.warning });
     }
   }
 

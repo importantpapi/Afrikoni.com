@@ -25,6 +25,8 @@ import { Button } from '@/components/shared/ui/button';
 import { Logo } from '@/components/shared/ui/Logo';
 import NotificationBell from '@/components/notificationbell';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 export default function UnifiedHeader({
   // Context-specific props
@@ -46,12 +48,16 @@ export default function UnifiedHeader({
   customActions,
 }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { t, i18n } = useTranslation();
-  const isDashboard = location.pathname.startsWith('/dashboard');
-  const isMarketplace = location.pathname.startsWith('/marketplace') || location.pathname === '/';
+  const { language = 'en' } = useLanguage();
+
+  const pathParts = location.pathname.split('/');
+  const isDashboard = pathParts.includes('dashboard');
+  const isMarketplace = pathParts.includes('marketplace') || location.pathname === `/${language}` || location.pathname === '/';
 
   // Determine background based on context
-  const headerBgClass = isDashboard 
+  const headerBgClass = isDashboard
     ? 'bg-gradient-to-r from-afrikoni-chestnut/95 via-afrikoni-brown-800/95 to-afrikoni-chestnut/95'
     : 'bg-gradient-to-r from-afrikoni-chestnut via-afrikoni-brown-800 to-afrikoni-chestnut';
 
@@ -72,7 +78,7 @@ export default function UnifiedHeader({
         <div className="flex items-center gap-3 md:gap-4 flex-shrink-0">
           {/* Logo/Home Button - Mobile optimized */}
           <Link
-            to="/"
+            to={`/${language}`}
             className="flex items-center justify-center w-10 h-10 md:w-12 md:h-12 rounded-lg hover:bg-os-accent/20 md:hover:bg-os-accent/10 active:scale-95 md:active:scale-100 transition-all touch-manipulation min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0"
             aria-label="Home"
           >
@@ -145,7 +151,7 @@ export default function UnifiedHeader({
           {/* Create RFQ Button (Dashboard) */}
           {showCreateRFQ && (
             <Button
-              onClick={() => window.location.href = '/dashboard/rfqs/new'}
+              onClick={() => navigate(`/${language}/dashboard/rfqs/new`)}
               className="hidden md:flex items-center gap-2 bg-os-accent hover:bg-os-accent/90 text-afrikoni-chestnut font-semibold shadow-md rounded-lg px-4 md:px-6 h-11 transition-all hover:shadow-os-md whitespace-nowrap"
             >
               <Plus className="w-4 h-4" />
@@ -166,7 +172,7 @@ export default function UnifiedHeader({
 
           {/* Messages - Mobile optimized */}
           <Link
-            to="/messages"
+            to={`/${language}/messages`}
             className="relative flex items-center justify-center w-10 h-10 md:w-10 md:h-10 rounded-lg hover:bg-os-accent/20 md:hover:bg-os-accent/10 active:scale-95 md:active:scale-100 text-afrikoni-cream transition-all touch-manipulation min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0"
             aria-label="Messages"
           >
@@ -193,7 +199,7 @@ export default function UnifiedHeader({
           {/* User Avatar - Mobile optimized */}
           {userAvatar || (
             <Link
-              to={user ? '/dashboard' : '/login'}
+              to={user ? `/${language}/dashboard` : `/${language}/login`}
               className="flex items-center justify-center w-10 h-10 md:w-10 md:h-10 rounded-full bg-os-accent/20 hover:bg-os-accent/30 md:hover:bg-os-accent/20 active:scale-95 md:active:scale-100 border-2 border-os-accent/40 transition-all touch-manipulation min-w-[44px] min-h-[44px] md:min-w-0 md:min-h-0"
               aria-label={user ? 'Dashboard' : 'Login'}
             >

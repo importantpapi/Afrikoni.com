@@ -62,7 +62,6 @@ import { toast } from 'sonner';
 import SearchSuggestions from '@/components/search/SearchSuggestions';
 import { addSearchToHistory } from '@/components/search/SearchHistory';
 import { AFRICAN_COUNTRIES, AFRICAN_COUNTRY_CODES } from '@/constants/countries';
-import { useTranslation } from 'react-i18next';
 import { getPrimaryImageFromProduct, getAllImagesFromProduct, normalizeProductImageUrl } from '@/utils/productImages';
 import { trackProductView } from '@/lib/supabaseQueries/products';
 import { Logo } from '@/components/shared/ui/Logo';
@@ -73,7 +72,7 @@ import { cn } from '@/lib/utils';
 import { getCountryCodeFromCoords, getTradeBloc } from '@/utils/geoDetectionGoogle';
 
 export default function Marketplace() {
-  const { t } = useTranslation();
+  const { t, language } = useLanguage();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { trackPageView } = useAnalytics();
@@ -419,10 +418,10 @@ export default function Marketplace() {
             url,
             is_primary
           ),
-          categories!inner (
+          categories (
             name
           ),
-          companies!company_id!inner (
+          companies!company_id (
             company_name,
             country,
             verified,
@@ -587,7 +586,7 @@ export default function Marketplace() {
     AFRICAN_COUNTRIES.find((c) => c.toLowerCase() === urlCountryParam.toLowerCase())
     : '';
 
-  const { language: currentLang } = useLanguage();
+  const currentLang = language;
   // Fix: Define selectedCountryForSeo derived from filters
   const selectedCountryForSeo = selectedFilters.country !== 'All' ? selectedFilters.country : null;
 
@@ -827,7 +826,7 @@ export default function Marketplace() {
                 <div className="flex flex-col gap-1.5">
                   <span className="text-[10px] uppercase tracking-widest text-os-text-secondary/60 font-black">{t('marketplace.quickAction')}</span>
                   <Button
-                    onClick={() => navigate('/dashboard/rfqs/new')}
+                    onClick={() => navigate(`/${language}/dashboard/rfqs/new`)}
                     className="rounded-none bg-[#1A1512] text-white px-6 h-9 text-[10px] uppercase font-black tracking-widest hover:bg-os-accent hover:text-[#1A1512] transition-all flex items-center gap-2"
                   >
                     <Plus className="w-3.5 h-3.5" />
@@ -1060,7 +1059,7 @@ export default function Marketplace() {
                                      transition-all active:scale-95 flex items-center gap-3"
                           asChild
                         >
-                          <Link to="/rfq/create">
+                          <Link to={`/${language}/rfq/create`}>
                             {t('marketplace.postTradeRequest')}
                             <Plus className="w-4 h-4" />
                           </Link>
@@ -1108,7 +1107,7 @@ export default function Marketplace() {
                             className="bg-os-accent text-[#1A1512] hover:bg-os-accent/90 font-black uppercase tracking-[0.2em] text-[10px] h-12 px-8 rounded-full shadow-lg"
                             asChild
                           >
-                            <Link to="/rfq/create">{t('marketplace.startSourcing')}</Link>
+                            <Link to={`/${language}/rfq/create`}>{t('marketplace.startSourcing')}</Link>
                           </Button>
                         </Surface>
                       )}

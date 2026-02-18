@@ -16,7 +16,7 @@ import { isNetworkError, handleNetworkError } from '@/utils/networkErrorHandler'
 import { Surface } from '@/components/system/Surface';
 
 export default function Signup() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { authReady, hasUser } = useAuth();
   const [formData, setFormData] = useState({
     fullName: '',
@@ -32,13 +32,13 @@ export default function Signup() {
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const redirectUrl = searchParams.get('redirect') || createPageUrl('Home');
+  const redirectUrl = searchParams.get('redirect') || createPageUrl('Home', language);
 
   // 🚨 REDIRECT LAW: Logged-in users are sent to Post-Login Router
   useEffect(() => {
     if (!authReady) return;
     if (hasUser) {
-      navigate('/auth/post-login', { replace: true });
+      navigate(`/${language}/auth/post-login`, { replace: true });
     }
   }, [authReady, hasUser, navigate]);
 
@@ -80,7 +80,7 @@ export default function Signup() {
   };
 
   const getOAuthRedirectPath = () => {
-    return redirectUrl && redirectUrl !== createPageUrl('Home') ? redirectUrl : '/dashboard';
+    return redirectUrl && redirectUrl !== createPageUrl('Home', language) ? redirectUrl : `/${language}/dashboard`;
   };
 
   return (
@@ -203,7 +203,7 @@ export default function Signup() {
           <div className="text-center text-sm text-gray-600 mt-10 pt-8 border-t border-gray-100">
             <p>
               Already have an account?{' '}
-              <Link to="/login" className="text-os-accent hover:text-os-accent-dark font-medium transition-colors">
+              <Link to={`/${language}/login`} className="text-os-accent hover:text-os-accent-dark font-medium transition-colors">
                 Sign in
               </Link>
             </p>
@@ -211,7 +211,7 @@ export default function Signup() {
         </div>
 
         <p className="mt-10 text-center text-[13px] text-gray-400 leading-relaxed">
-          © 2026 Afrikoni · <a href="/terms" className="hover:text-gray-600 transition-colors">Terms</a> · <a href="/privacy" className="hover:text-gray-600 transition-colors">Privacy</a> · <a href="/security" className="hover:text-gray-600 transition-colors">Security</a>
+          © 2026 Afrikoni · <a href={`/${language}/legal/terms`} className="hover:text-gray-600 transition-colors">Terms</a> · <a href={`/${language}/legal/privacy`} className="hover:text-gray-600 transition-colors">Privacy</a>
         </p>
       </motion.div>
     </div>

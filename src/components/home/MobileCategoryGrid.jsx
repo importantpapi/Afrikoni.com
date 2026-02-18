@@ -6,6 +6,7 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '@/i18n/LanguageContext';
 import { ChevronRight } from 'lucide-react';
 
 // B2B Categories - precision hierarchy (show 5, expand to see rest)
@@ -22,10 +23,11 @@ const B2B_CATEGORIES = [
 
 export default function MobileCategoryGrid() {
   const navigate = useNavigate();
+  const { language = 'en' } = useLanguage();
   const [showAll, setShowAll] = useState(false);
 
   const handleCategoryClick = (category) => {
-    navigate(`/marketplace?category=${encodeURIComponent(category.name)}`);
+    navigate(`/${language}/marketplace?category=${encodeURIComponent(category.name)}`);
   };
 
   // Show 5 initially, expand to show all
