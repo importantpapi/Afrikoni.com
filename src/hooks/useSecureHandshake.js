@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/api/supabaseClient';
 
 /**
- * useSovereignHandshake
+ * useSecureHandshake
  * 
  * The Parallel Boot Orchestrator (OPTIMIZED).
  * Hydrates institutional metadata (L1-L3) in parallel with Auth resolution.
@@ -15,7 +15,7 @@ import { supabase } from '@/api/supabaseClient';
  * 2. Using Promise.allSettled for parallel non-blocking fetches
  * 3. Aggressive cache priming with React Query
  */
-export function useSovereignHandshake() {
+export function useSecureHandshake() {
     const { authReady, profile } = useAuth();
     const { ready: kernelReady } = useCapability();
     const queryClient = useQueryClient();
@@ -26,7 +26,7 @@ export function useSovereignHandshake() {
     useEffect(() => {
         const cachedCaps = queryClient.getQueryData(['capabilities']);
         if (cachedCaps) {
-            console.log('[SovereignHandshake] ⚡ UI Primed from Persistent Cache');
+            console.log('[SecureHandshake] ⚡ UI Primed from Persistent Cache');
             setIsPrimed(true);
         }
     }, [queryClient]);
@@ -69,7 +69,7 @@ export function useSovereignHandshake() {
 
             Promise.allSettled(institutionalPacket).then((results) => {
                 const successCount = results.filter(r => r.status === 'fulfilled').length;
-                console.log(`[SovereignHandshake] ✅ Institutional Packet Synchronized (${successCount}/2)`);
+                console.log(`[SecureHandshake] ✅ Institutional Packet Synchronized (${successCount}/2)`);
                 setIsPrimed(true);
                 setPrefetchComplete(true);
             });

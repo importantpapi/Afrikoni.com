@@ -20,7 +20,7 @@ const EDGE_FUNCTION_BASE = import.meta.env.VITE_SUPABASE_URL + '/functions/v1';
 
 /**
  * Helper: Fetch with Exponential Backoff
- * Handles intermittent connectivity of Sovereign Nodes
+ * Handles intermittent connectivity of Secure Nodes
  */
 async function fetchWithRetry(url, options, maxRetries = 3) {
   let lastError;

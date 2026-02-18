@@ -51,7 +51,7 @@ export default function TradeOSSidebar({
     return `/${lang}${cleanPath}`;
   };
 
-  const { sections, systemApps } = getRoleNavigation({ capabilities, workspaceMode, notificationCounts });
+  const { sections, systemApps } = getRoleNavigation({ capabilities, workspaceMode, notificationCounts, isAdmin });
 
 
   return (

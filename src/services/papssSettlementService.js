@@ -1,31 +1,37 @@
 /**
  * PAPSS SETTLEMENT SERVICE
- * 
+ *
  * Connectivity to the Pan-African Payment and Settlement System.
- * Enables Naira -> Shilling (NGN/KES) instant clearing.
+ * Enables cross-border African currency clearing (e.g. NGN -> KES).
+ *
+ * NOTE: The papss-clearing Edge Function must be deployed and configured
+ * with valid PAPSS credentials for live settlement. Until then, this
+ * service will return a pending state that requires manual reconciliation.
  */
 
 import { supabase } from '@/api/supabaseClient';
 
-const PAPSS_API_BASE = 'https://api.papss.org/v1'; // Simulated for 2026 Connectivity
-
 export async function initiatePAPSSSettlement(tradeId, amount, fromCurrency, toCurrency) {
     try {
-        console.log(`[PAPSS] Initiating instant settlement: ${amount} ${fromCurrency} -> ${toCurrency}`);
+        console.log(`[PAPSS] Initiating settlement: ${amount} ${fromCurrency} -> ${toCurrency}`);
 
-        // In production, this would be an Edge Function call to avoid exposing PAPSS keys
         const { data, error } = await supabase.functions.invoke('papss-clearing', {
             body: { tradeId, amount, fromCurrency, toCurrency }
         });
 
         if (error) throw error;
 
+        // Use the settlement ID returned by the Edge Function — never generate client-side
+        if (!data?.settlementId) {
+            throw new Error('PAPSS clearing did not return a valid settlement ID.');
+        }
+
         return {
             success: true,
-            settlementId: `PAPSS-TX-${Math.random().toString(36).toUpperCase().slice(2, 10)}`,
-            clearedAt: new Date().toISOString(),
-            exchangeRate: data?.rate || 1.15, // Real-time cross-currency rate
-            netAmount: amount * (data?.rate || 1.15)
+            settlementId: data.settlementId,
+            clearedAt: data.clearedAt || new Date().toISOString(),
+            exchangeRate: data.rate || null,
+            netAmount: data.netAmount || null,
         };
     } catch (err) {
         console.error('[PAPSS] Settlement initiation failed:', err);
@@ -34,19 +40,29 @@ export async function initiatePAPSSSettlement(tradeId, amount, fromCurrency, toC
 }
 
 /**
- * Fetch real-time exchange rates via PAPSS RTGS rail
+ * Fetch indicative exchange rates.
+ * Tries the sync-fx-rates Edge Function first, falls back to static rates.
  */
 export async function getPAPSSRates(baseCurrency, targetCurrency) {
-    // Simulating instant cross-border rate (Central Bank backed)
-    const simulatedRates = {
-        'NGN_KES': 0.14,
-        'GHS_NGN': 85.50,
+    try {
+        const { data, error } = await supabase.functions.invoke('sync-fx-rates', {
+            body: { base: baseCurrency, target: targetCurrency }
+        });
+        if (!error && data?.rate) return data.rate;
+    } catch (_) {
+        // Fall through to static fallback
+    }
+
+    // Static fallback rates (approximate — not for settlement calculations)
+    const fallbackRates = {
+        'NGN_KES': 0.084,
+        'GHS_NGN': 90.00,
         'ZAR_KES': 7.20,
-        'USD_NGN': 1650.00
+        'USD_NGN': 1550.00,
     };
 
     const key = `${baseCurrency}_${targetCurrency}`;
-    return simulatedRates[key] || 1.0;
+    return fallbackRates[key] || null;
 }
 
 export default {

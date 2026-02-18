@@ -1,7 +1,7 @@
+
 import React from 'react';
-import Dashboard from './dashboard';
+import { Navigate } from 'react-router-dom';
 
 export default function AdminDashboard() {
-  return <Dashboard />;
+  return <Navigate to="/dashboard/admin/payouts" replace />;
 }
-

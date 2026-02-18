@@ -1489,8 +1489,8 @@ export default function VerificationCenter() {
 
         {/* Forensic Heritage Lab (Beta) */}
         <SystemPageSection
-          title="Forensic Heritage Lab (Beta)"
-          subtitle="Test your product authenticity with our AI-powered Heritage DNA scanner"
+          title="Product Authenticity Lab (Beta)"
+          subtitle="Test your product authenticity with our AI-powered verification scanner"
           className="bg-afrikoni-offwhite"
         >
           <Card className="border-os-accent/30 bg-afrikoni-cream mb-12 overflow-hidden relative">
@@ -1502,10 +1502,10 @@ export default function VerificationCenter() {
                 <div className="flex-1 space-y-4">
                   <div>
                     <Badge variant="outline" className="border-os-accent text-afrikoni-chestnut mb-2">New Power-Up</Badge>
-                    <h3 className="text-os-2xl font-bold text-afrikoni-chestnut">Generate Trade DNA</h3>
+                    <h3 className="text-os-2xl font-bold text-afrikoni-chestnut">Generate Product Fingerprint</h3>
                     <p className="text-afrikoni-chestnut/70 mt-2">
-                      Upload a product image to generate its unique "Visual Cryptographic Hash".
-                      This DNA certifies authenticity and protects against counterfeits in the Sovereign Trade Protocol.
+                      Upload a product image to generate its unique "Digital Fingerprint".
+                      This ID certifies authenticity and protects against counterfeits in the Afrikoni Trade Protocol.
                     </p>
                   </div>
 
@@ -1524,7 +1524,7 @@ export default function VerificationCenter() {
                       {isAuditing ? (
                         <>
                           <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                          Analyzing Weave Patterns...
+                          Analyzing Patterns...
                         </>
                       ) : (
                         <>
@@ -1548,14 +1548,14 @@ export default function VerificationCenter() {
                   {isAuditing && (
                     <div className="text-center space-y-3">
                       <div className="w-16 h-16 border-4 border-os-accent border-t-transparent rounded-full animate-spin mx-auto" />
-                      <p className="text-os-sm font-mono text-afrikoni-chestnut/70 animate-pulse">Extracting Tectonic Features...</p>
+                      <p className="text-os-sm font-mono text-afrikoni-chestnut/70 animate-pulse">Analyzing Product Features...</p>
                     </div>
                   )}
 
                   {auditResult && (
                     <div className="w-full space-y-4 animate-in fade-in zoom-in duration-500">
                       <div className="flex items-center justify-between border-b border-os-accent/20 pb-2">
-                        <span className="text-os-xs uppercase tracking-widest text-afrikoni-chestnut/60">Heritage DNA Score</span>
+                        <span className="text-os-xs uppercase tracking-widest text-afrikoni-chestnut/60">Authenticity Score</span>
                         <span className="text-os-2xl font-bold text-emerald-600">99.2/100</span>
                       </div>
 
@@ -1584,7 +1584,7 @@ export default function VerificationCenter() {
                       </div>
 
                       <p className="text-os-xs text-center text-afrikoni-chestnut/40 uppercase tracking-widest mt-2">
-                        Certified by Forensic Sentinel
+                        Certified by Afrikoni Verification
                       </p>
                     </div>
                   )}

@@ -1,7 +1,7 @@
 /**
  * THE GRIOT (Onboarding AI)
  * 
- * "The Storyteller" of the Sovereign Trade Protocol.
+ * "The Storyteller" of the Afrikoni Trade Protocol.
  * Responsible for:
  * 1. Analyzing raw seller inputs (text/images).
  * 2. Generating professional B2B trade descriptions.

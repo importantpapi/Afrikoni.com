@@ -62,7 +62,7 @@ export function checkCompliance(params) {
         tariffRate: isCompliant ? 0 : 12.5,
         requiredDocs: [
             'AfCFTA Certificate of Origin',
-            'Sovereign DNA Ledger Proof',
+            'Secure DNA Ledger Proof',
             'Customs Declaration Form A1'
         ],
         legalClauses: clauses,

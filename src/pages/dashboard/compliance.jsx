@@ -1,16 +1,15 @@
 /**
- * Sovereign Compliance Hub™ - Afrikoni 2026
+ * Afrikoni Compliance Hub™ - Afrikoni 2026
  * Phase 7: Regulatory Node Management & AI Prophet
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
-  FileCheck, ArrowLeft, Upload, Download, Shield, CheckCircle, XCircle,
+  FileCheck, Upload, Download, Shield, CheckCircle, XCircle,
   Clock, AlertTriangle, FileText, Building, Globe, Calendar, Filter,
   Search, Eye, RefreshCw, ExternalLink, ChevronDown, ChevronUp,
-  Fingerprint, Activity, Zap, Database, ShieldAlert, Boxes
+  Activity, Zap, ShieldAlert, Boxes
 } from 'lucide-react';
 import { Surface } from '@/components/system/Surface';
 import { Badge } from '@/components/shared/ui/badge';
@@ -25,7 +24,6 @@ import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
 import ErrorState from '@/components/shared/ui/ErrorState';
 import AccessDenied from '@/components/AccessDenied';
-import { CopilotSignal } from '@/components/dashboard/CopilotSignal';
 import { cn } from '@/lib/utils';
 
 export default function ComplianceCenter() {
@@ -114,232 +112,206 @@ export default function ComplianceCenter() {
   if (!isSystemReady || loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-afrikoni-offwhite">
-        <SpinnerWithTimeout message="Initializing Sovereign Nodes..." ready={isSystemReady && !loading} />
+        <SpinnerWithTimeout message="Initializing Security Nodes..." ready={isSystemReady && !loading} />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-afrikoni-offwhite text-afrikoni-deep selection:bg-os-accent/30 font-sans p-8 md:p-12">
-      {/* Background Ambience */}
-      <div className="fixed inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] pointer-events-none" />
+    <div className="os-page-layout">
 
       <div className="max-w-7xl mx-auto space-y-12 relative z-10">
 
-        {/* Institutional Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col md:flex-row md:items-end justify-between gap-8 border-b border-white/5 pb-10"
-        >
-          <div className="space-y-4">
-            <Link to="/dashboard" className="inline-flex items-center gap-2 text-os-xs font-black text-white/40 hover:text-white transition-all uppercase tracking-[0.3em]">
-              <ArrowLeft className="w-3 h-3" />
-              Return / Dashboard
-            </Link>
-            <div className="flex items-center gap-6">
-              <div className="p-4 bg-os-accent/10 rounded-os-lg border border-os-accent/30 shadow-[0_0_30px_rgba(212,169,55,0.1)]">
-                <Shield className="w-8 h-8 text-os-accent" />
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-os-stroke pb-8 mb-8">
+          <div className="space-y-3">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-os-accent/10 rounded-xl border border-os-accent/20">
+                <Shield className="w-7 h-7 text-os-accent" />
               </div>
-              <div className="space-y-1">
-                <h1 className="text-4xl font-black tracking-tighter">Sovereign Compliance</h1>
-                <p className="text-white/40 font-medium italic">AfCFTA Regulatory Hub v2026 • {organization?.company_name}</p>
+              <div>
+                <h1 className="text-3xl font-bold">Compliance Center</h1>
+                <p className="text-os-text-secondary text-sm mt-0.5">Your documents, regulations, and trade compliance status</p>
               </div>
             </div>
           </div>
-
-          <div className="flex items-center gap-4">
-            <Button variant="outline" className="h-14 px-8 rounded-os-md border-white/5 bg-white/[0.02] font-black uppercase tracking-widest text-os-xs">
-              <Download className="w-4 h-4 mr-2" /> Export Audit Trail
+          <div className="flex items-center gap-3">
+            <Button variant="outline" className="gap-2">
+              <Download className="w-4 h-4" /> Export Report
             </Button>
-            <Button className="h-14 px-8 rounded-os-md bg-white text-black hover:bg-white/90 font-black uppercase tracking-widest text-os-xs shadow-[0_20px_40px_rgba(255,255,255,0.05)]">
-              <Upload className="w-4 h-4 mr-2" /> Commit Document
+            <Button className="gap-2 bg-os-accent text-black hover:bg-os-accent/90">
+              <Upload className="w-4 h-4" /> Upload Document
             </Button>
           </div>
-        </motion.div>
+        </div>
 
-        {/* Intelligence Matrix (KPIs) */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* KPI Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {[
-            { label: 'Integrity Pulse', value: `${complianceKPIs.overallScore}%`, icon: Activity, color: 'text-emerald-500' },
-            { label: 'Regulatory Load', value: complianceKPIs.activeTasks, sub: 'Active Nodes', icon: Boxes, color: 'text-os-accent' },
-            { label: 'Risk Factor', value: complianceKPIs.riskLevel, icon: ShieldAlert, color: 'text-os-blue' },
-            { label: 'Prophet Signal', value: complianceKPIs.taxProphet, sub: 'AI Estimated', icon: Zap, color: 'text-os-accent' }
+            { label: 'Compliance Score', value: `${complianceKPIs.overallScore}%`, icon: Activity, color: 'text-emerald-600' },
+            { label: 'Pending Tasks', value: complianceKPIs.activeTasks, sub: 'Need attention', icon: Boxes, color: 'text-os-accent' },
+            { label: 'Risk Level', value: complianceKPIs.riskLevel, icon: ShieldAlert, color: 'text-blue-600' },
+            { label: 'Trade Agreement', value: complianceKPIs.taxProphet, sub: 'AI estimated', icon: Zap, color: 'text-os-accent' }
           ].map((kpi, i) => (
-            <Surface key={i} variant="panel" className="p-6 space-y-4 hover:border-white/10 transition-all group overflow-hidden relative">
-              <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                <kpi.icon className="w-16 h-16" />
-              </div>
-              <span className="text-os-xs font-black uppercase tracking-[0.3em] text-white/40">{kpi.label}</span>
-              <div className="space-y-1">
-                <div className={cn("text-3xl font-black tracking-tighter", kpi.color)}>{kpi.value}</div>
-                {kpi.sub && <div className="text-os-xs text-white/30 font-bold uppercase tracking-widest">{kpi.sub}</div>}
-              </div>
+            <Surface key={i} variant="panel" className="p-5 space-y-3">
+              <span className="text-xs font-semibold uppercase tracking-wider text-os-text-secondary">{kpi.label}</span>
+              <div className={`text-2xl font-bold ${kpi.color}`}>{kpi.value}</div>
+              {kpi.sub && <div className="text-xs text-os-text-secondary">{kpi.sub}</div>}
             </Surface>
           ))}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-          {/* Main Console */}
-          <div className="lg:col-span-8 space-y-10">
-
-            {/* Regulatory Node Matrix */}
-            <section className="space-y-6">
-              <div className="flex items-center justify-between px-2">
-                <h2 className="text-os-xl font-black uppercase tracking-widest flex items-center gap-3">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Main Content */}
+          <div className="lg:col-span-8 space-y-8">
+            {/* Country Regulatory Status */}
+            <section className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold flex items-center gap-2">
                   <Globe className="w-5 h-5 text-os-accent" />
-                  Regulatory Node Matrix
+                  Countries You Trade With
                 </h2>
-                <Badge variant="outline" className="text-os-xs border-white/10 text-white/40">AfCFTA Active</Badge>
+                <span className="text-xs text-os-text-secondary">AfCFTA Active</span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {countryRegulatoryMatrix.map((node) => (
-                  <Surface
-                    key={node.code}
-                    variant="panel"
-                    className={cn(
-                      "p-6 cursor-pointer border-transparent hover:border-white/10 transition-all",
-                      activeNode === node.code ? "bg-white/[0.04] border-white/20" : "bg-white/[0.01]"
-                    )}
-                    onClick={() => setActiveNode(node.code)}
-                  >
-                    <div className="flex justify-between items-start mb-6">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-os-md bg-black/40 border border-white/5 flex items-center justify-center font-black text-white/40">
-                          {node.code}
+              {countryRegulatoryMatrix.length === 0 ? (
+                <div className="text-center py-12 text-os-text-secondary">
+                  <Globe className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                  <p className="font-medium">No trade corridors set up yet</p>
+                  <p className="text-sm mt-1">Add the countries you trade with to see compliance requirements</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {countryRegulatoryMatrix.map((node) => (
+                    <Surface
+                      key={node.code}
+                      variant="panel"
+                      className={cn(
+                        "p-5 cursor-pointer transition-all hover:border-os-accent/30",
+                        activeNode === node.code ? "border-os-accent/40 bg-os-accent/5" : ""
+                      )}
+                      onClick={() => setActiveNode(node.code)}
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-lg bg-os-surface-solid border border-os-stroke flex items-center justify-center font-bold text-os-text-secondary text-sm">
+                            {node.code}
+                          </div>
+                          <div>
+                            <div className="font-semibold">{node.country}</div>
+                            <div className="text-xs text-os-text-secondary">{node.logic}</div>
+                          </div>
                         </div>
+                        <Badge className={cn(
+                          "text-xs",
+                          node.status === 'verified' ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400" :
+                            node.status === 'warning' ? "bg-red-100 text-red-700 dark:bg-red-500/10 dark:text-red-400" :
+                              "bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
+                        )}>
+                          {node.status === 'verified' ? '✓ Verified' : node.status === 'warning' ? '⚠ Warning' : 'Pending'}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center justify-between pt-3 border-t border-os-stroke">
                         <div>
-                          <div className="font-black text-os-lg">{node.country}</div>
-                          <div className="text-os-xs font-bold text-white/30 uppercase tracking-widest">{node.logic}</div>
+                          <div className="text-xs text-os-text-secondary">Import Duty</div>
+                          <div className="font-semibold text-sm text-os-accent">{node.duties}</div>
+                        </div>
+                        <div className="text-right">
+                          <div className="text-xs text-os-text-secondary">Risk</div>
+                          <div className="font-semibold text-sm capitalize">{node.risk}</div>
                         </div>
                       </div>
-                      <Badge className={cn(
-                        "text-os-xs font-black uppercase tracking-widest px-2",
-                        node.status === 'verified' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" :
-                          node.status === 'warning' ? "bg-os-red/10 text-os-red border-os-red/20" :
-                            "bg-os-accent/10 text-os-accent border-os-accent/20"
-                      )}>
-                        {node.status}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                      <div className="space-y-1">
-                        <div className="text-os-xs font-black text-white/20 uppercase tracking-[0.2em]">Tariff Node</div>
-                        <div className="font-bold text-os-sm text-os-accent">{node.duties}</div>
-                      </div>
-                      <div className="text-right space-y-1">
-                        <div className="text-os-xs font-black text-white/20 uppercase tracking-[0.2em]">Risk Grade</div>
-                        <div className="font-bold text-os-sm capitalize">{node.risk}</div>
-                      </div>
-                    </div>
-                  </Surface>
-                ))}
-              </div>
+                    </Surface>
+                  ))}
+                </div>
+              )}
             </section>
 
-            {/* Document Ledger */}
-            <section className="space-y-6">
-              <div className="flex items-center justify-between px-2">
-                <h2 className="text-os-xl font-black uppercase tracking-widest flex items-center gap-3">
-                  <Database className="w-5 h-5 text-os-blue" />
-                  Sovereign Document Ledger
-                </h2>
-              </div>
-              <Surface variant="panel" className="bg-white/[0.01] border-white/5 p-0 overflow-hidden">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-white/5">
-                      <th className="text-left p-6 text-os-xs font-black uppercase tracking-[0.3em] text-white/20">Resource</th>
-                      <th className="text-left p-6 text-os-xs font-black uppercase tracking-[0.3em] text-white/20">Commit State</th>
-                      <th className="text-left p-6 text-os-xs font-black uppercase tracking-[0.3em] text-white/20">Temporal Link</th>
-                      <th className="text-right p-6"></th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {documentCompliance.map((doc) => (
-                      <tr key={doc.id} className="border-b border-white/5 hover:bg-white/[0.02] transition-colors group">
-                        <td className="p-6">
-                          <div className="flex items-center gap-4">
-                            <div className="p-2 bg-white/5 rounded-lg border border-white/5 group-hover:border-os-accent/30 transition-all">
-                              <FileText className="w-4 h-4 text-white/40" />
-                            </div>
-                            <span className="font-bold">{doc.name}</span>
-                          </div>
-                        </td>
-                        <td className="p-6">
-                          <Badge variant="outline" className={cn(
-                            "text-os-xs font-black uppercase tracking-[0.2em]",
-                            doc.status === 'verified' ? "border-emerald-500/30 text-emerald-500" : "border-os-accent/30 text-os-accent"
-                          )}>
-                            {doc.status === 'verified' ? 'Hashed / Immutable' : 'Synchronizing'}
-                          </Badge>
-                        </td>
-                        <td className="p-6 text-os-xs font-mono text-white/30 uppercase">{doc.date}</td>
-                        <td className="p-6 text-right">
-                          <Button variant="ghost" size="sm" className="hover:bg-white/5 text-white/40 hover:text-white">
-                            <Eye className="w-4 h-4" />
-                          </Button>
-                        </td>
+            {/* Documents */}
+            <section className="space-y-4">
+              <h2 className="text-lg font-bold flex items-center gap-2">
+                <FileText className="w-5 h-5 text-os-text-secondary" />
+                Your Documents
+              </h2>
+              <Surface variant="panel" className="overflow-hidden">
+                {documentCompliance.length === 0 ? (
+                  <div className="text-center py-12 text-os-text-secondary">
+                    <FileText className="w-12 h-12 mx-auto mb-3 opacity-30" />
+                    <p className="font-medium">No documents uploaded yet</p>
+                    <p className="text-sm mt-1">Upload your business registration, tax certificates, and trade licenses</p>
+                  </div>
+                ) : (
+                  <table className="w-full">
+                    <thead>
+                      <tr className="border-b border-os-stroke">
+                        <th className="text-left p-4 text-xs font-semibold uppercase tracking-wider text-os-text-secondary">Document</th>
+                        <th className="text-left p-4 text-xs font-semibold uppercase tracking-wider text-os-text-secondary">Status</th>
+                        <th className="text-left p-4 text-xs font-semibold uppercase tracking-wider text-os-text-secondary">Date</th>
+                        <th className="text-right p-4"></th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {documentCompliance.map((doc) => (
+                        <tr key={doc.id} className="border-b border-os-stroke hover:bg-os-surface-solid/50 transition-colors">
+                          <td className="p-4">
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 bg-os-surface-solid rounded-lg border border-os-stroke">
+                                <FileText className="w-4 h-4 text-os-text-secondary" />
+                              </div>
+                              <span className="font-medium">{doc.name}</span>
+                            </div>
+                          </td>
+                          <td className="p-4">
+                            <Badge className={cn(
+                              "text-xs",
+                              doc.status === 'verified'
+                                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400"
+                                : "bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
+                            )}>
+                              {doc.status === 'verified' ? '✓ Verified' : 'Under Review'}
+                            </Badge>
+                          </td>
+                          <td className="p-4 text-sm text-os-text-secondary">{doc.date}</td>
+                          <td className="p-4 text-right">
+                            <Button variant="ghost" size="sm">
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
               </Surface>
             </section>
           </div>
 
-          {/* Sidebar Intelligence */}
-          <div className="lg:col-span-4 space-y-10">
+          {/* Sidebar */}
+          <div className="lg:col-span-4 space-y-6">
+            <Surface variant="panel" className="p-6 border border-os-accent/20 bg-os-accent/5">
+              <h4 className="text-sm font-semibold text-os-accent mb-3 flex items-center gap-2">
+                <Zap className="w-4 h-4" /> AI Compliance Tips
+              </h4>
+              <div className="space-y-3 text-sm text-os-text-secondary">
+                <p>• AfCFTA Phase II may reduce duties by 1.5% for processed agricultural goods by Q3 2026.</p>
+                <p>• Senegal is updating customs requirements — ensure your documents are up to date before shipping.</p>
+                <p>• Your compliance score is strong. Keep documents verified to maintain buyer trust.</p>
+              </div>
+            </Surface>
 
-            <section className="space-y-6">
-              <div className="flex items-center gap-3 px-1">
-                <Zap className="w-4 h-4 text-os-accent" />
-                <h3 className="text-os-xs font-black uppercase tracking-[0.3em] text-white/50">Prophet Signals</h3>
-              </div>
-              <div className="space-y-4">
-                <CopilotSignal
-                  active={true}
-                  type="market"
-                  label="Tariff Forecast"
-                  message="AfCFTA Phase II Protocols detected. Duty reduction of 1.5% likely for processed agricultural nodes by Q3 2026."
-                />
-                <CopilotSignal
-                  active={true}
-                  type="warning"
-                  label="Regulatory Shift"
-                  message="Senegal Customs updating manifest requirements. Ensure all digital hashes are committed before port entry."
-                />
-                <CopilotSignal
-                  active={true}
-                  type="secure"
-                  label="Integrity Guard"
-                  message="Full institutional DNA match detected across all hubs. Escrow velocity increased to 99%."
+            <Surface variant="panel" className="p-6">
+              <h4 className="text-sm font-semibold mb-2">Compliance Score</h4>
+              <div className="text-3xl font-bold text-emerald-600 mb-2">{complianceKPIs.overallScore}%</div>
+              <div className="h-2 w-full bg-os-stroke rounded-full overflow-hidden">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${complianceKPIs.overallScore}%` }}
+                  className="h-full bg-emerald-500 rounded-full"
                 />
               </div>
-            </section>
-
-            <Surface variant="glass" className="p-8 border-os-accent/20 bg-os-accent/[0.02] space-y-8 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-4 opacity-10">
-                <Fingerprint className="w-12 h-12 text-os-accent" />
-              </div>
-              <div className="space-y-2">
-                <h4 className="text-os-xs font-black uppercase tracking-[0.2em] text-os-accent/60">Compliance DNA</h4>
-                <div className="text-3xl font-black">Institutional</div>
-              </div>
-              <p className="text-os-xs text-white/60 font-medium italic leading-relaxed">
-                Your enterprise DNA is currently synchronized with the Pan-African Trade Ledger.
-                <span className="text-white"> All nodes are green </span> for immediate cross-border settlement.
+              <p className="text-xs text-os-text-secondary mt-2">
+                Your documents are synchronized. You're ready for cross-border trade.
               </p>
-              <div className="space-y-2 pt-4">
-                <div className="flex justify-between text-os-xs font-black text-white/40 uppercase tracking-widest">
-                  <span>Ledger Synchronization</span>
-                  <span>100%</span>
-                </div>
-                <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                  <motion.div initial={{ width: 0 }} animate={{ width: '100%' }} className="h-full bg-os-accent shadow-[0_0_10px_rgba(212,169,55,0.5)]" />
-                </div>
-              </div>
             </Surface>
           </div>
         </div>

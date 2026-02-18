@@ -44,10 +44,10 @@ export async function generateForensicPDF(reportHtml, fileName = 'Forensic_Audit
             // Add the main report image
             pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
 
-            // Add Institutional "Sovereign Proof" Watermark (Optional / Dynamic)
+            // Add Institutional "Verified Proof" Watermark (Optional / Dynamic)
             pdf.setFontSize(8);
             pdf.setTextColor(200, 200, 200);
-            pdf.text('CERTIFIED BY AFRIKONI SOVEREIGN LEDGER • v2026.4 • IMMUTABLE DNA', 105, 290, { align: 'center' });
+            pdf.text('CERTIFIED BY AFRIKONI SECURE LEDGER • v2026.4 • IMMUTABLE DNA', 105, 290, { align: 'center' });
 
             // Clean up
             document.body.removeChild(container);

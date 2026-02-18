@@ -1,10 +1,10 @@
 import {
     LayoutDashboard, GitBranch, MessageSquare, FileText, ShoppingCart,
     Package, Truck, Wallet, Shield, Settings, HelpCircle, BarChart3,
-    Building, Globe, Landmark, Bell, LogOut, Lock
+    Building, Globe, Landmark, Bell, LogOut, Lock, CheckCircle2
 } from 'lucide-react';
 
-export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple', notificationCounts = {} }) => {
+export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple', notificationCounts = {}, isAdmin = false }) => {
     const isBuyer = capabilities?.can_buy === true;
     const isSeller = capabilities?.can_sell === true;
     const isLogistics = capabilities?.can_logistics === true;
@@ -96,15 +96,22 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
             ].filter(Boolean)
         },
         {
-            id: 'pay',
+            id: 'finance',
             divider: true,
-            label: 'Payments',
+            label: 'Finance',
             items: [
                 {
-                    id: 'finance',
-                    label: 'My Payments',
-                    path: '/dashboard/payments',
+                    id: 'wallet',
+                    label: 'Wallet & Payouts',
+                    path: '/dashboard/wallet',
                     icon: Wallet,
+                    activeMatch: (path) => path.startsWith('/dashboard/wallet')
+                },
+                {
+                    id: 'payments',
+                    label: 'Transactions',
+                    path: '/dashboard/payments',
+                    icon: BarChart3,
                     activeMatch: (path) => path.startsWith('/dashboard/payments')
                 },
                 workspaceMode === 'operator' && {
@@ -117,29 +124,55 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
             ].filter(Boolean)
         },
         {
-            id: 'trust',
+            id: 'compliance',
             divider: true,
-            label: 'Verification',
+            label: 'Compliance',
             items: [
                 {
-                    id: 'trust-center',
-                    label: 'Trust & Safety',
-                    path: '/dashboard/trust-center',
+                    id: 'verification',
+                    label: 'Verification Center',
+                    path: '/dashboard/kyc',
                     icon: Shield,
-                    badge: 'NEW',
-                    activeMatch: (path) => path.startsWith('/dashboard/trust-center')
+                    activeMatch: (path) => path.startsWith('/dashboard/kyc')
                 },
                 {
-                    id: 'verification',
-                    label: 'Identity Check',
-                    path: '/dashboard/verification-center',
-                    icon: Building,
-                    badge: 'BETA',
-                    activeMatch: (path) => path.startsWith('/dashboard/verification-center')
+                    id: 'disputes',
+                    label: 'Resolution Center',
+                    path: '/dashboard/disputes',
+                    icon: Lock,
+                    activeMatch: (path) => path.startsWith('/dashboard/disputes') && !path.includes('/admin/')
+                }
+            ].filter(Boolean)
+        },
+        isAdmin && {
+            id: 'admin',
+            divider: true,
+            label: 'Administration',
+            items: [
+                {
+                    id: 'admin-payouts',
+                    label: 'Payout Approval',
+                    path: '/dashboard/admin/payouts',
+                    icon: Wallet,
+                    activeMatch: (path) => path.startsWith('/dashboard/admin/payouts')
+                },
+                {
+                    id: 'admin-disputes',
+                    label: 'Manage Disputes',
+                    path: '/dashboard/admin/disputes',
+                    icon: Shield,
+                    activeMatch: (path) => path.startsWith('/dashboard/admin/disputes')
+                },
+                {
+                    id: 'admin-verifications',
+                    label: 'Verification Desk',
+                    path: '/dashboard/admin/verifications',
+                    icon: CheckCircle2,
+                    activeMatch: (path) => path.startsWith('/dashboard/admin/verifications')
                 }
             ].filter(Boolean)
         }
-    ].filter(section => !section.hidden && section.items.length > 0);
+    ].filter(section => !section.hidden && section.items?.length > 0);
 
     const systemApps = [
         {

@@ -138,6 +138,12 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning, c
                   >
                     Trust: {Math.round(quote.supplier?.trust_score || 0)}%
                   </Badge>
+                  {quote.supplier?.trust_score >= 90 && (
+                    <Badge variant="secondary" className="bg-os-accent/10 text-os-accent border border-os-accent/30 gap-1">
+                      <CheckCircle2 className="w-3 h-3" />
+                      Verified
+                    </Badge>
+                  )}
                 </div>
               </div>
 

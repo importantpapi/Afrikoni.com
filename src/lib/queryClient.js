@@ -24,11 +24,11 @@ export const queryClient = new QueryClient({
   },
 });
 
-// ✅ SOVEREIGN SYNC: Persistence Layer
+// ✅ SECURE SYNC: Persistence Layer
 if (typeof window !== 'undefined') {
   const persister = createSyncStoragePersister({
     storage: window.localStorage, // Defaulting to LocalStorage for L1-L3 reliability
-    key: 'AFRIKONI_SOVEREIGN_CACHE',
+    key: 'AFRIKONI_SECURE_CACHE',
   });
 
   persistQueryClient({

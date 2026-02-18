@@ -1,10 +1,10 @@
 /**
  * REVENUE ENGINE
  * 
- * The commercial heart of the Sovereign Trade Protocol.
+ * The commercial heart of the Afrikoni Trade Protocol.
  * Responsible for:
  * 1. Calculating the 8% Take-Rate (Platform + FX + Service)
- * 2. Gating "Sovereign" assets (Certificates) behind fees ($25/flow)
+ * 2. Gating "Secure" assets (Certificates) behind fees ($25/flow)
  * 3. Managing Currency Netting Spreads
  */
 
@@ -38,24 +38,25 @@ export function calculateTradeFees(tradeValueUSD) {
 }
 
 /**
- * Simulate Treasury Bridge FX Rates (with spread baked in)
- * @param {number} amountUSD 
+ * Estimate FX output for display purposes only.
+ * For actual settlement, always use live rates from sync-fx-rates Edge Function.
+ * @param {number} amountUSD
  * @param {string} targetCurrency (NGN, GHS, KES)
  */
 export function estimateFX(amountUSD, targetCurrency) {
-    // Baseline fallback rates for Sovereign Protocol
+    // Static fallback rates — used only for UI estimates when live rates unavailable
     const RATES = {
-        'NGN': 1650.50, // Parallel/Black market reference
-        'GHS': 15.80,
-        'KES': 145.20
+        'NGN': 1550,
+        'GHS': 13.5,
+        'KES': 130,
     };
 
     const rate = RATES[targetCurrency] || 0;
-    // Apply internal spread logic if needed, but for now returned raw "Street Rate" which generates demand
     return {
-        rate: rate,
+        rate,
         estimatedOutput: amountUSD * rate,
-        currency: targetCurrency
+        currency: targetCurrency,
+        isEstimate: true,
     };
 }
 

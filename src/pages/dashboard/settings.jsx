@@ -551,10 +551,10 @@ export default function DashboardSettings() {
                       </span>
                     </div>
                     <h1 className="text-3xl md:text-5xl font-black tracking-tight text-os-text-primary mb-2">
-                      Identity <span className="text-white/40">&</span> Control
+                      Account Settings
                     </h1>
                     <p className="text-os-sm md:text-os-base text-gray-500 max-w-lg font-medium">
-                      Manage your global enterprise presence and cryptographic security settings.
+                      Manage your profile, company info, notifications, and security.
                     </p>
                   </div>
                 </div>
@@ -585,16 +585,15 @@ export default function DashboardSettings() {
           </div>
         </motion.div>
 
-        {/* 2026 OS Tabs */}
         <Tabs defaultValue="profile" className="space-y-8">
-          <TabsList className="border-none bg-gray-100/50 backdrop-blur-2xl rounded-[2rem] p-2 shadow-sm grid grid-cols-3 md:grid-cols-6 gap-2 sticky top-4 z-50 mb-12">
+          <TabsList className="border-none bg-gray-100/50 backdrop-blur-2xl rounded-[2rem] p-2 shadow-sm grid grid-cols-3 md:grid-cols-6 gap-2 sticky top-4 z-50 mb-12 h-auto">
             {[
-              { id: 'profile', label: 'Identity', icon: User },
-              { id: 'company', label: 'Enterprise', icon: Building },
-              { id: 'role', label: 'Policy', icon: ShieldCheck },
-              { id: 'notifications', label: 'Push', icon: Bell },
-              { id: 'security', label: 'Vault', icon: Lock },
-              { id: 'system', label: 'Hardware', icon: Monitor },
+              { id: 'profile', label: 'Profile', icon: User },
+              { id: 'company', label: 'Company', icon: Building },
+              { id: 'role', label: 'My Role', icon: ShieldCheck },
+              { id: 'notifications', label: 'Notifications', icon: Bell },
+              { id: 'security', label: 'Security', icon: Lock },
+              { id: 'system', label: 'Preferences', icon: Monitor },
             ].map((tab) => (
               <TabsTrigger
                 key={tab.id}
@@ -615,7 +614,7 @@ export default function DashboardSettings() {
                   <div className="p-3 rounded-os-md bg-os-accent/10 border border-os-accent/30">
                     <User className="w-6 h-6 text-os-accent" />
                   </div>
-                  {translate('settings.personalInformation', 'Institutional Identity')}
+                  {translate('settings.personalInformation', 'Personal Information')}
                 </div>
               </div>
 
@@ -645,9 +644,9 @@ export default function DashboardSettings() {
 
                   <div className="flex-1 text-center md:text-left space-y-4">
                     <div>
-                      <h4 className="text-os-xl font-bold text-os-text-primary mb-1">Cryptographic Avatar</h4>
+                      <h4 className="text-os-xl font-bold text-os-text-primary mb-1">Profile Photo</h4>
                       <p className="text-os-sm text-gray-500 font-medium max-w-sm">
-                        This image represents your enterprise handle across the Pan-African trade network.
+                        Your photo is shown to buyers and suppliers across the Afrikoni network.
                       </p>
                     </div>
 
@@ -665,7 +664,7 @@ export default function DashboardSettings() {
                         <Button type="button" variant="outline" size="lg" disabled={uploadingAvatar} asChild className="rounded-os-sm border-gray-200 bg-white hover:bg-gray-50 text-os-text-primary font-bold h-12 px-6">
                           <span>
                             <Upload className="w-4 h-4 mr-2" />
-                            {uploadingAvatar ? 'Uploading...' : 'Update Signature'}
+                            {uploadingAvatar ? 'Uploading...' : 'Upload Photo'}
                           </span>
                         </Button>
                       </label>
@@ -698,7 +697,7 @@ export default function DashboardSettings() {
 
                   <div className="space-y-4">
                     <Label htmlFor="email" className="text-os-xs uppercase font-black tracking-widest text-gray-400 ml-1 text-emerald-400/60 flex items-center gap-2">
-                      Verified Email Root
+                      Email Address
                       <div className="w-1 h-1 rounded-full bg-emerald-400" />
                     </Label>
                     <div className="relative group">
@@ -718,7 +717,7 @@ export default function DashboardSettings() {
 
                 <div className="grid md:grid-cols-2 gap-10">
                   <div className="space-y-4">
-                    <Label className="text-os-xs uppercase font-black tracking-widest text-gray-400 ml-1">Localization (OS Language)</Label>
+                    <Label className="text-os-xs uppercase font-black tracking-widest text-gray-400 ml-1">Language</Label>
                     <Select value={preferences.language} onValueChange={(v) => setPreferences({ ...preferences, language: v })}>
                       <SelectTrigger className="h-14 bg-white border-gray-200 rounded-os-md text-os-text-primary font-medium">
                         <SelectValue />
@@ -734,7 +733,7 @@ export default function DashboardSettings() {
                   </div>
 
                   <div className="space-y-4">
-                    <Label className="text-os-xs uppercase font-black tracking-widest text-gray-400 ml-1">Trade Currency (Settlement)</Label>
+                    <Label className="text-os-xs uppercase font-black tracking-widest text-gray-400 ml-1">Default Currency</Label>
                     <Select value={preferences.currency} onValueChange={(v) => setPreferences({ ...preferences, currency: v })}>
                       <SelectTrigger className="h-14 bg-white border-gray-200 rounded-os-md text-os-text-primary font-medium">
                         <SelectValue />
@@ -754,8 +753,8 @@ export default function DashboardSettings() {
                 <div className="space-y-4 pt-4 border-t border-gray-100">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     <div className="space-y-1">
-                      <h4 className="text-os-text-primary font-bold">Commit Changes to Kernel</h4>
-                      <p className="text-os-xs text-gray-400">Persistence will be propagated across all active sessions.</p>
+                      <h4 className="text-os-text-primary font-bold">Save Your Profile</h4>
+                      <p className="text-os-xs text-gray-400">Changes will apply across all your active sessions.</p>
                     </div>
                     <Button
                       onClick={() => handleSave('profile')}
@@ -770,7 +769,7 @@ export default function DashboardSettings() {
                       ) : (
                         <>
                           <Save className="w-5 h-5 mr-3" />
-                          Commit Identity
+                          Save Profile
                         </>
                       )}
                     </Button>
@@ -787,7 +786,7 @@ export default function DashboardSettings() {
                   <div className="p-3 rounded-os-md bg-os-accent/10 border border-os-accent/30">
                     <Building className="w-6 h-6 text-os-accent" />
                   </div>
-                  Enterprise Infrastructure
+                  Company Profile
                 </div>
               </div>
 
@@ -795,13 +794,13 @@ export default function DashboardSettings() {
                 {/* Institutional Grid */}
                 <div className="space-y-8">
                   <div className="flex items-center gap-3">
-                    <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-gray-400">Registry Details</h3>
+                    <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-gray-400">Company Details</h3>
                     <div className="h-px flex-1 bg-gray-200" />
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-10">
                     <div className="space-y-4">
-                      <Label htmlFor="company_name" className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">Legal Entity Name</Label>
+                      <Label htmlFor="company_name" className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">Company Name</Label>
                       <Input
                         id="company_name"
                         value={formData.company_name}
@@ -812,17 +811,17 @@ export default function DashboardSettings() {
                     </div>
 
                     <div className="space-y-4">
-                      <Label htmlFor="business_type" className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">Enterprise Architecture</Label>
+                      <Label htmlFor="business_type" className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">Business Type</Label>
                       <Select value={formData.business_type} onValueChange={(v) => handleChange('business_type', v)}>
                         <SelectTrigger className="h-14 bg-white border-gray-200 rounded-os-md font-medium">
                           <SelectValue placeholder="Select structure" />
                         </SelectTrigger>
                         <SelectContent className="bg-white border-gray-200 backdrop-blur-xl">
-                          <SelectItem value="manufacturer">Industrial Manufacturer</SelectItem>
-                          <SelectItem value="wholesaler">Bulk Wholesaler</SelectItem>
-                          <SelectItem value="distributor">Regional Distributor</SelectItem>
-                          <SelectItem value="trading_company">Global Trading Node</SelectItem>
-                          <SelectItem value="logistics_provider">Fulfillment Service</SelectItem>
+                          <SelectItem value="manufacturer">Manufacturer</SelectItem>
+                          <SelectItem value="wholesaler">Wholesaler</SelectItem>
+                          <SelectItem value="distributor">Distributor</SelectItem>
+                          <SelectItem value="trading_company">Trading Company</SelectItem>
+                          <SelectItem value="logistics_provider">Logistics Provider</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -830,7 +829,7 @@ export default function DashboardSettings() {
 
                   <div className="grid md:grid-cols-3 gap-10">
                     <div className="space-y-4">
-                      <Label className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">Base Jurisdicton</Label>
+                      <Label className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">Country</Label>
                       <Select value={formData.country} onValueChange={(v) => handleChange('country', v)}>
                         <SelectTrigger className="h-14 bg-white border-gray-200 rounded-os-md font-medium">
                           <SelectValue placeholder="Country" />
@@ -871,16 +870,16 @@ export default function DashboardSettings() {
                 {/* Operations Section */}
                 <div className="space-y-8">
                   <div className="flex items-center gap-3">
-                    <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-gray-400">Operative Network</h3>
+                    <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-gray-400">Business Operations</h3>
                     <div className="h-px flex-1 bg-gray-200" />
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-10">
                     <div className="space-y-4">
-                      <Label className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">Enterprise Scale</Label>
+                      <Label className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">Company Size</Label>
                       <Select value={formData.company_size} onValueChange={(v) => handleChange('company_size', v)}>
                         <SelectTrigger className="h-14 bg-white border-gray-200 rounded-os-md font-medium">
-                          <SelectValue placeholder="Human Capital Scale" />
+                          <SelectValue placeholder="Number of employees" />
                         </SelectTrigger>
                         <SelectContent className="bg-white border-gray-200">
                           <SelectItem value="1-10">1-10 (Micro)</SelectItem>
@@ -893,7 +892,7 @@ export default function DashboardSettings() {
                     </div>
 
                     <div className="space-y-4">
-                      <Label className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">Digital Presence (URL)</Label>
+                      <Label className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">Website</Label>
                       <Input
                         id="website"
                         value={formData.website}
@@ -905,13 +904,13 @@ export default function DashboardSettings() {
                   </div>
 
                   <div className="space-y-4">
-                    <Label className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">Capability Description</Label>
+                    <Label className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">About Your Business</Label>
                     <Textarea
                       id="company_description"
                       value={formData.company_description}
                       onChange={(e) => handleChange('company_description', e.target.value)}
                       rows={5}
-                      placeholder="Detail your industrial capacity and trade corridors..."
+                      placeholder="Describe what your company does and what products or services you offer..."
                       className="bg-white border-gray-200 rounded-os-md p-6 text-os-lg"
                     />
                   </div>
@@ -924,14 +923,14 @@ export default function DashboardSettings() {
                       <Shield className="w-8 h-8" />
                     </div>
                     <div className="flex-1 text-center md:text-left space-y-2">
-                      <h4 className="text-os-xl font-bold text-os-text-primary uppercase tracking-tight">Trust Verification Hub</h4>
+                      <h4 className="text-os-xl font-bold text-os-text-primary uppercase tracking-tight">Verify Your Business</h4>
                       <p className="text-os-sm text-blue-200/50 font-medium">
-                        Institutional badges, tax IDs, and trade compliance papers are managed via the Verification Gate.
+                        Upload your tax ID, trade certificates, and compliance documents to get verified.
                       </p>
                     </div>
                     <Link to="/dashboard/verification-center" className="w-full md:w-auto">
                       <Button type="button" variant="outline" className="w-full h-14 px-8 rounded-os-md border-blue-500/30 text-blue-400 font-bold uppercase tracking-widest text-os-xs hover:bg-os-blue/10">
-                        Launch Verification Gate
+                        Go to Verification
                       </Button>
                     </Link>
                   </div>
@@ -948,7 +947,7 @@ export default function DashboardSettings() {
                     ) : (
                       <>
                         <Save className="w-5 h-5 mr-3" />
-                        Deploy Enterprise Specs
+                        Save Company Info
                       </>
                     )}
                   </Button>
@@ -964,7 +963,7 @@ export default function DashboardSettings() {
                   <div className="p-3 rounded-os-md bg-os-accent/10 border border-os-accent/30">
                     <ShieldCheck className="w-6 h-6 text-os-accent" />
                   </div>
-                  Network Access <span className="text-white/40">&</span> Policy
+                  Your Role & Access
                 </div>
               </div>
 
@@ -998,7 +997,7 @@ export default function DashboardSettings() {
 
                     <div className="flex flex-col items-center md:items-end gap-6">
                       <div className="text-center md:text-right">
-                        <div className="text-os-xs uppercase text-white/30 font-black tracking-[0.2em] mb-2">Cryptographic Node ID</div>
+                        <div className="text-os-xs uppercase text-white/30 font-black tracking-[0.2em] mb-2">Account ID</div>
                         <div className="font-mono text-os-sm bg-black/60 px-4 py-2 rounded-os-sm text-os-accent border border-white/5 shadow-inner">
                           {profileCompanyId?.split('-')[0]?.toUpperCase() || 'NODE-001'}
                         </div>
@@ -1006,7 +1005,7 @@ export default function DashboardSettings() {
 
                       <Link to="/dashboard?switch=true">
                         <Button className="h-12 px-8 bg-white text-black font-black uppercase tracking-widest rounded-os-sm hover:bg-white/90 transition-all hover:scale-105 active:scale-95 text-os-xs">
-                          Switch Environment
+                          Switch Mode
                         </Button>
                       </Link>
                     </div>
@@ -1017,7 +1016,7 @@ export default function DashboardSettings() {
                 {(capabilities?.can_buy && capabilities?.can_sell) && (
                   <div className="space-y-6">
                     <div className="flex items-center gap-3">
-                      <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-gray-400">Startup Handlers</h3>
+                      <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-gray-400">Default Mode</h3>
                       <div className="h-px flex-1 bg-gray-200" />
                     </div>
 
@@ -1054,18 +1053,18 @@ export default function DashboardSettings() {
                 {/* Capabilities Grid */}
                 <div className="space-y-8">
                   <div className="flex items-center gap-3">
-                    <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-gray-400">Active System Privileges</h3>
+                    <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-gray-400">Your Features</h3>
                     <div className="h-px flex-1 bg-gray-200" />
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {[
-                      { id: 'trade', label: 'Corridor Access', active: true, icon: Globe, desc: '54-country Continental trade gates' },
-                      { id: 'finance', label: 'Trade Finance', active: capabilities?.can_finance, icon: CreditCard, desc: 'LC and escrow issuance protocols' },
-                      { id: 'logistics', label: 'Logistics Matrix', active: capabilities?.can_logistics, icon: Truck, desc: 'Fleet node management access' },
-                      { id: 'verification', label: 'High-Trust Badge', active: profile?.verification_status === 'verified', icon: ShieldCheck, desc: 'Verified status in global search' },
-                      { id: 'analytics', label: 'Deep Data Engine', active: true, icon: TrendingUp, desc: 'Real-time market volatility indexing' },
-                      { id: 'ai', label: 'Copilot AI', active: true, icon: Zap, desc: 'Algorithmic matching & risk scoring' }
+                      { id: 'trade', label: 'Trade Access', active: true, icon: Globe, desc: 'Access to 54 African markets' },
+                      { id: 'finance', label: 'Trade Finance', active: capabilities?.can_finance, icon: CreditCard, desc: 'Letters of credit and escrow' },
+                      { id: 'logistics', label: 'Logistics', active: capabilities?.can_logistics, icon: Truck, desc: 'Freight booking and tracking' },
+                      { id: 'verification', label: 'Verified Badge', active: profile?.verification_status === 'verified', icon: ShieldCheck, desc: 'Appears verified in search results' },
+                      { id: 'analytics', label: 'Analytics', active: true, icon: TrendingUp, desc: 'Trade insights and market data' },
+                      { id: 'ai', label: 'AI Assistant', active: true, icon: Zap, desc: 'AI-powered matching and suggestions' }
                     ].map((cap) => (
                       <div key={cap.id} className={cn(
                         "p-6 rounded-[2rem] border flex flex-col items-start gap-4 transition-all group",
@@ -1098,12 +1097,12 @@ export default function DashboardSettings() {
                       <Sparkles className="w-6 h-6" />
                     </div>
                     <div>
-                      <h4 className="text-os-lg font-black text-white uppercase tracking-tight">Unlock Enterprise Hub</h4>
-                      <p className="text-os-sm text-blue-200/50 font-medium">Gain API access, dedicated bandwidth, and deep market analytics.</p>
+                      <h4 className="text-os-lg font-black text-white uppercase tracking-tight">Upgrade Your Plan</h4>
+                      <p className="text-os-sm text-blue-200/50 font-medium">Get API access, priority support, and advanced market insights.</p>
                     </div>
                   </div>
                   <Button className="h-14 px-10 bg-blue-500 hover:bg-blue-400 text-white font-black uppercase tracking-widest rounded-os-md shadow-[0_12px_44px_-8px_rgba(59,130,246,0.5)] transition-all">
-                    Upgrade Protocol
+                    Upgrade Now
                   </Button>
                 </div>
               </div>
@@ -1117,20 +1116,20 @@ export default function DashboardSettings() {
                   <div className="p-3 rounded-os-md bg-os-accent/10 border border-os-accent/30">
                     <Bell className="w-6 h-6 text-os-accent" />
                   </div>
-                  Omnichannel Push Settings
+                  Notification Preferences
                 </div>
               </div>
 
               <div className="p-8 md:p-12 space-y-8">
                 <div className="grid gap-4">
                   {[
-                    { title: "Email Broadcasts", desc: "Institutional trade alerts via SMTP", key: "email_notifications", icon: Mail },
-                    { title: "Dashboard HUD", desc: "In-app holographic notifications", key: "in_app_notifications", icon: Monitor },
-                    { title: "Order Lifecycle", desc: "Sourcing & settlement events", key: "order_updates", icon: Package },
-                    { title: "Neural Messages", desc: "Encrypted P2P trade chat alerts", key: "new_messages", icon: MessageSquare },
-                    { title: "RFQ Pulse", desc: "Instant response on issuing quotes", key: "rfq_responses", icon: FileText },
-                    { title: "Trust Reviews", desc: "Network reputation score updates", key: "reviews", icon: Star },
-                    { title: "Escrow Events", desc: "Critical payment and release triggers", key: "payments", icon: CreditCard },
+                    { title: "Email Alerts", desc: "Get trade updates sent to your email", key: "email_notifications", icon: Mail },
+                    { title: "In-App Notifications", desc: "Show alerts inside the platform", key: "in_app_notifications", icon: Monitor },
+                    { title: "Order Updates", desc: "Updates on your active orders", key: "order_updates", icon: Package },
+                    { title: "Message Alerts", desc: "Notify me when I receive a message", key: "new_messages", icon: MessageSquare },
+                    { title: "Quote Alerts", desc: "Notify me when I receive a quote", key: "rfq_responses", icon: FileText },
+                    { title: "Review Alerts", desc: "When someone leaves a review", key: "reviews", icon: Star },
+                    { title: "Payment Alerts", desc: "Escrow deposits, releases, and refunds", key: "payments", icon: CreditCard },
                   ].map((item) => (
                     <div key={item.key} className="flex items-center justify-between p-6 rounded-os-md border border-white/5 bg-white/[0.03] group hover:bg-white/[0.05] transition-all duration-300">
                       <div className="flex items-center gap-5">
@@ -1154,8 +1153,8 @@ export default function DashboardSettings() {
                 <div className="pt-8 border-t border-gray-100">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
                     <div className="space-y-1">
-                      <h4 className="text-os-text-primary font-bold">Sync Communication Matrix</h4>
-                      <p className="text-os-xs text-gray-400">Broadcasting will be normalized across your connected devices.</p>
+                      <h4 className="text-os-text-primary font-bold">Your Notification Settings</h4>
+                      <p className="text-os-xs text-gray-400">These preferences apply to all your devices.</p>
                     </div>
                     <Button
                       onClick={() => handleSave('notifications')}
@@ -1167,7 +1166,7 @@ export default function DashboardSettings() {
                       ) : (
                         <>
                           <Save className="w-5 h-5 mr-3" />
-                          Commit Push Logic
+                          Save Notifications
                         </>
                       )}
                     </Button>
@@ -1184,7 +1183,7 @@ export default function DashboardSettings() {
                   <div className="p-3 rounded-os-md bg-red-400/10 border border-red-400/30">
                     <Lock className="w-6 h-6 text-red-400" />
                   </div>
-                  Cryptographic Vault
+                  Security Settings
                 </div>
               </div>
 
@@ -1192,13 +1191,13 @@ export default function DashboardSettings() {
                 {/* Password Section */}
                 <div className="space-y-8">
                   <div className="flex items-center gap-3">
-                    <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-gray-400">Keys Rotation</h3>
+                    <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-gray-400">Change Password</h3>
                     <div className="h-px flex-1 bg-gray-200" />
                   </div>
 
                   <div className="grid md:grid-cols-3 gap-6">
                     <div className="space-y-4">
-                      <Label htmlFor="currentPassword" title="Current Key" className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">Current Key</Label>
+                      <Label htmlFor="currentPassword" className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">Current Password</Label>
                       <Input
                         id="currentPassword"
                         type="password"
@@ -1208,7 +1207,7 @@ export default function DashboardSettings() {
                       />
                     </div>
                     <div className="space-y-4">
-                      <Label htmlFor="newPassword" title="New Key" className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">New Strategic Key</Label>
+                      <Label htmlFor="newPassword" className="text-gray-500 font-bold uppercase tracking-widest text-os-xs ml-1">New Password</Label>
                       <Input
                         id="newPassword"
                         type="password"
@@ -1224,7 +1223,7 @@ export default function DashboardSettings() {
                         variant="outline"
                         className="h-14 rounded-os-md border-white/10 bg-white/5 hover:bg-white/10 text-white font-black uppercase tracking-widest text-os-xs"
                       >
-                        Rotate Key Now
+                        Change Password
                       </Button>
                     </div>
                   </div>
@@ -1238,21 +1237,21 @@ export default function DashboardSettings() {
                       <div className="h-px flex-1 bg-gray-200" />
                     </div>
                     <div className="p-8 rounded-[2rem] border border-os-red/20 bg-red-500/5 space-y-4">
-                      <p className="text-os-sm text-red-200/50 font-medium">Clear all active cryptographic tokens from all devices in your network.</p>
+                      <p className="text-os-sm text-red-200/50 font-medium">Sign out from all devices. You will need to log in again on each device.</p>
                       <Button onClick={handleLogoutAllDevices} variant="outline" className="w-full h-12 border-red-500/30 text-red-400 hover:bg-os-red/10 font-bold uppercase tracking-widest text-os-xs rounded-os-sm">
-                        Universal Logout
+                        Sign Out Everywhere
                       </Button>
                     </div>
                   </div>
 
                   <div className="space-y-6">
                     <div className="flex items-center gap-3">
-                      <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-gray-400">External Connectivity</h3>
+                      <h3 className="text-os-xs uppercase font-black tracking-[0.3em] text-gray-400">API Access</h3>
                       <div className="h-px flex-1 bg-gray-200" />
                     </div>
                     <div className="p-8 rounded-[2rem] border border-white/10 bg-white/[0.03] space-y-4">
                       <div className="flex items-center justify-between">
-                        <Label className="text-os-text-primary font-bold uppercase tracking-widest text-os-xs">Trade API Key</Label>
+                        <Label className="text-os-text-primary font-bold uppercase tracking-widest text-os-xs">API Key</Label>
                         <Button variant="ghost" size="sm" onClick={() => setShowApiKey(!showApiKey)} className="text-os-accent h-auto p-0 font-black text-os-xs uppercase tracking-widest">
                           {showApiKey ? '[ Hide ]' : '[ Reveal ]'}
                         </Button>
@@ -1266,7 +1265,7 @@ export default function DashboardSettings() {
                         />
                       </div>
                       <Button variant="outline" onClick={generateApiKey} disabled={isSaving} className="w-full h-10 border-white/10 bg-white/5 text-os-xs font-black uppercase tracking-widest rounded-os-sm hover:bg-white/10">
-                        Regenerate Connection Token
+                        Generate New Key
                       </Button>
                     </div>
                   </div>
@@ -1284,7 +1283,7 @@ export default function DashboardSettings() {
                     ) : (
                       <>
                         <Save className="w-5 h-5 mr-3" />
-                        Seal Security Vault
+                        Save Security Settings
                       </>
                     )}
                   </Button>
@@ -1300,7 +1299,7 @@ export default function DashboardSettings() {
                   <div className="p-3 rounded-os-md bg-blue-500/20 backdrop-blur-sm border border-os-blue/20">
                     <Monitor className="w-6 h-6 text-blue-400" />
                   </div>
-                  Trade OS Hardware
+                  App Preferences
                 </div>
               </div>
 
@@ -1319,14 +1318,12 @@ export default function DashboardSettings() {
 
                     <div className="flex-1 text-center md:text-left space-y-4">
                       <div className="space-y-1">
-                        <h4 className="text-os-xl font-black text-os-text-primary uppercase tracking-tighter">Kernel Pulse Active</h4>
-                        <p className="text-os-sm text-gray-400 font-medium">Monitoring GPU load and cryptographic throughput in real-time.</p>
+                        <h4 className="text-os-xl font-black text-os-text-primary uppercase tracking-tighter">System Status</h4>
+                        <p className="text-os-sm text-gray-400 font-medium">All systems are running normally.</p>
                       </div>
 
                       <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
-                        <div className="px-4 py-2 rounded-os-sm bg-os-blue/10 border border-os-blue/20 text-os-xs font-black text-blue-400 uppercase tracking-widest">Latency: 24ms</div>
-                        <div className="px-4 py-2 rounded-os-sm bg-emerald-500/10 border border-emerald-500/20 text-os-xs font-black text-emerald-400 uppercase tracking-widest">Uptime: 99.99%</div>
-                        <div className="px-4 py-2 rounded-os-sm bg-purple-500/10 border border-purple-500/20 text-os-xs font-black text-purple-400 uppercase tracking-widest">Buffer: 4.2GB</div>
+                        <div className="px-4 py-2 rounded-os-sm bg-emerald-500/10 border border-emerald-500/20 text-os-xs font-black text-emerald-400 uppercase tracking-widest">All Systems Operational</div>
                       </div>
                     </div>
                   </div>
@@ -1338,10 +1335,10 @@ export default function DashboardSettings() {
                     <div className="space-y-3">
                       <div className="text-os-xs font-black text-os-text-primary uppercase tracking-widest flex items-center gap-2">
                         <Zap className="w-4 h-4 text-amber-500" />
-                        Lite Engine Execution
+                        Lite Mode
                       </div>
                       <p className="text-os-xs text-gray-400 max-w-sm font-medium leading-relaxed">
-                        Reduces visual fidelity by disabling blur effects and heavy gradients. Essential for low-latency trade executions.
+                        Disables background blur and heavy visual effects for faster performance on slower devices.
                       </p>
                     </div>
                     <Switch
@@ -1356,10 +1353,10 @@ export default function DashboardSettings() {
                     <div className="space-y-3">
                       <div className="text-os-xs font-black text-os-text-primary uppercase tracking-widest flex items-center gap-2">
                         <Activity className="w-4 h-4 text-emerald-500" />
-                        Static UI Mode
+                        Reduce Motion
                       </div>
                       <p className="text-os-xs text-gray-400 max-w-sm font-medium leading-relaxed">
-                        Disables micro-interactions and spring animations for a more persistent, infrastructure-grade interface.
+                        Disables animations and transitions for a simpler, distraction-free experience.
                       </p>
                     </div>
                     <Switch
@@ -1373,7 +1370,7 @@ export default function DashboardSettings() {
                 <div className="p-6 rounded-os-md bg-blue-500/5 border border-os-blue/20 flex items-center gap-4">
                   <Sparkles className="w-5 h-5 text-blue-400 shrink-0" />
                   <div className="text-os-xs text-blue-200/50 leading-relaxed uppercase tracking-widest font-black">
-                    Hardware acceleration and sensory preferences are synchronized with your local machine's GPU profile.
+                    These settings are saved to your browser and apply immediately.
                   </div>
                 </div>
               </div>

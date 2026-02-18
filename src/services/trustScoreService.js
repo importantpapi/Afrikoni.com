@@ -292,7 +292,21 @@ export async function getTrustProfile(companyId) {
       .single();
 
     if (!company) {
-      return { error: 'Company not found' };
+      console.warn(`[trustService] Company ${companyId} not found`);
+      return {
+        company: {
+          id: companyId,
+          name: 'Pending Verification',
+          trustScore: 0,
+          tier: getTrustScoreTier(0),
+          completionRate: 0,
+          deliveryReliability: 0,
+          averageRating: 0,
+          disputeScore: 0
+        },
+        recommendations: ['Complete onboarding to view trust profile'],
+        recentRatings: []
+      };
     }
 
     const tier = getTrustScoreTier(company.trust_score || 0);

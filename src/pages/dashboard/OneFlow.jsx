@@ -5,7 +5,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { useTrade } from '@/hooks/queries/useTrade';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,7 +26,8 @@ import MultiSigBridge from '@/components/trade/MultiSigBridge';
 import { Surface } from '@/components/system/Surface';
 import { ForensicExportButton } from '@/components/shared/ui/ForensicExportButton';
 import { generateForensicPDF } from '@/utils/pdfGenerator';
-import { ArrowLeft, Fingerprint, ShieldAlert, Cpu, Sparkles, Terminal, Activity, Shield } from 'lucide-react';
+import ReviewModal from '@/components/trade/ReviewModal';
+import { ArrowLeft, Fingerprint, ShieldAlert, Cpu, Sparkles, Terminal, Activity, Shield, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageLoader } from '@/components/shared/ui/skeletons';
 
@@ -55,6 +56,7 @@ export default function OneFlow() {
   const { data: trade, isLoading: loading, error: queryError, refetch } = useTrade(tradeId);
   const [error, setError] = useState(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
   const { timeline: kernelTimeline } = useTradeEventLedger(tradeId);
 
   useEffect(() => {
@@ -92,8 +94,8 @@ export default function OneFlow() {
       if (result.success) {
         await refetch();
         if (result.trustMutation > 0) {
-          toast.success('Trust DNA Mutated', {
-            description: `Sovereign Reliability increased by ${result.trustMutation}%.`,
+          toast.success('Trust Score Updated', {
+            description: `Trust Score increased by ${result.trustMutation}%.`,
             icon: <Sparkles className="w-4 h-4 text-os-accent" />
           });
         }
@@ -107,6 +109,22 @@ export default function OneFlow() {
     }
   }
 
+  // Auto-trigger review modal when settled
+  useEffect(() => {
+    if (trade?.status === TRADE_STATE.SETTLED && !trade.metadata?.has_reviewed) {
+      // Small delay for better UX
+      const timer = setTimeout(() => setShowReviewModal(true), 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [trade?.status]);
+
+  async function handleReviewSubmit(reviewData) {
+    // In real app, this would be a separate API call. 
+    // For now we update metadata to prevent re-triggering.
+    await handleStateTransition(trade.status, { has_reviewed: true });
+    setShowReviewModal(false);
+  }
+
   if (loading) return <PageLoader />;
 
   if (!trade) {
@@ -117,7 +135,7 @@ export default function OneFlow() {
           Back to Command Center
         </Button>
         <Surface variant="panel" className="mt-4 p-12 text-center">
-          <p className="font-semibold text-os-muted">Trade DNA not found or access denied.</p>
+          <p className="font-semibold text-os-muted">Trade data not found or access denied.</p>
         </Surface>
       </div>
     );
@@ -144,14 +162,22 @@ export default function OneFlow() {
 
         <div className="flex flex-col items-end gap-3">
           <TrustDNAIndex mutation={trade.metadata?.trust_mutation || 0} baseScore={profile?.trust_score || 72} />
-          <Surface variant="soft" className="px-4 py-2 border-os-stroke/40">
-            <div className="flex items-center justify-end gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-os-accent animate-pulse" />
-              <p className="os-label !text-os-accent">
-                {TRADE_STATE_LABELS[trade.status] || trade.status}
-              </p>
-            </div>
-          </Surface>
+          <div className="flex items-center gap-3">
+            <Link to={`/dashboard/disputes?trade_id=${tradeId}`}>
+              <Button variant="outline" size="sm" className="h-[34px] text-os-xs border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors gap-2">
+                <ShieldAlert className="w-3.5 h-3.5" />
+                Dispute Trade
+              </Button>
+            </Link>
+            <Surface variant="soft" className="px-4 py-1.5 border-os-stroke/40">
+              <div className="flex items-center justify-end gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-os-accent animate-pulse" />
+                <p className="os-label !text-os-accent">
+                  {TRADE_STATE_LABELS[trade.status] || trade.status}
+                </p>
+              </div>
+            </Surface>
+          </div>
         </div>
       </div>
 
@@ -205,6 +231,16 @@ export default function OneFlow() {
               </Surface>
             )}
           </Surface>
+
+          {/* Review Modal */}
+          {showReviewModal && (
+            <ReviewModal
+              isOpen={showReviewModal}
+              onClose={() => setShowReviewModal(false)}
+              trade={trade}
+              onSubmit={handleReviewSubmit}
+            />
+          )}
         </div>
 
         {/* SIDEBAR: CONSOLE & LEDGER */}
@@ -247,16 +283,16 @@ export default function OneFlow() {
           <div className="space-y-4">
             <h2 className="os-label flex items-center gap-2">
               <Shield className="w-4 h-4" />
-              Forensic Ledger
+              Activity Log
             </h2>
             <Surface variant="panel" className="p-6 border-emerald-500/20 bg-emerald-500/5">
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <p className="text-os-sm font-medium">Immutability Locked</p>
+                  <p className="text-os-sm font-medium">Record Secured</p>
                 </div>
                 <p className="text-os-xs text-os-text-secondary leading-relaxed">
-                  Every transition generates a unique hash, cryptographically linked to your Trust DNA. Tampering voids Sovereign Insurance.
+                  Every transition generates a unique hash, cryptographically linked to your Trust Profile.
                 </p>
                 {trade.metadata?.trade_dna && (
                   <div className="p-2 bg-black/20 rounded border border-white/5 overflow-hidden">
@@ -342,6 +378,14 @@ function SettlementPanel({ trade, onExportAudit, isTransitioning, isGeneratingEx
             {isClearing ? 'Clearing via PAPSS...' : 'Initiate PAPSS Clearing'}
           </Button>
         )}
+        {isPAPSSAvailable && !isCleared && (
+          <p className="text-center text-os-xs text-os-text-secondary/40">
+            Cross-border settlement via PAPSS. Need help?{' '}
+            <a href="mailto:support@afrikoni.com" className="text-os-accent underline">
+              Contact support
+            </a>
+          </p>
+        )}
         <ForensicExportButton
           onClick={() => onExportAudit()}
           isGenerating={isGeneratingExport}
@@ -358,7 +402,7 @@ function DisputedPanel({ trade }) {
       <ShieldAlert className="w-16 h-16 text-os-error mx-auto mb-6 opacity-80" />
       <h2 className="text-os-2xl font-bold text-os-error">Trade Disputed</h2>
       <p className="mt-2 text-os-text-secondary">
-        Sovereign execution frozen. Awaiting resolution from Afrikoni Arbitration Council.
+        Secure execution frozen. Awaiting resolution from Afrikoni Arbitration Council.
       </p>
     </Surface>
   );
@@ -372,7 +416,7 @@ function ClosedPanel({ trade }) {
       </div>
       <h2 className="text-os-2xl font-bold text-os-text-secondary">Trade Archived</h2>
       <p className="mt-2 text-os-text-secondary">
-        Flow complete. Forensic records stored in sovereign vault.
+        Flow complete. Forensic records stored in secure vault.
       </p>
     </Surface>
   );
@@ -387,7 +431,7 @@ function TrustDNAIndex({ mutation, baseScore }) {
       className="group relative overflow-hidden flex items-center gap-4 px-4 py-2 rounded-os-sm bg-os-accent/5 border border-os-accent/20 backdrop-blur-md"
     >
       <div className="relative">
-        <p className="os-label !text-os-accent !opacity-100">Trust DNA Index</p>
+        <p className="os-label !text-os-accent !opacity-100">Trust Score</p>
         <div className="flex items-center gap-2">
           <span className="text-os-xl font-black">{baseScore}%</span>
           {mutation !== 0 && (

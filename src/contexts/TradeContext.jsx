@@ -83,7 +83,7 @@ function tradeReducer(state, action) {
                 financials: { ...state.financials, ...action.payload.financials },
                 logistics: { ...state.logistics, ...action.payload.logistics },
                 advice: {
-                    message: 'Trade Initiated. Next Step: Fund the Sovereign Escrow to unlock the One-Flow Pack.',
+                    message: 'Trade Initiated. Next Step: Fund the Secure Escrow to unlock the One-Flow Pack.',
                     tone: 'info'
                 }
             };

@@ -1,212 +1,162 @@
 /**
  * Supplier Performance Dashboard
- * View performance metrics and analytics
+ * Shows how well you're doing as a seller — delivery, ratings, response time
  */
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { useDataFreshness } from '@/hooks/useDataFreshness';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { motion } from 'framer-motion';
-import { TrendingUp, Clock, Package, AlertTriangle, Star, BarChart3 } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui/tabs';
-// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
+import { TrendingUp, Clock, Package, AlertTriangle, Star, BarChart3, RefreshCw } from 'lucide-react';
+import { Surface } from '@/components/system/Surface';
+import { Button } from '@/components/shared/ui/button';
 import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
-import { CardSkeleton } from '@/components/shared/ui/skeletons';
 import ErrorState from '@/components/shared/ui/ErrorState';
-import {
-  getSupplierPerformance,
-  calculateSupplierPerformance
-} from '@/lib/supabaseQueries/products';
+import EmptyState from '@/components/shared/ui/EmptyState';
 import { toast } from 'sonner';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import RequireCapability from '@/guards/RequireCapability';
 
-function PerformanceDashboardInner() {
-  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
-  const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
+export default function PerformanceDashboard() {
+  const { profileCompanyId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
 
   const [performance, setPerformance] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
-  const location = useLocation();
+  const abortControllerRef = useRef(null);
 
-  // ✅ ARCHITECTURAL FIX: Data freshness tracking (30 second threshold)
-  const { isStale, markFresh } = useDataFreshness(30000);
-  const lastLoadTimeRef = useRef(null);
-  const abortControllerRef = useRef(null); // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
+  const isSeller = capabilities?.can_sell === true;
 
-  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
-  if (!isSystemReady) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <SpinnerWithTimeout message="Loading performance..." ready={isSystemReady} />
-      </div>
-    );
-  }
-
-  // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData
   useEffect(() => {
-    // ✅ KERNEL MANIFESTO: Rule 3 - Logic Gate - First line must check canLoadData
-    if (!canLoadData) {
-      if (!userId) {
-        navigate('/login');
-      }
-      return;
-    }
+    if (!canLoadData || !profileCompanyId) return;
 
-    // ✅ KERNEL MANIFESTO: Rule 4 - AbortController for query cancellation
     abortControllerRef.current = new AbortController();
-    const abortSignal = abortControllerRef.current.signal;
+    const signal = abortControllerRef.current.signal;
 
-    // ✅ KERNEL MANIFESTO: Rule 4 - Timeout with query cancellation
-    const timeoutId = setTimeout(() => {
-      if (!abortSignal.aborted) {
-        abortControllerRef.current.abort();
-        setIsLoading(false);
-        setError('Data loading timed out. Please try again.');
-      }
-    }, 15000);
-
-    // ✅ ARCHITECTURAL FIX: Check if data is stale (older than 30 seconds)
-    const shouldRefresh = isStale ||
-      !lastLoadTimeRef.current ||
-      (Date.now() - lastLoadTimeRef.current > 30000);
-
-    if (shouldRefresh) {
-      loadData(abortSignal).catch(err => {
-        if (err.name !== 'AbortError') {
-          // Error already logged by logError
-        }
-      });
-    }
+    loadData(signal);
 
     return () => {
-      // ✅ KERNEL MANIFESTO: Rule 4 - Cleanup AbortController on unmount
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-      }
-      clearTimeout(timeoutId);
+      if (abortControllerRef.current) abortControllerRef.current.abort();
     };
-  }, [canLoadData, userId, profileCompanyId, location.pathname, isStale, navigate]);
+  }, [canLoadData, profileCompanyId]);
 
-  const loadData = async (abortSignal) => {
-    // ✅ KERNEL MANIFESTO: Rule 2 - Logic Gate - Guard with canLoadData (checked in useEffect)
-    if (!profileCompanyId) {
-      return;
-    }
-
+  const loadData = async (signal) => {
+    setIsLoading(true);
+    setError(null);
     try {
-      // ✅ STALE-WHILE-REVALIDATE: Only set loading on first load
-      if (!metrics) {
-        setIsLoading(true);
-      }
-      setError(null); // ✅ KERNEL MANIFESTO: Rule 4 - Clear previous errors
+      // Load supplier performance from supplier_performance table
+      const { data, error: dbError } = await supabase
+        .from('supplier_performance')
+        .select('*')
+        .eq('company_id', profileCompanyId)
+        .single();
 
-      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal before queries
-      if (abortSignal?.aborted) return;
+      if (signal?.aborted) return;
+      if (dbError && dbError.code !== 'PGRST116') throw dbError;
 
-      // ✅ KERNEL MANIFESTO: Rule 6 - Use profileCompanyId for all queries
-      // Calculate and get performance
-      await calculateSupplierPerformance(profileCompanyId);
-      const perf = await getSupplierPerformance(profileCompanyId);
-
-      // ✅ KERNEL MANIFESTO: Rule 4 - Check abort signal after queries
-      if (abortSignal?.aborted) return;
-
-      setPerformance(perf);
-
-      // ✅ REACTIVE READINESS FIX: Mark data as fresh ONLY after successful response
-      if (perf && typeof perf === 'object') {
-        lastLoadTimeRef.current = Date.now();
-        markFresh();
-      }
+      setPerformance(data || null);
     } catch (err) {
-      // ✅ KERNEL MANIFESTO: Rule 4 - Handle abort errors properly
-      if (err.name === 'AbortError' || abortSignal?.aborted) return;
-      console.error('[PerformanceDashboard] Error loading performance data:', err);
-      setError(err.message || 'Failed to load performance data'); // ✅ KERNEL MANIFESTO: Rule 4 - Error state
-      toast.error('Failed to load performance data');
+      if (signal?.aborted) return;
+      setError(err.message || 'Failed to load performance data');
+      toast.error('Could not load performance data');
     } finally {
-      // ✅ KERNEL MANIFESTO: Rule 5 - The Finally Law - always clean up
-      if (!abortSignal?.aborted) {
-        setIsLoading(false);
-      }
+      if (!signal?.aborted) setIsLoading(false);
     }
   };
 
-  // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Error state checked BEFORE loading state
-  if (error) {
-    return (
-      <ErrorState
-        message={error}
-        onRetry={() => {
-          setError(null);
-          // useEffect will retry automatically when canLoadData is true
-        }}
-      />
-    );
-  }
-
-  // ✅ KERNEL MANIFESTO: Rule 4 - Three-State UI - Loading state
-  // ✅ STALE-WHILE-REVALIDATE: Only show skeleton on first load
-  // If we have metrics data, keep showing it during background refresh  
-  if (isLoading && !metrics) {
-    return <CardSkeleton count={3} />;
-  }
+  if (!isSystemReady) return <SpinnerWithTimeout message="Loading performance..." ready={false} />;
+  if (error) return <ErrorState message={error} onRetry={() => loadData()} />;
 
   const metrics = [
     {
-      label: 'On-Time Delivery Rate',
-      value: performance?.on_time_delivery_rate?.toFixed(1) || '0',
-      unit: '%',
+      label: 'On-Time Delivery',
+      description: 'How often you deliver on time',
+      value: performance?.on_time_delivery_rate != null
+        ? `${performance.on_time_delivery_rate.toFixed(1)}%`
+        : '—',
       icon: Package,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100'
+      color: 'text-emerald-600',
+      bg: 'bg-emerald-50 dark:bg-emerald-500/10',
+      border: 'border-emerald-200 dark:border-emerald-500/20',
+      bar: performance?.on_time_delivery_rate || 0,
+      barColor: 'bg-emerald-500'
     },
     {
-      label: 'Average Response Time',
-      value: performance?.response_time_hours?.toFixed(1) || '0',
-      unit: ' hours',
+      label: 'Response Time',
+      description: 'How fast you reply to buyers',
+      value: performance?.response_time_hours != null
+        ? `${performance.response_time_hours.toFixed(1)}h`
+        : '—',
       icon: Clock,
       color: 'text-blue-600',
-      bgColor: 'bg-blue-100'
+      bg: 'bg-blue-50 dark:bg-blue-500/10',
+      border: 'border-blue-200 dark:border-blue-500/20',
+      bar: performance?.response_time_hours ? Math.max(0, 100 - performance.response_time_hours * 4) : 0,
+      barColor: 'bg-blue-500'
     },
     {
       label: 'Dispute Rate',
-      value: performance?.dispute_rate?.toFixed(2) || '0',
-      unit: '%',
+      description: 'Percentage of orders with disputes',
+      value: performance?.dispute_rate != null
+        ? `${performance.dispute_rate.toFixed(2)}%`
+        : '—',
       icon: AlertTriangle,
       color: 'text-red-600',
-      bgColor: 'bg-red-100'
+      bg: 'bg-red-50 dark:bg-red-500/10',
+      border: 'border-red-200 dark:border-red-500/20',
+      bar: performance?.dispute_rate ? Math.max(0, 100 - performance.dispute_rate * 10) : 100,
+      barColor: 'bg-red-500'
     },
     {
-      label: 'Average Rating',
-      value: performance?.average_rating?.toFixed(1) || '0',
-      unit: '/5',
+      label: 'Buyer Rating',
+      description: 'Average rating from your buyers',
+      value: performance?.average_rating != null
+        ? `${performance.average_rating.toFixed(1)} / 5`
+        : '—',
       icon: Star,
-      color: 'text-os-accent',
-      bgColor: 'bg-os-accent/20'
+      color: 'text-amber-600',
+      bg: 'bg-amber-50 dark:bg-amber-500/10',
+      border: 'border-amber-200 dark:border-amber-500/20',
+      bar: performance?.average_rating ? (performance.average_rating / 5) * 100 : 0,
+      barColor: 'bg-amber-500'
     }
   ];
 
   return (
-    <>
-      <div className="space-y-6">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
+    <div className="os-page-layout space-y-8">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold">Your Performance</h1>
+          <p className="text-os-text-secondary mt-1">
+            See how buyers rate your service and where you can improve.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => loadData()}
+          disabled={isLoading}
+          className="flex items-center gap-2"
         >
-          <h1 className="text-3xl font-bold mb-2">Performance Metrics</h1>
-          <p className="">Track your supplier performance and KPIs</p>
-        </motion.div>
+          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+          Refresh
+        </Button>
+      </div>
 
-        {/* Metrics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Metrics Grid */}
+      {isLoading && !performance ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[1, 2, 3, 4].map(i => (
+            <div key={i} className="h-40 rounded-xl bg-os-surface-solid animate-pulse" />
+          ))}
+        </div>
+      ) : !performance ? (
+        <EmptyState
+          type="performance"
+          title="No performance data yet"
+          description="Complete your first trade to start building your performance score. Buyers will see this when deciding who to work with."
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {metrics.map((metric, index) => (
             <motion.div
               key={metric.label}
@@ -214,86 +164,46 @@ function PerformanceDashboardInner() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className={`p-3 rounded-full ${metric.bgColor}`}>
-                      <metric.icon className={`w-6 h-6 ${metric.color}`} />
-                    </div>
-                  </div>
-                  <p className="text-os-sm mb-1">{metric.label}</p>
-                  <p className={`text-3xl font-bold ${metric.color}`}>
-                    {metric.value}{metric.unit}
-                  </p>
-                </CardContent>
-              </Card>
+              <Surface className={`p-6 border ${metric.border} h-full`}>
+                <div className={`w-10 h-10 rounded-xl ${metric.bg} flex items-center justify-center mb-4`}>
+                  <metric.icon className={`w-5 h-5 ${metric.color}`} />
+                </div>
+                <p className="text-sm text-os-text-secondary mb-1">{metric.label}</p>
+                <p className={`text-2xl font-bold ${metric.color} mb-1`}>{metric.value}</p>
+                <p className="text-xs text-os-text-secondary mb-3">{metric.description}</p>
+                {/* Progress bar */}
+                <div className="h-1.5 w-full bg-os-stroke rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${metric.barColor} rounded-full transition-all duration-1000`}
+                    style={{ width: `${metric.bar}%` }}
+                  />
+                </div>
+              </Surface>
             </motion.div>
           ))}
         </div>
+      )}
 
-        {/* Performance Overview */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5" />
-              Performance Overview
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              <div>
-                <h3 className="font-semibold mb-4">Key Performance Indicators</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <p className="text-os-sm mb-2">On-Time Delivery</p>
-                    <div className="w-full rounded-full h-4">
-                      <div
-                        className="h-4 rounded-full"
-                        style={{ width: `${performance?.on_time_delivery_rate || 0}%` }}
-                      />
-                    </div>
-                    <p className="text-os-xs mt-1">
-                      {performance?.on_time_delivery_rate?.toFixed(1) || 0}% of orders delivered on time
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-os-sm mb-2">Average Rating</p>
-                    <div className="w-full rounded-full h-4">
-                      <div
-                        className="h-4 rounded-full"
-                        style={{ width: `${((performance?.average_rating || 0) / 5) * 100}%` }}
-                      />
-                    </div>
-                    <p className="text-os-xs mt-1">
-                      {performance?.average_rating?.toFixed(1) || 0} / 5.0 average rating
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {performance?.last_calculated_at && (
-                <div className="pt-4 border-t">
-                  <p className="text-os-xs">
-                    Last calculated: {new Date(performance.last_calculated_at).toLocaleString()}
-                  </p>
-                </div>
-              )}
+      {/* Tips Section */}
+      {!isSeller && (
+        <Surface variant="soft" className="p-6 border border-amber-200 dark:border-amber-500/20 bg-amber-50 dark:bg-amber-500/5">
+          <div className="flex items-start gap-3">
+            <TrendingUp className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-amber-800 dark:text-amber-400">Performance tracking is for sellers</p>
+              <p className="text-sm text-amber-700 dark:text-amber-500 mt-1">
+                Apply to become a verified seller on Afrikoni to start building your performance score and attract more buyers.
+              </p>
             </div>
-          </CardContent>
-        </Card>
-      </div>
-    </>
+          </div>
+        </Surface>
+      )}
+
+      {performance?.last_calculated_at && (
+        <p className="text-xs text-os-text-secondary text-center">
+          Last updated: {new Date(performance.last_calculated_at).toLocaleString()}
+        </p>
+      )}
+    </div>
   );
 }
-
-export default function PerformanceDashboard() {
-  return (
-    <>
-      {/* PHASE 5B: Performance requires sell capability (approved) */}
-      <RequireCapability canSell={true} requireApproved={true}>
-        <PerformanceDashboardInner />
-      </RequireCapability>
-    </>
-  );
-}
-

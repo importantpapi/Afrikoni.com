@@ -24,8 +24,9 @@ import { AIDescriptionService } from '@/components/services/AIDescriptionService
 import { useLanguage } from '@/i18n/LanguageContext';
 import { generateBuyerInquiry } from '@/ai/aiFunctions';
 import OffPlatformDisclaimer from '@/components/OffPlatformDisclaimer';
-import { scanForLeakage, SOVEREIGN_WARNING } from '@/services/forensicSentinel';
+import { scanForLeakage, SECURITY_ALERT } from '@/services/forensicSentinel';
 import { Surface } from '@/components/system/Surface';
+import EmptyState from '@/components/shared/ui/EmptyState';
 import { cn } from '@/lib/utils';
 
 
@@ -818,7 +819,7 @@ export default function MessagesPremium() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-afrikoni-offwhite flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-os-accent" />
       </div>
     );
@@ -830,38 +831,38 @@ export default function MessagesPremium() {
       <div className="os-ambient-orb opacity-10" style={{ top: '10%', left: '15%', width: '400px', height: '400px' }} />
       <div className="os-ambient-orb opacity-5" style={{ bottom: '20%', right: '10%', width: '350px', height: '350px' }} />
 
-      {/* FORENSIC SENTINEL: Sovereign Warning Modal */}
+      {/* FORENSIC SENTINEL: Security Alert Modal */}
       {leakageWarning && (
-        <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 backdrop-blur-2xl">
-          <Surface variant="glass" className="border-red-500/30 rounded-[2rem] max-w-md w-full p-10 text-center shadow-2xl shadow-red-900/40 relative overflow-hidden">
-            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-red-600 via-orange-500 to-red-600" />
-            <div className="w-20 h-20 rounded-os-lg bg-os-red/10 border border-os-red/20 flex items-center justify-center mx-auto mb-6 shadow-os-lg shadow-red-500/5">
-              <Shield className="w-10 h-10 text-os-red" />
-            </div>
-            <h3 className="text-os-2xl font-black tracking-tight mb-3 italic">{leakageWarning.title}</h3>
-            <p className="text-os-muted mb-8 leading-relaxed font-medium">
-              {leakageWarning.message}
-            </p>
-            <div className="flex flex-col gap-4">
-              <Button
-                className="w-full bg-white text-black hover:bg-white/90 font-black py-7 rounded-os-md shadow-os-lg shadow-white/5 active:scale-95 transition-all"
-                onClick={() => setLeakageWarning(null)}
-              >
-                I UNDERSTAND - ESCAPE TO SAFETY
-              </Button>
-              <button
-                className="text-os-xs text-os-red/60 hover:text-red-400 font-black uppercase tracking-[0.2em] underline-offset-8 underline decoration-red-500/20"
-                onClick={() => {
-                  setLeakageWarning(null);
-                  handleSendMessage(true);
-                }}
-              >
-                Proceed (Void Horizon Warranty)
-              </button>
-            </div>
-          </Surface>
-        </div>
-      )}
+          <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 backdrop-blur-2xl">
+            <Surface variant="glass" className="border-red-500/30 rounded-[2rem] max-w-md w-full p-10 text-center shadow-2xl shadow-red-900/40 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-red-600 via-orange-500 to-red-600" />
+              <div className="w-20 h-20 rounded-os-lg bg-os-red/10 border border-os-red/20 flex items-center justify-center mx-auto mb-6 shadow-os-lg shadow-red-500/5">
+                <Shield className="w-10 h-10 text-os-red" />
+              </div>
+              <h3 className="text-os-2xl font-black tracking-tight mb-3 italic">{leakageWarning.title}</h3>
+              <p className="text-os-muted mb-8 leading-relaxed font-medium">
+                {leakageWarning.message}
+              </p>
+              <div className="flex flex-col gap-4">
+                <Button
+                  className="w-full bg-white text-black hover:bg-white/90 font-bold py-4 rounded-lg shadow-lg"
+                  onClick={() => setLeakageWarning(null)}
+                >
+                  Edit My Message
+                </Button>
+                <button
+                  className="text-xs text-red-500/70 hover:text-red-400 font-semibold underline"
+                  onClick={() => {
+                    setLeakageWarning(null);
+                    handleSendMessage(true);
+                  }}
+                >
+                  Send Anyway (I understand the risk)
+                </button>
+              </div>
+            </Surface>
+          </div>
+        )}
 
       {/* Header Area */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 shrink-0">
@@ -871,7 +872,7 @@ export default function MessagesPremium() {
               variant="ghost"
               size="icon"
               onClick={handleBack}
-              className="h-12 w-12 rounded-os-md bg-os-accent/5 border border-os-stroke hover:bg-os-accent/10 text-os-muted hover:text-white"
+              className="h-12 w-12 rounded-lg bg-os-accent/5 border border-os-stroke hover:bg-os-accent/10 text-os-text-secondary"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>
@@ -880,20 +881,20 @@ export default function MessagesPremium() {
                 <div className="p-2 bg-os-accent/10 rounded-lg">
                   <MessageSquare className="w-6 h-6 text-os-accent" />
                 </div>
-                <h1 className="text-4xl font-black tracking-tighter">Sovereign Comms</h1>
+                <h1 className="text-3xl font-bold tracking-tight">Messages</h1>
               </div>
-              <p className="text-os-muted text-os-lg font-medium opacity-80 italic">Protected institutional messaging.</p>
+              <p className="text-os-text-secondary text-sm">Secure trade messaging with your buyers and suppliers.</p>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-4">
-          <Surface variant="panel" className="px-5 py-2.5 flex items-center gap-4 border-os-stroke bg-white/[0.02]">
-            <div className="flex items-center gap-2 text-emerald-500 text-os-xs font-black uppercase tracking-widest">
+          <Surface variant="panel" className="px-5 py-2.5 flex items-center gap-4">
+            <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Channel Status: Encrypted
+              Encrypted & Secure
             </div>
-            <div className="w-px h-6 bg-white/10" />
-            <Badge variant="outline" className="border-os-stroke text-os-xs uppercase font-bold text-os-muted">Trade Protection Active</Badge>
+            <div className="w-px h-6 bg-os-stroke" />
+            <Badge variant="outline" className="border-os-stroke text-xs font-semibold text-os-text-secondary">Trade Protection Active</Badge>
           </Surface>
         </div>
       </div>
@@ -906,50 +907,60 @@ export default function MessagesPremium() {
           className={cn("w-full lg:w-[400px] flex flex-col gap-6 shrink-0", selectedConversation ? 'hidden lg:flex' : 'flex')}
         >
           <Surface variant="glass" className="flex-1 flex flex-col p-0 overflow-hidden relative">
-            <div className="p-6 border-b border-os-stroke bg-white/[0.02]">
-              <h3 className="text-os-xs font-black uppercase tracking-[0.3em] text-os-muted mb-6">Directory</h3>
+            <div className="p-5 border-b border-os-stroke">
+              <h3 className="text-sm font-semibold text-os-text-secondary mb-4">Conversations</h3>
               <div className="relative group">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-os-muted group-focus-within:text-os-accent transition-colors" />
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-os-text-secondary group-focus-within:text-os-accent transition-colors" />
                 <Input
-                  placeholder="Filter transmissions..."
+                  placeholder="Search conversations..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="h-12 pl-12 bg-os-accent/5 border-os-stroke rounded-os-md text-os-xs font-bold tracking-tight focus:ring-os-accent/20"
+                  className="h-11 pl-12"
                 />
               </div>
             </div>
             <div className="flex-1 overflow-y-auto scrollbar-none divide-y divide-white/5">
-              {filteredConversations.map((conv) => {
-                const isSelected = selectedConversation === conv.id;
-                const unreadCount = Array.isArray(messages) ? messages.filter(m => m.conversation_id === conv.id && !m.read && m.receiver_company_id === companyId).length : 0;
-                return (
-                  <button key={conv.id} onClick={() => setSelectedConversation(conv.id)} className={cn("w-full p-6 text-left transition-all relative group", isSelected ? "bg-os-accent/10" : "hover:bg-white/[0.03]")}>
-                    {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 bg-os-accent" />}
-                    <div className="flex items-start gap-4">
-                      <div className="relative shrink-0">
-                        <div className="w-14 h-14 rounded-os-md bg-os-accent/5 border border-os-stroke flex items-center justify-center overflow-hidden">
-                          {conv.otherCompany?.logo_url ? <img src={conv.otherCompany.logo_url} className="w-full h-full object-cover" alt="" width="40" height="40" loading="lazy" /> : <User className="w-6 h-6 text-os-muted" />}
-                        </div>
-                        {conv.verified && <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-os-accent rounded-lg flex items-center justify-center border-2 border-os-surface-1 shadow-os-md"><ShieldCheck className="w-3 h-3 text-black" /></div>}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1 gap-4">
-                          <span className="font-black text-os-sm truncate tracking-tight text-white group-hover:text-os-accent transition-colors">{conv.otherCompany?.company_name || 'Anonymous Peer'}</span>
-                          <span className="text-os-xs font-black text-os-muted uppercase tracking-widest shrink-0 opacity-50">{conv.timestamp ? format(new Date(conv.timestamp), 'MMM d') : ''}</span>
-                        </div>
-                        <p className="text-os-xs text-os-muted truncate font-medium max-w-[200px] mb-2 opacity-80 italic">{conv.lastMessage || conv.subject || 'Waiting for uplink...'}</p>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <Globe className="w-3 h-3 text-os-muted opacity-40" />
-                            <span className="text-os-xs font-black uppercase tracking-widest text-os-muted opacity-60 truncate max-w-[120px]">{conv.country || 'Global Node'}</span>
+              {filteredConversations.length === 0 ? (
+                <EmptyState
+                  title="No conversations"
+                  description="You haven't started any conversations yet. Browse suppliers to begin."
+                  cta="Find Suppliers"
+                  onCtaClick={() => navigate('/dashboard/suppliers')}
+                  icon={MessageSquare}
+                />
+              ) : (
+                filteredConversations.map((conv) => {
+                  const isSelected = selectedConversation === conv.id;
+                  const unreadCount = Array.isArray(messages) ? messages.filter(m => m.conversation_id === conv.id && !m.read && m.receiver_company_id === companyId).length : 0;
+                  return (
+                    <button key={conv.id} onClick={() => setSelectedConversation(conv.id)} className={cn("w-full p-5 text-left transition-all relative group", isSelected ? "bg-os-accent/10" : "hover:bg-os-surface-solid")}>
+                      {isSelected && <div className="absolute left-0 top-0 bottom-0 w-1 bg-os-accent" />}
+                      <div className="flex items-start gap-3">
+                        <div className="relative shrink-0">
+                          <div className="w-12 h-12 rounded-xl bg-os-surface-solid border border-os-stroke flex items-center justify-center overflow-hidden">
+                            {conv.otherCompany?.logo_url ? <img src={conv.otherCompany.logo_url} className="w-full h-full object-cover" alt="" width="40" height="40" loading="lazy" /> : <User className="w-5 h-5 text-os-text-secondary" />}
                           </div>
-                          {unreadCount > 0 && <Badge className="bg-os-accent text-black text-os-xs font-black px-2 py-0.5 rounded-lg"> {unreadCount} NEW </Badge>}
+                          {conv.verified && <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-os-accent rounded-lg flex items-center justify-center border-2 border-os-surface-1 shadow-os-md"><ShieldCheck className="w-3 h-3 text-black" /></div>}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1 gap-2">
+                            <span className="font-semibold text-sm truncate">{conv.otherCompany?.company_name || 'Unknown Company'}</span>
+                            <span className="text-xs text-os-text-secondary shrink-0">{conv.timestamp ? format(new Date(conv.timestamp), 'MMM d') : ''}</span>
+                          </div>
+                          <p className="text-xs text-os-text-secondary truncate max-w-[200px] mb-1.5">{conv.lastMessage || conv.subject || 'No messages yet'}</p>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5">
+                              <Globe className="w-3 h-3 text-os-text-secondary opacity-60" />
+                              <span className="text-xs text-os-text-secondary truncate max-w-[120px]">{conv.country || 'International'}</span>
+                            </div>
+                            {unreadCount > 0 && <Badge className="bg-os-accent text-black text-xs font-bold px-2 py-0.5 rounded-lg"> {unreadCount} </Badge>}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </button>
-                );
-              })}
+                    </button>
+                  );
+                })
+              )}
             </div>
           </Surface>
         </motion.div>
@@ -962,36 +973,35 @@ export default function MessagesPremium() {
           <Surface variant="glass" className="flex-1 flex flex-col p-0 overflow-hidden relative border-os-stroke shadow-massive">
             {selectedConversation && selectedConv ? (
               <>
-                <div className="p-8 border-b border-os-stroke bg-white/[0.02] backdrop-blur-2xl z-20 flex items-center justify-between relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-os-accent/5 blur-[80px] pointer-events-none" />
-                  <div className="flex items-center gap-6 relative z-10 min-w-0">
-                    <button onClick={() => setSelectedConversation(null)} className="lg:hidden h-10 w-10 rounded-os-sm bg-os-accent/5 flex items-center justify-center border border-os-stroke"> <ArrowLeft className="w-5 h-5" /> </button>
+                <div className="p-6 border-b border-os-stroke flex items-center justify-between relative overflow-hidden">
+                  <div className="flex items-center gap-4 min-w-0">
+                    <button onClick={() => setSelectedConversation(null)} className="lg:hidden h-10 w-10 rounded-lg bg-os-surface-solid flex items-center justify-center border border-os-stroke"> <ArrowLeft className="w-5 h-5" /> </button>
                     <div className="relative shrink-0">
-                      <div className="w-16 h-16 rounded-os-md bg-os-accent/5 border border-os-stroke flex items-center justify-center overflow-hidden">
-                        {selectedConv.otherCompany?.logo_url ? <img src={selectedConv.otherCompany.logo_url} className="w-full h-full object-cover" alt="" width="48" height="48" loading="lazy" /> : <User className="w-8 h-8 text-os-muted" />}
+                      <div className="w-14 h-14 rounded-xl bg-os-surface-solid border border-os-stroke flex items-center justify-center overflow-hidden">
+                        {selectedConv.otherCompany?.logo_url ? <img src={selectedConv.otherCompany.logo_url} className="w-full h-full object-cover" alt="" width="48" height="48" loading="lazy" /> : <User className="w-7 h-7 text-os-text-secondary" />}
                       </div>
-                      {selectedConv.verified && <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-os-accent rounded-os-sm flex items-center justify-center border-3 border-os-surface-1 shadow-os-md"> <ShieldCheck className="w-3.5 h-3.5 text-black" /> </div>}
+                      {selectedConv.verified && <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-os-accent rounded-lg flex items-center justify-center border-2 border-os-surface-1 shadow-os-md"> <ShieldCheck className="w-3.5 h-3.5 text-black" /> </div>}
                     </div>
-                    <div className="space-y-1 min-w-0">
+                    <div className="space-y-0.5 min-w-0">
                       <div className="flex items-center gap-3">
-                        <h3 className="font-black text-os-2xl tracking-tighter truncate text-white">{selectedConv.otherCompany?.company_name || 'Institutional Peer'}</h3>
-                        <Badge variant="outline" className="text-os-xs font-black uppercase tracking-widest border-emerald-500/20 text-emerald-500 bg-emerald-500/10">Active Session</Badge>
+                        <h3 className="font-bold text-lg truncate">{selectedConv.otherCompany?.company_name || 'Company'}</h3>
+                        <Badge variant="outline" className="text-xs font-semibold border-emerald-500/30 text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10">Active</Badge>
                       </div>
-                      <div className="flex items-center gap-3 text-os-xs font-bold text-os-muted opacity-60 italic uppercase tracking-widest">
-                        <span className="truncate">{selectedConv.role || 'Partner'}</span>
-                        <span className="opacity-40">•</span>
-                        <span className="flex items-center gap-2"> <Globe className="w-3 h-3" /> {selectedConv.country || 'Global'} </span>
+                      <div className="flex items-center gap-2 text-xs text-os-text-secondary">
+                        <span className="truncate capitalize">{selectedConv.role || 'Partner'}</span>
+                        <span>•</span>
+                        <span className="flex items-center gap-1"> <Globe className="w-3 h-3" /> {selectedConv.country || 'International'} </span>
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-4 relative z-10 shrink-0">
-                    <Button variant="ghost" size="icon" className="h-12 w-12 rounded-os-sm bg-os-accent/5 border border-os-stroke hover:bg-os-accent/10"> <MoreVertical className="w-5 h-5 text-os-muted" /> </Button>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <Button variant="ghost" size="icon" className="h-10 w-10 rounded-lg bg-os-surface-solid border border-os-stroke hover:bg-os-accent/5"> <MoreVertical className="w-4 h-4 text-os-text-secondary" /> </Button>
                   </div>
                 </div>
-                <div className="bg-os-accent/5 border-b border-os-accent/10 px-8 py-3 backdrop-blur-md z-10 flex items-center gap-4">
-                  <div className="flex items-center gap-2 text-os-xs font-black uppercase tracking-widest text-os-accent"> <Shield className="w-3.5 h-3.5" /> Trade Integrity Active </div>
+                <div className="bg-os-accent/5 border-b border-os-accent/10 px-6 py-2.5 flex items-center gap-3">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-os-accent"> <Shield className="w-3.5 h-3.5" /> End-to-end encrypted </div>
                   <div className="w-px h-4 bg-os-accent/20" />
-                  <p className="text-os-xs font-bold text-os-muted opacity-80 italic">Protected by Horizon Sovereign Shield v2.4</p>
+                  <p className="text-xs text-os-text-secondary">Messages are protected and only visible to you and your trade partner.</p>
                 </div>
                 {selectedConversation && (
                   <div className="px-8 py-3 border-b border-os-stroke bg-white/[0.01]">
@@ -1168,7 +1178,7 @@ export default function MessagesPremium() {
                     <div className="p-4 rounded-os-md bg-white/[0.02] border border-os-stroke flex items-center gap-4 text-left">
                       <ShieldCheck className="w-5 h-5 text-emerald-500/50" />
                       <div>
-                        <p className="text-os-xs font-black uppercase tracking-widest text-white">Sovereign Encryption</p>
+                        <p className="text-os-xs font-black uppercase tracking-widest text-white">Secure Encryption</p>
                         <p className="text-os-xs text-os-muted font-bold">Standard protocol active</p>
                       </div>
                     </div>

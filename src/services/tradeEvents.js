@@ -175,14 +175,17 @@ export function subscribeToTradeEvents(tradeId, onEventReceived) {
  */
 async function triggerAutomations(tradeId, eventType, metadata) {
   try {
-    // Get applicable automation rules
+    // Get applicable automation rules (table may not exist yet)
     const { data: automations, error } = await supabase
       .from('automation_rules')
       .select('*')
       .eq('trigger_event', eventType)
       .eq('enabled', true);
 
-    if (error || !automations) return;
+    if (error || !automations || automations.length === 0) {
+      // Table may not exist yet or no rules configured - skip silently
+      return;
+    }
 
     // Execute each automation
     for (const automation of automations) {
@@ -233,27 +236,60 @@ function broadcastTradeEvent(tradeId, eventType, metadata) {
 }
 
 // ============================================================================
-// PLACEHOLDER AUTOMATION HELPERS (to be implemented)
+// AUTOMATION HELPERS
 // ============================================================================
 
 async function notifyParties(tradeId, recipients, messageTemplate) {
-  console.log('[tradeEvents] Notify parties:', tradeId, recipients);
-  // TODO: Use notification service
+  if (!recipients || recipients.length === 0) return;
+  try {
+    const notifications = recipients.map((userId) => ({
+      user_id: userId,
+      trade_id: tradeId,
+      message: messageTemplate || 'Your trade has been updated.',
+      read: false,
+      created_at: new Date().toISOString(),
+    }));
+    const { error } = await supabase.from('notifications').insert(notifications);
+    if (error) console.error('[tradeEvents] Failed to insert notifications:', error);
+  } catch (err) {
+    console.error('[tradeEvents] notifyParties error:', err);
+  }
 }
 
 async function createContractFromTemplate(tradeId, templateId) {
-  console.log('[tradeEvents] Create contract from template:', templateId);
-  // TODO: Use document engine
+  // Contract generation is handled server-side via Edge Function
+  // This triggers the contract generation job
+  try {
+    await supabase.functions.invoke('generate-contract', {
+      body: { trade_id: tradeId, template_id: templateId }
+    });
+  } catch (err) {
+    console.error('[tradeEvents] createContractFromTemplate error:', err);
+  }
 }
 
 async function releaseEscrow(tradeId) {
-  console.log('[tradeEvents] Release escrow:', tradeId);
-  // TODO: Use payment service
+  // Escrow release is handled server-side for security — mark trade as pending release
+  try {
+    const { error } = await supabase
+      .from('trades')
+      .update({ escrow_release_requested_at: new Date().toISOString() })
+      .eq('id', tradeId);
+    if (error) console.error('[tradeEvents] releaseEscrow update error:', error);
+  } catch (err) {
+    console.error('[tradeEvents] releaseEscrow error:', err);
+  }
 }
 
 async function createInspectionRequest(tradeId) {
-  console.log('[tradeEvents] Create inspection request:', tradeId);
-  // TODO: Use quality/logistics service
+  try {
+    const { error } = await supabase
+      .from('inspection_requests')
+      .insert({ trade_id: tradeId, status: 'pending', created_at: new Date().toISOString() });
+    if (error) console.error('[tradeEvents] createInspectionRequest error:', error);
+  } catch (err) {
+    console.error('[tradeEvents] createInspectionRequest error:', err);
+  }
 }
 
 export default {

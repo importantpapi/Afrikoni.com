@@ -82,7 +82,7 @@ export const SignaturePad = ({ onSign, className }) => {
 
                 {!hasSigned && !isDrawing && (
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20 capitalize text-os-xs tracking-[0.4em] font-black text-os-accent">
-                        Sovereign Proof Signature Pad
+                        Secure Digital Signature
                     </div>
                 )}
             </div>

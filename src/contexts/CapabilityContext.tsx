@@ -94,7 +94,7 @@ export function CapabilityProvider({ children }: { children: ReactNode }) {
     return () => { isMounted.current = false; };
   }, []);
 
-  // ✅ SOVEREIGN SYNC: Safety Handshake Timeout
+  // ✅ SECURE SYNC: Safety Handshake Timeout
   useEffect(() => {
     if (!capabilities.ready) {
       const timer = setTimeout(() => {

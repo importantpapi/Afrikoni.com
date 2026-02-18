@@ -7,7 +7,7 @@
 
 const ROLE_CONFIG = {
     admin: {
-        label: 'System Sovereign',
+        label: 'System Admin',
         color: 'bg-os-accent',
     },
     merchant: {

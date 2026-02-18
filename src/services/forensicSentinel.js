@@ -1,16 +1,16 @@
 /**
  * THE FORENSIC SENTINEL
  * 
- * "The Watchdog" of the Sovereign Trade Protocol.
+ * "The Watchdog" of the Afrikoni Trade Protocol.
  * Responsible for:
  * 1. Visual Cryptographic Hashing of products (Trade DNA).
  * 2. Leakage Prevention (blocking off-platform contact sharing).
  * 3. Dispute Arbitration via DNA comparison.
  */
 
-// Basic Sovereign Warning Message
-export const SOVEREIGN_WARNING = {
-    title: 'Sovereign Warning: Leakage Detected',
+// Basic Security Warning Message
+export const SECURITY_ALERT = {
+    title: 'Security Alert: Leakage Detected',
     message: 'Warning: Moving off-platform voids your $1.2M Insurance and the Tax Shield. Risk of capital loss: High. Stay on the Rail for 100% protection.',
     action: 'ack_warning'
 };
@@ -100,7 +100,7 @@ export function scanForLeakage(text) {
                 detected: true,
                 type: 'contact_leakage',
                 riskLevel: 'HIGH',
-                warning: SOVEREIGN_WARNING
+                warning: SECURITY_ALERT
             };
         }
     }
@@ -150,5 +150,5 @@ export default {
     scanForLeakage,
     arbitrateDispute,
     downgradeTrustScore,
-    SOVEREIGN_WARNING
+    SECURITY_ALERT
 };

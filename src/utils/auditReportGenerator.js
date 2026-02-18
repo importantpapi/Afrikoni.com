@@ -13,24 +13,24 @@ import { TRADE_STATE_LABELS } from '@/services/tradeKernel';
  * @param {Array} events - The immutable trade_events ledger
  */
 export function generateForensicProfile(trade, events) {
-    const dna = trade.metadata?.trade_dna || 'NOT_INITIALIZED';
-    const timestamp = new Date().toISOString();
+  const dna = trade.metadata?.trade_dna || 'NOT_INITIALIZED';
+  const timestamp = new Date().toISOString();
 
-    // 1. Extract GPS Breadcrumbs
-    const gpsTrail = events
-        .filter(e => e.metadata?.latitude && e.metadata?.longitude)
-        .map(e => ({
-            lat: e.metadata.latitude,
-            lng: e.metadata.longitude,
-            event: e.event_name,
-            time: e.created_at
-        }));
+  // 1. Extract GPS Breadcrumbs
+  const gpsTrail = events
+    .filter(e => e.metadata?.latitude && e.metadata?.longitude)
+    .map(e => ({
+      lat: e.metadata.latitude,
+      lng: e.metadata.longitude,
+      event: e.event_name,
+      time: e.created_at
+    }));
 
-    // 2. Extract Verification Signatures
-    const signatures = trade.metadata?.signatures || [];
+  // 2. Extract Verification Signatures
+  const signatures = trade.metadata?.signatures || [];
 
-    // 3. Construct Forensic HTML (for PDF/Print)
-    const reportHtml = `
+  // 3. Construct Forensic HTML (for PDF/Print)
+  const reportHtml = `
     <html>
       <body style="font-family: 'Inter', sans-serif; color: #111; padding: 40px; border: 12px solid #D4A937;">
         <div style="display: flex; justify-between; align-items: start; border-bottom: 2px solid #eee; padding-bottom: 20px; margin-bottom: 30px;">
@@ -80,7 +80,7 @@ export function generateForensicProfile(trade, events) {
         </div>
 
         <div style="margin-top: 50px; border-top: 1px dotted #ccc; padding-top: 20px; font-size: 10px; color: #999; font-style: italic;">
-          This document is an electronic representation of the Afrikoni Sovereign Trade Ledger. 
+          This document is an electronic representation of the Afrikoni Secure Trade Ledger. 
           The DNA hashes provided are cryptographically tied to the physical and digital state of the goods. 
           Verification Point: ${timestamp}
         </div>
@@ -88,15 +88,15 @@ export function generateForensicProfile(trade, events) {
     </html>
   `;
 
-    return {
-        dna,
-        timestamp,
-        gpsTrail,
-        signatures,
-        reportHtml
-    };
+  return {
+    dna,
+    timestamp,
+    gpsTrail,
+    signatures,
+    reportHtml
+  };
 }
 
 export default {
-    generateForensicProfile
+  generateForensicProfile
 };

@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/contexts/AuthProvider';
 
-export function SovereignIdentity({ size = "md", className = "" }) {
+export function SecureIdentity({ size = "md", className = "" }) {
     const { user } = useAuth();
 
     // 🧬 GENETIC HASH: Generate a visual fingerprint based on user UUID
@@ -92,7 +92,7 @@ export function SovereignIdentity({ size = "md", className = "" }) {
                     className="mt-4 text-center"
                 >
                     <span className="text-os-xs font-mono text-os-text-secondary/60 uppercase tracking-[0.3em]">
-                        Sovereign Node
+                        Secure ID
                     </span>
                     <div className="text-os-xs font-black text-os-text-primary tracking-widest mt-1">
                         {fingerprint.nodeId}

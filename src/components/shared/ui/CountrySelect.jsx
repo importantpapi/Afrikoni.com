@@ -10,7 +10,7 @@ import { Input } from '@/components/shared/ui/input';
 import { Search, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export function CountrySelect({ value, onValueChange, countries, placeholder = "Select sovereign node" }) {
+export function CountrySelect({ value, onValueChange, countries, placeholder = "Select country" }) {
     const [searchTerm, setSearchTerm] = useState('');
 
     const filteredCountries = countries.filter(c =>

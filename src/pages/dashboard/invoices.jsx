@@ -37,7 +37,7 @@ export default function InvoicesDashboard() {
   const isSeller = capabilities.can_sell === true && capabilities.sell_status === 'approved';
   const userRole = isSeller ? 'seller' : 'buyer';
 
-  // ✅ SOVEREIGN SYNC: Allow rendering if system is ready OR primed
+  // ✅ DATA SYNC: Allow rendering if system is ready OR primed
   if (!isSystemReady && invoices.length === 0) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -142,7 +142,7 @@ export default function InvoicesDashboard() {
               <div className={cn("p-2 rounded-lg bg-white/5", stat.color)}>
                 <stat.icon className="w-5 h-5" />
               </div>
-              {i === 1 && <div className="text-os-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">+12% MoM</div>}
+              {null}
             </div>
             <div className="space-y-1">
               <div className="text-3xl font-black">{stat.value}</div>
@@ -267,7 +267,7 @@ export default function InvoicesDashboard() {
             </div>
 
             <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-4">
-              <h3 className="text-os-xs font-black uppercase tracking-widest">Fiscal Sovereignty</h3>
+              <h3 className="text-os-xs font-black uppercase tracking-widest">Fiscal Clarity</h3>
               <Lock className="w-3.5 h-3.5 text-os-muted" />
             </div>
 
@@ -284,38 +284,38 @@ export default function InvoicesDashboard() {
 
           {/* Inbound/Outbound Mix */}
           <Surface variant="glass" className="p-8">
-            <h3 className="text-os-xs font-black uppercase tracking-widest mb-8">Settlement Velocity</h3>
-            <div className="space-y-6">
-              <div className="space-y-2">
-                <div className="flex justify-between text-os-xs font-bold uppercase tracking-widest">
-                  <span className="text-os-muted">Inbound Flows</span>
-                  <span className="text-emerald-500">72%</span>
+            <h3 className="text-os-xs font-black uppercase tracking-widest mb-6">Settlement Velocity</h3>
+            {invoices.length > 0 ? (() => {
+              const paid = invoices.filter(inv => inv.status === 'paid');
+              const unpaid = invoices.filter(inv => inv.status !== 'paid');
+              const total = invoices.length;
+              const paidPct = Math.round((paid.length / total) * 100);
+              const unpaidPct = 100 - paidPct;
+              return (
+                <div className="space-y-6">
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-os-xs font-bold uppercase tracking-widest">
+                      <span className="text-os-muted">Settled</span>
+                      <span className="text-emerald-500">{paidPct}%</span>
+                    </div>
+                    <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                      <motion.div initial={{ width: 0 }} animate={{ width: `${paidPct}%` }} className="h-full bg-emerald-500" />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-os-xs font-bold uppercase tracking-widest">
+                      <span className="text-os-muted">Outstanding</span>
+                      <span className="text-os-accent">{unpaidPct}%</span>
+                    </div>
+                    <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                      <motion.div initial={{ width: 0 }} animate={{ width: `${unpaidPct}%` }} className="h-full bg-os-accent" />
+                    </div>
+                  </div>
                 </div>
-                <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                  <motion.div initial={{ width: 0 }} animate={{ width: '72%' }} className="h-full bg-emerald-500" />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex justify-between text-os-xs font-bold uppercase tracking-widest">
-                  <span className="text-os-muted">Outbound Flows</span>
-                  <span className="text-os-accent">28%</span>
-                </div>
-                <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                  <motion.div initial={{ width: 0 }} animate={{ width: '28%' }} className="h-full bg-os-accent" />
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-10 pt-8 border-t border-white/5 space-y-4">
-              <div className="flex items-center justify-between text-os-xs">
-                <span className="text-os-muted">Liquidity Index</span>
-                <span className="font-black">Institutional</span>
-              </div>
-              <div className="flex items-center justify-between text-os-xs">
-                <span className="text-os-muted">AVG Settlement</span>
-                <span className="font-black">0.4 Days</span>
-              </div>
-            </div>
+              );
+            })() : (
+              <p className="text-os-xs text-os-muted">Settlement data will appear once you have invoices.</p>
+            )}
           </Surface>
         </div>
       </div>

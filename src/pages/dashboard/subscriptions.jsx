@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Sparkles, Crown, Zap, ArrowRight } from 'lucide-react';
-// NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
+import { useFlutterwave, closePaymentModal } from 'flutterwave-react-v3';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
 import { toast } from 'sonner';
@@ -15,11 +15,10 @@ import { supabase } from '@/api/supabaseClient';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
 import ErrorState from '@/components/shared/ui/ErrorState';
-import { 
-  getCompanySubscription, 
-  createSubscription, 
+import {
+  getCompanySubscription,
   SUBSCRIPTION_PLANS,
-  getPlanDetails 
+  getPlanDetails
 } from '@/services/subscriptionService';
 import RequireCapability from '@/guards/RequireCapability';
 import { Surface } from '@/components/system/Surface';
@@ -27,7 +26,7 @@ import { Surface } from '@/components/system/Surface';
 function SubscriptionsPageInner() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
-  
+
   const [currentSubscription, setCurrentSubscription] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -81,12 +80,12 @@ function SubscriptionsPageInner() {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       if (abortSignal.aborted) return;
-      
+
       // ✅ KERNEL MIGRATION: Use profileCompanyId directly from Kernel
       const subscription = await getCompanySubscription(profileCompanyId);
-      
+
       if (abortSignal.aborted) return;
       setCurrentSubscription(subscription);
     } catch (error) {
@@ -103,35 +102,78 @@ function SubscriptionsPageInner() {
     }
   };
 
+  const [upgradingPlan, setUpgradingPlan] = useState(null); // track which plan is being paid
+
+  // Flutterwave config for subscription — amount/plan set dynamically
+  const [flwConfig, setFlwConfig] = useState(null);
+
   const handleUpgrade = async (planType) => {
     if (!profileCompanyId) {
       toast.error('Company not found');
       return;
     }
-
     if (planType === 'free') {
       toast.info('You are already on the Free plan');
       return;
     }
+    if (planType === currentPlan) {
+      toast.info(`You are already on the ${SUBSCRIPTION_PLANS[planType].name} plan`);
+      return;
+    }
 
+    const plan = SUBSCRIPTION_PLANS[planType];
+    if (!plan) return;
+
+    // Get current user session for email
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast.error('Please log in to upgrade');
+      return;
+    }
+
+    setUpgradingPlan(planType);
     setIsUpgrading(true);
-    try {
-      // In production, this would integrate with Stripe/PayPal
-      // For now, we'll simulate the payment
-      const paymentData = {
-        method: 'stripe',
-        paymentId: `mock_${Date.now()}`
-      };
 
-      // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
-      await createSubscription(profileCompanyId, planType, paymentData);
-      toast.success(`Successfully upgraded to ${SUBSCRIPTION_PLANS[planType].name}!`);
-      await loadSubscription();
+    try {
+      // Call the Edge Function to initialize Flutterwave payment
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_FUNCTIONS_URL}/process-flutterwave-payment`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            amount: plan.monthlyPrice,
+            currency: 'USD',
+            orderType: 'subscription',
+            subscriptionPlan: planType,
+            customerEmail: session.user.email,
+            customerName: session.user.user_metadata?.full_name || session.user.email,
+            metadata: { company_id: profileCompanyId },
+          }),
+        }
+      );
+
+      const result = await res.json();
+
+      if (!result.success || !result.paymentUrl) {
+        throw new Error(result.error || 'Failed to initialize payment');
+      }
+
+      // Redirect to Flutterwave hosted payment page
+      // The webhook will activate the subscription on successful payment
+      toast.info(`Redirecting to secure payment for ${plan.name} plan…`, { duration: 3000 });
+      setTimeout(() => {
+        window.location.href = result.paymentUrl;
+      }, 1000);
+
     } catch (err) {
-      console.error('[SubscriptionsPage] Error upgrading subscription:', err);
-      toast.error('Failed to upgrade subscription. Please try again.');
-    } finally {
+      console.error('[SubscriptionsPage] Upgrade error:', err);
+      toast.error(err.message || 'Failed to start upgrade. Please try again.');
       setIsUpgrading(false);
+      setUpgradingPlan(null);
     }
   };
 
@@ -141,8 +183,8 @@ function SubscriptionsPageInner() {
   // ✅ KERNEL MANIFESTO: Rule 5 - Three-State UI (Error BEFORE Loading)
   if (error) {
     return (
-      <ErrorState 
-        message={error} 
+      <ErrorState
+        message={error}
         onRetry={() => {
           setError(null);
           loadSubscription();
@@ -197,115 +239,115 @@ function SubscriptionsPageInner() {
 
       {/* Plans Grid */}
       <div className="grid md:grid-cols-3 gap-6">
-          {Object.values(SUBSCRIPTION_PLANS).map((plan, index) => {
-            const isCurrentPlan = currentPlan === plan.id;
-            const isUpgrade = plan.monthlyPrice > (planDetails.monthlyPrice || 0);
-            
-            return (
-              <motion.div
-                key={plan.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-              >
-                <Surface className={`h-full flex flex-col p-5 ${
-                  plan.id === 'elite' 
-                    ? 'border-2 border-os-accent shadow-os-md' 
-                    : 'border border-white/10'
+        {Object.values(SUBSCRIPTION_PLANS).map((plan, index) => {
+          const isCurrentPlan = currentPlan === plan.id;
+          const isUpgrade = plan.monthlyPrice > (planDetails.monthlyPrice || 0);
+
+          return (
+            <motion.div
+              key={plan.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.1 }}
+            >
+              <Surface className={`h-full flex flex-col p-5 ${plan.id === 'elite'
+                ? 'border-2 border-os-accent shadow-os-md'
+                : 'border border-white/10'
                 }`}>
-                  <div className="mb-6">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-os-xl font-semibold text-[var(--os-text-primary)]">{plan.name}</h3>
-                      {plan.id === 'elite' && (
-                        <Crown className="w-6 h-6" />
-                      )}
-                      {plan.id === 'growth' && (
-                        <Sparkles className="w-6 h-6" />
-                      )}
-                    </div>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-semibold text-[var(--os-text-primary)]">
-                        ${plan.monthlyPrice}
-                      </span>
-                      <span className="text-[var(--os-text-secondary)]">/month</span>
-                    </div>
-                    {plan.visibilityBoost > 0 && (
-                      <p className="text-os-sm mt-2">
-                        <Zap className="w-4 h-4 inline mr-1" />
-                        {plan.visibilityBoost === 1.5 ? '50%' : '200%'} visibility boost
-                      </p>
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-os-xl font-semibold text-[var(--os-text-primary)]">{plan.name}</h3>
+                    {plan.id === 'elite' && (
+                      <Crown className="w-6 h-6" />
+                    )}
+                    {plan.id === 'growth' && (
+                      <Sparkles className="w-6 h-6" />
                     )}
                   </div>
-                  <div className="flex-1 flex flex-col">
-                    <ul className="space-y-3 mb-6 flex-1">
-                      {plan.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-start gap-2">
-                          <Check className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                          <span className="text-os-sm text-[var(--os-text-secondary)]">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-                    <Button
-                      onClick={() => handleUpgrade(plan.id)}
-                      disabled={isCurrentPlan || isUpgrading}
-                      className={`w-full ${
-                        isCurrentPlan
-                          ? 'bg-os-accent/20 text-afrikoni-text-dark cursor-not-allowed'
-                          : plan.id === 'elite'
-                          ? 'bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut'
-                          : 'bg-afrikoni-purple hover:bg-afrikoni-purple/90 text-white'
-                      }`}
-                    >
-                      {isCurrentPlan ? (
-                        'Current Plan'
-                      ) : isUpgrade ? (
-                        <>
-                          Upgrade <ArrowRight className="w-4 h-4 ml-2" />
-                        </>
-                      ) : (
-                        'Select Plan'
-                      )}
-                    </Button>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-semibold text-[var(--os-text-primary)]">
+                      ${plan.monthlyPrice}
+                    </span>
+                    <span className="text-[var(--os-text-secondary)]">/month</span>
                   </div>
-                </Surface>
-              </motion.div>
-            );
-          })}
-        </div>
-
-        {/* Upgrade Benefits */}
-        {currentPlan === 'free' && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-          >
-            <Surface variant="soft" className="p-6 bg-gradient-to-r border">
-              <h3 className="text-os-lg font-semibold text-[var(--os-text-primary)] mb-3">
-              🚀 Upgrade to Increase Your Visibility
-              </h3>
-              <p className="text-[var(--os-text-secondary)] mb-4">
-              Premium plans help your products rank higher in search results, get more RFQ matches, and close more deals.
-              </p>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="flex items-start gap-2">
-                  <Sparkles className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-semibold text-[var(--os-text-primary)]">AI-Powered Ranking</p>
-                    <p className="text-os-sm text-[var(--os-text-secondary)]">Get matched with more relevant buyers</p>
-                  </div>
+                  {plan.visibilityBoost > 0 && (
+                    <p className="text-os-sm mt-2">
+                      <Zap className="w-4 h-4 inline mr-1" />
+                      {plan.visibilityBoost === 1.5 ? '50%' : '200%'} visibility boost
+                    </p>
+                  )}
                 </div>
-                <div className="flex items-start gap-2">
-                  <Crown className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-semibold text-[var(--os-text-primary)]">Featured Placement</p>
-                    <p className="text-os-sm text-[var(--os-text-secondary)]">Appear at the top of search results</p>
-                  </div>
+                <div className="flex-1 flex flex-col">
+                  <ul className="space-y-3 mb-6 flex-1">
+                    {plan.features.map((feature, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <Check className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                        <span className="text-os-sm text-[var(--os-text-secondary)]">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button
+                    onClick={() => handleUpgrade(plan.id)}
+                    disabled={isCurrentPlan || isUpgrading}
+                    className={`w-full ${isCurrentPlan
+                      ? 'bg-os-accent/20 text-afrikoni-text-dark cursor-not-allowed'
+                      : plan.id === 'elite'
+                        ? 'bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut'
+                        : 'bg-afrikoni-purple hover:bg-afrikoni-purple/90 text-white'
+                      }`}
+                  >
+                    {isCurrentPlan ? (
+                      'Current Plan'
+                    ) : upgradingPlan === plan.id ? (
+                      'Redirecting to payment…'
+                    ) : isUpgrade ? (
+                      <>
+                        Upgrade <ArrowRight className="w-4 h-4 ml-2" />
+                      </>
+                    ) : (
+                      'Select Plan'
+                    )}
+                  </Button>
+                </div>
+              </Surface>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Upgrade Benefits */}
+      {currentPlan === 'free' && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5 }}
+        >
+          <Surface variant="soft" className="p-6 bg-gradient-to-r border">
+            <h3 className="text-os-lg font-semibold text-[var(--os-text-primary)] mb-3">
+              🚀 Upgrade to Increase Your Visibility
+            </h3>
+            <p className="text-[var(--os-text-secondary)] mb-4">
+              Premium plans help your products rank higher in search results, get more RFQ matches, and close more deals.
+            </p>
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="flex items-start gap-2">
+                <Sparkles className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-[var(--os-text-primary)]">AI-Powered Ranking</p>
+                  <p className="text-os-sm text-[var(--os-text-secondary)]">Get matched with more relevant buyers</p>
                 </div>
               </div>
-            </Surface>
-          </motion.div>
-        )}
+              <div className="flex items-start gap-2">
+                <Crown className="w-5 h-5 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold text-[var(--os-text-primary)]">Featured Placement</p>
+                  <p className="text-os-sm text-[var(--os-text-secondary)]">Appear at the top of search results</p>
+                </div>
+              </div>
+            </div>
+          </Surface>
+        </motion.div>
+      )}
     </div>
   );
 }

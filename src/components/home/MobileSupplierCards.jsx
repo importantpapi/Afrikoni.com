@@ -259,9 +259,27 @@ export default function MobileSupplierCards() {
                             {supplier.company_name}
                           </h3>
                           {/* Verified Badge */}
-                          <div className="flex items-center gap-1 bg-os-accent/10 px-1.5 py-0.5 rounded-full flex-shrink-0">
-                            <Shield className="w-3 h-3 text-os-accent" />
-                            <span className="text-os-xs font-semibold text-os-accent">Verified</span>
+                          <div className="flex flex-col items-end gap-1">
+                            <div className="flex items-center gap-1 bg-os-accent/10 px-1.5 py-0.5 rounded-full flex-shrink-0">
+                              <Shield className="w-3 h-3 text-os-accent" />
+                              <span className="text-os-xs font-semibold text-os-accent">Verified</span>
+                            </div>
+                            {supplier.trust_score && (
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] text-os-text-secondary font-medium">Trust</span>
+                                <div className="flex items-center gap-1">
+                                  <div className="w-12 h-1 bg-os-stroke rounded-full overflow-hidden">
+                                    <div
+                                      className={`h-full rounded-full ${supplier.trust_score >= 80 ? 'bg-emerald-500' : 'bg-os-accent'}`}
+                                      style={{ width: `${supplier.trust_score}%` }}
+                                    />
+                                  </div>
+                                  <span className={`text-[10px] font-bold ${supplier.trust_score >= 80 ? 'text-emerald-500' : 'text-os-accent'}`}>
+                                    {supplier.trust_score}
+                                  </span>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
 

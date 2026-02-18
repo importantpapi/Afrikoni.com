@@ -84,6 +84,14 @@ export const DialogClose = ({ onClose }) => {
   );
 };
 
+export const DialogFooter = ({ children, className }) => {
+  return (
+    <div className={cn('flex flex-col-reverse sm:flex-row sm:justify-end gap-2 mt-6 pt-4 border-t border-os-stroke', className)}>
+      {children}
+    </div>
+  );
+};
+
 export const DialogTrigger = ({ children, asChild, ...props }) => {
   if (asChild) {
     return React.cloneElement(children, props);

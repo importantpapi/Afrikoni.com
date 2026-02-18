@@ -38,6 +38,7 @@ import {
   AlertCircle,
   Info
 } from 'lucide-react';
+import { Tooltip } from '@/components/shared/ui/tooltip';
 
 // Define workflow steps with icons and descriptions
 const WORKFLOW_STEPS = [
@@ -240,13 +241,12 @@ export default function TradeWorkflowVisualizer({
             initial={{ width: 0 }}
             animate={{ width: `${progressPercent}%` }}
             transition={{ duration: 0.8, ease: 'easeOut' }}
-            className={`h-full rounded-full ${
-              isCompleted
-                ? 'bg-green-500'
-                : isCancelled
-                  ? 'bg-red-500'
-                  : 'bg-os-accent'
-            }`}
+            className={`h-full rounded-full ${isCompleted
+              ? 'bg-green-500'
+              : isCancelled
+                ? 'bg-red-500'
+                : 'bg-os-accent'
+              }`}
           />
         </div>
       </div>
@@ -295,13 +295,12 @@ export default function TradeWorkflowVisualizer({
                   className="flex flex-col items-center"
                 >
                   <div
-                    className={`w-8 h-8 rounded-full flex items-center justify-center z-10 ${
-                      status === 'completed'
-                        ? 'bg-green-500 text-white'
-                        : status === 'current'
-                          ? 'bg-os-accent text-white ring-4 ring-os-accent/20'
-                          : 'bg-stone-200 text-stone-400'
-                    }`}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center z-10 ${status === 'completed'
+                      ? 'bg-green-500 text-white'
+                      : status === 'current'
+                        ? 'bg-os-accent text-white ring-4 ring-os-accent/20'
+                        : 'bg-stone-200 text-stone-400'
+                      }`}
                   >
                     {status === 'completed' ? (
                       <CheckCircle className="w-4 h-4" />
@@ -309,13 +308,12 @@ export default function TradeWorkflowVisualizer({
                       <Icon className="w-4 h-4" />
                     )}
                   </div>
-                  <span className={`mt-2 text-os-xs text-center ${
-                    status === 'current'
-                      ? 'font-semibold text-os-accent'
-                      : status === 'completed'
-                        ? 'text-green-600'
-                        : 'text-stone-400'
-                  }`}>
+                  <span className={`mt-2 text-os-xs text-center ${status === 'current'
+                    ? 'font-semibold text-os-accent'
+                    : status === 'completed'
+                      ? 'text-green-600'
+                      : 'text-stone-400'
+                    }`}>
                     {step.shortLabel}
                   </span>
                 </motion.div>
@@ -398,22 +396,20 @@ export default function TradeWorkflowVisualizer({
             initial={{ width: 0 }}
             animate={{ width: `${progressPercent}%` }}
             transition={{ duration: 1, ease: 'easeOut' }}
-            className={`h-full rounded-full ${
-              isCompleted
-                ? 'bg-gradient-to-r from-green-500 to-green-400'
-                : isCancelled
-                  ? 'bg-red-500'
-                  : 'bg-gradient-to-r from-os-accent to-amber-500'
-            }`}
+            className={`h-full rounded-full ${isCompleted
+              ? 'bg-gradient-to-r from-green-500 to-green-400'
+              : isCancelled
+                ? 'bg-red-500'
+                : 'bg-gradient-to-r from-os-accent to-amber-500'
+              }`}
           />
         </div>
       </div>
 
       {/* Status alert for special states */}
       {(isCancelled || isDisputed) && (
-        <div className={`px-6 py-3 flex items-center gap-3 ${
-          isCancelled ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'
-        }`}>
+        <div className={`px-6 py-3 flex items-center gap-3 ${isCancelled ? 'bg-red-50 text-red-700' : 'bg-amber-50 text-amber-700'
+          }`}>
           <AlertCircle className="w-5 h-5 flex-shrink-0" />
           <div>
             <p className="font-medium">
@@ -441,6 +437,14 @@ export default function TradeWorkflowVisualizer({
               const Icon = step.icon;
               const isLast = index === activeSteps.length - 1;
 
+              // Tooltip content map
+              const tooltips = {
+                'payment_secured': "Your funds are held safely in escrow and only released when you confirm delivery.",
+                'quality_check': "Verified inspectors check your goods before shipment to ensure quality.",
+                'customs': "We handle all customs paperwork and duties for cross-border shipments.",
+                'rfq_submitted': "Your Request for Quote is visible to verified suppliers.",
+              };
+
               return (
                 <motion.div
                   key={step.id}
@@ -450,26 +454,29 @@ export default function TradeWorkflowVisualizer({
                   className={`relative pl-12 pb-6 ${isLast ? 'pb-0' : ''}`}
                 >
                   {/* Step indicator */}
-                  <div
-                    className={`absolute left-0 w-8 h-8 rounded-full flex items-center justify-center z-10 transition-all ${
-                      stepStatus === 'completed'
-                        ? 'bg-green-500 text-white'
-                        : stepStatus === 'current'
-                          ? 'bg-os-accent text-white ring-4 ring-os-accent/20 shadow-os-md'
-                          : 'bg-stone-100 text-stone-400 border-2 border-stone-200'
-                    }`}
-                  >
-                    {stepStatus === 'completed' ? (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: 'spring', stiffness: 500 }}
+                  <div className="absolute left-0 z-10">
+                    <Tooltip content={tooltips[step.id] || step.description} position="right">
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center transition-all cursor-help ${stepStatus === 'completed'
+                          ? 'bg-green-500 text-white'
+                          : stepStatus === 'current'
+                            ? 'bg-os-accent text-white ring-4 ring-os-accent/20 shadow-os-md'
+                            : 'bg-stone-100 text-stone-400 border-2 border-stone-200'
+                          }`}
                       >
-                        <CheckCircle className="w-4 h-4" />
-                      </motion.div>
-                    ) : (
-                      <Icon className="w-4 h-4" />
-                    )}
+                        {stepStatus === 'completed' ? (
+                          <motion.div
+                            initial={{ scale: 0 }}
+                            animate={{ scale: 1 }}
+                            transition={{ type: 'spring', stiffness: 500 }}
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                          </motion.div>
+                        ) : (
+                          <Icon className="w-4 h-4" />
+                        )}
+                      </div>
+                    </Tooltip>
                   </div>
 
                   {/* Progress line fill */}
@@ -484,20 +491,18 @@ export default function TradeWorkflowVisualizer({
                   )}
 
                   {/* Step content */}
-                  <div className={`${
-                    stepStatus === 'current'
-                      ? 'bg-os-accent/5 -mx-3 px-3 py-2 rounded-lg'
-                      : ''
-                  }`}>
+                  <div className={`${stepStatus === 'current'
+                    ? 'bg-os-accent/5 -mx-3 px-3 py-2 rounded-lg'
+                    : ''
+                    }`}>
                     <div className="flex items-start justify-between">
                       <div>
-                        <h4 className={`font-medium ${
-                          stepStatus === 'completed'
-                            ? 'text-green-600'
-                            : stepStatus === 'current'
-                              ? 'text-os-accent'
-                              : 'text-stone-400'
-                        }`}>
+                        <h4 className={`font-medium ${stepStatus === 'completed'
+                          ? 'text-green-600'
+                          : stepStatus === 'current'
+                            ? 'text-os-accent'
+                            : 'text-stone-400'
+                          }`}>
                           {step.label}
                           {step.optional && (
                             <span className="ml-2 text-os-xs font-normal">
@@ -505,9 +510,8 @@ export default function TradeWorkflowVisualizer({
                             </span>
                           )}
                         </h4>
-                        <p className={`text-os-sm mt-0.5 ${
-                          stepStatus === 'upcoming' ? 'text-stone-300' : 'text-stone-500'
-                        }`}>
+                        <p className={`text-os-sm mt-0.5 ${stepStatus === 'upcoming' ? 'text-stone-300' : 'text-stone-500'
+                          }`}>
                           {step.description}
                         </p>
                       </div>

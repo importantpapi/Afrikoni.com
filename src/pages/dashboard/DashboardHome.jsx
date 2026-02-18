@@ -92,7 +92,7 @@ export default function DashboardHome() {
 
   const nba = getNextBestAction();
 
-  // 🏛️ DYNAMIC METRICS: Horizon 2026 Sovereign Architecture
+  // 🏛️ DYNAMIC METRICS: Horizon 2026 Secure Architecture
   const stats = [
     {
       label: t('dashboard.active_deals'),
@@ -104,7 +104,7 @@ export default function DashboardHome() {
     {
       label: t('dashboard.in_escrow'),
       value: `$${totalEscrowValue.toLocaleString()}`,
-      sub: "Protected by Sovereign Bridge",
+      sub: "Protected by Secure Escrow",
       color: "text-os-blue",
       trend: "Secure"
     },

@@ -62,7 +62,7 @@ export function CurrencyProvider({ children }) {
       USD: 1,
       EUR: 0.92,
       GBP: 0.79,
-      NGN: 1500,
+      NGN: 1550,
       GHS: 13.5,
       KES: 130,
       ZAR: 18.5,

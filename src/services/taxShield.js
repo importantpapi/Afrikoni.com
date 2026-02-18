@@ -1,7 +1,7 @@
 /**
  * THE AfCFTA TAX SHIELD
  * 
- * "The Moat" of the Sovereign Trade Protocol.
+ * "The Moat" of the Afrikoni Trade Protocol.
  * Responsible for:
  * 1. AI Auto-Mapping of Harmonized System (HS) Codes.
  * 2. Validating Rules of Origin (RoO) for Duty-Free Status.

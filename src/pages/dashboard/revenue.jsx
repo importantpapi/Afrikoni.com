@@ -31,7 +31,7 @@ export default function RevenueDashboard() {
         <div className="os-page os-stagger space-y-6">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-os-2xl font-bold text-[var(--os-text-primary)]">Sovereign Treasury</h1>
+                    <h1 className="text-os-2xl font-bold text-[var(--os-text-primary)]">Revenue Treasury</h1>
                     <p className="text-os-sm text-[var(--os-text-secondary)]">Real-time visualization of protocol cash flow.</p>
                 </div>
                 <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-lg flex items-center gap-2">

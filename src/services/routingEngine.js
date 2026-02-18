@@ -1,7 +1,7 @@
 /**
  * OPERATIONAL INTELLIGENCE: CORRIDOR OPTIMIZER
  * 
- * "The Brain" of the Sovereign Trade Protocol.
+ * "The Brain" of the Afrikoni Trade Protocol.
  * Responsible for:
  * 1. Optimizing logistics routes (Time vs. Cost vs. Risk).
  * 2. Real-time congestion monitoring (Simulated).

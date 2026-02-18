@@ -79,7 +79,7 @@ export default function MultiSigBridge({ tradeId, status }) {
             <div className="flex items-center gap-2 mb-4">
                 <ShieldCheck className={`w-4 h-4 ${consensus.consensusReached ? 'text-emerald-400' : 'text-gray-400'}`} />
                 <span className={`text-os-xs font-bold uppercase tracking-[0.2em] ${consensus.consensusReached ? 'text-emerald-400' : 'text-gray-400'}`}>
-                    Sovereign Multi-Sig Bridge
+                    3-Party Trade Approval
                 </span>
             </div>
 
@@ -103,8 +103,8 @@ export default function MultiSigBridge({ tradeId, status }) {
                             <p className="text-os-xs text-gray-500 mt-0.5">{key.status}</p>
                         </div>
                         <div className={`w-2 h-2 rounded-full ${key.signed
-                                ? `bg-${key.color}-500 shadow-[0_0_12px_rgba(var(--${key.color}-500-rgb),0.8)]`
-                                : 'bg-gray-700'
+                            ? `bg-${key.color}-500 shadow-[0_0_12px_rgba(var(--${key.color}-500-rgb),0.8)]`
+                            : 'bg-gray-700'
                             }`} />
 
                         {!key.signed && (
@@ -135,8 +135,8 @@ export default function MultiSigBridge({ tradeId, status }) {
             <div className="mt-4 pt-4 border-t border-white/5 text-center">
                 <p className="text-os-xs text-gray-400 leading-relaxed font-mono">
                     {consensus.consensusReached
-                        ? "Consensus Achieved. Funds unlocked for settlement."
-                        : "Cryptographic consensus pending. Smart contract locked."}
+                        ? "All parties approved. Funds can now be released to the supplier."
+                        : "Waiting for all parties to approve before funds are released."}
                 </p>
                 <div className="flex justify-center gap-1 mt-2">
                     {consensus.signatures.map((sig, i) => (

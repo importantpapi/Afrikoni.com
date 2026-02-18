@@ -36,29 +36,27 @@ const DNACommitPulse = () => (
     </div>
 );
 
-const AuditProphet = ({ score }) => {
+const VerificationReport = ({ score }) => {
     const [isExporting, setIsExporting] = useState(false);
 
     const handleExport = async () => {
         setIsExporting(true);
         try {
-            // In a real scenario, we'd fetch the company's full audit data
-            // For now, we'll generate a high-level summary report
-            const mockReportHtml = `
+            const reportHtml = `
                 <html>
                     <body style="font-family: sans-serif; padding: 40px; border: 10px solid #D4A937;">
-                        <h1 style="color: #D4A937;">CONTINENTAL TRUST AUDIT</h1>
-                        <p><strong>Score:</strong> ${score}</p>
-                        <p><strong>Status:</strong> INSTITUTIONAL GRADE</p>
+                        <h1 style="color: #D4A937;">AFRIKONI VERIFICATION REPORT</h1>
+                        <p><strong>Trust Score:</strong> ${score}</p>
+                        <p><strong>Status:</strong> VERIFIED</p>
                         <hr/>
-                        <p>This certificate verifies that the entity has passed the Afrikoni Sovereign DNA Audit.</p>
+                        <p>This certificate confirms that the entity has completed the Afrikoni verification process.</p>
                     </body>
                 </html>
             `;
-            await generateForensicPDF(mockReportHtml, 'Continental_Trust_Report.pdf');
-            toast.success('Institutional Report Exported');
+            await generateForensicPDF(reportHtml, 'Afrikoni_Verification_Report.pdf');
+            toast.success('Report exported successfully');
         } catch (err) {
-            toast.error('Export Failed');
+            toast.error('Export failed. Please try again.');
         } finally {
             setIsExporting(false);
         }
@@ -72,17 +70,17 @@ const AuditProphet = ({ score }) => {
             <div className="space-y-6 relative z-10">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-os-accent/20 rounded-os-sm">
-                        <Sparkles className="w-5 h-5 text-os-accent" />
+                        <ShieldCheck className="w-5 h-5 text-os-accent" />
                     </div>
-                    <h4 className="text-os-sm font-black uppercase tracking-[0.3em] text-os-accent">Audit Prophet AI</h4>
+                    <h4 className="text-os-sm font-black uppercase tracking-[0.3em] text-os-accent">Your Verification Report</h4>
                 </div>
-                <p className="text-os-sm text-os-muted leading-relaxed font-medium italic">
-                    "Based on current market volatility and your recent export performance, reaching **Tier 3 (Premier)** would lower your corridor escrow rates by **12.5%**."
+                <p className="text-os-sm text-os-muted leading-relaxed font-medium">
+                    Download your verification certificate to share with buyers, banks, or logistics partners as proof of your verified status on the Afrikoni network.
                 </p>
                 <div className="pt-4 border-t border-os-accent/10">
                     <div className="flex items-center justify-between text-os-xs font-black uppercase tracking-widest text-os-muted">
-                        <span>Optimization Probability</span>
-                        <span className="text-emerald-500">94.2%</span>
+                        <span>Current Trust Score</span>
+                        <span className="text-os-accent">{score} pts</span>
                     </div>
                 </div>
             </div>
@@ -92,7 +90,7 @@ const AuditProphet = ({ score }) => {
                 className="w-full mt-8 bg-os-accent text-black font-black uppercase tracking-widest py-6 rounded-os-md hover:scale-105 transition-all shadow-os-lg shadow-os-accent/10"
             >
                 {isExporting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                {isExporting ? 'Synthesizing...' : 'Print Bankable Report'}
+                {isExporting ? 'Generating...' : 'Download Verification Report'}
             </Button>
         </Surface>
     );
@@ -120,7 +118,7 @@ export default function ContinentalTrustHub() {
     const trustTiers = [
         {
             level: 1,
-            name: 'Sovereign',
+            name: 'Verified',
             status: 'verified',
             icon: UserCheck,
             reward: 'Tier-1 Liquidity Access',
@@ -203,7 +201,7 @@ export default function ContinentalTrustHub() {
                             <div className="space-y-0.5">
                                 <h1 className="text-4xl md:text-6xl font-black tracking-tighter">Continental Trust Hub</h1>
                                 <div className="flex items-center gap-3">
-                                    <span className="text-os-xs font-black uppercase tracking-[0.4em] text-os-muted opacity-50">Unified Sovereign Protocol</span>
+                                    <span className="text-os-xs font-black uppercase tracking-[0.4em] text-os-muted opacity-50">Afrikoni Trade Protocol</span>
                                     <div className="h-px w-20 bg-white/10" />
                                     <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/30 text-os-xs font-black uppercase px-2 py-0">v2026.4</Badge>
                                 </div>
@@ -355,7 +353,7 @@ export default function ContinentalTrustHub() {
 
                             <div className="space-y-4">
                                 {[
-                                    { label: 'Biometric Sovereignty', ref: 'UID-8201-AX', status: 'Hashed', date: 'Feb 12' },
+                                    { label: 'Biometric Security', ref: 'UID-8201-AX', status: 'Hashed', date: 'Feb 12' },
                                     { label: 'Fiscal Compliance Node', ref: 'REG-SN-D93', status: 'Confirmed', date: 'Feb 11' },
                                     { label: 'Anti-Risk Matrix Screening', ref: 'AML-SCAN-48', status: 'Active', date: 'Real-time' }
                                 ].map((row, i) => (
@@ -388,7 +386,7 @@ export default function ContinentalTrustHub() {
                 </div>
 
                 <div className="lg:col-span-4 flex flex-col gap-8">
-                    <AuditProphet score={trustScore} />
+                    <VerificationReport score={trustScore} />
 
                     <Surface variant="glass" className="p-10 border-emerald-500/20 bg-emerald-500/[0.02] text-center flex flex-col items-center justify-center relative group overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
@@ -425,7 +423,7 @@ export default function ContinentalTrustHub() {
                                 ) : isVerified ? (
                                     <div className="flex items-center gap-3">
                                         <ShieldCheck className="w-5 h-5" />
-                                        Badge Sovereign
+                                        Badge Verified
                                     </div>
                                 ) : isPending ? (
                                     <div className="flex items-center gap-3">

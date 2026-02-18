@@ -53,7 +53,7 @@ const FALLBACK_RATES = {
   USD: 1,
   EUR: 0.92,
   GBP: 0.79,
-  NGN: 1450,
+  NGN: 1550,
   ZAR: 18.5,
   KES: 130,
   GHS: 12.5,

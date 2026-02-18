@@ -39,7 +39,7 @@ import {
   Zap,
   AlertCircle
 } from 'lucide-react';
-import { useSovereignHandshake } from './hooks/useSovereignHandshake';
+import { useSecureHandshake } from './hooks/useSecureHandshake';
 import { migrateToSecureStorage } from './utils/secureStorage';
 
 /**
@@ -258,8 +258,12 @@ const SubscriptionsPage = lazy(() => import('./pages/dashboard/subscriptions'));
 const CorridorsPage = lazy(() => import('./pages/dashboard/corridors'));
 const DocumentsPage = lazy(() => import('./pages/dashboard/documents'));
 const RevenuePage = lazy(() => import('./pages/dashboard/revenue'));
+const WalletPage = lazy(() => import('./pages/dashboard/wallet'));
 const MessagesPage = lazy(() => import('./pages/MessagesPremium'));
 const AgentOnboarding = lazy(() => import('./pages/dashboard/AgentOnboarding'));
+const AdminPayouts = lazy(() => import('./pages/dashboard/admin/Payouts'));
+const AdminDisputes = lazy(() => import('./pages/dashboard/admin/Disputes'));
+const AdminVerifications = lazy(() => import('./pages/dashboard/admin/Verifications'));
 
 // 9. DEV TOOLS (Development only)
 const TestEmailsPage = lazy(() => import('./pages/dashboard/test-emails'));
@@ -295,6 +299,10 @@ const ServiceSuppliers = lazy(() => import('./pages/services/suppliers'));
 const ServiceBuyers = lazy(() => import('./pages/services/buyers'));
 const TradeProtection = lazy(() => import('./pages/protection'));
 const EscrowPolicy = lazy(() => import('./pages/escrow-policy'));
+const DisputesPublic = lazy(() => import('./pages/disputes'));
+const InspectionServices = lazy(() => import('./pages/inspection'));
+const AntiFraud = lazy(() => import('./pages/anti-fraud'));
+const ResourcesIndex = lazy(() => import('./pages/resources/index'));
 
 // ✅ ENTERPRISE FIX: Mobile-specific pages
 const InboxMobile = lazy(() => import('./pages/inbox-mobile'));
@@ -336,8 +344,8 @@ function AppContent() {
   const { kernelError, ready: isSystemReady } = useCapability();
   const location = useLocation();
 
-  // ✅ SOVEREIGN SYNC: Parallel Handshake
-  const { handshakeStatus } = useSovereignHandshake();
+  // ✅ SECURE SYNC: Parallel Handshake
+  const { handshakeStatus } = useSecureHandshake();
 
   useSessionRefresh();
   useBrowserNavigation();
@@ -411,6 +419,10 @@ function AppContent() {
             <Route path="services/buyers" element={<ServiceBuyers />} />
             <Route path="protection" element={<TradeProtection />} />
             <Route path="escrow-policy" element={<EscrowPolicy />} />
+            <Route path="disputes" element={<DisputesPublic />} />
+            <Route path="inspection" element={<InspectionServices />} />
+            <Route path="anti-fraud" element={<AntiFraud />} />
+            <Route path="resources" element={<ResourcesIndex />} />
 
             <Route path="inbox-mobile" element={
               <ProtectedRoute>
@@ -484,6 +496,39 @@ function AppContent() {
               <Route path="team-members" element={<TeamMembersPage />} />
               <Route path="messages" element={<MessagesPage />} />
               <Route path="revenue" element={<RevenuePage />} />
+              <Route path="wallet" element={<WalletPage />} />
+              {/* ✅ FORENSIC FIX: Previously imported but NEVER routed — now wired */}
+              <Route path="disputes" element={<DisputesPage />} />
+              <Route path="reviews" element={<ReviewsPage />} />
+              <Route path="kyc" element={<KYCPage />} />
+              <Route path="subscriptions" element={<SubscriptionsPage />} />
+              <Route path="shipments/new" element={<ShipmentNewPage />} />
+              <Route path="fulfillment" element={<FulfillmentPage />} />
+              <Route path="returns" element={<ReturnsPage />} />
+              <Route path="returns/:id" element={<ReturnDetailPage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
+              <Route path="support" element={<SupportChatPage />} />
+              <Route path="trade-pipeline" element={<TradePipelinePage />} />
+              <Route path="quick-trade" element={<QuickTradeWizard />} />
+              <Route path="corridors" element={<CorridorsPage />} />
+              <Route path="documents" element={<DocumentsPage />} />
+              <Route path="risk" element={<RiskPage />} />
+              <Route path="trust-health" element={<TrustHealthPage />} />
+              <Route path="anticorruption" element={<AnticorruptionPage />} />
+              <Route path="audit" element={<AuditPage />} />
+              <Route path="protection" element={<ProtectionPage />} />
+              <Route path="verification-status" element={<VerificationStatusPage />} />
+              <Route path="verification-marketplace" element={<VerificationMarketplacePage />} />
+              <Route path="logistics-quote" element={<LogisticsQuotePage />} />
+              <Route path="invoices/:id" element={<InvoiceDetailPage />} />
+              <Route path="escrow/:orderId" element={<EscrowPage />} />
+              <Route path="agent-onboarding" element={<AgentOnboarding />} />
+              <Route path="admin" element={<AdminPayouts />} />
+              <Route path="admin/payouts" element={<AdminPayouts />} />
+              <Route path="admin/disputes" element={<AdminDisputes />} />
+              <Route path="admin/verifications" element={<AdminVerifications />} />
+              {/* Dev tools */}
+              <Route path="test-emails" element={<TestEmailsPage />} />
             </Route>
           </Route>
 

@@ -72,6 +72,6 @@ export function useRFQs() {
     queryKey: ['rfqs', profileCompanyId],
     queryFn: () => fetchRFQs(profileCompanyId),
     enabled: isSystemReady && canLoadData && !!profileCompanyId,
-    // SOVEREIGN SYNC: Removed initialData to allow persistence layer to hydrate
+    // SECURE SYNC: Removed initialData to allow persistence layer to hydrate
   });
 }

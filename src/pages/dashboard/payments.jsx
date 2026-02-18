@@ -150,7 +150,7 @@ const Payments = () => {
       {/* Stats Matrix */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Sovereign Escrow", value: `$${payment.totalAmount.toLocaleString()}`, icon: Wallet, color: "text-os-muted", bg: "bg-white/5" },
+          { label: "Secure Escrow", value: `$${payment.totalAmount.toLocaleString()}`, icon: Wallet, color: "text-os-muted", bg: "bg-white/5" },
           { label: "Settled Volume", value: `$${payment.releasedAmount.toLocaleString()}`, icon: ArrowUpRight, color: "text-emerald-400", bg: "bg-emerald-400/10" },
           { label: "Held in Vault", value: `$${payment.heldAmount.toLocaleString()}`, icon: Lock, color: "text-amber-400", bg: "bg-amber-400/10" },
           { label: "Global FX Vol", value: fxLabel, icon: Globe, color: "text-blue-400", bg: "bg-blue-400/10" },
@@ -211,7 +211,7 @@ const Payments = () => {
                 <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-4">
                   <div className="flex items-center gap-3">
                     <ArrowRightLeft className="w-5 h-5 text-os-muted" />
-                    <h3 className="text-os-sm font-black uppercase tracking-widest">Sovereign Rail</h3>
+                    <h3 className="text-os-sm font-black uppercase tracking-widest">Secure Payment Rail</h3>
                   </div>
                   <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full"><Info className="w-3 h-3 text-os-muted" /></Button>
                 </div>
@@ -323,22 +323,17 @@ const Payments = () => {
               <ShieldCheck className="w-4 h-4 text-emerald-500" />
             </div>
 
-            <div className="space-y-6">
-              {[
-                { label: 'AML Scrutiny Score', val: 'Low Risk', color: 'text-emerald-500' },
-                { label: 'KYC Expiration', val: '724 Days', color: 'text-os-muted' },
-                { label: 'Network Trust Coef', val: '0.94', color: 'text-os-accent' }
-              ].map((row, i) => (
-                <div key={i} className="flex justify-between items-center">
-                  <span className="text-os-xs text-os-muted font-medium">{row.label}</span>
-                  <span className={cn("text-os-xs font-black", row.color)}>{row.val}</span>
-                </div>
-              ))}
+            <div className="space-y-4">
+              <p className="text-os-xs text-os-muted leading-relaxed">
+                Your compliance status is managed through your verification profile. Complete KYC to unlock full trade limits.
+              </p>
+              <Button
+                className="w-full bg-white/5 hover:bg-white/10 border border-white/10 rounded-os-md py-5 text-os-xs font-black uppercase tracking-widest"
+                onClick={() => window.location.href = '/dashboard/verification'}
+              >
+                View Compliance Status
+              </Button>
             </div>
-
-            <Button className="w-full mt-8 bg-white/5 hover:bg-white/10 border border-white/10 rounded-os-md py-6 text-os-xs font-black uppercase tracking-widest">
-              Run Compliance Audit
-            </Button>
           </Surface>
 
           {/* Quick Actions */}

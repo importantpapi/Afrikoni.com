@@ -29,6 +29,7 @@ import { useCurrency } from '@/contexts/CurrencyContext';
 import { getUserInitial } from '@/utils/userHelpers';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useLanguage } from '@/i18n/LanguageContext';
+import VerificationBadge from '@/components/shared/ui/VerificationBadge';
 
 // Country code to country name mapping
 const COUNTRY_NAMES = {
@@ -689,7 +690,7 @@ export default function Navbar({ user, onLogout }) {
                             View Profile
                           </Link>
                           <Link
-                            to="/messages"
+                            to={`/${language}/dashboard/messages`}
                             className="flex items-center gap-3 px-4 py-2.5 hover:bg-os-accent/10 text-os-sm text-os-text-primary transition-colors"
                             onClick={() => setUserMenuOpen(false)}
                           >
@@ -697,7 +698,7 @@ export default function Navbar({ user, onLogout }) {
                             Messages
                           </Link>
                           <Link
-                            to="/orders"
+                            to={`/${language}/dashboard/orders`}
                             className="flex items-center gap-3 px-4 py-2.5 hover:bg-os-accent/10 text-os-sm text-os-text-primary transition-colors"
                             onClick={() => setUserMenuOpen(false)}
                           >

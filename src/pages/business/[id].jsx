@@ -172,6 +172,7 @@ export default function BusinessProfile() {
         // Don't throw - reviews are optional
       }
 
+      console.log('[BusinessProfile] businessData:', businessData);
       setBusiness(businessData);
       setProducts(productsData || []);
       setReviews(reviewsData || []);
@@ -360,7 +361,7 @@ export default function BusinessProfile() {
                           transition={{ duration: 0.5, delay: 0.2 }}
                         >
                           <h1 className="text-3xl md:text-5xl font-bold text-afrikoni-chestnut leading-tight tracking-tight">
-                            {business.company_name}
+                            {business.company_name || business.name || 'Afrikoni Enterprise'}
                           </h1>
                           {(business.verified || business.verification_status === 'verified') && (
                             <motion.div

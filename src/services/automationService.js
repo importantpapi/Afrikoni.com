@@ -13,11 +13,11 @@ export async function sendOnboardingReminder(email, stage, country = null) {
   try {
     const targetCountry = country || TARGET_COUNTRY;
     
-    // Get user details
+    // Get user details via profiles table (auth.users is not directly queryable)
     const { data: profile } = await supabase
       .from('profiles')
       .select('full_name, company_id')
-      .eq('id', (await supabase.from('auth.users').select('id').eq('email', email).single()).data?.id)
+      .eq('email', email)
       .maybeSingle();
 
     const subject = getReminderSubject(stage);
@@ -33,14 +33,11 @@ export async function sendOnboardingReminder(email, stage, country = null) {
       metadata: { stage, country: targetCountry }
     });
 
-    // Track reminder
-    await supabase.from('acquisition_events').insert({
-      type: 'supplier_invite',
-      country: targetCountry,
-      email,
-      source: 'automation_reminder',
-      metadata: { stage, action: 'reminder_sent' }
-    });
+    // Track reminder (activity_logs is the canonical audit table)
+    await supabase.from('activity_logs').insert({
+      action: 'onboarding_reminder_sent',
+      metadata: { type: 'supplier_invite', country: targetCountry, email, stage }
+    }).then(() => {}).catch(() => {});
 
     return { success: true };
   } catch (error) {

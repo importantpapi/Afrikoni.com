@@ -51,13 +51,8 @@ function VerificationMarketplaceInner() {
   }, [canLoadData, userId, profileCompanyId]);
 
   const loadData = async () => {
-    if (!profileCompanyId) {
-      toast.error('Company not found');
-      setIsLoading(false);
-      return;
-    }
-
     try {
+      if (!profileCompanyId) return;
       setIsLoading(true);
       setError(null);
 
@@ -110,8 +105,8 @@ function VerificationMarketplaceInner() {
   };
 
   const handlePurchase = async () => {
-    if (!companyId) {
-      toast.error('Company not found');
+    if (!profileCompanyId) {
+      toast.error('Company profile not initialized');
       return;
     }
 

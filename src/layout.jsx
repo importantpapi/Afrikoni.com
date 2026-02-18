@@ -12,6 +12,7 @@ import { useLanguage } from '@/i18n/LanguageContext';
 import { Logo } from '@/components/shared/ui/Logo';
 import WhatsAppButton from '@/components/shared/ui/WhatsAppButton';
 import CookieBanner from '@/components/shared/ui/CookieBanner';
+
 import MobileMainNav from './components/layout/MobileMainNav';
 import { PageLoader } from '@/components/shared/ui/skeletons';
 
@@ -493,6 +494,8 @@ export default function Layout({ children }) {
 
       {/* WhatsApp Sticky Button */}
       <WhatsAppButton />
+
+
 
       {/* Cookie Banner */}
       <CookieBanner />

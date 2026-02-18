@@ -14,31 +14,39 @@
 // TRANSACTION FEES (Afrikoni Shield Protection)
 // =============================================================================
 // These fees are SUCCESS-BASED - only charged when deal completes
-// Lower than Alibaba (3-5%) and local platforms (5-15%)
+//
+// IMPORTANT: The database trigger `compute_trade_revenue_ledger()` enforces
+// a flat 8% commission rate on all escrow payments (server-side override).
+// The tiered rates below are the PLANNED future model once volume-based
+// pricing is implemented. For now, all trades are charged 8%.
+//
+// Current server-enforced rate: 8% (see 20260213_enterprise_revenue.sql)
+
+export const SERVER_ENFORCED_RATE = 0.08; // 8% — canonical rate
 
 export const TRANSACTION_FEES = {
-  // Under $1,000: 4% (minimum $20)
+  // Under $1,000: 4% (minimum $20) — PLANNED, currently 8%
   TIER_1: {
     maxAmount: 1000,
     rate: 0.04,
     minimum: 20,
     label: 'Small Trade',
   },
-  // $1,000 - $10,000: 3.5%
+  // $1,000 - $10,000: 3.5% — PLANNED, currently 8%
   TIER_2: {
     maxAmount: 10000,
     rate: 0.035,
     minimum: null,
     label: 'Standard Trade',
   },
-  // $10,000 - $50,000: 3%
+  // $10,000 - $50,000: 3% — PLANNED, currently 8%
   TIER_3: {
     maxAmount: 50000,
     rate: 0.03,
     minimum: null,
     label: 'Growth Trade',
   },
-  // $50,000+: 2.5% (negotiable for enterprise)
+  // $50,000+: 2.5% (negotiable for enterprise) — PLANNED, currently 8%
   TIER_4: {
     maxAmount: Infinity,
     rate: 0.025,
@@ -53,31 +61,15 @@ export const TRANSACTION_FEES = {
  * @returns {object} { rate, fee, tier }
  */
 export function calculateTransactionFee(amount) {
-  let tier, rate, fee;
-
-  if (amount <= TRANSACTION_FEES.TIER_1.maxAmount) {
-    tier = TRANSACTION_FEES.TIER_1;
-  } else if (amount <= TRANSACTION_FEES.TIER_2.maxAmount) {
-    tier = TRANSACTION_FEES.TIER_2;
-  } else if (amount <= TRANSACTION_FEES.TIER_3.maxAmount) {
-    tier = TRANSACTION_FEES.TIER_3;
-  } else {
-    tier = TRANSACTION_FEES.TIER_4;
-  }
-
-  rate = tier.rate;
-  fee = amount * rate;
-
-  // Apply minimum fee for small transactions
-  if (tier.minimum && fee < tier.minimum) {
-    fee = tier.minimum;
-  }
+  // Always use server-enforced flat 8% rate
+  const rate = SERVER_ENFORCED_RATE;
+  const fee = Math.round(amount * rate * 100) / 100;
 
   return {
     rate,
-    ratePercent: (rate * 100).toFixed(1) + '%',
-    fee: Math.round(fee * 100) / 100,
-    tier: tier.label,
+    ratePercent: '8.0%',
+    fee,
+    tier: 'Standard',
     netToSeller: Math.round((amount - fee) * 100) / 100,
   };
 }

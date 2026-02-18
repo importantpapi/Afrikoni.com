@@ -21,8 +21,8 @@ import { SystemHealthDrawer } from '@/components/os-shell/SystemHealthDrawer';
 import TradeOSSidebar from '@/components/dashboard/TradeOSSidebar';
 import { AICopilotSidebar } from '@/components/ai/AICopilotSidebar';
 import { zIndex } from '@/config/zIndex';
-import { usePWAInstaller } from '@/hooks/usePWAInstaller';
-import { Smartphone, Download, Globe, LogOut, LayoutDashboard, User as UserIcon, MessageSquare, Package, FileText, Shield, Settings } from 'lucide-react';
+
+import { Globe, LogOut, LayoutDashboard, User as UserIcon, MessageSquare, Package, FileText, Shield, Settings } from 'lucide-react';
 import MobileBottomNav from '@/components/dashboard/MobileBottomNav';
 import CommandPalette from '@/components/dashboard/CommandPalette';
 import { useAuth } from '@/contexts/AuthProvider';
@@ -85,18 +85,11 @@ export default function OSShell({
     const [copilotOpen, setCopilotOpen] = useState(false);
     const [systemHealthOpen, setSystemHealthOpen] = useState(false);
     const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
-    const { isInstallable, isInstalled, installApp } = usePWAInstaller();
     const { isSubscribed, subscribe, permission, loading: pushLoading } = usePushNotifications();
     const [showPushPrompt, setShowPushPrompt] = useState(false);
-    const [showInstallPrompt, setShowInstallPrompt] = useState(false);
     const [isLiteMode, setIsLiteMode] = useState(false);
 
-    // Sync PWA installability with prompt
-    useEffect(() => {
-        if (isInstallable && !isInstalled) {
-            setShowInstallPrompt(true);
-        }
-    }, [isInstallable, isInstalled]);
+
     const { theme, toggleTheme } = useTheme();
     const { signOut } = useAuth();
     const { reducedMotion } = useOSSettings();
@@ -117,13 +110,7 @@ export default function OSShell({
         }
     }, []);
 
-    // Ported: Show install prompt on mobile if installable
-    useEffect(() => {
-        if (isInstallable && !isInstalled) {
-            const timer = setTimeout(() => setShowInstallPrompt(true), 10000); // Wait 10s
-            return () => clearTimeout(timer);
-        }
-    }, [isInstallable, isInstalled]);
+
 
     // Push Prompt: Show if authenticated and not subscribed
     useEffect(() => {
@@ -204,30 +191,7 @@ export default function OSShell({
                             }}
                         >
                             <AnimatePresence mode="popLayout">
-                                {showInstallPrompt && (
-                                    <motion.div
-                                        key="pwa-install"
-                                        initial={{ opacity: 0, y: -20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, scale: 0.95 }}
-                                        className="mb-6 mx-4 md:mx-6 mt-4 p-5 os-panel-glass flex items-center justify-between gap-4 relative overflow-hidden"
-                                    >
-                                        <div className="os-ambient-orb" style={{ top: '-40%', left: '60%' }} />
-                                        <div className="flex items-center gap-3 z-10">
-                                            <div className="w-11 h-11 rounded-os-md bg-primary/10 border border-primary/20 flex items-center justify-center backdrop-blur-md">
-                                                <Smartphone className="w-5 h-5 text-primary" />
-                                            </div>
-                                            <div>
-                                                <h4 className="font-bold text-os-sm text-foreground">Install Afrikoni OS</h4>
-                                                <p className="text-os-xs text-muted-foreground font-medium">Dedicated workspace · Offline support</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-2 z-10">
-                                            <button onClick={() => setShowInstallPrompt(false)} className="px-3 py-2 text-os-xs font-semibold text-muted-foreground">Later</button>
-                                            <button onClick={() => { installApp(); setShowInstallPrompt(false); }} className="btn-gold px-4 py-2 rounded-os-sm text-os-xs flex items-center gap-1.5"><Download className="w-3.5 h-3.5" />Install</button>
-                                        </div>
-                                    </motion.div>
-                                )}
+
 
                                 {showPushPrompt && (
                                     <motion.div

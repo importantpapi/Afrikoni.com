@@ -835,39 +835,39 @@ export default function CompanyInfo() {
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
         <div className="space-y-4">
           <div className="flex items-center gap-5">
-            <div className="p-4 bg-os-accent/10 rounded-os-lg border border-os-accent/30 shadow-[0_0_30px_rgba(212,169,55,0.1)]">
+            <div className="p-4 bg-os-accent/10 rounded-os-lg border border-os-accent/30">
               <Building className="w-10 h-10 text-os-accent" />
             </div>
             <div className="space-y-1">
-              <h1 className="text-4xl md:text-5xl font-black tracking-tighter flex items-center gap-4 text-white">
-                Institutional Identity
-                <Badge variant="outline" className="text-os-xs font-black tracking-[0.2em] uppercase border-white/10 text-os-muted bg-white/[0.02] px-3 py-1">
-                  Global Entity Node
+              <h1 className="text-3xl md:text-4xl font-bold tracking-tight flex items-center gap-4">
+                Company Profile
+                <Badge variant="outline" className="text-xs font-semibold uppercase border-os-stroke text-os-text-secondary px-3 py-1">
+                  Trade Identity
                 </Badge>
               </h1>
-              <p className="text-os-muted text-os-lg font-medium italic opacity-70">Managing your enterprise profile for continental trade synchronization.</p>
+              <p className="text-os-text-secondary text-base">Your business profile shown to buyers and sellers on Afrikoni.</p>
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
-          <Surface variant="panel" className="px-6 py-4 flex items-center gap-6 border-white/5 bg-white/[0.02]">
+          <Surface variant="panel" className="px-6 py-4 flex items-center gap-6">
             <div className="flex items-center gap-3">
               <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <div className="space-y-0.5">
-                <div className="text-os-xs font-black uppercase tracking-[0.2em] text-os-muted">Ledger Sync</div>
-                <div className="text-os-xs font-bold text-emerald-500">Node Active</div>
+                <div className="text-xs font-semibold uppercase tracking-wider text-os-text-secondary">Status</div>
+                <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Profile Active</div>
               </div>
             </div>
-            <div className="w-px h-8 bg-white/10" />
+            <div className="w-px h-8 bg-os-stroke" />
             <Button
               variant="ghost"
               onClick={handleSubmit}
               disabled={isSaving}
-              className="h-10 px-5 gap-3 text-os-accent font-black uppercase tracking-widest text-os-xs bg-os-accent/10 hover:bg-os-accent/20 transition-all rounded-os-sm border border-os-accent/20"
+              className="h-10 px-5 gap-3 text-os-accent font-semibold bg-os-accent/10 hover:bg-os-accent/20 transition-all rounded-lg border border-os-accent/20"
             >
               <Save className={cn("w-3.5 h-3.5", isSaving && "animate-spin")} />
-              {isSaving ? "Saving Identity..." : "Commit Changes"}
+              {isSaving ? "Saving..." : "Save Changes"}
             </Button>
           </Surface>
         </div>
@@ -878,39 +878,36 @@ export default function CompanyInfo() {
         <div className="lg:col-span-8 space-y-8">
 
           {/* A. Universal Profile Flow */}
-          <Surface variant="glass" className="p-10 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-12 opacity-[0.02] rotate-12">
-              <Sparkles className="w-64 h-64 text-os-accent" />
-            </div>
-
+          <Surface variant="glass" className="p-8 relative">
             <div className="space-y-8 relative z-10">
-              <div className="flex items-center gap-5 border-b border-white/5 pb-6">
-                <div className="p-3 bg-white/5 rounded-os-md border border-white/10">
-                  <Zap className="w-6 h-6 text-os-accent" />
+              <div className="flex items-center gap-4 border-b border-os-stroke pb-5">
+                <div className="p-2.5 bg-os-accent/10 rounded-lg border border-os-accent/20">
+                  <Zap className="w-5 h-5 text-os-accent" />
                 </div>
                 <div>
-                  <h3 className="text-os-2xl font-black tracking-tight text-white">Core Enterprise Details</h3>
-                  <p className="text-os-sm text-os-muted font-medium opacity-60">Essential information for cross-border reconciliation.</p>
+                  <h3 className="text-lg font-bold">Basic Information</h3>
+                  <p className="text-sm text-os-text-secondary">This is what buyers and sellers see when they find your company.</p>
                 </div>
               </div>
 
-              <div className="grid md:grid-cols-2 gap-10">
-                <div className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="space-y-5">
                   <div className="space-y-2">
-                    <Label className="text-os-xs font-black uppercase tracking-widest text-os-muted">Company Name</Label>
+                    <Label className="text-sm font-semibold">Company Name</Label>
                     <Input
                       value={formData.company_name}
                       onChange={(e) => setFormData(prev => ({ ...prev, company_name: e.target.value }))}
-                      className="h-14 bg-white/[0.03] border-white/10 rounded-os-md focus:border-os-accent/30 transition-all font-bold text-os-lg text-white"
+                      className="h-12"
+                      placeholder="e.g. Afrikoni Trading Ltd"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <Label className="text-os-xs font-black uppercase tracking-widest text-os-muted">Business Structure</Label>
+                  <div className="space-y-3">
+                    <Label className="text-sm font-semibold opacity-80">Business Type</Label>
                     <Select value={formData.business_type} onValueChange={(v) => setFormData(prev => ({ ...prev, business_type: v }))}>
-                      <SelectTrigger className="h-14 bg-white/[0.03] border-white/10 rounded-os-md text-white">
-                        <SelectValue />
+                      <SelectTrigger className="h-12 bg-white/50 backdrop-blur-sm border-os-stroke hover:border-os-accent/30 transition-all">
+                        <SelectValue placeholder="Select type" />
                       </SelectTrigger>
-                      <SelectContent className="bg-black/90 backdrop-blur-xl border-white/10">
+                      <SelectContent>
                         <SelectItem value="manufacturer">Manufacturer</SelectItem>
                         <SelectItem value="wholesaler">Wholesaler</SelectItem>
                         <SelectItem value="distributor">Distributor</SelectItem>
@@ -920,9 +917,9 @@ export default function CompanyInfo() {
                   </div>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-5">
                   <div className="space-y-2">
-                    <Label className="text-os-xs font-black uppercase tracking-widest text-os-muted">Sovereign Node (Country)</Label>
+                    <Label className="text-sm font-semibold">Country</Label>
                     <CountrySelect
                       value={formData.country}
                       onValueChange={(v) => setFormData(prev => ({ ...prev, country: v }))}
@@ -930,11 +927,12 @@ export default function CompanyInfo() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-os-xs font-black uppercase tracking-widest text-os-muted">Operational Hub (City)</Label>
+                    <Label className="text-sm font-semibold">City</Label>
                     <Input
                       value={formData.city}
                       onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                      className="h-14 bg-white/[0.03] border-white/10 rounded-os-md transition-all font-bold text-white"
+                      className="h-12"
+                      placeholder="e.g. Lagos, Nairobi, Accra"
                     />
                   </div>
                 </div>
@@ -944,19 +942,19 @@ export default function CompanyInfo() {
 
           {/* B. Visual Identity & Brand DNA */}
           <div className="grid md:grid-cols-2 gap-8">
-            <Surface variant="glass" className="p-8 space-y-8">
-              <h3 className="text-os-xs font-black uppercase tracking-[0.3em] text-os-muted flex items-center gap-3">
+            <Surface variant="glass" className="p-8 space-y-6">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-os-text-secondary flex items-center gap-2">
                 <ImageIcon className="w-4 h-4 text-os-accent" />
-                Enterprise Mark
+                Company Logo
               </h3>
 
               <div className="flex flex-col items-center gap-6">
                 <div className="relative group/logo">
-                  <div className="w-40 h-40 rounded-[2.5rem] bg-black/40 border-2 border-dashed border-white/10 flex items-center justify-center overflow-hidden transition-all group-hover/logo:border-os-accent/30">
+                  <div className="w-36 h-36 rounded-2xl bg-os-surface-solid border-2 border-dashed border-os-stroke flex items-center justify-center overflow-hidden transition-all group-hover/logo:border-os-accent/40">
                     {logoUrl ? (
                       <img src={logoUrl} className="w-full h-full object-cover" width="96" height="96" loading="lazy" />
                     ) : (
-                      <Building className="w-12 h-12 text-os-muted opacity-20" />
+                      <Building className="w-10 h-10 text-os-text-secondary opacity-40" />
                     )}
                     {uploadingLogo && (
                       <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
@@ -965,44 +963,44 @@ export default function CompanyInfo() {
                     )}
                   </div>
                   <input type="file" onChange={handleLogoUpload} className="hidden" id="logo-up" accept="image/*" />
-                  <label htmlFor="logo-up" className="absolute -bottom-2 -right-2 p-3 bg-os-accent text-black rounded-os-md cursor-pointer hover:scale-110 transition-transform shadow-os-lg">
-                    <Upload className="w-5 h-5" />
+                  <label htmlFor="logo-up" className="absolute -bottom-2 -right-2 p-2.5 bg-os-accent text-black rounded-lg cursor-pointer hover:scale-110 transition-transform shadow-os-lg">
+                    <Upload className="w-4 h-4" />
                   </label>
                 </div>
                 <div className="text-center">
-                  <p className="text-os-xs font-black uppercase tracking-widest text-os-muted opacity-64 italic">Recommended: 1:1 Aspect Premium Asset</p>
+                  <p className="text-xs text-os-text-secondary">Square image recommended (e.g. 400×400px)</p>
                 </div>
               </div>
             </Surface>
 
-            <Surface variant="glass" className="p-8 space-y-8">
-              <h3 className="text-os-xs font-black uppercase tracking-[0.3em] text-os-muted flex items-center gap-3">
+            <Surface variant="glass" className="p-8 space-y-6">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-os-text-secondary flex items-center gap-2">
                 <Globe className="w-4 h-4 text-emerald-500" />
-                Communication Uplink
+                Contact Details
               </h3>
               <div className="space-y-4">
                 <div className="space-y-1.5">
-                  <Label className="text-os-xs font-black uppercase tracking-widest text-os-muted ml-1">Institutional Email</Label>
+                  <Label className="text-sm font-semibold">Business Email</Label>
                   <Input
                     value={formData.business_email}
                     onChange={(e) => setFormData(prev => ({ ...prev, business_email: e.target.value }))}
-                    className="bg-white/[0.02] border-white/10 rounded-os-sm text-white"
+                    placeholder="contact@yourcompany.com"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-os-xs font-black uppercase tracking-widest text-os-muted ml-1">Sovereign Domain</Label>
+                  <Label className="text-sm font-semibold">Website</Label>
                   <Input
                     value={formData.website}
                     onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
-                    className="bg-white/[0.02] border-white/10 rounded-os-sm text-white"
+                    placeholder="https://yourcompany.com"
                   />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-os-xs font-black uppercase tracking-widest text-os-muted ml-1">Global Phone</Label>
+                  <Label className="text-sm font-semibold">Phone Number</Label>
                   <Input
                     value={formData.phone}
                     onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                    className="bg-white/[0.02] border-white/10 rounded-os-sm text-white"
+                    placeholder="+234 800 000 0000"
                   />
                 </div>
               </div>
@@ -1014,59 +1012,54 @@ export default function CompanyInfo() {
         <div className="lg:col-span-4 space-y-8">
 
           {/* AI Auditor Feedback */}
-          <Surface variant="glass" className="p-8 border-os-accent/20 bg-os-accent/[0.02] relative overflow-hidden group">
-            <div className="absolute -right-12 -top-12 opacity-[0.03] scale-150 rotate-12 group-hover:rotate-0 transition-transform duration-1000">
-              <ShieldCheck className="w-32 h-32 text-os-accent" />
-            </div>
-            <div className="space-y-6 relative z-10">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-os-accent/20 rounded-os-sm border border-os-accent/30">
-                  <Activity className="w-4 h-4 text-os-accent" />
-                </div>
-                <h3 className="text-os-xs font-black uppercase tracking-[0.3em] text-os-accent">Identity Prophet</h3>
+          <Surface variant="glass" className="p-6 border border-os-accent/20 bg-os-accent/5">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-os-accent/20 rounded-lg border border-os-accent/30">
+                <Activity className="w-4 h-4 text-os-accent" />
               </div>
-              <p className="text-os-sm font-medium italic text-white/90 leading-relaxed">
-                "Adding a detailed enterprise description and verified operational hubs increases your <span className="text-os-accent font-bold">Corridor Confidence</span> by up to 22%."
-              </p>
-              <div className="pt-4 border-t border-os-accent/10">
-                <div className="flex items-center justify-between text-os-xs font-black uppercase tracking-widest text-os-muted">
-                  <span>Audit Readiness</span>
-                  <span className="text-emerald-500">OPTIMAL</span>
-                </div>
+              <h3 className="text-sm font-semibold text-os-accent">Profile Tip</h3>
+            </div>
+            <p className="text-sm text-os-text-secondary leading-relaxed">
+              Adding a detailed company description and verified contact info increases your <span className="text-os-accent font-semibold">buyer trust score</span> by up to 22%.
+            </p>
+            <div className="pt-4 border-t border-os-accent/10 mt-4">
+              <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-os-text-secondary">
+                <span>Profile Completeness</span>
+                <span className="text-emerald-600 dark:text-emerald-400">Good</span>
               </div>
             </div>
           </Surface>
 
           {/* Team Capacity Node */}
-          <Surface variant="glass" className="p-8 space-y-8 h-full">
-            <div className="flex items-center justify-between border-b border-white/5 pb-4">
-              <h3 className="text-os-xs font-black uppercase tracking-[0.3em] text-os-muted">Institutional Team</h3>
-              <Users className="w-4 h-4 text-os-muted" />
+          <Surface variant="glass" className="p-6 space-y-6 h-full">
+            <div className="flex items-center justify-between border-b border-os-stroke pb-4">
+              <h3 className="text-sm font-bold">Your Team</h3>
+              <Users className="w-4 h-4 text-os-text-secondary" />
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               {teamMembers.map((member) => (
-                <div key={member.id} className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-os-md group hover:bg-white/[0.04] transition-all">
-                  <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-os-sm bg-os-accent/10 flex items-center justify-center font-bold text-os-accent border border-os-accent/20 uppercase">
+                <div key={member.id} className="flex items-center justify-between p-3 bg-os-surface-solid border border-os-stroke rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-os-accent/10 flex items-center justify-center font-bold text-os-accent border border-os-accent/20 uppercase text-sm">
                       {member.member_email?.[0] || 'U'}
                     </div>
                     <div>
-                      <div className="text-os-xs font-black text-white">{member.member_email?.split('@')[0] || 'Anonymous Node'}</div>
-                      <div className="text-os-xs font-bold text-os-muted uppercase tracking-widest">{member.role_label}</div>
+                      <div className="text-sm font-semibold">{member.member_email?.split('@')[0] || 'Team Member'}</div>
+                      <div className="text-xs text-os-text-secondary capitalize">{member.role_label}</div>
                     </div>
                   </div>
-                  <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20 text-os-xs font-black">ACTIVE</Badge>
+                  <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 text-xs">Active</Badge>
                 </div>
               ))}
 
               <Button
                 variant="ghost"
                 onClick={() => navigate('/dashboard/team-members')}
-                className="w-full h-14 border border-dashed border-white/10 rounded-os-md hover:bg-os-accent/10 hover:text-os-accent hover:border-os-accent/30 transition-all font-black uppercase tracking-widest text-os-xs gap-2"
+                className="w-full h-12 border border-dashed border-os-stroke rounded-lg hover:bg-os-accent/5 hover:text-os-accent hover:border-os-accent/30 transition-all font-semibold gap-2"
               >
                 <Plus className="w-4 h-4" />
-                Expand Institutional Root
+                Add Team Member
               </Button>
             </div>
           </Surface>

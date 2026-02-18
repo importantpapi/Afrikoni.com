@@ -77,7 +77,7 @@ export function AuthProvider({ children }) {
   const resolveAuth = useCallback(async () => {
     const timeoutRef = { current: null };
     const timeoutPromise = new Promise((_, reject) =>
-      timeoutRef.current = setTimeout(() => reject(new Error('Auth Resolution Timeout')), 10000) // ✅ PERFORMANCE: Reduced from 30s to 10s
+      timeoutRef.current = setTimeout(() => reject(new Error('Auth Resolution Timeout')), 30000) // ✅ RELIABILITY: Restored to 30s for global connectivity
     );
 
     try {

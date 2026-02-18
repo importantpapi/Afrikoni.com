@@ -22,7 +22,7 @@ import { initiatePAPSSSettlement } from './papssSettlementService';
  * Generates a verifiable, immutable hash for a trade state.
  */
 function generateTradeDNA(tradeId, state, metadata = {}) {
-  // In a real sovereign system, this would be a hash of the entire trade row
+  // In a real secure system, this would be a hash of the entire trade row
   const salt = Math.random().toString(36).substring(7);
   const content = `${tradeId}-${state}-${JSON.stringify(metadata)}-${salt}`;
   // Simple mock hash for 2026 UI visualization
@@ -184,7 +184,7 @@ export async function transitionTrade(tradeId, nextState, metadata = {}) {
       };
     }
 
-    // 🧬 SOVEREIGN TRUST LOOP: If state changed, update company trust score
+    // 🧬 TRUST LOOP: If state changed, update company trust score
     if (trustMutation !== 0) {
       console.log(`[TrustBridge] Mutating Trust DNA: ${trustMutation > 0 ? '+' : ''}${trustMutation}% for state ${nextState}`);
       // In production, this calls the TrustEngineService.ts
@@ -239,7 +239,7 @@ export async function clearLocalCurrency(tradeId, amount, currency) {
 }
 
 /**
- * CORE: Create a new Trade on the Sovereign Rail
+ * CORE: Create a new Trade on the Secure Rail
  * @param {Object} tradeData 
  */
 export async function createTrade(tradeData) {
@@ -275,7 +275,7 @@ export async function createTrade(tradeData) {
 
     console.log('[TradeKernel] Successfully created trade:', data.id);
 
-    // 2. SOVEREIGN BRIDGE: If it's an RFQ, sync to legacy RFQS table
+    // 2. COMPATIBILITY BRIDGE: If it's an RFQ, sync to legacy RFQS table
     if (tradeData.trade_type === 'rfq') {
       console.log('[TradeKernel] Syncing to rfqs table...');
       const rfqPayload = {
@@ -299,10 +299,12 @@ export async function createTrade(tradeData) {
 
       if (rfqError) {
         console.error('[TradeKernel] 🚨 CRITICAL: Bridge sync to rfqs failed:', rfqError);
-        console.error('[TradeKernel] Failed RFQ Payload:', JSON.stringify(rfqPayload, null, 2));
-        // We don't fail the whole operation, but this means RFQ won't appear in list
-      } else {
-        console.log('[TradeKernel] ✅ Successfully synced to rfqs table:', data.id);
+        // Roll back the trade record to avoid an orphaned entry
+        await supabase.from('trades').delete().eq('id', data.id);
+        return {
+          success: false,
+          error: 'Failed to publish your request. Please try again. If the problem persists, contact support.'
+        };
       }
     }
 

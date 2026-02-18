@@ -19,6 +19,7 @@ import { Badge } from '@/components/shared/ui/badge';
 import { useAuth } from '@/contexts/AuthProvider';
 import { supabase } from '@/api/supabaseClient';
 import { toast } from 'sonner';
+import { createTrade } from '@/services/tradeKernel';
 
 export function SampleOrderButton({ product, supplier, variant = 'outline', size = 'default', className = '' }) {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -84,35 +85,31 @@ export function SampleOrderModal({ open, onOpenChange, product, supplier }) {
     setIsSubmitting(true);
 
     try {
-      // Create sample order record
-      // Note: This uses the orders table with a 'sample' type marker
-      // A dedicated sample_orders table could be created for more features
-      const { data: orderData, error: orderError } = await supabase
-        .from('orders')
-        .insert({
+      // Create trade record via Kernel
+      const { success, data: tradeData, error } = await createTrade({
+        trade_type: 'sample',
+        buyer_id: profile?.company_id,
+        seller_id: supplier?.id, // Note: createTrade usually expects seller_id
+        created_by: user.id,
+        title: `Sample: ${product.title}`,
+        description: `Sample request for ${formData.quantity}x ${product.title}. Notes: ${formData.notes}`,
+        category_id: product.category_id,
+        quantity: formData.quantity,
+        quantity_unit: product.unit || 'units',
+        target_price: estimatedSampleCost,
+        currency: product.currency || 'USD',
+        status: 'contracted', // Start as contracted/pending payment for samples
+        metadata: {
+          is_sample_order: true,
           product_id: product.id,
-          buyer_company_id: profile?.company_id,
-          seller_company_id: supplier?.id,
-          quantity: formData.quantity,
-          unit_price: estimatedSampleCost,
-          total_amount: estimatedSampleCost * formData.quantity,
-          status: 'pending',
-          order_type: 'sample',
           shipping_address: formData.shippingAddress,
-          notes: formData.notes,
-          metadata: {
-            is_sample_order: true,
-            product_title: product.title,
-            supplier_name: supplier?.company_name,
-            estimated_shipping: estimatedShipping
-          }
-        })
-        .select()
-        .single();
+          estimated_shipping: estimatedShipping
+        }
+      });
 
-      if (orderError) throw orderError;
+      if (!success) throw new Error(error);
 
-      // Notify supplier
+      // Notify supplier (optional, could be handled by kernel triggers)
       if (supplier?.id) {
         await supabase
           .from('notifications')
@@ -120,22 +117,20 @@ export function SampleOrderModal({ open, onOpenChange, product, supplier }) {
             recipient_company_id: supplier.id,
             type: 'sample_order_received',
             title: 'New Sample Request',
-            message: `${profile?.full_name || 'A buyer'} requested a sample of "${product.title}" to be shipped to ${formData.shippingAddress.city}, ${formData.shippingAddress.country}`,
+            message: `${profile?.full_name || 'A buyer'} requested a sample of "${product.title}"`,
             data: {
-              order_id: orderData.id,
-              product_id: product.id,
-              quantity: formData.quantity,
-              destination: `${formData.shippingAddress.city}, ${formData.shippingAddress.country}`
+              trade_id: tradeData.id,
+              product_id: product.id
             },
-            link: `/dashboard/orders/${orderData.id}`
+            link: `/dashboard/trade/${tradeData.id}`
           });
       }
 
-      toast.success('Sample request sent! The supplier will contact you with shipping details.');
+      toast.success('Sample request sent! Redirecting to trade details...');
       onOpenChange(false);
 
-      // Navigate to order tracking
-      navigate(`/dashboard/orders?highlight=${orderData.id}`);
+      // Navigate to trade monitor
+      navigate(`/dashboard/trade/${tradeData.id}`);
 
     } catch (error) {
       console.error('Sample order error:', error);

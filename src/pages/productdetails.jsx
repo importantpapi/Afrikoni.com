@@ -1,59 +1,43 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { createPageUrl } from '@/utils';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 import { addToViewHistory, getViewHistory } from '@/utils/viewHistory';
-import { getSimilarProducts, getRecommendedProducts } from '@/utils/recommendations';
-import { getProductRecommendations } from '@/lib/supabaseQueries/ai';
+import { getSimilarProducts } from '@/utils/recommendations';
 import ProductRecommendations from '@/components/products/ProductRecommendations';
 import { trackProductView } from '@/lib/supabaseQueries/products';
-import AISummaryBox from '@/components/ai/AISummaryBox';
-import AICopilotButton from '@/components/ai/AICopilotButton';
-import { rewriteDescription } from '@/ai/aiRewrite';
-import { generateRFQFromProduct } from '@/ai/aiFunctions';
 import SaveButton from '@/components/shared/ui/SaveButton';
 import { Button } from '@/components/shared/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/shared/ui/card';
 import { Badge } from '@/components/shared/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui/tabs';
-import { Package, MapPin, Star, Shield, ShieldCheck, Building, MessageCircle, FileText, CheckCircle, Clock, Zap, FlaskConical, Award, Globe } from 'lucide-react';
+import {
+  Package, MapPin, Star, Shield, ShieldCheck, Building, MessageCircle,
+  FileText, CheckCircle, Clock, Zap, Award, Globe, ChevronLeft, ChevronRight,
+  Send, ChevronDown, ChevronUp, Truck, RotateCcw, Lock, HelpCircle, Plus, X, PenTool
+} from 'lucide-react';
 import QuickQuoteModal from '@/components/products/QuickQuoteModal';
 import { SampleOrderButton } from '@/components/products/SampleOrderButton';
-import TrustBadge from '@/components/shared/ui/TrustBadge';
+import ShippingCalculator from '@/components/shipping/ShippingCalculator';
 import { toast } from 'sonner';
 import NewMessageDialog from '@/components/messaging/NewMessageDialog';
 import ReviewList from '@/components/reviews/ReviewList';
 import SEO from '@/components/SEO';
-import StructuralData from '@/components/StructuredData';
 import ProductSchema from '@/components/ProductSchema';
 import { useAnalytics } from '@/hooks/useAnalytics';
 import { isValidUUID } from '@/utils/security';
 import { cn } from '@/lib/utils';
-import ShippingCalculator from '@/components/shipping/ShippingCalculator';
-import ProductImageGallery from '@/components/products/ProductImageGallery';
-import { getPrimaryImageFromProduct, getAllImagesFromProduct, normalizeProductImageUrl } from '@/utils/productImages';
 import ProductVariants from '@/components/products/ProductVariants';
 import BulkPricingTiers from '@/components/products/BulkPricingTiers';
-import { GitCompare } from 'lucide-react';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { OffPlatformDisclaimerCompact } from '@/components/OffPlatformDisclaimer';
 import Breadcrumb from '@/components/shared/ui/Breadcrumb';
 import Price, { PriceRange } from '@/components/shared/ui/Price';
-import { PaymentProtectionBanner } from '@/components/trust/PaymentProtectionBanner';
-import { VerificationBadgeTooltip } from '@/components/trust/VerificationBadgeTooltip';
 import MobileStickyCTA from '@/components/shared/ui/MobileStickyCTA';
 import { createTrade, TRADE_STATE } from '@/services/tradeKernel';
+import { getPrimaryImageFromProduct, getAllImagesFromProduct } from '@/utils/productImages';
 
-/**
- * ⚠️ INSTITUTIONAL PRODUCT PAGE
- * This page is intentionally conservative and trust-first.
- * Do NOT expose internal metrics or experimental features publicly.
- * Changes require founder approval.
- */
 export default function ProductDetail() {
-  // Use centralized AuthProvider
-  const { user, profile, role, authReady } = useAuth();
+  const { user, profile, authReady } = useAuth();
   const { t, language } = useLanguage();
   const [product, setProduct] = useState(null);
   const [supplier, setSupplier] = useState(null);
@@ -61,40 +45,32 @@ export default function ProductDetail() {
   const [showMessageDialog, setShowMessageDialog] = useState(false);
   const [showQuickQuoteModal, setShowQuickQuoteModal] = useState(false);
   const [reviews, setReviews] = useState([]);
-  const [companies, setCompanies] = useState([]);
   const [similarProducts, setSimilarProducts] = useState([]);
-  const [recommendedProducts, setRecommendedProducts] = useState([]);
-  const [aiRecommendations, setAiRecommendations] = useState([]);
-  const [aiSummary, setAiSummary] = useState('');
-  const [aiSummaryLoading, setAiSummaryLoading] = useState(false);
-  const [aiDescription, setAiDescription] = useState('');
-  const [aiDescriptionLoading, setAiDescriptionLoading] = useState(false);
-  const [aiRFQLoading, setAiRFQLoading] = useState(false);
-  const MIN_COMPLETENESS_FOR_RFQ = 40; // below this, we nudge improvement before RFQs
   const [variants, setVariants] = useState([]);
   const [selectedVariant, setSelectedVariant] = useState(null);
-  const navigate = useNavigate();
-  const [fromSellerCreate, setFromSellerCreate] = useState(false);
+  const [selectedImageIdx, setSelectedImageIdx] = useState(0);
   const [logoError, setLogoError] = useState(false);
+  const [questions, setQuestions] = useState([]);
+  const [newQuestion, setNewQuestion] = useState('');
+  const [submittingQuestion, setSubmittingQuestion] = useState(false);
+  const [answeringId, setAnsweringId] = useState(null);
+  const [answerText, setAnswerText] = useState('');
+  const [submittingAnswer, setSubmittingAnswer] = useState(false);
+  const navigate = useNavigate();
+  const { trackPageView } = useAnalytics();
 
-  // Reset logo error when supplier changes
+  const MIN_COMPLETENESS_FOR_RFQ = 40;
+
   useEffect(() => {
     setLogoError(false);
   }, [supplier?.logo_url]);
 
-  const { trackPageView } = useAnalytics();
-
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    setFromSellerCreate(urlParams.get('from') === 'seller_create');
     loadData();
     trackPageView('Product Details');
   }, []);
 
-  // User loaded from AuthProvider context (no separate loadUser needed)
-
   const loadData = async () => {
-    // Support both /product/:slug and /product?id=uuid
     const pathParts = window.location.pathname.split('/');
     const slugOrId = pathParts[pathParts.length - 1];
     const urlParams = new URLSearchParams(window.location.search);
@@ -107,13 +83,7 @@ export default function ProductDetail() {
     }
 
     try {
-      // Load product first without joins to avoid RLS issues
-      // Then load related data separately
-      let query = supabase
-        .from('products')
-        .select('*');
-
-      // Check if it's a UUID or slug
+      let query = supabase.from('products').select('*');
       if (isValidUUID(productId)) {
         query = query.eq('id', productId);
       } else {
@@ -123,44 +93,28 @@ export default function ProductDetail() {
       const { data: foundProduct, error: productError } = await query.single();
 
       if (productError || !foundProduct) {
-        console.error('Product load error:', productError);
-        console.error('Product ID searched:', productId);
-        if (productError) {
-          console.error('Error details:', JSON.stringify(productError, null, 2));
-        }
-
-        toast.error('Product not found or you do not have permission to view it');
+        toast.error('Product not found');
         navigate(`/${language}/marketplace`);
         return;
       }
 
-      // Check if product is active (RLS allows viewing active products or own products)
       if (foundProduct.status !== 'active') {
-        // Check if user owns this product
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('company_id')
-            .eq('id', user.id)
-            .single();
-
-          const userCompanyId = profile?.company_id;
-          const isOwner = foundProduct.company_id === userCompanyId || foundProduct.supplier_id === userCompanyId;
-
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+          const { data: prof } = await supabase.from('profiles').select('company_id').eq('id', authUser.id).single();
+          const isOwner = foundProduct.company_id === prof?.company_id || foundProduct.supplier_id === prof?.company_id;
           if (!isOwner) {
-            toast.error('Product not found or you do not have permission to view it');
+            toast.error('Product not found');
             navigate(`/${language}/marketplace`);
             return;
           }
         } else {
-          toast.error('Product not found or you do not have permission to view it');
+          toast.error('Product not found');
           navigate(`/${language}/marketplace`);
           return;
         }
       }
 
-      // Load related data separately to avoid RLS issues with joins
       const [categoriesRes, imagesRes, companiesRes, variantsRes] = await Promise.all([
         foundProduct.category_id
           ? supabase.from('categories').select('*').eq('id', foundProduct.category_id).maybeSingle()
@@ -172,7 +126,6 @@ export default function ProductDetail() {
         supabase.from('product_variants').select('*').eq('product_id', foundProduct.id).order('created_at')
       ]);
 
-      // Combine all data
       const productWithJoins = {
         ...foundProduct,
         categories: categoriesRes.data ? [categoriesRes.data] : [],
@@ -181,13 +134,6 @@ export default function ProductDetail() {
         product_variants: variantsRes.data || []
       };
 
-      // Ensure language prefix in canonical URL
-      const currentUrl = new URL(window.location.href);
-      if (!currentUrl.pathname.startsWith(`/${language}/`)) {
-        // This might be a legacy URL or refresh, but handled by router usually
-      }
-
-      // Get primary image or first image using helper functions
       const primaryImage = getPrimaryImageFromProduct(productWithJoins);
       const allImages = getAllImagesFromProduct(productWithJoins);
 
@@ -197,18 +143,10 @@ export default function ProductDetail() {
         allImages: allImages.length > 0 ? allImages : []
       });
 
-      // Set variants
-      if (variantsRes.data && variantsRes.data.length > 0) {
-        setVariants(variantsRes.data);
-      }
+      if (variantsRes.data?.length > 0) setVariants(variantsRes.data);
 
-      // Update views
-      await supabase
-        .from('products')
-        .update({ views: (foundProduct.views || 0) + 1 })
-        .eq('id', foundProduct.id);
+      await supabase.from('products').update({ views: (foundProduct.views || 0) + 1 }).eq('id', foundProduct.id);
 
-      // Track view history
       addToViewHistory(foundProduct.id, 'product', {
         title: foundProduct.title,
         category_id: foundProduct.category_id,
@@ -216,58 +154,37 @@ export default function ProductDetail() {
         price: foundProduct.price_min || foundProduct.price
       });
 
-      // Track product view in database
       if (user?.id) {
         try {
-          await trackProductView(foundProduct.id, {
-            profile_id: user.id,
-            company_id: user.company_id,
-            source_page: 'product_detail'
-          });
-        } catch (error) {
-          // Silent fail - tracking is non-critical
-        }
+          await trackProductView(foundProduct.id, { profile_id: user.id, source_page: 'product_detail' });
+        } catch { /* silent */ }
       }
 
-      // Load AI recommendations
-      try {
-        const aiRecs = await getProductRecommendations(foundProduct.id, 12);
-        setAiRecommendations(aiRecs || []);
-      } catch (error) {
-        console.error('Error loading AI recommendations:', error);
-        setAiRecommendations([]);
-      }
-
-      // Load similar and recommended products (efficient category-scoped lookup)
       const similarityRes = await supabase
-        .from('products')
-        .select('*')
-        .eq('status', 'active')
-        .eq('category_id', foundProduct.category_id)
-        .neq('id', foundProduct.id)
-        .limit(20);
+        .from('products').select('*').eq('status', 'active')
+        .eq('category_id', foundProduct.category_id).neq('id', foundProduct.id).limit(8);
+      if (similarityRes.data) setSimilarProducts(getSimilarProducts(foundProduct, similarityRes.data));
 
-      if (similarityRes.data) {
-        setSimilarProducts(getSimilarProducts(foundProduct, similarityRes.data));
-        const viewHistory = getViewHistory('product');
-        setRecommendedProducts(getRecommendedProducts(viewHistory, similarityRes.data));
-      }
-
-      // Load supplier company
       const supplierId = foundProduct.supplier_id || foundProduct.company_id;
       if (supplierId) {
-        const [companiesRes, reviewsRes] = await Promise.all([
+        const [suppRes, reviewsRes] = await Promise.all([
           supabase.from('companies').select('*').eq('id', supplierId).single(),
           supabase.from('reviews').select('*').eq('product_id', foundProduct.id).order('created_at', { ascending: false })
         ]);
-
-        if (companiesRes.data) {
-          setSupplier(companiesRes.data);
-        }
-        if (reviewsRes.data) {
-          setReviews(reviewsRes.data);
-        }
+        if (suppRes.data) setSupplier(suppRes.data);
+        if (reviewsRes.data) setReviews(reviewsRes.data);
       }
+
+      // Load Q&A
+      try {
+        const { data: qData } = await supabase
+          .from('product_questions')
+          .select('*, profiles(full_name, avatar_url)')
+          .eq('product_id', foundProduct.id)
+          .order('created_at', { ascending: false });
+        if (qData) setQuestions(qData);
+      } catch { /* table may not exist yet */ }
+
     } catch (error) {
       toast.error('Failed to load product');
     } finally {
@@ -277,39 +194,28 @@ export default function ProductDetail() {
 
   const handleContactSupplier = () => {
     if (!user) {
-      const redirect = `/${language}/product?id=${product.id}`;
-      navigate(`/${language}/login?redirect=${encodeURIComponent(redirect)}&intent=message`);
+      navigate(`/${language}/login?redirect=${encodeURIComponent(window.location.pathname)}&intent=message`);
       return;
     }
     setShowMessageDialog(true);
   };
 
   const handleCreateRFQ = () => {
-    const targetUrl = createPageUrl('CreateRFQ') + '?product=' + product.id;
-    // Governance: if listing is clearly incomplete, block RFQs
-    if (typeof product?.completeness_score === 'number' && product.completeness_score < MIN_COMPLETENESS_FOR_RFQ) {
-      toast.error('Listing incomplete. Please improve details first.');
-      return;
-    }
     if (!user) {
-      navigate(`/${language}/login?redirect=${encodeURIComponent(targetUrl)}&intent=rfq`);
+      navigate(`/${language}/login?redirect=${encodeURIComponent(window.location.pathname)}&intent=rfq`);
       return;
     }
-    navigate(targetUrl);
+    navigate(`/${language}/dashboard/rfqs/new?product=${product.id}`);
   };
 
   const handleBuyNow = async () => {
     if (!user) {
-      const redirect = `/${language}/product?id=${product.id}`;
-      navigate(`/${language}/login?redirect=${encodeURIComponent(redirect)}&intent=buy`);
+      navigate(`/${language}/login?redirect=${encodeURIComponent(window.location.pathname)}&intent=buy`);
       return;
     }
-
-    const toastId = toast.loading('Initializing Sovereign Trade...');
-
+    const toastId = toast.loading('Creating trade...');
     try {
-      // Step 2: Transaction Initiation (Path A)
-      const tradeData = {
+      const result = await createTrade({
         trade_type: 'order',
         buyer_id: user.company_id,
         created_by: user.id,
@@ -320,97 +226,81 @@ export default function ProductDetail() {
         quantity_unit: product.unit || 'pieces',
         target_price: product.price || product.price_min,
         currency: product.currency || 'USD',
-        status: TRADE_STATE.CONTRACTED, // Direct buy skips RFQ/Quoted
-        metadata: {
-          product_id: product.id,
-          supplier_id: supplier?.id,
-          initiator: 'buy_now_button'
-        }
-      };
-
-      const result = await createTrade(tradeData);
-
+        status: TRADE_STATE.CONTRACTED,
+        metadata: { product_id: product.id, supplier_id: supplier?.id, initiator: 'buy_now_button' }
+      });
       if (result.success) {
-        toast.success('Trade Initialized on the Rail', { id: toastId });
+        toast.success('Trade started!', { id: toastId });
         navigate(`/${language}/dashboard/one-flow/${result.data.id}`);
       } else {
-        toast.error(`Kernel Blocked Trade: ${result.error}`, { id: toastId });
+        toast.error(result.error || 'Failed to start trade', { id: toastId });
       }
     } catch (err) {
-      toast.error('System Exception during initiation', { id: toastId });
-      console.error(err);
+      toast.error('Something went wrong', { id: toastId });
     }
   };
 
-  const handleGenerateAISummary = async () => {
-    if (!product?.description) return;
-    setAiSummaryLoading(true);
-    try {
-      const { compressLongDescription } = await import('@/ai/aiFunctions');
-      const result = await compressLongDescription(product.description);
-      if (result?.success && result.text) {
-        setAiSummary(result.text);
-        toast.success('AI summary ready');
-      }
-    } catch {
-      // Silent failure; aiClient already handles toasts for outages
-    } finally {
-      setAiSummaryLoading(false);
-    }
-  };
-
-  const handleRewriteDescription = async () => {
-    if (!product?.description) return;
-    setAiDescriptionLoading(true);
-    try {
-      const result = await rewriteDescription(product.description);
-      if (result?.success && result.text) {
-        setAiDescription(result.text);
-        toast.success('AI rewritten description ready');
-      }
-    } catch {
-      // Silent failure
-    } finally {
-      setAiDescriptionLoading(false);
-    }
-  };
-
-  const handleGenerateRFQWithAI = async () => {
+  const handleSubmitQuestion = async () => {
+    if (!newQuestion.trim()) return;
     if (!user) {
-      navigate(`/${language}/login`);
+      navigate(`/${language}/login?redirect=${encodeURIComponent(window.location.pathname)}&intent=question`);
       return;
     }
-    if (!product) return;
-    setAiRFQLoading(true);
+    setSubmittingQuestion(true);
     try {
-      const result = await generateRFQFromProduct(product);
-      if (result?.success && result.data) {
-        const params = new URLSearchParams();
-        params.set('product', product.id);
-        try {
-          params.set('draft', encodeURIComponent(JSON.stringify(result.data)));
-        } catch {
-          // ignore encoding issues, still pass product id
-        }
-        toast.success('AI RFQ draft ready');
-        navigate(`/${language}/dashboard/rfqs/new?${params.toString()}`);
+      const { data, error } = await supabase.from('product_questions').insert({
+        product_id: product.id,
+        asked_by: user.id,
+        question: newQuestion.trim(),
+        answer: null,
+        answered_by: null
+      }).select('*, profiles(full_name, avatar_url)').single();
+      if (!error && data) {
+        setQuestions(prev => [data, ...prev]);
+        setNewQuestion('');
+        toast.success('Question submitted!');
       }
     } catch {
-      // Silent failure beyond aiClient handling
+      toast.error('Failed to submit question');
     } finally {
-      setAiRFQLoading(false);
+      setSubmittingQuestion(false);
     }
   };
+
+  const handleSubmitAnswer = async (questionId) => {
+    if (!answerText.trim()) return;
+    setSubmittingAnswer(true);
+    try {
+      const { error } = await supabase.from('product_questions').update({
+        answer: answerText.trim(),
+        answered_by: user.id,
+        answered_at: new Date().toISOString()
+      }).eq('id', questionId);
+      if (!error) {
+        setQuestions(prev => prev.map(q => q.id === questionId ? { ...q, answer: answerText.trim() } : q));
+        setAnsweringId(null);
+        setAnswerText('');
+        toast.success('Answer posted!');
+      }
+    } catch {
+      toast.error('Failed to post answer');
+    } finally {
+      setSubmittingAnswer(false);
+    }
+  };
+
+  const isSupplier = supplier && ((user?.company_id === supplier.id) || (profile?.company_id === supplier.id));
+
+  const avgRating = reviews.length > 0
+    ? (reviews.reduce((sum, r) => sum + (r.rating || 0), 0) / reviews.length).toFixed(1)
+    : null;
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-os-bg flex flex-col items-center justify-center gap-6 p-6">
-        <div className="w-16 h-16 rounded-full border-4 border-os-accent/20 border-t-os-accent animate-spin" />
-        <div className="flex flex-col items-center gap-2">
-          <p className="text-os-sm font-black uppercase tracking-[0.3em] text-os-accent animate-pulse">
-            Authenticating Origin
-          </p>
-          <p className="text-os-xs text-os-text-secondary/60">Fetching verified product specifications...</p>
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 rounded-full border-4 border-os-accent/20 border-t-os-accent animate-spin" />
+          <p className="text-sm text-os-text-secondary">Loading product...</p>
         </div>
       </div>
     );
@@ -418,537 +308,694 @@ export default function ProductDetail() {
 
   if (!product) return null;
 
-  // 🏛️ GEO Fact-Density (AI Engine Optimization)
-  const productSchema = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    "name": product.title,
-    "description": product.description,
-    "image": getPrimaryImageFromProduct(product),
-    "sku": product.id,
-    "offers": {
-      "@type": "Offer",
-      "price": product.price || 0,
-      "priceCurrency": product.currency || "USD",
-      "availability": "https://schema.org/InStock",
-      "url": `${window.location.origin}/${language}/product/${product.id}`
-    },
-    "brand": {
-      "@type": "Brand",
-      "name": supplier?.company_name || "Verified African Supplier"
-    },
-    "countryOfOrigin": {
-      "@type": "Country",
-      "name": product.country || supplier?.country
-    }
-  };
+  const images = product.allImages || [];
+  const currentImage = images[selectedImageIdx] || product.primaryImage;
 
   return (
     <>
       <SEO
         lang={language}
-        title={`${product.title} – Verified ${product.country || supplier?.country || 'African'} Supplier`}
-        description={product.description?.substring(0, 160) || `Buy ${product.title} directly from verified suppliers on AFRIKONI. Secured cross-border trade workflows with Afrikoni Shield™ protection.`}
+        title={product.title ? `${product.title} – ${product.country_of_origin || supplier?.country || 'African'} Supplier | AFRIKONI` : 'Product | AFRIKONI'}
+        description={product.description?.substring(0, 160) || `Buy ${product.title} from verified African suppliers on AFRIKONI.`}
         url={`/product/${product.id}`}
       />
       <ProductSchema product={product} />
-      <div className="min-h-screen bg-os-bg selection:bg-os-accent selection:text-white">
-        {/* INSTITUTIONAL HEADER / BREADCRUMB */}
-        <div className="max-w-screen-2xl mx-auto px-6 pt-12">
+
+      <div className="min-h-screen bg-os-bg">
+        {/* Breadcrumb */}
+        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 pt-6">
           <Breadcrumb
             items={[
               { path: `/${language}`, label: 'Home' },
               { path: `/${language}/marketplace`, label: 'Marketplace' },
               { path: `/${language}/product/${product.id}`, label: product.title }
             ]}
-            className="mb-8 opacity-60 hover:opacity-100 transition-opacity"
+            className="mb-6 text-sm"
           />
-
-          {fromSellerCreate && supplier && user && user.company_id === supplier.id && (
-            <div className="mb-8 p-4 rounded-xl bg-os-accent/5 border border-os-accent/20 backdrop-blur-sm animate-luxury-reveal">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-os-accent animate-pulse" />
-                  <span className="text-os-sm font-bold tracking-tight text-os-text-primary uppercase">
-                    Seller Preview Mode
-                  </span>
-                </div>
-                <Button
-                  variant="ghost"
-                  onClick={() => navigate(`/${language}/dashboard/products`)}
-                  className="text-os-xs font-black uppercase tracking-widest text-os-accent hover:bg-os-accent/10"
-                >
-                  Return to Command Center
-                </Button>
-              </div>
-            </div>
-          )}
         </div>
 
-        <div className="max-w-screen-2xl mx-auto px-6 pb-24">
-          <div className="grid lg:grid-cols-12 gap-12 items-start">
-            {/* LEFT COLUMN: THE VISUAL HERITAGE (8 cols) */}
-            <div className="lg:col-span-8 space-y-12">
-              {/* IMMERSIVE GALLERY */}
-              <div className="relative group">
-                <div className="absolute -inset-4 bg-gradient-to-b from-os-accent/5 to-transparent rounded-[32px] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
-                <Card className="border-none bg-os-surface-solid shadow-[0_32px_80px_rgba(0,0,0,0.06)] rounded-[32px] overflow-hidden relative z-10">
-                  <CardContent className="p-0">
-                    <ProductImageGallery
-                      images={product.allImages || []}
-                      productTitle={product.title}
-                      className="aspect-[16/10] md:aspect-[16/9]"
+        {/* MAIN PRODUCT SECTION */}
+        <div className="max-w-screen-xl mx-auto px-4 sm:px-6 pb-16">
+          <div className="grid lg:grid-cols-12 gap-8 items-start">
+
+            {/* ── LEFT: IMAGE GALLERY (5 cols) ── */}
+            <div className="lg:col-span-5">
+              <div className="sticky top-6">
+                {/* Main Image */}
+                <div className="relative bg-os-surface-solid rounded-2xl overflow-hidden border border-os-stroke aspect-square mb-3">
+                  {currentImage ? (
+                    <img
+                      src={currentImage}
+                      alt={product.title}
+                      className="w-full h-full object-contain"
                     />
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* TRUST PROTOCOL METER */}
-              <div className="p-8 rounded-[32px] bg-os-surface-solid border border-os-stroke/40 shadow-os-md flex items-center justify-between gap-6 overflow-hidden relative">
-                <div className="absolute top-0 left-0 w-1 h-full bg-os-accent" />
-                <div className="flex items-center gap-6">
-                  <div className="w-16 h-16 rounded-2xl bg-os-accent/5 border border-os-accent/20 flex items-center justify-center">
-                    <Shield className="w-8 h-8 text-os-accent" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold tracking-tight text-os-text-primary mb-2">
-                      {product.is_standardized
-                        ? "Institutional-Grade Sourcing Intelligence"
-                        : "Verification In Progress"}
-                    </h3>
-                    <p className="text-os-sm text-os-text-secondary max-w-lg leading-relaxed">
-                      {product.is_standardized ? (
-                        <>
-                          This listing meets institutional standards:
-                          <strong className="text-os-text-primary"> production capacity verified</strong>,
-                          <strong className="text-os-text-primary"> certifications authenticated</strong>,
-                          <strong className="text-os-text-primary"> lead times validated</strong>.
-                          Escrow protection active for all platform transactions.
-                        </>
-                      ) : (
-                        <>
-                          Our verification team is currently auditing this supplier's production capacity,
-                          certifications, and export readiness. All platform payments remain protected by
-                          <strong className="text-os-text-primary"> Afrikoni's Trade Shield</strong>.
-                        </>
-                      )}
-                    </p>
-
-                    {/* KYB/KYC Verification Status */}
-                    {supplier?.kyb_status === 'verified' && (
-                      <div className="flex items-center gap-2 text-os-sm text-os-text-secondary mt-4 pt-4 border-t border-os-stroke/20">
-                        <CheckCircle className="w-4 h-4 text-os-green" />
-                        <span className="font-medium">Business verification complete</span>
-                      </div>
-                    )}
-                    {supplier?.kyb_status === 'pending' && (
-                      <div className="flex items-center gap-2 text-os-sm text-os-text-secondary mt-4 pt-4 border-t border-os-stroke/20">
-                        <Clock className="w-4 h-4 text-os-accent" />
-                        <span className="font-medium">Business verification in progress</span>
-                      </div>
-                    )}
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Package className="w-20 h-20 text-os-text-secondary/20" />
+                    </div>
+                  )}
+                  {images.length > 1 && (
+                    <>
+                      <button
+                        onClick={() => setSelectedImageIdx(i => Math.max(0, i - 1))}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 dark:bg-os-surface-solid border border-os-stroke shadow-sm flex items-center justify-center hover:bg-os-accent/10 transition-colors"
+                      >
+                        <ChevronLeft className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setSelectedImageIdx(i => Math.min(images.length - 1, i + 1))}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/90 dark:bg-os-surface-solid border border-os-stroke shadow-sm flex items-center justify-center hover:bg-os-accent/10 transition-colors"
+                      >
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
+                  <div className="absolute top-3 right-3">
+                    <SaveButton itemId={product.id} itemType="product" variant="ghost" size="sm" />
                   </div>
                 </div>
-                {supplier?.verification_status === 'verified' && (
-                  <div className="hidden md:block">
-                    <div className="flex items-center gap-3 bg-gradient-to-r from-os-accent/10 to-transparent px-6 py-3 rounded-full border border-os-accent/20">
-                      <ShieldCheck className="w-5 h-5 text-os-accent" />
-                      <span className="text-os-xs font-black uppercase tracking-[0.3em] text-os-accent">Verified Heritage</span>
-                    </div>
+
+                {/* Thumbnails */}
+                {images.length > 1 && (
+                  <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-none">
+                    {images.map((img, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setSelectedImageIdx(idx)}
+                        className={cn(
+                          "shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all",
+                          idx === selectedImageIdx
+                            ? "border-os-accent shadow-sm"
+                            : "border-os-stroke hover:border-os-accent/50"
+                        )}
+                      >
+                        <img src={img} alt="" className="w-full h-full object-cover" />
+                      </button>
+                    ))}
                   </div>
                 )}
               </div>
+            </div>
 
-              {/* Certifications Grid */}
-              {product.certifications && product.certifications.length > 0 && (
-                <div className="mt-6 pt-6 border-t border-os-stroke/20">
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-os-text-secondary/40 mb-4">
-                    Verified Certifications
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {product.certifications.map((cert, idx) => (
-                      <div
-                        key={idx}
-                        className="inline-flex items-center gap-2 px-4 py-2
-                                   bg-os-accent/5 border border-os-accent/20 rounded-full
-                                   text-os-sm font-bold text-os-accent"
-                      >
-                        <Award className="w-4 h-4" />
-                        <span>{cert}</span>
+            {/* ── CENTER: PRODUCT INFO (4 cols) ── */}
+            <div className="lg:col-span-4 space-y-6">
+              {/* Title & Badges */}
+              <div>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {product.categories?.[0]?.name && (
+                    <Badge variant="outline" className="text-xs">{product.categories[0].name}</Badge>
+                  )}
+                  {product.is_standardized && (
+                    <Badge className="bg-os-accent/10 text-os-accent border-os-accent/20 text-xs">
+                      <ShieldCheck className="w-3 h-3 mr-1" /> Verified Listing
+                    </Badge>
+                  )}
+                </div>
+                <h1 className="text-2xl font-bold leading-snug text-os-text-primary mb-3">
+                  {product.title}
+                </h1>
+                <div className="flex items-center gap-4 text-sm text-os-text-secondary">
+                  {avgRating && (
+                    <div className="flex items-center gap-1">
+                      <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                      <span className="font-semibold text-os-text-primary">{avgRating}</span>
+                      <span>({reviews.length} reviews)</span>
+                    </div>
+                  )}
+                  {product.views > 0 && (
+                    <span>{product.views.toLocaleString()} views</span>
+                  )}
+                </div>
+              </div>
+
+              {/* Price */}
+              <div className="p-4 bg-os-accent/5 border border-os-accent/15 rounded-xl">
+                <p className="text-xs text-os-text-secondary mb-1 font-medium uppercase tracking-wide">Price</p>
+                <div className="flex items-baseline gap-2">
+                  <PriceRange
+                    min={product.price_min || product.price}
+                    max={product.price_max || product.price}
+                    fromCurrency={product.currency || 'USD'}
+                    className="text-3xl font-bold text-os-accent"
+                  />
+                  <span className="text-sm text-os-text-secondary">/ {product.unit || 'unit'}</span>
+                </div>
+              </div>
+
+              {/* Key Specs Grid */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 rounded-xl bg-os-surface-solid border border-os-stroke">
+                  <p className="text-xs text-os-text-secondary mb-1">Min. Order</p>
+                  <p className="font-semibold text-sm">
+                    {product.min_order_quantity || product.moq || '1'} {product.moq_unit || product.unit || 'units'}
+                  </p>
+                </div>
+                <div className="p-3 rounded-xl bg-os-surface-solid border border-os-stroke">
+                  <p className="text-xs text-os-text-secondary mb-1">Lead Time</p>
+                  <div className="text-sm font-semibold">
+                    {product.lead_time_min_days && product.lead_time_max_days ? (
+                      <div className="flex flex-col gap-1">
+                        <div className="flex justify-between text-xs text-os-text-secondary">
+                          <span>1 - {product.min_order_quantity || product.moq || 100} units</span>
+                          <span>{product.lead_time_min_days} days</span>
+                        </div>
+                        <div className="flex justify-between text-xs text-os-text-secondary">
+                          <span>&gt; {product.min_order_quantity || product.moq || 100} units</span>
+                          <span>To be negotiated</span>
+                        </div>
                       </div>
-                    ))}
+                    ) : 'Contact supplier'}
                   </div>
+                </div>
+                <div className="p-3 rounded-xl bg-os-surface-solid border border-os-stroke">
+                  <p className="text-xs text-os-text-secondary mb-1">Origin</p>
+                  <div className="flex items-center gap-1">
+                    <MapPin className="w-3 h-3 text-os-accent shrink-0" />
+                    <p className="font-semibold text-sm truncate">
+                      {product.country_of_origin || supplier?.country || '—'}
+                    </p>
+                  </div>
+                </div>
+                <div className="p-3 rounded-xl bg-os-surface-solid border border-os-stroke">
+                  <p className="text-xs text-os-text-secondary mb-1">Supply Capacity</p>
+                  <p className="font-semibold text-sm">
+                    {product.supply_ability_qty
+                      ? `${product.supply_ability_qty}/${product.supply_ability_unit || 'mo'}`
+                      : 'On request'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Variants */}
+              {variants.length > 0 && (
+                <div className="p-4 bg-os-surface-solid rounded-xl border border-os-stroke">
+                  <ProductVariants
+                    variants={variants}
+                    onVariantSelect={setSelectedVariant}
+                    selectedVariantId={selectedVariant?.id}
+                  />
                 </div>
               )}
 
-              {/* Product Variants */}
-              {variants.length > 0 && (
-                <Card className="border-os-accent/20">
-                  <CardContent className="p-6">
-                    <ProductVariants
-                      variants={variants}
-                      onVariantSelect={setSelectedVariant}
-                      selectedVariantId={selectedVariant?.id}
-                    />
-                  </CardContent>
-                </Card>
-              )}
+              {/* Bulk Pricing */}
+              <BulkPricingTiers product={selectedVariant || product} />
 
-              {/* Bulk Pricing Tiers - Helper information */}
-              <div className="opacity-90">
-                <BulkPricingTiers product={selectedVariant || product} />
-              </div>
-
-              {/* INSTITUTIONAL INTELLIGENCE TABS */}
-              <div className="bg-os-surface-solid rounded-[32px] border border-os-stroke/40 shadow-os-sm overflow-hidden">
-                <Tabs defaultValue="description" className="w-full">
-                  <div className="px-8 pt-8 border-b border-os-stroke/20">
-                    <TabsList className="w-full justify-start bg-transparent h-auto gap-8 p-0 pb-4">
-                      <TabsTrigger
-                        value="description"
-                        className="data-[state=active]:text-os-accent data-[state=active]:border-os-accent border-b-2 border-transparent rounded-none px-0 pb-4 text-os-sm font-black uppercase tracking-widest transition-all"
-                      >
-                        Heritage & Vision
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="specifications"
-                        className="data-[state=active]:text-os-accent data-[state=active]:border-os-accent border-b-2 border-transparent rounded-none px-0 pb-4 text-os-sm font-black uppercase tracking-widest transition-all"
-                      >
-                        Sourcing Intel
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="packaging"
-                        className="data-[state=active]:text-os-accent data-[state=active]:border-os-accent border-b-2 border-transparent rounded-none px-0 pb-4 text-os-sm font-black uppercase tracking-widest transition-all"
-                      >
-                        Logistics Blueprint
-                      </TabsTrigger>
-                      <TabsTrigger
-                        value="reviews"
-                        className="data-[state=active]:text-os-accent data-[state=active]:border-os-accent border-b-2 border-transparent rounded-none px-0 pb-4 text-os-sm font-black uppercase tracking-widest transition-all"
-                      >
-                        Verified Registry ({reviews.length})
-                      </TabsTrigger>
-                    </TabsList>
+              {/* Certifications & Customization */}
+              <div className="space-y-4">
+                {product.certifications?.length > 0 && (
+                  <div>
+                    <p className="text-xs font-semibold text-os-text-secondary uppercase tracking-wide mb-2">Certifications</p>
+                    <div className="flex flex-wrap gap-2">
+                      {product.certifications.map((cert, idx) => (
+                        <div key={idx} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-os-accent/5 border border-os-accent/20 rounded-full text-xs font-medium text-os-accent">
+                          <Award className="w-3 h-3" />
+                          {cert}
+                        </div>
+                      ))}
+                    </div>
                   </div>
+                )}
 
-                  <div className="p-8">
-                    <TabsContent value="description" className="mt-0 focus-visible:outline-none">
-                      <div className="space-y-8">
-                        <div className="flex justify-end gap-3">
-                          <AICopilotButton
-                            label="Synthesize Vision"
-                            loading={aiSummaryLoading}
-                            onClick={handleGenerateAISummary}
-                            variant="ghost"
-                            className="text-[10px] font-black uppercase tracking-widest text-os-accent/60 hover:text-os-accent hover:bg-os-accent/5 px-4 py-2 rounded-full border border-os-accent/10 transition-all"
-                          />
-                        </div>
-                        {aiSummary && (
-                          <div className="bg-os-accent/5 border border-os-accent/10 rounded-2xl p-6 italic text-os-text-primary leading-relaxed shadow-inner">
-                            {aiSummary}
-                          </div>
-                        )}
-                        <div className="prose prose-os prose-lg max-w-none">
-                          <p className="text-os-text-primary/80 leading-relaxed text-lg whitespace-pre-wrap font-medium">
-                            {aiDescription || product.description || product.short_description || 'Documentation pending.'}
-                          </p>
-                        </div>
-                      </div>
-                    </TabsContent>
-
-                    <TabsContent value="specifications" className="mt-0 focus-visible:outline-none">
-                      {product.specifications ? (
-                        <div className="grid sm:grid-cols-2 gap-x-12 gap-y-4">
-                          {Object.entries(product?.specifications || {}).map(([key, value]) => (
-                            <div key={key} className="flex justify-between py-4 border-b border-os-stroke/20">
-                              <span className="text-os-xs font-black uppercase tracking-widest text-os-text-secondary">{key}</span>
-                              <span className="text-os-sm font-bold text-os-text-primary">{String(value)}</span>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="py-12 text-center text-os-text-secondary/40 font-mono uppercase tracking-widest text-xs">
-                          No intelligence data recorded.
-                        </div>
-                      )}
-                    </TabsContent>
-
-                    <TabsContent value="packaging" className="mt-0 focus-visible:outline-none">
-                      {/* Redesigned Logistics Blueprint */}
-                      <div className="grid md:grid-cols-2 gap-8">
-                        {/* Logistics Cards */}
-                        <div className="p-6 rounded-2xl bg-os-bg border border-os-stroke/40 space-y-4">
-                          <div className="flex items-center gap-3 mb-2">
-                            <Package className="w-5 h-5 text-os-accent" />
-                            <h4 className="text-os-xs font-black uppercase tracking-widest text-os-text-primary">Handling Standards</h4>
-                          </div>
-                          <p className="text-os-sm text-os-text-secondary leading-relaxed">{product.packaging_details || "Standard export packaging applied."}</p>
-                        </div>
-
-                        <div className="p-6 rounded-2xl bg-os-bg border border-os-stroke/40 space-y-4">
-                          <div className="flex items-center gap-3 mb-2">
-                            <Clock className="w-5 h-5 text-os-accent" />
-                            <h4 className="text-os-xs font-black uppercase tracking-widest text-os-text-primary">Fulfillment Velocity</h4>
-                          </div>
-                          <p className="text-os-sm text-os-text-secondary font-bold">
-                            {product.lead_time_min_days && product.lead_time_max_days
-                              ? `${product.lead_time_min_days} - ${product.lead_time_max_days} Business Days`
-                              : "Contact for specific lead window."}
-                          </p>
-                        </div>
-                      </div>
-                    </TabsContent>
+                <div className="p-3 bg-os-surface-solid border border-os-stroke rounded-xl flex items-start gap-3">
+                  <div className="p-2 bg-os-accent/5 rounded-lg shrink-0">
+                    <PenTool className="w-4 h-4 text-os-accent" />
                   </div>
-                </Tabs>
+                  <div>
+                    <p className="text-xs font-bold text-os-text-primary uppercase tracking-wide mb-1">Customization</p>
+                    <p className="text-xs text-os-text-secondary leading-relaxed">
+                      Customized logo (Min. 50 pieces) • Graphic customization (Min. 50 pieces) • Custom packaging (Min. 100 pieces)
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
-            {/* RIGHT COLUMN: THE TRADE CONSOLE (4 cols) */}
-            <div className="lg:col-span-4 lg:sticky lg:top-12 space-y-8">
-              <Card className="border-none bg-os-surface-solid shadow-[0_32px_80px_rgba(0,0,0,0.06)] rounded-[32px] overflow-hidden relative group">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-os-accent to-transparent" />
-                <CardContent className="p-8 space-y-8">
-                  <div className="space-y-4">
-                    <h1 className="text-3xl font-black tracking-tighter text-os-text-primary leading-[1.1] group-hover:text-os-accent transition-colors duration-500">
-                      {product.title}
-                    </h1>
-
-                    <div className="flex flex-wrap items-center gap-3">
-                      {product.categories && (
-                        <div className="px-3 py-1 rounded-full bg-os-bg border border-os-stroke/40 text-[10px] font-black uppercase tracking-widest text-os-text-secondary">
-                          {product.categories.name}
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-os-text-secondary">
-                        <MapPin className="w-3 h-3 text-os-accent" />
-                        <span>{product.country_of_origin || supplier?.country || 'Origin Network'}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* TRADE METRICS GRID */}
-                  <div className="grid grid-cols-1 gap-1 pt-6 border-t border-os-stroke/20">
-                    <div className="p-4 rounded-2xl bg-os-accent/5 border border-os-accent/10">
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-os-accent mb-2">Institutional Pricing</p>
-                      <div className="flex items-baseline gap-2">
-                        <PriceRange
-                          min={product.price_min || product.price}
-                          max={product.price_max || product.price}
-                          fromCurrency={product.currency || 'USD'}
-                          className="text-3xl font-black tracking-tighter text-os-text-primary"
-                        />
-                        <span className="text-os-xs font-bold text-os-text-secondary">/ {product.unit || 'unit'}</span>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-1">
-                      <div className="p-4 rounded-2xl border border-os-stroke/40 hover:bg-os-bg transition-colors">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-os-text-secondary mb-1">Batch Minimum</p>
-                        <p className="text-os-sm font-bold text-os-text-primary">
-                          {product.min_order_quantity || product.moq || '1'} {product.moq_unit || product.unit || 'units'}
-                        </p>
-                      </div>
-                      <div className="p-4 rounded-2xl border border-os-stroke/40 hover:bg-os-bg transition-colors">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-os-text-secondary mb-1">Supply Power</p>
-                        <p className="text-os-sm font-bold text-os-text-primary line-clamp-1">
-                          {product.supply_ability_qty ? `${product.supply_ability_qty}/${product.supply_ability_unit || 'mo'}` : 'Scale on Request'}
-                        </p>
-                      </div>
-
-                      {/* Listing Quality Indicator - Completeness Score */}
-                      {typeof product.completeness_score === 'number' && (
-                        <div className="p-4 rounded-2xl border border-os-stroke/40 bg-os-bg col-span-2 mt-3">
-                          <p className="text-[9px] font-black uppercase tracking-widest text-os-text-secondary mb-2">
-                            Listing Completeness
-                          </p>
-                          <div className="flex items-center gap-3">
-                            <div className="flex-1 h-2 bg-os-stroke/20 rounded-full overflow-hidden">
-                              <div
-                                className={cn(
-                                  "h-full transition-all duration-500 rounded-full",
-                                  product.completeness_score >= 70 ? "bg-os-green" :
-                                    product.completeness_score >= 40 ? "bg-os-accent" :
-                                      "bg-os-text-secondary/40"
-                                )}
-                                style={{ width: `${Math.min(product.completeness_score, 100)}%` }}
-                              />
-                            </div>
-                            <span className="text-os-sm font-bold text-os-text-primary min-w-[3ch]">
-                              {product.completeness_score}%
-                            </span>
-                          </div>
-                          {product.completeness_score < 40 && (
-                            <p className="text-[9px] text-os-text-secondary/60 mt-2 italic">
-                              Supplier completing verification (Quote requests available at 40%+)
-                            </p>
-                          )}
-                          {product.completeness_score >= 70 && (
-                            <p className="text-[9px] text-os-green/80 mt-2 font-medium flex items-center gap-1">
-                              <CheckCircle className="w-3 h-3" />
-                              Institutional-grade listing quality
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* TRADE EXECUTION ACTIONS - INSTITUTIONAL HIERARCHY */}
-                  <div className="space-y-3 pt-4">
-                    {/* PRIMARY: Direct Sourcing (unchanged - stays dominant) */}
+            {/* ── RIGHT: TRADE CONSOLE (3 cols, sticky) ── */}
+            <div className="lg:col-span-3">
+              <div className="sticky top-6 space-y-4">
+                {/* CTA Card */}
+                <div className="bg-os-surface-solid rounded-2xl border border-os-stroke shadow-sm overflow-hidden">
+                  <div className="h-1 bg-gradient-to-r from-os-accent to-os-accent/30" />
+                  <div className="p-5 space-y-3">
                     <Button
                       onClick={handleBuyNow}
-                      className="w-full bg-os-accent hover:bg-os-accent/90 text-white font-black uppercase tracking-widest h-14 rounded-2xl shadow-glow transition-all active:scale-95 flex items-center justify-center gap-3"
+                      className="w-full bg-os-accent hover:bg-os-accent/90 text-white font-semibold h-12 rounded-xl shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2"
                     >
-                      <Zap className="w-5 h-5" />
-                      Initiate Direct Sourcing
+                      <Zap className="w-4 h-4" />
+                      Start Order
                     </Button>
 
-                    {/* SECONDARY: Request Quote (conditional + toned down) */}
-                    {product.completeness_score >= MIN_COMPLETENESS_FOR_RFQ ? (
+                    {(product.completeness_score == null || product.completeness_score >= MIN_COMPLETENESS_FOR_RFQ) ? (
                       <Button
                         onClick={handleCreateRFQ}
-                        variant="ghost"
-                        className="w-full border border-os-stroke/40 hover:border-os-accent/30 hover:bg-os-accent/5 text-os-text-primary font-medium text-sm h-12 rounded-xl transition-all"
+                        variant="outline"
+                        className="w-full h-11 rounded-xl font-medium flex items-center justify-center gap-2"
                       >
-                        <FileText className="w-4 h-4 mr-2" />
-                        Request Quote
+                        <FileText className="w-4 h-4" />
+                        Request Quote (RFQ)
                       </Button>
                     ) : (
-                      <div className="w-full p-4 bg-os-stroke/5 border border-os-stroke/20 rounded-xl text-center">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-os-text-secondary/40">
-                          Quote Requests Pending
-                        </p>
-                        <p className="text-[9px] text-os-text-secondary/60 mt-1">
-                          Supplier completing listing ({product.completeness_score}% done, need 40%)
-                        </p>
-                      </div>
-                    )}
-
-                    {/* TERTIARY: Utilities (text links, not buttons) */}
-                    <div className="pt-4 flex items-center justify-center gap-6 border-t border-os-stroke/20">
-                      <SaveButton itemId={product.id} itemType="product" variant="ghost" size="sm" />
-                      <div className="w-px h-4 bg-os-stroke/40" />
-                      <button
-                        onClick={handleContactSupplier}
-                        className="text-[10px] font-medium uppercase tracking-wider text-os-text-secondary/60 hover:text-os-accent transition-colors"
-                      >
-                        Contact Supplier
-                      </button>
-                    </div>
-                  </div>
-
-                  <OffPlatformDisclaimerCompact className="opacity-40 hover:opacity-100 transition-opacity" />
-                </CardContent>
-              </Card>
-
-              {/* SUPPLIER PASSPORT */}
-              {supplier && (
-                <Card className="border-none bg-os-bg shadow-sm rounded-[32px] overflow-hidden group hover:shadow-os-md transition-all duration-700">
-                  <CardContent className="p-8 space-y-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-16 h-16 rounded-2xl bg-white border border-os-stroke/40 shadow-sm flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:scale-105 transition-transform">
-                        {supplier.logo_url && !logoError ? (
-                          <img src={supplier.logo_url} className="w-full h-full object-cover" width="64" height="64" loading="lazy" onError={() => setLogoError(true)} />
-                        ) : (
-                          <Building className="w-8 h-8 text-os-text-secondary/20" />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <Link to={`/${language}/business/${supplier.id}`} className="block group/link">
-                          <h4 className="text-lg font-black tracking-tight text-os-text-primary group-hover/link:text-os-accent transition-colors">
-                            {supplier.company_name}
-                          </h4>
-                        </Link>
-                        <div className="flex items-center gap-2 mt-1">
-                          <MapPin className="w-3 h-3 text-os-accent" />
-                          <span className="text-os-xs font-bold text-os-text-secondary">{supplier.country}</span>
-                        </div>
-
-                        {/* AfCFTA Trade Readiness */}
-                        {supplier?.afcfta_ready && (
-                          <div className="mt-2 inline-flex items-center gap-2 px-3 py-1.5 rounded-full
-                                          bg-os-blue/10 border border-os-blue/30
-                                          text-[10px] font-black uppercase tracking-widest text-os-blue">
-                            <Globe className="w-3.5 h-3.5" />
-                            <span>AfCFTA Compliant</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Trust Score Display */}
-                    {supplier.trust_score && (
-                      <div className="pt-3 border-t border-os-stroke/20">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-[9px] font-black uppercase tracking-widest text-os-text-secondary/40">
-                            Trust Score
-                          </span>
-                          <span className="text-os-sm font-bold text-os-text-primary">
-                            {supplier.trust_score}%
-                          </span>
-                        </div>
-                        <div className="flex-1 h-2 bg-os-stroke/20 rounded-full overflow-hidden">
-                          <div
-                            className={cn(
-                              "h-full rounded-full transition-all",
-                              supplier.trust_score >= 80 ? "bg-os-green" :
-                                supplier.trust_score >= 50 ? "bg-os-accent" :
-                                  "bg-os-text-secondary/40"
-                            )}
-                            style={{ width: `${supplier.trust_score}%` }}
-                          />
-                        </div>
-                      </div>
+                      <p className="text-xs text-center text-os-text-secondary py-2">
+                        Quote requests available once listing is complete ({product.completeness_score}% / 40% needed)
+                      </p>
                     )}
 
                     <Button
                       onClick={handleContactSupplier}
                       variant="ghost"
-                      className="w-full border border-os-stroke/40 hover:bg-white text-os-xs font-black uppercase tracking-widest h-12 rounded-xl transition-all"
+                      className="w-full h-11 rounded-xl font-medium border border-os-stroke flex items-center justify-center gap-2"
                     >
-                      <MessageCircle className="w-4 h-4 mr-2" />
-                      Establish Communication
+                      <MessageCircle className="w-4 h-4" />
+                      Chat with Supplier
                     </Button>
-                  </CardContent>
-                </Card>
-              )}
+
+                    <div className="pt-2 border-t border-os-stroke/50">
+                      <SampleOrderButton
+                        product={product}
+                        supplier={supplier}
+                        variant="secondary"
+                        size="default"
+                        className="w-full h-11 rounded-xl font-medium"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Trade Protection */}
+                <div className="bg-os-surface-solid rounded-2xl border border-os-stroke p-4 space-y-3">
+                  <p className="text-xs font-semibold text-os-text-primary uppercase tracking-wide">Afrikoni Trade Protection</p>
+                  <div className="space-y-2.5">
+                    {[
+                      { icon: Lock, label: 'Secure Payments', desc: 'Escrow-protected transactions' },
+                      { icon: RotateCcw, label: 'Dispute Resolution', desc: 'Mediated by Afrikoni team' },
+                      { icon: Shield, label: 'Verified Supplier', desc: 'KYB-checked business' },
+                    ].map(({ icon: Icon, label, desc }) => (
+                      <div key={label} className="flex items-start gap-2.5">
+                        <div className="w-7 h-7 rounded-lg bg-os-accent/10 flex items-center justify-center shrink-0 mt-0.5">
+                          <Icon className="w-3.5 h-3.5 text-os-accent" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-semibold text-os-text-primary">{label}</p>
+                          <p className="text-xs text-os-text-secondary">{desc}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Supplier Card */}
+                {supplier && (
+                  <div className="bg-os-surface-solid rounded-2xl border border-os-stroke p-4">
+                    <p className="text-xs font-semibold text-os-text-secondary uppercase tracking-wide mb-3">Supplier</p>
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-12 h-12 rounded-xl bg-os-bg border border-os-stroke flex items-center justify-center overflow-hidden shrink-0">
+                        {supplier.logo_url && !logoError ? (
+                          <img src={supplier.logo_url} className="w-full h-full object-cover" alt="" onError={() => setLogoError(true)} />
+                        ) : (
+                          <Building className="w-6 h-6 text-os-text-secondary/30" />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <Link to={`/${language}/business/${supplier.id}`} className="font-semibold text-sm hover:text-os-accent transition-colors truncate block">
+                          {supplier.company_name}
+                        </Link>
+                        <div className="flex items-center gap-1 text-xs text-os-text-secondary">
+                          <MapPin className="w-3 h-3" />
+                          <span>{supplier.country}</span>
+                        </div>
+                      </div>
+                    </div>
+                    {supplier.trust_score && (
+                      <div className="mb-3">
+                        <div className="flex justify-between text-xs mb-1">
+                          <span className="text-os-text-secondary">Trust Score</span>
+                          <span className="font-semibold">{supplier.trust_score}%</span>
+                        </div>
+                        <div className="h-1.5 bg-os-stroke rounded-full overflow-hidden">
+                          <div
+                            className={cn("h-full rounded-full", supplier.trust_score >= 80 ? "bg-emerald-500" : supplier.trust_score >= 50 ? "bg-os-accent" : "bg-os-text-secondary/40")}
+                            style={{ width: `${supplier.trust_score}%` }}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    {supplier.kyb_status === 'verified' && (
+                      <div className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400">
+                        <CheckCircle className="w-3.5 h-3.5" />
+                        <span>Business Verified</span>
+                      </div>
+                    )}
+                    {supplier.afcfta_ready && (
+                      <div className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 mt-1">
+                        <Globe className="w-3.5 h-3.5" />
+                        <span>AfCFTA Compliant</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                <OffPlatformDisclaimerCompact className="opacity-60" />
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* INSTITUTIONAL RECOMMENDATIONS */}
-        <div className="max-w-screen-2xl mx-auto px-6 pb-24 border-t border-os-stroke/20 pt-24">
-          {aiRecommendations.length > 0 ? (
-            <section>
-              <h2 className="text-os-base font-black uppercase tracking-[0.4em] text-os-text-secondary mb-12 text-center">Curated Trade Intelligence</h2>
+          {/* ── TABS: Description, Specs, Shipping, Reviews ── */}
+          <div className="mt-12 bg-os-surface-solid rounded-2xl border border-os-stroke overflow-hidden">
+            <Tabs defaultValue="description">
+              <div className="border-b border-os-stroke px-6 pt-2">
+                <TabsList className="w-full justify-start bg-transparent h-auto gap-0 p-0">
+                  {[
+                    { value: 'description', label: 'Description' },
+                    { value: 'specifications', label: 'Specifications' },
+                    { value: 'shipping', label: 'Shipping & Packaging' },
+                    { value: 'reviews', label: `Reviews (${reviews.length})` },
+                    { value: 'qa', label: `Q&A (${questions.length})` },
+                  ].map(tab => (
+                    <TabsTrigger
+                      key={tab.value}
+                      value={tab.value}
+                      className="data-[state=active]:text-os-accent data-[state=active]:border-b-2 data-[state=active]:border-os-accent border-b-2 border-transparent rounded-none px-5 py-4 text-sm font-medium text-os-text-secondary transition-all"
+                    >
+                      {tab.label}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </div>
+
+              <div className="p-8">
+                {/* Description */}
+                <TabsContent value="description" className="mt-0 focus-visible:outline-none">
+                  <div className="prose prose-sm max-w-none dark:prose-invert">
+                    <p className="text-os-text-primary leading-relaxed whitespace-pre-wrap text-base">
+                      {product.description || product.short_description || 'No description provided.'}
+                    </p>
+                  </div>
+                  {product.is_standardized && (
+                    <div className="mt-6 p-4 bg-os-accent/5 border border-os-accent/15 rounded-xl">
+                      <div className="flex items-start gap-3">
+                        <ShieldCheck className="w-5 h-5 text-os-accent shrink-0 mt-0.5" />
+                        <div>
+                          <p className="font-semibold text-sm mb-1">Verified Listing</p>
+                          <p className="text-sm text-os-text-secondary">
+                            This listing has been reviewed by Afrikoni's team. Production capacity, certifications, and lead times have been validated.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </TabsContent>
+
+                {/* Specifications */}
+                <TabsContent value="specifications" className="mt-0 focus-visible:outline-none">
+                  {product.specifications && Object.keys(product.specifications).length > 0 ? (
+                    <div className="divide-y divide-os-stroke">
+                      {Object.entries(product.specifications).map(([key, value]) => (
+                        <div key={key} className="flex justify-between py-3 gap-4">
+                          <span className="text-sm text-os-text-secondary font-medium capitalize">{key}</span>
+                          <span className="text-sm font-semibold text-os-text-primary text-right">{String(value)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="py-12 text-center">
+                      <Package className="w-10 h-10 text-os-text-secondary/20 mx-auto mb-3" />
+                      <p className="text-sm text-os-text-secondary">No specifications listed yet.</p>
+                      {isSupplier && (
+                        <Button variant="outline" size="sm" className="mt-4" onClick={() => navigate(`/${language}/dashboard/products`)}>
+                          Add Specifications
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </TabsContent>
+
+                {/* Shipping */}
+                <TabsContent value="shipping" className="mt-0 focus-visible:outline-none space-y-8">
+                  <div className="grid md:grid-cols-2 gap-6">
+                    <div className="p-5 rounded-xl bg-os-bg border border-os-stroke">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Package className="w-5 h-5 text-os-accent" />
+                        <h4 className="font-semibold text-sm">Packaging</h4>
+                      </div>
+                      <p className="text-sm text-os-text-secondary leading-relaxed">
+                        {product.packaging_details || 'Standard export packaging. Contact supplier for custom packaging options.'}
+                      </p>
+                    </div>
+                    <div className="p-5 rounded-xl bg-os-bg border border-os-stroke">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Clock className="w-5 h-5 text-os-accent" />
+                        <h4 className="font-semibold text-sm">Lead Time</h4>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm border-b border-os-stroke pb-1">
+                          <span className="text-os-text-secondary">Quantity ({product.unit || 'units'})</span>
+                          <span className="text-os-text-secondary">Est. Time (days)</span>
+                        </div>
+                        <div className="flex justify-between text-sm font-medium">
+                          <span>1 - {product.min_order_quantity ? product.min_order_quantity * 5 : 500}</span>
+                          <span>{product.lead_time_min_days || 7}</span>
+                        </div>
+                        <div className="flex justify-between text-sm font-medium">
+                          <span>&gt; {product.min_order_quantity ? product.min_order_quantity * 5 : 500}</span>
+                          <span>To be negotiated</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="p-5 rounded-xl bg-os-bg border border-os-stroke">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Truck className="w-5 h-5 text-os-accent" />
+                        <h4 className="font-semibold text-sm">Shipping Methods</h4>
+                      </div>
+                      <p className="text-sm text-os-text-secondary">
+                        {product.shipping_methods || 'Sea freight, Air freight, Express. Get a quote from the supplier.'}
+                      </p>
+                    </div>
+                    <div className="p-5 rounded-xl bg-os-bg border border-os-stroke">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Globe className="w-5 h-5 text-os-accent" />
+                        <h4 className="font-semibold text-sm">Export Markets</h4>
+                      </div>
+                      <p className="text-sm text-os-text-secondary">
+                        {product.export_markets || supplier?.export_markets || 'Worldwide. Contact supplier to confirm your country.'}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Shipping Calculator */}
+                  <div className="pt-6 border-t border-os-stroke">
+                    <h3 className="text-lg font-bold mb-4">Calculate Approximate Shipping Cost</h3>
+                    <ShippingCalculator
+                      defaultOrigin={product.country_of_origin || supplier?.country}
+                      defaultWeight="100"
+                      compact={false}
+                    />
+                  </div>
+                </TabsContent>
+
+                {/* Reviews */}
+                <TabsContent value="reviews" className="mt-0 focus-visible:outline-none">
+                  {reviews.length > 0 ? (
+                    <div className="space-y-6">
+                      {/* Rating Summary */}
+                      <div className="flex items-center gap-6 p-5 bg-os-bg rounded-xl border border-os-stroke">
+                        <div className="text-center">
+                          <p className="text-5xl font-bold text-os-text-primary">{avgRating}</p>
+                          <div className="flex items-center gap-0.5 justify-center mt-1">
+                            {[1, 2, 3, 4, 5].map(s => (
+                              <Star key={s} className={cn("w-4 h-4", parseFloat(avgRating) >= s ? "fill-amber-400 text-amber-400" : "text-os-stroke")} />
+                            ))}
+                          </div>
+                          <p className="text-xs text-os-text-secondary mt-1">{reviews.length} reviews</p>
+                        </div>
+                      </div>
+                      <ReviewList reviews={reviews} />
+                    </div>
+                  ) : (
+                    <div className="py-12 text-center">
+                      <Star className="w-10 h-10 text-os-text-secondary/20 mx-auto mb-3" />
+                      <p className="text-sm text-os-text-secondary">No reviews yet. Be the first to review after your purchase.</p>
+                    </div>
+                  )}
+                </TabsContent>
+
+                {/* Q&A */}
+                <TabsContent value="qa" className="mt-0 focus-visible:outline-none">
+                  <div className="space-y-6">
+                    {/* Ask a question */}
+                    <div className="p-5 bg-os-bg rounded-xl border border-os-stroke">
+                      <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
+                        <HelpCircle className="w-4 h-4 text-os-accent" />
+                        Ask the Supplier a Question
+                      </h4>
+                      <div className="flex gap-3">
+                        <input
+                          type="text"
+                          value={newQuestion}
+                          onChange={e => setNewQuestion(e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && handleSubmitQuestion()}
+                          placeholder="e.g. Can you do custom labeling? What's the MOQ for samples?"
+                          className="flex-1 h-10 px-4 rounded-lg border border-os-stroke bg-os-surface-solid text-sm focus:outline-none focus:ring-2 focus:ring-os-accent/30 focus:border-os-accent"
+                        />
+                        <Button
+                          onClick={handleSubmitQuestion}
+                          disabled={submittingQuestion || !newQuestion.trim()}
+                          className="bg-os-accent hover:bg-os-accent/90 text-white h-10 px-4 rounded-lg"
+                        >
+                          <Send className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Questions list */}
+                    {questions.length === 0 ? (
+                      <div className="py-8 text-center">
+                        <HelpCircle className="w-10 h-10 text-os-text-secondary/20 mx-auto mb-3" />
+                        <p className="text-sm text-os-text-secondary">No questions yet. Ask the supplier anything!</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        {questions.map(q => (
+                          <div key={q.id} className="border border-os-stroke rounded-xl overflow-hidden">
+                            {/* Question */}
+                            <div className="p-4 bg-os-bg">
+                              <div className="flex items-start gap-3">
+                                <div className="w-8 h-8 rounded-full bg-os-accent/10 flex items-center justify-center shrink-0 text-xs font-bold text-os-accent">
+                                  {q.profiles?.full_name?.[0]?.toUpperCase() || 'B'}
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="text-xs font-semibold text-os-text-primary">
+                                      {q.profiles?.full_name || 'Buyer'}
+                                    </span>
+                                    <span className="text-xs text-os-text-secondary">
+                                      {q.created_at ? new Date(q.created_at).toLocaleDateString() : ''}
+                                    </span>
+                                  </div>
+                                  <p className="text-sm text-os-text-primary">{q.question}</p>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Answer */}
+                            {q.answer ? (
+                              <div className="p-4 bg-os-accent/5 border-t border-os-stroke">
+                                <div className="flex items-start gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-os-accent flex items-center justify-center shrink-0">
+                                    <Building className="w-4 h-4 text-white" />
+                                  </div>
+                                  <div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                      <span className="text-xs font-semibold text-os-accent">Supplier Response</span>
+                                    </div>
+                                    <p className="text-sm text-os-text-primary">{q.answer}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : isSupplier ? (
+                              <div className="p-4 border-t border-os-stroke">
+                                {answeringId === q.id ? (
+                                  <div className="flex gap-2">
+                                    <input
+                                      type="text"
+                                      value={answerText}
+                                      onChange={e => setAnswerText(e.target.value)}
+                                      placeholder="Type your answer..."
+                                      className="flex-1 h-9 px-3 rounded-lg border border-os-stroke bg-os-surface-solid text-sm focus:outline-none focus:ring-2 focus:ring-os-accent/30 focus:border-os-accent"
+                                    />
+                                    <Button
+                                      onClick={() => handleSubmitAnswer(q.id)}
+                                      disabled={submittingAnswer || !answerText.trim()}
+                                      size="sm"
+                                      className="bg-os-accent text-white"
+                                    >
+                                      Post
+                                    </Button>
+                                    <Button
+                                      onClick={() => { setAnsweringId(null); setAnswerText(''); }}
+                                      size="sm"
+                                      variant="ghost"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                ) : (
+                                  <Button
+                                    onClick={() => setAnsweringId(q.id)}
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-os-accent border-os-accent/30 hover:bg-os-accent/5"
+                                  >
+                                    Answer this question
+                                  </Button>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="px-4 py-3 border-t border-os-stroke bg-os-bg/50">
+                                <p className="text-xs text-os-text-secondary italic">Awaiting supplier response...</p>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </TabsContent>
+              </div>
+            </Tabs>
+          </div>
+
+          {/* ── SIMILAR PRODUCTS ── */}
+          {similarProducts.length > 0 && (
+            <div className="mt-16">
+              <h2 className="text-xl font-bold mb-6">Similar Products</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {similarProducts.slice(0, 8).map(p => {
+                  const img = getPrimaryImageFromProduct(p);
+                  return (
+                    <Link
+                      key={p.id}
+                      to={`/${language}/product/${p.id}`}
+                      className="group bg-os-surface-solid rounded-xl border border-os-stroke overflow-hidden hover:shadow-md hover:border-os-accent/30 transition-all"
+                    >
+                      <div className="aspect-square bg-os-bg overflow-hidden">
+                        {img ? (
+                          <img src={img} alt={p.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Package className="w-10 h-10 text-os-text-secondary/20" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-3">
+                        <p className="text-sm font-medium line-clamp-2 mb-1 group-hover:text-os-accent transition-colors">{p.title}</p>
+                        <p className="text-sm font-bold text-os-accent">
+                          {p.price_min || p.price ? `$${p.price_min || p.price}` : 'Get Quote'}
+                        </p>
+                        {(p.min_order_quantity || p.moq) && (
+                          <p className="text-xs text-os-text-secondary mt-0.5">MOQ: {p.min_order_quantity || p.moq} {p.unit || 'units'}</p>
+                        )}
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* AI Recommendations fallback */}
+          {similarProducts.length === 0 && (
+            <div className="mt-16">
+              <h2 className="text-xl font-bold mb-6">Recommended for You</h2>
               <ProductRecommendations
                 productId={product.id}
                 currentUserId={user?.id}
                 currentCompanyId={user?.company_id}
               />
-            </section>
-          ) : similarProducts.length > 0 ? (
-            <section>
-              <h2 className="text-os-base font-black uppercase tracking-[0.4em] text-os-text-secondary mb-12 text-center text-os-accent">Similar Infrastructure</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                {similarProducts.map(p => (
-                  <ProductCard key={p.id} product={p} />
-                ))}
-              </div>
-            </section>
-          ) : recommendedProducts.length > 0 && (
-            <section>
-              <h2 className="text-os-base font-black uppercase tracking-[0.4em] text-os-text-secondary mb-12 text-center">Recommended for Your Portfolio</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                {recommendedProducts.map(p => (
-                  <ProductCard key={p.id} product={p} />
-                ))}
-              </div>
-            </section>
+            </div>
           )}
         </div>
 
+        {/* Dialogs */}
         {supplier && (
           <NewMessageDialog
             open={showMessageDialog}
@@ -960,7 +1007,6 @@ export default function ProductDetail() {
           />
         )}
 
-        {/* Quick Quote Modal */}
         {product && supplier && (
           <QuickQuoteModal
             open={showQuickQuoteModal}
@@ -970,7 +1016,6 @@ export default function ProductDetail() {
           />
         )}
 
-        {/* Mobile Sticky CTA - Always visible on mobile for key actions */}
         {product && (
           <MobileStickyCTA
             label={t('product.requestQuote') || 'Request Quote'}
@@ -985,4 +1030,3 @@ export default function ProductDetail() {
     </>
   );
 }
-

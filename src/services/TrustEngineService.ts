@@ -22,7 +22,17 @@ export const TrustEngineService = {
                 .eq('id', companyId)
                 .single();
 
-            if (!company) throw new Error('Company not found');
+            if (!company) {
+                console.warn(`[TrustEngine] Company ${companyId} not found, returning fallback score.`);
+                return {
+                    total_score: 0,
+                    verification_score: 0,
+                    history_score: 0,
+                    network_score: 0,
+                    level: 'unrated',
+                    factors: {}
+                };
+            }
 
             // count completed trades
             const { count: completedTrades } = await supabase

@@ -48,10 +48,14 @@ export default function SavedPage() {
             const productItems = savedItems.filter(item => item.item_type === 'product');
             if (productItems.length > 0) {
                 const productIds = productItems.map(item => item.item_id);
-                const { data: products } = await supabase
+                const { data: products, error: productsError } = await supabase
                     .from('products')
-                    .select('*, company:companies(name, verification_status)')
+                    .select('*, company:companies!company_id(name, verification_status), product_images(image_url)')
                     .in('id', productIds);
+
+                if (productsError) {
+                    console.error('Error fetching saved products:', productsError);
+                }
 
                 if (products) {
                     setSavedProducts(products);
@@ -130,8 +134,8 @@ export default function SavedPage() {
                         <button
                             onClick={() => setActiveTab('products')}
                             className={`px-6 py-2.5 rounded-md font-medium transition-all ${activeTab === 'products'
-                                    ? 'bg-white text-black shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-700'
+                                ? 'bg-white text-black shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700'
                                 }`}
                         >
                             Products ({savedProducts.length})
@@ -139,8 +143,8 @@ export default function SavedPage() {
                         <button
                             onClick={() => setActiveTab('suppliers')}
                             className={`px-6 py-2.5 rounded-md font-medium transition-all ${activeTab === 'suppliers'
-                                    ? 'bg-white text-black shadow-sm'
-                                    : 'text-gray-500 hover:text-gray-700'
+                                ? 'bg-white text-black shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700'
                                 }`}
                         >
                             Suppliers ({savedSuppliers.length})
@@ -159,9 +163,9 @@ export default function SavedPage() {
                                     className="bg-white border rounded-xl overflow-hidden hover:shadow-lg transition-shadow group"
                                 >
                                     <div className="aspect-square bg-gray-100 relative">
-                                        {product.image_url ? (
+                                        {(product.product_images?.[0]?.image_url || product.image_url) ? (
                                             <img
-                                                src={product.image_url}
+                                                src={product.product_images?.[0]?.image_url || product.image_url}
                                                 alt={product.name}
                                                 className="w-full h-full object-cover"
                                             />

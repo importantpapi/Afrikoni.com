@@ -10,14 +10,14 @@ export default function MultiCurrency() {
   const [toCurrency, setToCurrency] = useState('NGN');
   const [convertedAmount, setConvertedAmount] = useState('');
 
-  // Hardcoded exchange rates (in production, use a real API)
+  // Static fallback rates — live rates are served by CurrencyContext/sync-fx-rates Edge Function
   const exchangeRates = {
-    USD: { NGN: 1500, ZAR: 18, KES: 150, GHS: 12, EGP: 30 },
-    NGN: { USD: 0.00067, ZAR: 0.012, KES: 0.1, GHS: 0.008, EGP: 0.02 },
-    ZAR: { USD: 0.056, NGN: 83, KES: 8.3, GHS: 0.67, EGP: 1.67 },
-    KES: { USD: 0.0067, NGN: 10, ZAR: 0.12, GHS: 0.08, EGP: 0.2 },
-    GHS: { USD: 0.083, NGN: 125, ZAR: 1.5, KES: 12.5, EGP: 2.5 },
-    EGP: { USD: 0.033, NGN: 50, ZAR: 0.6, KES: 5, GHS: 0.4 }
+    USD: { NGN: 1550, ZAR: 18.5, KES: 130, GHS: 13.5, EGP: 48 },
+    NGN: { USD: 0.000645, ZAR: 0.012, KES: 0.084, GHS: 0.0087, EGP: 0.031 },
+    ZAR: { USD: 0.054, NGN: 83.8, KES: 7.2, GHS: 0.73, EGP: 2.59 },
+    KES: { USD: 0.0077, NGN: 11.9, ZAR: 0.139, GHS: 0.104, EGP: 0.37 },
+    GHS: { USD: 0.074, NGN: 114.8, ZAR: 1.37, KES: 9.63, EGP: 3.56 },
+    EGP: { USD: 0.021, NGN: 32.3, ZAR: 0.386, KES: 2.71, GHS: 0.281 }
   };
 
   const handleConvert = () => {

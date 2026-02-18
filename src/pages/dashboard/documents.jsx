@@ -39,7 +39,7 @@ export default function DocumentsPage() {
 
             setDocData({
                 ...extracted,
-                source: "Sovereign DNA Extractor (Gemini 3 Flash)"
+                source: "Data Extractor (Gemini 3 Flash)"
             });
             setGenerated(true);
             toast.success('Document DNA extracted & parsed');
@@ -119,7 +119,7 @@ export default function DocumentsPage() {
                             <div className="relative">
                                 <div className="absolute inset-0 z-10 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center rounded-os-sm border border-white/10">
                                     <Lock className="w-12 h-12 text-amber-400 mb-4" />
-                                    <h3 className="text-os-2xl font-bold text-white mb-2">Sovereign Validation Required</h3>
+                                    <h3 className="text-os-2xl font-bold text-white mb-2">Secure Validation Required</h3>
                                     <p className="text-os-muted mb-6 max-w-md">
                                         This document ({activeDoc}) requires the <strong>AfCFTA One-Flow Pack</strong> to generate a government-recognized certificate.
                                     </p>

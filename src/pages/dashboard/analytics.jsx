@@ -10,8 +10,9 @@ import { Surface } from '@/components/system/Surface';
 import { Button } from '@/components/shared/ui/button';
 import {
   BarChart3, TrendingUp, DollarSign, ShoppingCart, Package,
-  FileText, CheckCircle, Clock, Sparkles, MapPin, Shield, RefreshCw, Activity, Globe
+  FileText, CheckCircle, Clock, Sparkles, MapPin, Shield, RefreshCw, Activity, Globe, Target
 } from 'lucide-react';
+
 import { toast } from 'sonner';
 import EmptyState from '@/components/shared/ui/EmptyState';
 import {
@@ -242,7 +243,7 @@ export default function DashboardAnalytics() {
               <div className="text-3xl font-black font-mono tracking-tighter">
                 ${(analytics.totalRevenue || analytics.totalSpent).toLocaleString()}
               </div>
-              <div className="os-label mt-1">Sovereign Volume</div>
+              <div className="os-label mt-1">Verified Volume</div>
             </Surface>
           )}
 
@@ -337,7 +338,7 @@ export default function DashboardAnalytics() {
                 <div className="h-full bg-os-green w-[98.4%] animate-pulse" />
               </div>
               <p className="text-os-xs text-os-text-secondary leading-relaxed">
-                Your trade execution parameters are within the 1st percentile of Sovereign Reliability.
+                Your trade execution parameters are within the 1st percentile of Verified Reliability.
               </p>
             </div>
           </Surface>

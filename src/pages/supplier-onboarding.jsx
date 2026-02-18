@@ -7,7 +7,7 @@ import { Input } from '@/components/shared/ui/input';
 import { Logo } from '@/components/shared/ui/Logo';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useTheme } from '@/contexts/ThemeContext';
-import { SovereignIdentity } from '@/components/shared/ui/SovereignIdentity';
+import { SecureIdentity } from '@/components/shared/ui/SecureIdentity';
 import {
   Building,
   Globe,
@@ -76,11 +76,11 @@ export default function SupplierOnboarding() {
         const { error: companyError } = await supabase
           .from('companies')
           .insert({
-            name: formData.company_name,
-            industry: formData.industry,
+            company_name: formData.company_name,
+            business_type: formData.industry,
             website: formData.website,
             description: formData.description,
-            owner_id: user.id
+            user_id: user.id
           });
         // Note: insert handles new companies, update would be a separate flow
         // In this simple onboarding, we insert. If they already have one, insert might fail or we handle it.
@@ -243,7 +243,7 @@ export default function SupplierOnboarding() {
                           <Palette className="w-5 h-5 text-os-accent" /> Aesthetic Calibration
                         </h3>
                         <p className="text-os-xs text-os-text-secondary/60 uppercase tracking-widest leading-relaxed">
-                          Choose the digital personality of your sovereign environment.
+                          Choose the digital personality of your business environment.
                         </p>
                       </div>
 
@@ -271,7 +271,7 @@ export default function SupplierOnboarding() {
 
                     <div className="relative flex justify-center">
                       <div className="absolute inset-0 bg-os-accent/5 blur-[80px] rounded-full animate-pulse" />
-                      <SovereignIdentity size="lg" className="scale-110" />
+                      <SecureIdentity size="lg" className="scale-110" />
                     </div>
                   </div>
                 </div>
@@ -313,7 +313,7 @@ export default function SupplierOnboarding() {
 
       <footer className="mt-12 text-center text-os-text-secondary/10 text-os-xs font-black uppercase tracking-[0.5em]">
         <Lock className="inline-block w-2 H-2 mr-2" />
-        Sovereign Handshake Protected &bull; Protocol V2026 Edition
+        Secure Handshake Protected &bull; Protocol V2026 Edition
       </footer>
     </div>
   );

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Surface } from '@/components/system/Surface';
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
 import { Textarea } from '@/components/shared/ui/textarea';
@@ -8,36 +7,38 @@ import { Label } from '@/components/shared/ui/label';
 import { createRFQ } from '@/services/rfqService';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { useQueryClient } from '@tanstack/react-query';
-import { Sparkles, Upload, Calendar, ArrowRight, Wand2, CheckCircle2, AlertTriangle } from 'lucide-react';
+import {
+  Sparkles, Upload, Calendar, ArrowRight, CheckCircle2,
+  AlertTriangle, Eraser, MapPin, Scale, ChevronRight
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { rfqSchema, validate } from '@/schemas/trade';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/shared/ui/dialog';
+import { motion, AnimatePresence } from 'framer-motion';
 
 /**
  * IntakeEngine - The AI-First Entry Point for Trade OS
- * Replaces the old form-based "New RFQ" with an intent-driven interface.
+ * "Warm, Human, Luxury" Redesign (Apple x Hermès)
  */
-import { motion, AnimatePresence } from 'framer-motion';
-
-// ... (imports remain)
 
 export default function IntakeEngine() {
   const navigate = useNavigate();
   const { user, profile } = useDashboardKernel();
   const queryClient = useQueryClient();
 
-  // Modes: 'magic' (AI Parsing) vs 'form' (Manual Override)
+  // Modes: 'magic' (Natural Language) vs 'form' (Review)
   const [mode, setMode] = useState('magic');
   const [magicInput, setMagicInput] = useState('');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisReport, setAnalysisReport] = useState([]); // Store corrections
 
   const [form, setForm] = useState({
     title: '',
     description: '',
     quantity: '',
+    unit: 'tons', // Default unit
     target_price: '',
     currency: 'USD',
-    unit: 'pieces',
     delivery_location: '',
     target_country: '',
     target_city: '',
@@ -49,87 +50,108 @@ export default function IntakeEngine() {
   // Soft Gate State
   const [showGate, setShowGate] = useState(false);
 
-  // AI Heuristic Parser with Spell Correction
+  // AI Heuristic Parser with Advanced Spell & Topography Correction
   const analyzeIntent = async () => {
     if (!magicInput.trim()) return;
     setIsAnalyzing(true);
+    setAnalysisReport([]);
 
-    // Simulate AI processing delay
-    await new Promise(resolve => setTimeout(resolve, 800));
+    // Simulate AI processing delay for realistic "thinking" feel
+    // Shortened for better UX - "snappy but thoughtful"
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Auto-correct common spelling mistakes
     let correctedText = magicInput;
+    const report = [];
+
+    // 1. TYPOGRAPHY CORRECTION (Spelling & Trade Terms)
     const corrections = {
-      'coccoa': 'cocoa',
-      'cacoa': 'cocoa',
-      'shea': 'shea',
-      'tones': 'tons',
-      'ton': 'tons',
-      'deliverd': 'delivered',
-      'accra': 'Accra',
-      'lagos': 'Lagos',
-      'ghana': 'Ghana',
-      'nigeria': 'Nigeria',
-      'kenya': 'Kenya',
+      'coccoa': 'Cocoa', 'cacoa': 'Cocoa', 'coco': 'Cocoa',
+      'shea': 'Shea', 'shea butter': 'Shea Butter',
+      'tones': 'tons', 'ton': 'tons', 'tonnes': 'tons',
+      'kilograms': 'kg', 'kilos': 'kg',
+      'deliverd': 'delivered', 'shpped': 'shipped',
+      'cashew': 'Cashew Nuts', 'raw cashew': 'Raw Cashew Nuts',
+      'soyabean': 'Soybeans', 'soya': 'Soybeans',
+      'sesame': 'Sesame Seeds',
+      'maize': 'Maize (Corn)', 'corn': 'Maize (Corn)',
+      'rice': 'Rice',
+      'sugar': 'Sugar', 'suger': 'Sugar',
+      'coton': 'Cotton',
+      'gold': 'Gold Bullion', 'au': 'Gold',
+      'lithium': 'Lithium Ore',
+      'coffee': 'Coffee Beans',
     };
 
     Object.entries(corrections).forEach(([wrong, right]) => {
       const regex = new RegExp(`\\b${wrong}\\b`, 'gi');
-      correctedText = correctedText.replace(regex, right);
+      if (regex.test(correctedText)) {
+        correctedText = correctedText.replace(regex, right);
+        if (wrong.toLowerCase() !== right.toLowerCase()) {
+          report.push({ type: 'spelling', original: wrong, fixed: right });
+        }
+      }
     });
 
+    // 2. TOPOGRAPHY CORRECTION (Geography & Logistics)
+    const locations = {
+      'accra': { city: 'Accra', country: 'Ghana' },
+      'tema': { city: 'Tema', country: 'Ghana' },
+      'takoradi': { city: 'Takoradi', country: 'Ghana' },
+      'lagos': { city: 'Lagos', country: 'Nigeria' },
+      'abuja': { city: 'Abuja', country: 'Nigeria' },
+      'kano': { city: 'Kano', country: 'Nigeria' },
+      'nairobi': { city: 'Nairobi', country: 'Kenya' },
+      'mombasa': { city: 'Mombasa', country: 'Kenya' },
+      'abidjan': { city: 'Abidjan', country: 'Ivory Coast' },
+      'dakar': { city: 'Dakar', country: 'Senegal' },
+      'lome': { city: 'Lomé', country: 'Togo' },
+      'cotonou': { city: 'Cotonou', country: 'Benin' },
+      'cairo': { city: 'Cairo', country: 'Egypt' },
+      'casablanca': { city: 'Casablanca', country: 'Morocco' },
+      'joburg': { city: 'Johannesburg', country: 'South Africa' },
+      'johannesburg': { city: 'Johannesburg', country: 'South Africa' },
+      'durban': { city: 'Durban', country: 'South Africa' },
+      'cape town': { city: 'Cape Town', country: 'South Africa' }
+    };
+
+    let targetCity = '';
+    let targetCountry = '';
+
+    Object.entries(locations).forEach(([key, data]) => {
+      const regex = new RegExp(`\\b${key}\\b`, 'gi');
+      if (regex.test(correctedText)) {
+        correctedText = correctedText.replace(regex, data.city);
+        targetCity = data.city;
+        targetCountry = data.country;
+        report.push({ type: 'location', original: key, fixed: `${data.city}, ${data.country}` });
+      }
+    });
+
+    // 3. EXTRACTION LOGIC
     const lower = correctedText.toLowerCase();
 
-    // Extract Quantity with better patterns
     const qtyMatch = lower.match(/(\d+[\d,]*)\s*(tons?|tonnes?|kg|kilograms?|pieces?|units?|mt|metric\s*tons?|boxes?|pallets?|containers?)/i);
     let quantity = qtyMatch ? qtyMatch[1].replace(/,/g, '') : '';
     let unit = qtyMatch ? qtyMatch[2].toLowerCase() : 'pieces';
 
-    // Normalize units
-    if (unit.includes('ton')) unit = 'tons';
-    if (unit.includes('kg') || unit.includes('kilogram')) unit = 'kg';
-    if (unit.includes('piece')) unit = 'pieces';
-    if (unit.includes('box')) unit = 'boxes';
+    if (unit.match(/tons?|tonnes?|mt/)) unit = 'tons';
+    if (unit.match(/kg|kilograms?/)) unit = 'kg';
 
-    // Extract Price with multiple currency patterns
-    const priceMatch = lower.match(/(\$|€|£|₦|usd|eur|gbp|ngn|kes|ghs)?\s*(\d+[\d,]*)\s*(\$|€|£|₦|usd|eur|gbp|ngn|kes|ghs|per\s*ton|per\s*kg)?/i);
-    const price = priceMatch ? priceMatch[2].replace(/,/g, '') : '';
+    // Improved Price Detection
+    const strictPrice = lower.match(/(\d+[\d,]*)\s*(?:per|\/)\s*(?:ton|kg|piece)/i) ?? lower.match(/(?:\$|€|£|USD)\s*(\d+[\d,]*)/i);
+    const price = strictPrice ? strictPrice[1].replace(/,/g, '') : '';
 
-    // Detect Currency
     let detectedCurrency = 'USD';
-    const currencyStr = (priceMatch?.[1] || priceMatch?.[3] || '').toLowerCase().trim();
-    const currencySymbols = {
-      '$': 'USD', 'usd': 'USD', 'dollar': 'USD',
-      '€': 'EUR', 'eur': 'EUR', 'euro': 'EUR',
-      '£': 'GBP', 'gbp': 'GBP', 'pound': 'GBP',
-      '₦': 'NGN', 'ngn': 'NGN', 'naira': 'NGN',
-      'kes': 'KES', 'shilling': 'KES',
-      'cedi': 'GHS', 'ghs': 'GHS'
-    };
+    if (lower.includes('eur') || lower.includes('€') || lower.includes('euro')) detectedCurrency = 'EUR';
+    if (lower.includes('gbp') || lower.includes('£') || lower.includes('pound')) detectedCurrency = 'GBP';
+    if (lower.includes('ngn') || lower.includes('₦') || lower.includes('naira')) detectedCurrency = 'NGN';
+    if (lower.includes('ghs') || lower.includes('cedi')) detectedCurrency = 'GHS';
 
-    if (currencyStr) {
-      Object.entries(currencySymbols).forEach(([key, code]) => {
-        if (currencyStr.includes(key)) detectedCurrency = code;
-      });
-    }
+    const productKeywords = Object.values(corrections);
+    const foundProduct = productKeywords.find(p => lower.includes(p.toLowerCase())) || 'Commodity';
 
-    // Extract Countries and Cities
-    const countries = ['ghana', 'nigeria', 'kenya', 'senegal', 'ivory coast', 'south africa', 'egypt', 'morocco'];
-    const cities = ['accra', 'lagos', 'nairobi', 'mombasa', 'dakar', 'abidjan', 'tema', 'lekki', 'cairo', 'johannesburg'];
-
-    const countryMatch = countries.find(c => lower.includes(c));
-    const cityMatch = cities.find(c => lower.includes(c));
-
-    // Extract delivery location
-    const deliveryMatch = lower.match(/delivered?\s*to\s*([a-z\s]+)/i) ||
-      lower.match(/destination[:\s]*([a-z\s]+)/i) ||
-      lower.match(/to\s+([a-z\s]+)\s+port/i);
-    const delivery = deliveryMatch ? deliveryMatch[1].trim() : '';
-
-    // Generate intelligent title
-    const productMatch = correctedText.match(/(?:need|want|looking for|require)\s+\d+[\d,]*\s*\w+\s+of\s+([\w\s]+?)(?:\s+delivered|\s+to|\s+by|\.|$)/i);
-    const product = productMatch ? productMatch[1].trim() : '';
-    const titleText = product ? `${quantity} ${unit} of ${product}` : correctedText.split('.')[0].substring(0, 60);
+    // Human-readable title
+    const titleText = quantity ? `${quantity} ${unit} of ${foundProduct}` : (foundProduct !== 'Commodity' ? foundProduct : 'Sourcing Request');
 
     setForm(prev => ({
       ...prev,
@@ -139,14 +161,14 @@ export default function IntakeEngine() {
       unit: unit || prev.unit,
       target_price: price || prev.target_price,
       currency: detectedCurrency,
-      delivery_location: delivery || (cityMatch ? cityMatch.charAt(0).toUpperCase() + cityMatch.slice(1) : prev.delivery_location),
-      target_country: countryMatch ? countryMatch.charAt(0).toUpperCase() + countryMatch.slice(1) : prev.target_country,
-      target_city: cityMatch ? cityMatch.charAt(0).toUpperCase() + cityMatch.slice(1) : prev.target_city,
+      delivery_location: targetCity ? `${targetCity} Port` : prev.delivery_location,
+      target_country: targetCountry || prev.target_country,
+      target_city: targetCity || prev.target_city,
     }));
 
+    setAnalysisReport(report);
     setMode('form');
     setIsAnalyzing(false);
-    toast.success('AI analyzed and corrected your request. Please review.');
   };
 
   const handleSubmit = async (e) => {
@@ -154,18 +176,16 @@ export default function IntakeEngine() {
     setSubmitting(true);
     setError(null);
 
-    // 1. Zod Validation (Data Integrity)
     const payload = { ...form, closing_date: closingDate || undefined };
     const validation = validate(rfqSchema, payload);
 
     if (!validation.success) {
       setError(validation.error);
       setSubmitting(false);
-      toast.error('Please fix the errors before publishing');
+      toast.error('Please check your request details');
       return;
     }
 
-    // Open Soft Gate
     setSubmitting(false);
     setShowGate(true);
   };
@@ -173,257 +193,249 @@ export default function IntakeEngine() {
   const handleConfirmSubmission = async () => {
     setShowGate(false);
     setSubmitting(true);
-
     const payload = { ...form, closing_date: closingDate || undefined };
 
-    // 2. Submit to API (using validated data where appropriate, or original payload)
     try {
-      // Add a top-level timeout to prevent silent hangs
-      // Enrich user object with company_id from profile
       const enrichedUser = { ...user, company_id: profile?.company_id };
+      await new Promise(r => setTimeout(r, 800));
 
-      console.log('[RFQ:New] Starting RFQ creation with enriched user:', { userId: enrichedUser.id, companyId: enrichedUser.company_id });
-
-      const createPromise = createRFQ({
+      const { success, error: err } = await createRFQ({
         user: enrichedUser,
         formData: payload,
       });
 
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Submission timed out. Please check your connection.')), 30000)
-      );
-
-      const { success, error: err } = await Promise.race([createPromise, timeoutPromise]);
-
-      setSubmitting(false);
       if (success) {
-        toast.success('RFQ published to Trade OS Network');
-
-        // Invalidate RFQ cache to refresh the list
+        toast.success('Sourcing request created successfully');
         queryClient.invalidateQueries({ queryKey: ['rfqs'] });
-
         navigate('/dashboard/rfqs');
-      }
-      else {
-        console.error('[RFQ:New] Submission error:', err);
-        setError(err || 'Unable to create RFQ');
+      } else {
+        setError(err || 'Unable to create request');
+        setSubmitting(false);
       }
     } catch (err) {
-      console.error('[RFQ:New] Unexpected exception:', err);
       setSubmitting(false);
-      setError(err.message || 'An unexpected error occurred during submission');
-      toast.error(err.message || 'Submission failed');
+      setError(err.message);
+      toast.error('Could not create request');
     }
   };
 
   return (
-    <div className="os-page os-stagger space-y-6 max-w-4xl mx-auto pb-20">
-      <Surface variant="glass" className="p-6 md:p-8 relative overflow-hidden">
-        <div className="relative z-10 flex items-center justify-between">
-          <div>
-            <div className="os-label flex items-center gap-2">
-              <Sparkles className="w-3 h-3 text-os-accent" />
-              Intake Engine
-            </div>
-            <h1 className="text-3xl font-light mt-2 text-white">Initialize Trade</h1>
-            <p className="text-os-sm text-os-muted mt-1">Describe your intent. The Kernel structures it.</p>
+    <div className="min-h-screen bg-[#FDFBF7] text-stone-900 pb-20 font-sans selection:bg-[#B8922F]/20">
+      {/* Navigation Bar / Safe Area */}
+      <div className="pt-8 px-6 md:px-12 flex justify-between items-center max-w-5xl mx-auto">
+        <Link to="/dashboard/rfqs" className="group flex items-center gap-2 text-stone-400 hover:text-stone-900 transition-colors">
+          <div className="w-8 h-8 rounded-full bg-white border border-stone-200 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+            <ArrowRight className="w-4 h-4 rotate-180" />
           </div>
-          <Link to="/dashboard/rfqs">
-            <Button variant="outline" className="border-white/10 hover:bg-white/5">Cancel</Button>
-          </Link>
-        </div>
-      </Surface>
+          <span className="text-sm font-medium">Back</span>
+        </Link>
+      </div>
 
-      <AnimatePresence mode="wait">
-        {mode === 'magic' ? (
-          <motion.div
-            key="magic"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-            className="space-y-6"
-          >
-            <Surface variant="panel" className="p-10 flex flex-col items-center justify-center min-h-[400px] border border-os-accent/30 bg-os-accent/5 relative">
-              <div className="w-full max-w-2xl space-y-4">
-                <Label className="text-os-lg text-os-accent font-medium">What do you want to source?</Label>
-                <Textarea
-                  value={magicInput}
-                  onChange={(e) => setMagicInput(e.target.value)}
-                  placeholder="e.g. I need 200 tons of Shea Butter delivered to Tema Port by next month. Target price is $1200 per ton."
-                  className="min-h-[160px] text-os-xl bg-black/50 border-white/10 focus:border-os-accent p-6 resize-none leading-relaxed"
-                  autoFocus
-                />
-                <div className="flex justify-end">
-                  <Button
-                    size="lg"
-                    onClick={analyzeIntent}
-                    disabled={!magicInput.trim() || isAnalyzing}
-                    className="bg-os-accent text-black hover:bg-os-accent-dark font-bold text-os-lg px-8 h-14 rounded-os-sm"
-                  >
-                    {isAnalyzing ? (
-                      <>
-                        <Wand2 className="w-5 h-5 mr-2 animate-spin" /> Structuring...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-5 h-5 mr-2" /> Auto-Structure
-                      </>
-                    )}
-                  </Button>
-                </div>
-                <div className="text-center">
-                  <button onClick={() => setMode('form')} className="text-os-sm text-white/40 hover:text-white mt-4 underline decoration-white/20">
-                    Skip AI, use manual form
-                  </button>
-                </div>
-              </div>
-            </Surface>
-          </motion.div>
-        ) : (
-          /* REVIEW MODE (Standard Form but Pre-filled) */
-          <motion.div
-            key="form"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Surface variant="panel" className="p-6 md:p-8 space-y-8">
-              <div className="flex items-center gap-3 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-os-sm text-emerald-400 text-os-sm">
-                <CheckCircle2 className="w-5 h-5" />
-                AI successfully extracted intent. Please verify the details below.
-              </div>
-
-              <form className="space-y-6" onSubmit={handleSubmit}>
-                <div className="grid md:grid-cols-2 gap-6">
-                  <Field
-                    label="Trade Title"
-                    required
-                    value={form.title}
-                    onChange={(v) => setForm({ ...form, title: v })}
-                    placeholder="20 tons shea butter FOB Accra"
-                  />
-                  <Field
-                    label="Quantity"
-                    type="number"
-                    required
-                    value={form.quantity}
-                    onChange={(v) => setForm({ ...form, quantity: v })}
-                    placeholder="e.g. 20000"
-                  />
-                  <Field
-                    label="Unit"
-                    value={form.unit}
-                    onChange={(v) => setForm({ ...form, unit: v })}
-                    placeholder="pieces, tons, kg"
-                  />
-                  <Field
-                    label={`Target Price (${form.currency || 'USD'})`}
-                    type="number"
-                    value={form.target_price}
-                    onChange={(v) => setForm({ ...form, target_price: v })}
-                    placeholder="e.g. 1200"
-                  />
+      <div className="max-w-3xl mx-auto px-6 mt-12 md:mt-20">
+        <AnimatePresence mode="wait">
+          {mode === 'magic' ? (
+            <motion.div
+              key="magic"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+            >
+              <div className="space-y-10 text-center">
+                {/* Header */}
+                <div className="space-y-3">
+                  <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-stone-900">
+                    New Sourcing Request
+                  </h1>
+                  <p className="text-xl text-stone-500 font-normal">
+                    Tell us what you need. We'll handle the rest.
+                  </p>
                 </div>
 
-                <div>
-                  <Label className="mb-2 block">Detailed Specifications</Label>
+                {/* Input Card */}
+                <div className="bg-white rounded-3xl shadow-[0_8px_40px_-12px_rgba(0,0,0,0.08)] border border-stone-100 p-8 md:p-12 text-left relative overflow-hidden group">
                   <Textarea
-                    className="mt-1 min-h-[120px] bg-black/20"
-                    value={form.description}
-                    onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    placeholder="Specs, certifications, timelines…"
-                    required
+                    value={magicInput}
+                    onChange={(e) => setMagicInput(e.target.value)}
+                    placeholder="e.g. I'm looking for 200 tons of Shea Butter delivered to Tema Port by next month..."
+                    className="w-full min-h-[200px] text-2xl md:text-3xl font-light bg-transparent border-none p-0 resize-none leading-relaxed text-stone-900 placeholder:text-stone-300 focus:ring-0 focus:outline-none scrollbar-hide"
+                    autoFocus
                   />
-                </div>
 
-                <div className="grid md:grid-cols-3 gap-6">
-                  <Field
-                    label="Delivery Location"
-                    value={form.delivery_location}
-                    onChange={(v) => setForm({ ...form, delivery_location: v })}
-                    placeholder="Port / city"
-                  />
-                  <Field
-                    label="Target Country"
-                    value={form.target_country}
-                    onChange={(v) => setForm({ ...form, target_country: v })}
-                    placeholder="Ghana"
-                  />
-                  <Field
-                    label="Target City"
-                    value={form.target_city}
-                    onChange={(v) => setForm({ ...form, target_city: v })}
-                    placeholder="Accra"
-                  />
-                </div>
+                  {/* Bottom Actions */}
+                  <div className="mt-8 flex items-center justify-between">
+                    <button
+                      onClick={() => setMode('form')}
+                      className="text-stone-400 hover:text-stone-900 text-sm font-medium transition-colors"
+                    >
+                      Use standard form
+                    </button>
 
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <Label className="mb-2 block">Closing Date</Label>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="date"
-                        value={closingDate}
-                        onChange={(e) => setClosingDate(e.target.value)}
-                        className="flex-1 bg-black/20"
-                      />
-                      <Calendar className="w-4 h-4 text-os-muted" />
-                    </div>
-                  </div>
-                  <div>
-                    <Label className="mb-2 block">Attachments</Label>
-                    <div className="border-2 border-dashed border-white/10 rounded-lg p-4 text-center hover:border-os-accent transition cursor-pointer bg-black/20">
-                      <Upload className="w-5 h-5 mx-auto mb-2 text-os-muted" />
-                      <div className="text-os-xs text-os-muted">Drag files or click</div>
-                    </div>
+                    <Button
+                      size="lg"
+                      onClick={analyzeIntent}
+                      disabled={!magicInput.trim() || isAnalyzing}
+                      className={`
+                        h-14 px-8 text-lg rounded-full font-medium transition-all duration-300 shadow-lg shadow-[#B8922F]/20
+                        ${isAnalyzing
+                          ? 'bg-stone-100 text-stone-400 cursor-wait shadow-none'
+                          : 'bg-[#B8922F] text-white hover:bg-[#A68A2E] hover:scale-105 active:scale-95'}
+                      `}
+                    >
+                      {isAnalyzing ? (
+                        <span className="flex items-center gap-2">
+                          <span className="flex gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-stone-400 animate-bounce [animation-delay:-0.3s]"></span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-stone-400 animate-bounce [animation-delay:-0.15s]"></span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-stone-400 animate-bounce"></span>
+                          </span>
+                          Processing
+                        </span>
+                      ) : (
+                        'Review Request'
+                      )}
+                    </Button>
                   </div>
                 </div>
+              </div>
+            </motion.div>
+          ) : (
+            /* REVIEW MODE */
+            <motion.div
+              key="form"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-8"
+            >
+              {/* Header */}
+              <div className="flex items-baseline justify-between">
+                <h2 className="text-3xl font-semibold text-stone-900">Review Details</h2>
+                <button onClick={() => setMode('magic')} className="text-stone-400 hover:text-stone-900 text-sm">Edit Request</button>
+              </div>
 
-                {error && <p className="text-os-sm text-red-400 bg-red-400/10 p-3 rounded">{error}</p>}
-
-                <div className="flex flex-wrap gap-4 justify-end pt-4 border-t border-white/5">
-                  <Button type="button" variant="ghost" onClick={() => setMode('magic')}>
-                    Back to AI Input
-                  </Button>
-                  <Button type="submit" disabled={submitting} className="bg-white text-black hover:bg-gray-200 px-8 font-bold">
-                    {submitting ? 'Publishing…' : 'Launch Trade'}
-                  </Button>
+              {/* Correction Banner */}
+              {analysisReport.length > 0 && (
+                <div className="bg-[#B8922F]/5 border border-[#B8922F]/20 rounded-xl p-5 flex items-start gap-4">
+                  <div className="p-2 bg-[#B8922F]/10 rounded-full text-[#B8922F] mt-0.5">
+                    <Sparkles className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-[#B8922F] mb-2">We optimized your request for the network</p>
+                    <div className="flex flex-wrap gap-2">
+                      {analysisReport.map((item, idx) => (
+                        <div key={idx} className="flex items-center gap-2 text-xs bg-white px-3 py-1.5 rounded-full border border-[#B8922F]/20 shadow-sm text-stone-600">
+                          <span className="line-through text-stone-400">{item.original}</span>
+                          <ArrowRight className="w-3 h-3 text-[#B8922F]" />
+                          <span className="font-semibold text-stone-900">{item.fixed}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </form>
-            </Surface>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              )}
 
+              <div className="bg-white rounded-2xl shadow-xl shadow-stone-200/50 border border-stone-100 p-8">
+                <form onSubmit={handleSubmit} className="space-y-8">
+                  {/* Section 1 */}
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-medium text-stone-900 border-b border-stone-100 pb-3">Requirements</h3>
+                    <div className="grid md:grid-cols-2 gap-8">
+                      <Field label="Request Title" required value={form.title} onChange={v => setForm({ ...form, title: v })} placeholder="e.g. 200 tons Shea Butter" />
+                      <div className="grid grid-cols-2 gap-4">
+                        <Field label="Quantity" required type="number" value={form.quantity} onChange={v => setForm({ ...form, quantity: v })} />
+                        <Field label="Unit" value={form.unit} onChange={v => setForm({ ...form, unit: v })} />
+                      </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-8">
+                      <Field label="Target Price" type="number" value={form.target_price} onChange={v => setForm({ ...form, target_price: v })} placeholder="0.00" />
+                      <div className="space-y-2">
+                        <Label className="text-xs font-semibold uppercase tracking-wider text-stone-400">Currency</Label>
+                        <div className="relative">
+                          <select
+                            value={form.currency}
+                            onChange={(e) => setForm({ ...form, currency: e.target.value })}
+                            className="w-full h-12 bg-stone-50 border border-stone-200 rounded-lg px-4 text-stone-900 focus:ring-2 focus:ring-[#B8922F]/20 focus:border-[#B8922F] outline-none appearance-none"
+                          >
+                            {['USD', 'EUR', 'GBP', 'NGN', 'GHS', 'KES'].map(c => <option key={c} value={c}>{c}</option>)}
+                          </select>
+                          <ChevronRight className="w-4 h-4 text-stone-400 absolute right-4 top-1/2 -translate-y-1/2 rotate-90 pointer-events-none" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section 2 */}
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-medium text-stone-900 border-b border-stone-100 pb-3">Logistics</h3>
+                    <div className="grid md:grid-cols-3 gap-6">
+                      <Field label="Delivery Location" value={form.delivery_location} onChange={v => setForm({ ...form, delivery_location: v })} placeholder="e.g. Tema Port" />
+                      <Field label="Target Country" value={form.target_country} onChange={v => setForm({ ...form, target_country: v })} placeholder="e.g. Ghana" />
+                      <Field label="Target City" value={form.target_city} onChange={v => setForm({ ...form, target_city: v })} placeholder="e.g. Accra" />
+                    </div>
+                  </div>
+
+                  {/* Description */}
+                  <div className="space-y-2">
+                    <Label className="text-xs font-semibold uppercase tracking-wider text-stone-400">Detailed Specifications</Label>
+                    <Textarea
+                      required
+                      value={form.description}
+                      onChange={e => setForm({ ...form, description: e.target.value })}
+                      className="min-h-[120px] bg-stone-50 border-stone-200 rounded-lg p-4 text-stone-900 focus:border-[#B8922F] focus:ring-2 focus:ring-[#B8922F]/10 outline-none leading-relaxed"
+                      placeholder="Add any specific requirements about quality, packaging, or incoterms..."
+                    />
+                  </div>
+
+                  {/* Actions */}
+                  <div className="pt-6 flex justify-end gap-4">
+                    <Button type="submit" disabled={submitting} className="h-14 px-10 bg-[#B8922F] hover:bg-[#A68A2E] text-white font-semibold rounded-full shadow-lg shadow-[#B8922F]/20 transition-all hover:-translate-y-1 hover:shadow-xl">
+                      {submitting ? 'Processing...' : 'Submit Request'}
+                    </Button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+
+      {/* Confirmation Gate - Clean & Light */}
       <Dialog open={showGate} onOpenChange={setShowGate}>
-        <DialogContent className="bg-os-surface-2 border-os-stroke text-white sm:max-w-[425px]">
-          <DialogHeader>
-            <div className="mx-auto w-12 h-12 rounded-full bg-amber-500/10 flex items-center justify-center mb-4">
-              <AlertTriangle className="h-6 w-6 text-amber-500" />
+        <DialogContent className="bg-white border-none shadow-2xl p-0 overflow-hidden sm:max-w-md">
+          <div className="p-8 text-center space-y-6">
+            <div className="mx-auto w-16 h-16 bg-[#B8922F]/10 rounded-full flex items-center justify-center">
+              <CheckCircle2 className="w-8 h-8 text-[#B8922F]" />
             </div>
-            <DialogTitle className="text-center text-white">Verified Sourcing Request</DialogTitle>
-            <DialogDescription className="text-center text-white/70">
-              To ensure network quality, our trade desk reviews all RFQs manually. An expert will contact you within 24 hours to verify specifications.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="py-4">
-            <div className="p-3 bg-white/5 rounded text-os-sm text-white/60 mb-4 border border-white/10">
-              <span className="block font-bold text-white mb-1">Checking Availability:</span>
-              We are scanning 500+ verified suppliers for <strong>{form.quantity} {form.unit} of {form.title}</strong>.
+            <div>
+              <h3 className="text-2xl font-semibold text-stone-900 mb-2">Ready to Broadcast</h3>
+              <p className="text-stone-500 text-lg">
+                Our team will verify your request for <strong>{form.quantity} {form.unit} of {form.title}</strong> within 24 hours.
+              </p>
             </div>
-            <p className="text-os-xs text-white/50 text-center">
-              Note: High-value trades ($50k+) may require a refundable commitment deposit.
-            </p>
-          </div>
-          <div className="flex gap-3 justify-end">
-            <Button variant="ghost" onClick={() => setShowGate(false)} className="text-white hover:bg-white/10">
-              Edit Details
+
+            <div className="bg-stone-50 rounded-xl p-4 border border-stone-100 space-y-3">
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-stone-500">Market Status</span>
+                <span className="text-green-600 font-medium bg-green-50 px-2 py-0.5 rounded-full">Active</span>
+              </div>
+              <div className="flex justify-between items-center text-sm">
+                <span className="text-stone-500">Verified Suppliers</span>
+                <span className="text-stone-900 font-medium">~12 Available</span>
+              </div>
+            </div>
+
+            <Button
+              onClick={handleConfirmSubmission}
+              disabled={submitting}
+              className="w-full h-14 bg-[#1D1D1F] hover:bg-black text-white font-semibold rounded-xl text-lg shadow-xl"
+            >
+              {submitting ? 'Confirming...' : 'Confirm & Send'}
             </Button>
-            <Button onClick={handleConfirmSubmission} disabled={submitting} className="bg-os-accent text-black font-bold hover:bg-os-accent-dark">
-              {submitting ? 'Submitting...' : 'Confirm & Request'}
-            </Button>
+
+            <button onClick={() => setShowGate(false)} className="text-stone-400 hover:text-stone-900 text-sm">
+              Review details again
+            </button>
           </div>
         </DialogContent>
       </Dialog>
@@ -433,15 +445,17 @@ export default function IntakeEngine() {
 
 function Field({ label, value, onChange, placeholder, type = 'text', required }) {
   return (
-    <div className="flex flex-col gap-2">
-      <Label className="text-os-muted uppercase text-os-xs tracking-wider">{label}{required ? ' *' : ''}</Label>
+    <div className="space-y-2 group">
+      <Label className="text-xs font-semibold uppercase tracking-wider text-stone-400 group-focus-within:text-[#B8922F] transition-colors">
+        {label}{required && <span className="text-[#B8922F] ml-0.5">*</span>}
+      </Label>
       <Input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         required={required}
-        className="bg-black/20 border-white/10 focus:border-os-accent/50"
+        className="h-12 bg-stone-50 border-stone-200 focus:border-[#B8922F] focus:ring-2 focus:ring-[#B8922F]/10 text-stone-900 placeholder:text-stone-400 rounded-lg transition-all"
       />
     </div>
   );

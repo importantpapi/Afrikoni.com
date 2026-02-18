@@ -86,7 +86,7 @@ export default function OracleKit({ farmerId, tradeId }) {
                 <div className="flex items-center gap-4 text-emerald-500">
                     <ShieldCheck className="w-6 h-6" />
                     <div>
-                        <p className="text-os-xs font-black uppercase tracking-widest">Sovereign Integrity Check</p>
+                        <p className="text-os-xs font-black uppercase tracking-widest">Secure Integrity Check</p>
                         <p className="text-os-sm font-medium text-white/80">
                             Verification by Youth Oracle acts as the primary risk-mitigation layer for trade finance partners.
                         </p>

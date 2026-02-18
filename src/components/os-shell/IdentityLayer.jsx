@@ -12,7 +12,7 @@ import React, { useState } from 'react';
 import {
     Bell, Command, Menu, Moon, Sun, User, ChevronDown,
     LayoutDashboard, User as UserIcon, MessageSquare, Package,
-    FileText, Shield, Settings, LogOut, Sparkles, ZapOff
+    FileText, Shield, Settings, LogOut, Sparkles, ZapOff, MessageCircle
 } from 'lucide-react';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
@@ -108,6 +108,17 @@ export function IdentityLayer({
 
             {/* Right: Orchestration Controls */}
             <div className="flex items-center gap-2">
+                {/* WhatsApp Support - Trust Signal */}
+                <a
+                    href="https://wa.me/233550000000"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hidden lg:flex items-center gap-2 mr-2 px-3 py-1.5 rounded-full bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition-all border border-[#25D366]/20"
+                >
+                    <MessageCircle className="w-3.5 h-3.5" />
+                    <span className="text-os-xs font-bold">Support 24/7</span>
+                </a>
+
                 {/* System Health Trigger - Layer 2 */}
                 <div
                     onClick={onToggleHealth}
@@ -155,7 +166,8 @@ export function IdentityLayer({
                     )}
                 </Button>
 
-                {/* AI Copilot */}
+                {/* AI Copilot - HIDDEN FOR V1 LAUNCH */}
+                {/* 
                 <Button
                     variant="ghost"
                     size="sm"
@@ -164,7 +176,8 @@ export function IdentityLayer({
                 >
                     <Sparkles className="w-3.5 h-3.5" />
                     <span className="hidden lg:inline">Assistant</span>
-                </Button>
+                </Button> 
+                */}
 
                 {/* Lite Mode Toggle - Phase 2 Market Expansion */}
                 <Button
@@ -215,7 +228,7 @@ export function IdentityLayer({
                                     { to: `/${language}/dashboard/notifications`, icon: MessageSquare, label: 'Trade Signals' },
                                     { to: `/${language}/dashboard/orders`, icon: Package, label: 'Orders' },
                                     { to: `/${language}/dashboard/rfqs`, icon: FileText, label: 'RFQs' },
-                                    { to: `/${language}/dashboard/verification-center`, icon: Shield, label: 'Verification' },
+                                    { to: `/${language}/dashboard/kyc`, icon: Shield, label: 'Identity Verification' },
                                     { to: `/${language}/dashboard/settings`, icon: Settings, label: 'Settings' },
                                 ].map(item => (
                                     <Link

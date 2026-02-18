@@ -127,7 +127,7 @@ export default function TraceCenter() {
                         <div className="flex items-center justify-between">
                             <CardTitle className="flex items-center gap-2 text-slate-800">
                                 <Lock className="w-5 h-5 text-os-accent" />
-                                Sovereign Money Map
+                                Secure Money Map
                             </CardTitle>
                             <div className="text-right">
                                 <p className="text-os-sm text-slate-500">Total Value Locked</p>

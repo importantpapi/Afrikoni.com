@@ -184,15 +184,17 @@ export async function createRFQInReview({ user, formData, options = {} }) {
 /**
  * Fetch RFQs (as TRADES) for a specific user/company
  * Supports filtering by status and role (buyer vs supplier)
+ * ✅ FIX: Reads directly from TRADES kernel table to prevent bridge sync data loss
  */
 export async function getRFQs({ user, companyId, role = 'buyer', status = 'all' }) {
   try {
     if (!user || !companyId) return { data: [], count: 0 };
 
-    // Query RFQS table (established schema)
+    // ✅ FORENSIC FIX: Query TRADES table directly (Source of Truth)
     let query = supabase
-      .from('rfqs')
-      .select('*, quotes:quotes(count)', { count: 'exact' });
+      .from('trades')
+      .select('*, quotes:quotes(count), buyer:companies!buyer_id(company_name)', { count: 'exact' })
+      .eq('trade_type', 'rfq');
 
     if (role === 'buyer') {
       // Buyers see their own RFQs
@@ -230,13 +232,15 @@ export async function getRFQs({ user, companyId, role = 'buyer', status = 'all' 
     const mappedData = data.map(trade => ({
       ...trade,
       productName: trade.title, // UI expects productName
-      buyerCompany: 'Your Company', // TODO: Join with companies table if needed
+      buyerCompany: trade.buyer?.company_name || null,
       deliveryCountry: trade.metadata?.target_country || trade.metadata?.delivery_location || 'Unknown',
       unit: trade.quantity_unit,
       targetPrice: trade.target_price,
-      quotesReceived: trade.quotes?.[0]?.count || 0,
+      // Handle quote count if relationship exists, else default to 0
+      quotesReceived: trade.quotes?.[0]?.count || trade.quotes?.count || 0,
       deadline: trade.expires_at,
-      status: trade.status === 'rfq_open' ? 'sent' : trade.status // Map kernel 'rfq_open' to UI 'sent'
+      // Map kernel 'rfq_open' to UI 'open'/'sent' for backward compatibility
+      status: trade.status === 'rfq_open' ? 'open' : trade.status
     }));
 
     return {
