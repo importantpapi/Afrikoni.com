@@ -12,6 +12,7 @@ import { Loader2, FileText, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { SignaturePad } from '@/components/shared/ui/SignaturePad';
 import { TRADE_STATE } from '@/services/tradeKernel';
 import { getTradeContract, signContract } from '@/services/contractService';
+import { sanitizeHTML } from '@/utils/sanitizeHTML';
 
 export default function ContractSigningPanel({ trade, onNextStep, isTransitioning }) {
   const [contract, setContract] = useState(null);
@@ -98,7 +99,7 @@ export default function ContractSigningPanel({ trade, onNextStep, isTransitionin
               <div className="p-4 max-h-96 overflow-y-auto">
                 <div className="prose prose-sm dark:prose-invert max-w-none">
                   {contract?.content_html ? (
-                    <div dangerouslySetInnerHTML={{ __html: contract.content_html }} />
+                    <div dangerouslySetInnerHTML={{ __html: sanitizeHTML(contract.content_html) }} />
                   ) : (
                     <div className="space-y-3 text-os-sm">
                       <p><strong>Buyer:</strong> {trade?.buyer?.company_name}</p>

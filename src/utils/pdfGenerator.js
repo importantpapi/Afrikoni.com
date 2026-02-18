@@ -3,21 +3,7 @@
  * Converts Forensic HTML into an Institutional-Grade Digital Certificate.
  */
 
-function sanitizeHTML(html) {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-    const scripts = doc.querySelectorAll('script, iframe, object, embed, form');
-    scripts.forEach(el => el.remove());
-    const allElements = doc.body.querySelectorAll('*');
-    allElements.forEach(el => {
-        for (const attr of [...el.attributes]) {
-            if (attr.name.startsWith('on') || attr.value.includes('javascript:')) {
-                el.removeAttribute(attr.name);
-            }
-        }
-    });
-    return doc.body.innerHTML;
-}
+import { sanitizeHTML } from './sanitizeHTML';
 
 export async function generateForensicPDF(reportHtml, fileName = 'Forensic_Audit_Report.pdf') {
     const [{ jsPDF }, html2canvas] = await Promise.all([

@@ -59,28 +59,50 @@ export default function ComplianceCenter() {
         .eq('id', profileCompanyId)
         .single();
 
-      // Simulated 2026 Data for Regulatory Matrix
-      const matrix = [
-        { code: 'SEN', country: 'Senegal', status: 'verified', duties: 'AfCFTA 0%', risk: 'low', logic: 'OHADA Harmony' },
-        { code: 'MAR', country: 'Morocco', status: 'verified', duties: '5.2%', risk: 'low', logic: 'ZLECAF Protocol' },
-        { code: 'GHA', country: 'Ghana', status: 'pending', duties: 'Processing...', risk: 'medium', logic: 'ECOWAS Sync' },
-        { code: 'NGA', country: 'Nigeria', status: 'warning', duties: '12.5%', risk: 'high', logic: 'Single Window' }
-      ];
+      // Load regulatory matrix from trade corridors / company trading countries
+      const { data: corridors } = await supabase
+        .from('trade_corridors')
+        .select('country_code, country_name, verification_status, duty_rate, risk_level, trade_bloc')
+        .eq('company_id', profileCompanyId)
+        .order('country_name');
 
+      const matrix = (corridors || []).map(c => ({
+        code: c.country_code || '',
+        country: c.country_name || '',
+        status: c.verification_status || 'pending',
+        duties: c.duty_rate || 'Processing...',
+        risk: c.risk_level || 'medium',
+        logic: c.trade_bloc || 'AfCFTA'
+      }));
       setCountryRegulatoryMatrix(matrix);
-      setComplianceKPIs({
-        overallScore: company?.trust_score || 0,
-        activeTasks: 3,
-        riskLevel: 'Low (Institutional)',
-        taxProphet: 'AfCFTA Optimized'
-      });
 
-      // Load documents (simulated)
-      setDocumentCompliance([
-        { id: 1, name: 'Trade License', status: 'verified', date: '2026-02-10' },
-        { id: 2, name: 'Tax Clearance', status: 'verified', date: '2026-01-15' },
-        { id: 3, name: 'Logistics Bond', status: 'pending', date: '2026-02-12' }
-      ]);
+      // Load compliance documents from kyc_verifications or compliance_documents
+      const { data: docs } = await supabase
+        .from('kyc_verifications')
+        .select('id, document_type, status, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      setDocumentCompliance((docs || []).map(d => ({
+        id: d.id,
+        name: d.document_type || 'Document',
+        status: d.status || 'pending',
+        date: d.created_at ? new Date(d.created_at).toISOString().split('T')[0] : ''
+      })));
+
+      // Calculate KPIs from real data
+      const verifiedDocs = (docs || []).filter(d => d.status === 'verified').length;
+      const totalDocs = (docs || []).length;
+      const docScore = totalDocs > 0 ? Math.round((verifiedDocs / totalDocs) * 100) : 0;
+      const pendingTasks = (docs || []).filter(d => d.status === 'pending').length + matrix.filter(m => m.status === 'pending').length;
+      const hasHighRisk = matrix.some(m => m.risk === 'high');
+
+      setComplianceKPIs({
+        overallScore: company?.trust_score || docScore,
+        activeTasks: pendingTasks,
+        riskLevel: hasHighRisk ? 'Elevated' : pendingTasks > 0 ? 'Moderate' : 'Low (Institutional)',
+        taxProphet: matrix.some(m => m.duties?.includes('0%')) ? 'AfCFTA Optimized' : 'Standard Tariff'
+      });
 
     } catch (err) {
       setError(err.message);

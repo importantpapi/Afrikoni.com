@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui
 import SEO from '@/components/SEO';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '@/i18n/LanguageContext';
+import { sanitizeHTML } from '@/utils/sanitizeHTML';
 
 export default function Help() {
   const { t } = useLanguage();
@@ -314,7 +315,7 @@ export default function Help() {
                             )}
                           </button>
                           {openFaq === faqId && (
-                            <div className="mt-3 text-afrikoni-deep" dangerouslySetInnerHTML={{ __html: faq.answer }} />
+                            <div className="mt-3 text-afrikoni-deep" dangerouslySetInnerHTML={{ __html: sanitizeHTML(faq.answer) }} />
                           )}
                         </div>
                       );
@@ -364,7 +365,7 @@ export default function Help() {
                             )}
                           </button>
                           {openFaq === faqId && (
-                            <div className="mt-3 text-afrikoni-deep leading-relaxed" dangerouslySetInnerHTML={{ __html: faq.answer }} />
+                            <div className="mt-3 text-afrikoni-deep leading-relaxed" dangerouslySetInnerHTML={{ __html: sanitizeHTML(faq.answer) }} />
                           )}
                         </div>
                       );

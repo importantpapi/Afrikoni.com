@@ -5,6 +5,7 @@ import { ChevronDown, HelpCircle } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
 import { useLanguage } from '@/i18n/LanguageContext';
 import StructuredData from '@/components/StructuredData';
+import { sanitizeHTML } from '@/utils/sanitizeHTML';
 
 /**
  * FAQ Section with expandable accordions
@@ -176,7 +177,7 @@ export default function FAQSection() {
                         <div
                           id={`faq-answer-${faq.id}`}
                           className="px-5 md:px-6 pb-5 md:pb-6 text-afrikoni-deep leading-relaxed prose prose-sm max-w-none"
-                          dangerouslySetInnerHTML={{ __html: faq.answer }}
+                          dangerouslySetInnerHTML={{ __html: sanitizeHTML(faq.answer) }}
                         />
                       </motion.div>
                     )}
