@@ -132,7 +132,7 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
 
     return (
         <div className="os-page os-stagger space-y-8">
-            <div className="glass-surface p-8 relative overflow-hidden group/header">
+            <div className="bg-white border border-os-stroke shadow-os-sm rounded-os-md p-8 relative overflow-hidden group/header">
                 {/* Ambient Glow */}
                 <div className="absolute -top-24 -right-24 w-64 h-64 bg-os-accent/5 rounded-full blur-[80px] group-hover/header:bg-os-accent/10 transition-colors duration-700" />
 
@@ -251,7 +251,7 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
             {isLoading ? (
                 <CardSkeleton count={3} />
             ) : rfqs.length === 0 ? (
-                <Surface variant="glass" className="p-12 md:p-20 text-center relative overflow-hidden flex flex-col items-center justify-center">
+                <Surface variant="panel" className="p-12 md:p-20 text-center relative overflow-hidden flex flex-col items-center justify-center">
                     {viewMode === 'supplier' ? (
                         <>
                             {/* RADAR EFFECT */}

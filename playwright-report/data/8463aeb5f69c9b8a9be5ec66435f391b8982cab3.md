@@ -1,0 +1,229 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - region "Notifications alt+T"
+  - generic [ref=e3]:
+    - link "Skip to main content" [ref=e4] [cursor=pointer]:
+      - /url: "#main-content"
+    - navigation [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "AFRIKONI" [ref=e9] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e10]:
+              - img [ref=e13]
+              - generic [ref=e23]: AFRIKONI
+          - link "Marketplace" [ref=e24] [cursor=pointer]:
+            - /url: /en/marketplace
+          - link "How It Works" [ref=e25] [cursor=pointer]:
+            - /url: /en/how-it-works
+        - generic [ref=e26]:
+          - button "Belgium" [ref=e28] [cursor=pointer]:
+            - img [ref=e29]
+            - generic [ref=e32]: Belgium
+          - button "EN-EUR" [ref=e34] [cursor=pointer]:
+            - img [ref=e35]
+            - generic [ref=e38]: EN-EUR
+            - img [ref=e39]
+          - link "Login" [ref=e41] [cursor=pointer]:
+            - /url: /login
+            - button "Login" [ref=e42]
+          - link "Sign Up" [ref=e43] [cursor=pointer]:
+            - /url: /signup
+            - button "Sign Up" [ref=e45]
+    - main [ref=e46]:
+      - generic [ref=e47]:
+        - img [ref=e48]
+        - heading "Connection Interrupted" [level=3] [ref=e55]
+        - paragraph [ref=e56]: The connection to the dashboard interface was lost or interrupted.
+        - button "Retry Connection" [ref=e57] [cursor=pointer]
+    - contentinfo "Site footer" [ref=e58]:
+      - generic [ref=e59]:
+        - generic [ref=e60]:
+          - generic [ref=e61]:
+            - link "AFRIKONI" [ref=e63] [cursor=pointer]:
+              - /url: /
+              - generic [ref=e64]:
+                - img [ref=e67]
+                - generic [ref=e77]: AFRIKONI
+            - paragraph [ref=e78]:
+              - text: Afrikoni — Building trusted B2B trade infrastructure for Africa.
+              - text: Connecting suppliers, buyers & logistics across 54 countries.
+            - generic [ref=e79]:
+              - generic [ref=e80]:
+                - img [ref=e81]
+                - link "hello@afrikoni.com" [ref=e84] [cursor=pointer]:
+                  - /url: mailto:hello@afrikoni.com
+              - generic [ref=e85]:
+                - img [ref=e86]
+                - link "+32 456 77 93 68" [ref=e88] [cursor=pointer]:
+                  - /url: tel:+32456779368
+              - generic [ref=e89]:
+                - img [ref=e90]
+                - generic [ref=e93]: Brussels, Belgium HQ
+            - generic [ref=e94]:
+              - link "Become a Supplier" [ref=e96] [cursor=pointer]:
+                - /url: /signup
+                - button "Become a Supplier" [ref=e97]
+              - link "Join as Buyer" [ref=e99] [cursor=pointer]:
+                - /url: /signup
+                - button "Join as Buyer" [ref=e100]
+          - generic [ref=e101]:
+            - button "For Buyers":
+              - heading "For Buyers" [level=4]
+            - list [ref=e102]:
+              - listitem [ref=e103]:
+                - link "Browse Products" [ref=e104] [cursor=pointer]:
+                  - /url: /en/products
+              - listitem [ref=e105]:
+                - link "Find Suppliers" [ref=e106] [cursor=pointer]:
+                  - /url: /en/suppliers
+              - listitem [ref=e107]:
+                - link "Join as Buyer" [ref=e108] [cursor=pointer]:
+                  - /url: /en/signup
+              - listitem [ref=e109]:
+                - link "Request Quotes" [ref=e110] [cursor=pointer]:
+                  - /url: /en/dashboard/rfqs/new
+              - listitem [ref=e111]:
+                - link "Buyer Central" [ref=e112] [cursor=pointer]:
+                  - /url: /en/dashboard
+          - generic [ref=e113]:
+            - button "For Sellers":
+              - heading "For Sellers" [level=4]
+            - list [ref=e114]:
+              - listitem [ref=e115]:
+                - link "Supplier Hub" [ref=e116] [cursor=pointer]:
+                  - /url: /en/supplier-hub
+              - listitem [ref=e117]:
+                - link "Start Selling" [ref=e118] [cursor=pointer]:
+                  - /url: /en/signup
+              - listitem [ref=e119]:
+                - link "List Products" [ref=e120] [cursor=pointer]:
+                  - /url: /en/dashboard/products/new
+              - listitem [ref=e121]:
+                - link "Seller Dashboard" [ref=e122] [cursor=pointer]:
+                  - /url: /en/dashboard
+              - listitem [ref=e123]:
+                - link "Get Verified" [ref=e124] [cursor=pointer]:
+                  - /url: /en/dashboard/verification-center
+          - generic [ref=e125]:
+            - button "Company":
+              - heading "Company" [level=4]
+            - list [ref=e126]:
+              - listitem [ref=e127]:
+                - link "How Sourcing Works" [ref=e128] [cursor=pointer]:
+                  - /url: /en/buyer-hub
+              - listitem [ref=e129]:
+                - link "How Selling Works" [ref=e130] [cursor=pointer]:
+                  - /url: /en/supplier-hub
+              - listitem [ref=e131]:
+                - link "Marketplace Rules" [ref=e132] [cursor=pointer]:
+                  - /url: /en/trust
+              - listitem [ref=e133]:
+                - link "About Us" [ref=e134] [cursor=pointer]:
+                  - /url: /en/about
+              - listitem [ref=e135]:
+                - link "Logistics" [ref=e136] [cursor=pointer]:
+                  - /url: /en/logistics
+              - listitem [ref=e137]:
+                - link "Trust & Safety" [ref=e138] [cursor=pointer]:
+                  - /url: /en/order-protection
+              - listitem [ref=e139]:
+                - link "Pricing" [ref=e140] [cursor=pointer]:
+                  - /url: /en/pricing
+              - listitem [ref=e141]:
+                - link "Help Center" [ref=e142] [cursor=pointer]:
+                  - /url: /en/help
+              - listitem [ref=e143]:
+                - link "Contact Us" [ref=e144] [cursor=pointer]:
+                  - /url: /en/contact
+              - listitem [ref=e145]:
+                - link "Join Community" [ref=e146] [cursor=pointer]:
+                  - /url: /en/community
+                  - img [ref=e147]
+                  - text: Join Community
+        - generic [ref=e149]:
+          - generic [ref=e150]:
+            - img [ref=e151]
+            - heading "Your Trust & Security Are Our Priority" [level=3] [ref=e153]
+          - paragraph [ref=e154]: Built with verification, secure transactions, and trade protection from day one.
+          - generic [ref=e155]:
+            - generic [ref=e156]:
+              - img [ref=e157]
+              - generic [ref=e160]:
+                - generic [ref=e161]: Secure Transactions
+                - generic [ref=e162]: Trade with protection mechanisms designed to reduce risk and fraud
+            - generic [ref=e163]:
+              - img [ref=e164]
+              - generic [ref=e166]:
+                - generic [ref=e167]: Verified Suppliers
+                - generic [ref=e168]: Suppliers complete identity and business verification before gaining full access
+            - generic [ref=e169]:
+              - img [ref=e170]
+              - generic [ref=e173]:
+                - generic [ref=e174]: Trade Protection
+                - generic [ref=e175]: Clear rules, dispute handling, and enforcement standards
+        - generic [ref=e176]:
+          - generic [ref=e177]:
+            - img [ref=e181]
+            - generic [ref=e190]:
+              - generic [ref=e191]: SSL Secured
+              - generic [ref=e192]: 256-bit Encryption
+              - generic [ref=e193]: ISO Certified
+              - generic [ref=e194]: Verified Platform
+          - generic [ref=e195]:
+            - generic [ref=e196]:
+              - link "Instagram" [ref=e197] [cursor=pointer]:
+                - /url: https://instagram.com/afrikoni_official
+                - img [ref=e198]
+              - link "LinkedIn" [ref=e201] [cursor=pointer]:
+                - /url: https://linkedin.com/company/afrikoni
+                - img [ref=e202]
+              - link "Facebook" [ref=e206] [cursor=pointer]:
+                - /url: "#"
+                - img [ref=e207]
+              - link "Twitter" [ref=e209] [cursor=pointer]:
+                - /url: "#"
+                - img [ref=e210]
+              - link "YouTube" [ref=e212] [cursor=pointer]:
+                - /url: "#"
+                - img [ref=e213]
+              - link "TikTok" [ref=e216] [cursor=pointer]:
+                - /url: "#"
+              - link "Pinterest" [ref=e217] [cursor=pointer]:
+                - /url: "#"
+            - generic [ref=e218]:
+              - link "Marketplace Rules" [ref=e220] [cursor=pointer]:
+                - /url: /en/trust
+              - link "Privacy Policy" [ref=e222] [cursor=pointer]:
+                - /url: /en/legal/privacy
+              - link "Terms of Use" [ref=e224] [cursor=pointer]:
+                - /url: /en/legal/terms
+              - link "Cookie Policy" [ref=e226] [cursor=pointer]:
+                - /url: /en/cookie-policy
+              - generic [ref=e227]: © 2026 Afrikoni. All rights reserved.
+        - paragraph [ref=e229]: Product volumes shown include verified supplier catalogs and partner inventories available during our beta phase.
+    - dialog "Afrikoni respects your privacy" [ref=e230]:
+      - generic [ref=e232]:
+        - generic [ref=e233]:
+          - img [ref=e235]
+          - generic [ref=e237]:
+            - heading "Afrikoni respects your privacy" [level=3] [ref=e238]
+            - paragraph [ref=e239]:
+              - text: Afrikoni and 3rd parties use essential and non-essential cookies to provide, secure, analyze and improve our Services, and to show you relevant ads (including professional and job ads) on and off Afrikoni.
+              - link "Learn more about our cookie policy" [ref=e240] [cursor=pointer]:
+                - /url: /cookie-policy
+                - text: Learn more in our Cookie Policy.
+            - paragraph [ref=e241]: Select Accept to consent or Reject to decline non-essential cookies for this use. You can update your choices at any time in your settings.
+            - generic [ref=e242]:
+              - link "Privacy Policy" [ref=e243] [cursor=pointer]:
+                - /url: /legal/privacy
+              - generic [ref=e244]: •
+              - link "Cookie Policy" [ref=e245] [cursor=pointer]:
+                - /url: /cookie-policy
+        - generic [ref=e246]:
+          - button "Reject" [ref=e248] [cursor=pointer]
+          - button "Customize" [ref=e250] [cursor=pointer]
+          - button "Accept All" [ref=e252] [cursor=pointer]
+```

@@ -21,7 +21,7 @@ export default function AgentOnboarding() {
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
                     >
-                        <Surface variant="glass" className="p-10 border-white/[0.05] relative overflow-visible">
+                        <Surface variant="panel" className="p-10 border-white/[0.05] relative overflow-visible">
                             <div className="text-center space-y-8">
                                 <div className="inline-flex p-4 bg-os-accent/10 border border-os-accent/20 rounded-os-lg mb-4 backdrop-blur-xl">
                                     <Logo type="symbol" size="md" />

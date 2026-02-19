@@ -78,7 +78,7 @@ export const SelectContent = ({ children, className }) => {
       <div
         ref={contentRef}
         className={cn(
-          'absolute z-50 min-w-[8rem] w-full sm:w-auto max-h-[300px] sm:max-h-[400px] overflow-y-auto rounded-md border border-os-stroke bg-os-card text-os-text-primary shadow-os-lg',
+          'absolute z-50 min-w-[8rem] w-full sm:w-auto max-h-[300px] sm:max-h-[400px] overflow-y-auto rounded-md border border-os-stroke bg-white text-os-text-primary shadow-os-lg',
           className
         )}
         onClick={(e) => {

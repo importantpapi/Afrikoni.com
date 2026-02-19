@@ -978,7 +978,7 @@ export default function RiskManagementDashboard() {
                   Afrikoni Shield™
                 </h1>
                 <p className="text-os-sm md:text-os-base leading-relaxed">
-                  Risk Management & Compliance Command Center
+                  Risk Management & Compliance Hub
                 </p>
               </div>
             </div>

@@ -232,7 +232,7 @@ function CelebrationModal({ feature }) {
                 exit={{ scale: 0.8, y: 20 }}
                 className="max-w-md mx-4"
             >
-                <Surface variant="glass" className="p-8 border border-os-accent/30 text-center">
+                <Surface variant="panel" className="p-8 border border-os-accent/30 text-center">
                     <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}

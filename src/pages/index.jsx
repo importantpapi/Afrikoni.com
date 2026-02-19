@@ -156,6 +156,9 @@ export default function Home() {
           <HeroSection categories={categories} />
         </section>
 
+        {/* Trust Counters - Re-enabled and optimized for Institutional Trust */}
+        <TrustCounters />
+
         {/* Verified Suppliers Section - Desktop Only (Mobile uses MobileSupplierCards) */}
         <div className="hidden md:block">
           <VerifiedSuppliersSection />
@@ -163,9 +166,6 @@ export default function Home() {
 
         {/* Trending Products Section - Phase 2.2 */}
         <TrendingProductsSection />
-
-        {/* Trust Counters - Compact - Hidden per request */}
-        {/* <TrustCounters /> */}
 
         {/* Explore African Supply - Merged Categories & Countries - Mobile: Reduced padding */}
         <section className="pb-8 md:pb-16 lg:pb-20">
@@ -177,10 +177,8 @@ export default function Home() {
           <RFQCard />
         </section>
 
-        {/* Partner Logos - Mobile: Hidden to reduce length */}
-        <section className="hidden md:block py-12 md:py-16 lg:py-20 bg-gradient-to-b from-white to-afrikoni-offwhite">
-          <PartnerLogos />
-        </section>
+        {/* Partner Logos - Managed Network & Infrastructure */}
+        <PartnerLogos />
 
 
       </div>

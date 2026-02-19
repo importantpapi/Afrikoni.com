@@ -50,7 +50,7 @@ function formatDate(dateStr) {
 // --- Skeleton Loader ---
 function BalanceCardSkeleton() {
   return (
-    <Card className="bg-white/5 border-white/10 animate-pulse">
+    <Card className="bg-white/5 border-white/10 opacity-50">
       <CardContent className="p-6">
         <div className="h-4 w-24 bg-white/10 rounded mb-3" />
         <div className="h-8 w-32 bg-white/10 rounded mb-2" />
@@ -64,7 +64,7 @@ function TableSkeleton() {
   return (
     <div className="space-y-3">
       {[...Array(5)].map((_, i) => (
-        <div key={i} className="h-12 bg-white/5 rounded animate-pulse" />
+        <div key={i} className="h-12 bg-white/5 rounded opacity-50" />
       ))}
     </div>
   );
@@ -95,6 +95,7 @@ export default function WalletPage() {
     account_holder: '',
     swift_code: '',
     currency: 'USD',
+    method: 'bank',
   });
 
   // Load balance data from escrows
@@ -202,6 +203,7 @@ export default function WalletPage() {
           account_number: payoutForm.account_number,
           account_holder: payoutForm.account_holder,
           swift_code: payoutForm.swift_code,
+          method: payoutForm.method,
         },
       });
 
@@ -231,8 +233,8 @@ export default function WalletPage() {
     return (
       <Surface className="p-6 md:p-10 space-y-8">
         <div className="flex items-center gap-3 mb-6">
-          <div className="h-8 w-8 bg-white/10 rounded animate-pulse" />
-          <div className="h-7 w-48 bg-white/10 rounded animate-pulse" />
+          <div className="h-8 w-8 bg-white/10 rounded opacity-50" />
+          <div className="h-7 w-48 bg-white/10 rounded opacity-50" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <BalanceCardSkeleton />
@@ -320,7 +322,7 @@ export default function WalletPage() {
 
       {/* Payout Form (Collapsible) */}
       {showPayoutForm && (
-        <Surface variant="glass" className="p-6 border border-os-accent/20 space-y-5">
+        <Surface variant="panel" className="p-6 border border-os-accent/20 space-y-5">
           <div className="flex items-center gap-2 mb-2">
             <Building className="w-5 h-5 text-os-accent" />
             <h2 className="text-lg font-semibold text-white">Request Withdrawal</h2>
@@ -332,6 +334,21 @@ export default function WalletPage() {
               No available balance to withdraw. Funds become available when escrow is released.
             </div>
           )}
+
+          <div className="flex gap-4 border-b border-white/10 pb-4 mb-4">
+            <button
+              onClick={() => handlePayoutChange('method', 'bank')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${payoutForm.method === 'bank' ? 'bg-os-accent text-black font-bold' : 'text-white/60 hover:text-white hover:bg-white/5'}`}
+            >
+              Bank Transfer
+            </button>
+            <button
+              onClick={() => handlePayoutChange('method', 'mobile_money')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${payoutForm.method === 'mobile_money' ? 'bg-os-accent text-black font-bold' : 'text-white/60 hover:text-white hover:bg-white/5'}`}
+            >
+              Mobile Money
+            </button>
+          </div>
 
           <form onSubmit={handlePayoutSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1.5">
@@ -362,52 +379,100 @@ export default function WalletPage() {
               </select>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-sm text-white/60 font-medium">Bank Name</label>
-              <Input
-                type="text"
-                placeholder="e.g. First Bank of Nigeria"
-                value={payoutForm.bank_name}
-                onChange={(e) => handlePayoutChange('bank_name', e.target.value)}
-                className="bg-white/5 border-white/10 text-white"
-                required
-              />
-            </div>
+            {payoutForm.method === 'bank' ? (
+              <>
+                <div className="space-y-1.5">
+                  <label className="text-sm text-white/60 font-medium">Bank Name</label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. First Bank of Nigeria"
+                    value={payoutForm.bank_name}
+                    onChange={(e) => handlePayoutChange('bank_name', e.target.value)}
+                    className="bg-white/5 border-white/10 text-white"
+                    required
+                  />
+                </div>
 
-            <div className="space-y-1.5">
-              <label className="text-sm text-white/60 font-medium">Account Number</label>
-              <Input
-                type="text"
-                placeholder="Account number"
-                value={payoutForm.account_number}
-                onChange={(e) => handlePayoutChange('account_number', e.target.value)}
-                className="bg-white/5 border-white/10 text-white"
-                required
-              />
-            </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm text-white/60 font-medium">Account Number</label>
+                  <Input
+                    type="text"
+                    placeholder="Account number"
+                    value={payoutForm.account_number}
+                    onChange={(e) => handlePayoutChange('account_number', e.target.value)}
+                    className="bg-white/5 border-white/10 text-white"
+                    required
+                  />
+                </div>
 
-            <div className="space-y-1.5">
-              <label className="text-sm text-white/60 font-medium">Account Holder Name</label>
-              <Input
-                type="text"
-                placeholder="Full name on account"
-                value={payoutForm.account_holder}
-                onChange={(e) => handlePayoutChange('account_holder', e.target.value)}
-                className="bg-white/5 border-white/10 text-white"
-                required
-              />
-            </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm text-white/60 font-medium">Account Holder Name</label>
+                  <Input
+                    type="text"
+                    placeholder="Full name on account"
+                    value={payoutForm.account_holder}
+                    onChange={(e) => handlePayoutChange('account_holder', e.target.value)}
+                    className="bg-white/5 border-white/10 text-white"
+                    required
+                  />
+                </div>
 
-            <div className="space-y-1.5">
-              <label className="text-sm text-white/60 font-medium">SWIFT / Routing Code</label>
-              <Input
-                type="text"
-                placeholder="SWIFT or routing code"
-                value={payoutForm.swift_code}
-                onChange={(e) => handlePayoutChange('swift_code', e.target.value)}
-                className="bg-white/5 border-white/10 text-white"
-              />
-            </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm text-white/60 font-medium">SWIFT / Routing Code</label>
+                  <Input
+                    type="text"
+                    placeholder="SWIFT or routing code"
+                    value={payoutForm.swift_code}
+                    onChange={(e) => handlePayoutChange('swift_code', e.target.value)}
+                    className="bg-white/5 border-white/10 text-white"
+                  />
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="space-y-1.5">
+                  <label className="text-sm text-white/60 font-medium">Provider</label>
+                  <select
+                    value={payoutForm.bank_name} // Reusing bank_name for provider to keep schema simple
+                    onChange={(e) => handlePayoutChange('bank_name', e.target.value)}
+                    className="w-full h-10 px-3 rounded-md bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:ring-2 focus:ring-os-accent/50"
+                    required
+                  >
+                    <option value="" className="bg-gray-900">Select Provider</option>
+                    <option value="M-Pesa" className="bg-gray-900">M-Pesa (Kenya/Tanzania)</option>
+                    <option value="MTN Mobile Money" className="bg-gray-900">MTN Mobile Money</option>
+                    <option value="Airtel Money" className="bg-gray-900">Airtel Money</option>
+                    <option value="Orange Money" className="bg-gray-900">Orange Money</option>
+                    <option value="Vodafone Cash" className="bg-gray-900">Vodafone Cash</option>
+                    <option value="Tigo Pesa" className="bg-gray-900">Tigo Pesa</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm text-white/60 font-medium">Phone Number</label>
+                  <Input
+                    type="tel"
+                    placeholder="e.g. +254 7..."
+                    value={payoutForm.account_number} // Reusing account_number for phone
+                    onChange={(e) => handlePayoutChange('account_number', e.target.value)}
+                    className="bg-white/5 border-white/10 text-white"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm text-white/60 font-medium">Account Name</label>
+                  <Input
+                    type="text"
+                    placeholder="Registered name on SIM"
+                    value={payoutForm.account_holder}
+                    onChange={(e) => handlePayoutChange('account_holder', e.target.value)}
+                    className="bg-white/5 border-white/10 text-white"
+                    required
+                  />
+                </div>
+              </>
+            )}
 
             <div className="md:col-span-2 flex justify-end pt-2">
               <Button
@@ -423,7 +488,7 @@ export default function WalletPage() {
                 ) : (
                   <>
                     <ArrowUpRight className="w-4 h-4 mr-2" />
-                    Submit Withdrawal
+                    {payoutForm.method === 'mobile_money' ? 'Send to Mobile Wallet' : 'Submit Bank Withdrawal'}
                   </>
                 )}
               </Button>
@@ -442,13 +507,13 @@ export default function WalletPage() {
         {txLoading ? (
           <TableSkeleton />
         ) : txError ? (
-          <Surface variant="glass" className="p-8 text-center border border-white/10">
+          <Surface variant="panel" className="p-8 text-center border border-white/10">
             <AlertTriangle className="w-8 h-8 text-yellow-400 mx-auto mb-3" />
             <p className="text-white/60 text-sm">Unable to load transaction history.</p>
             <p className="text-white/30 text-xs mt-1">{txError}</p>
           </Surface>
         ) : transactions.length === 0 ? (
-          <Surface variant="glass" className="p-10 text-center border border-white/10">
+          <Surface variant="panel" className="p-10 text-center border border-white/10">
             <Wallet className="w-10 h-10 text-white/20 mx-auto mb-3" />
             <p className="text-white/50 font-medium">No transactions yet</p>
             <p className="text-white/30 text-sm mt-1">

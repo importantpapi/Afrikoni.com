@@ -1,0 +1,261 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - region "Notifications alt+T"
+  - generic [ref=e3]:
+    - link "Skip to main content" [ref=e4] [cursor=pointer]:
+      - /url: "#main-content"
+    - navigation [ref=e5]:
+      - generic [ref=e6]:
+        - generic [ref=e7]:
+          - link "AFRIKONI" [ref=e9] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e10]:
+              - img [ref=e13]
+              - generic [ref=e23]: AFRIKONI
+          - link "Marketplace" [ref=e24] [cursor=pointer]:
+            - /url: /en/marketplace
+          - link "How It Works" [ref=e25] [cursor=pointer]:
+            - /url: /en/how-it-works
+        - generic [ref=e26]:
+          - button "Belgium" [ref=e28] [cursor=pointer]:
+            - img [ref=e29]
+            - generic [ref=e32]: Belgium
+          - button "EN-EUR" [ref=e34] [cursor=pointer]:
+            - img [ref=e35]
+            - generic [ref=e38]: EN-EUR
+            - img [ref=e39]
+          - link "Login" [ref=e41] [cursor=pointer]:
+            - /url: /login
+            - button "Login" [ref=e42]
+          - link "Sign Up" [ref=e43] [cursor=pointer]:
+            - /url: /signup
+            - button "Sign Up" [ref=e45]
+    - main [ref=e46]:
+      - generic [ref=e48]:
+        - generic [ref=e49]:
+          - generic [ref=e51]:
+            - link [ref=e53] [cursor=pointer]:
+              - /url: /
+              - img [ref=e57]
+            - heading "Sign In" [level=1] [ref=e66]
+            - paragraph [ref=e67]: Authorized access to the Trade Operating System.
+          - generic [ref=e69]:
+            - button "Sign in with Google" [ref=e70] [cursor=pointer]:
+              - img [ref=e71]
+              - generic [ref=e76]: Sign in with Google
+            - generic [ref=e80]: Or continue with email
+            - generic [ref=e81]:
+              - generic [ref=e82]:
+                - text: Email Identifier
+                - textbox "name@company.com" [ref=e83]: test-1771505653626@afrikoni-test.com
+              - generic [ref=e84]:
+                - generic [ref=e85]:
+                  - generic [ref=e86]: Passcode
+                  - link "Recover Access" [ref=e87] [cursor=pointer]:
+                    - /url: /en/forgot-password
+                - generic [ref=e88]:
+                  - textbox "••••••••••••" [active] [ref=e89]: TestPassword123!
+                  - button "Show password" [ref=e90] [cursor=pointer]:
+                    - img [ref=e91]
+              - button "Authorize Access" [ref=e94] [cursor=pointer]
+          - generic [ref=e96]:
+            - text: New to the network?
+            - link "Initialize Account" [ref=e97] [cursor=pointer]:
+              - /url: /en/signup
+        - generic [ref=e98]:
+          - generic [ref=e99]: © 2026 Afrikoni
+          - link "Privacy" [ref=e101] [cursor=pointer]:
+            - /url: /terms
+          - link "Security" [ref=e102] [cursor=pointer]:
+            - /url: /security
+    - contentinfo "Site footer" [ref=e103]:
+      - generic [ref=e104]:
+        - generic [ref=e105]:
+          - generic [ref=e106]:
+            - link "AFRIKONI" [ref=e108] [cursor=pointer]:
+              - /url: /
+              - generic [ref=e109]:
+                - img [ref=e112]
+                - generic [ref=e122]: AFRIKONI
+            - paragraph [ref=e123]:
+              - text: Afrikoni — Building trusted B2B trade infrastructure for Africa.
+              - text: Connecting suppliers, buyers & logistics across 54 countries.
+            - generic [ref=e124]:
+              - generic [ref=e125]:
+                - img [ref=e126]
+                - link "hello@afrikoni.com" [ref=e129] [cursor=pointer]:
+                  - /url: mailto:hello@afrikoni.com
+              - generic [ref=e130]:
+                - img [ref=e131]
+                - link "+32 456 77 93 68" [ref=e133] [cursor=pointer]:
+                  - /url: tel:+32456779368
+              - generic [ref=e134]:
+                - img [ref=e135]
+                - generic [ref=e138]: Brussels, Belgium HQ
+            - generic [ref=e139]:
+              - link "Become a Supplier" [ref=e141] [cursor=pointer]:
+                - /url: /signup
+                - button "Become a Supplier" [ref=e142]
+              - link "Join as Buyer" [ref=e144] [cursor=pointer]:
+                - /url: /signup
+                - button "Join as Buyer" [ref=e145]
+          - generic [ref=e146]:
+            - button "For Buyers":
+              - heading "For Buyers" [level=4]
+            - list [ref=e147]:
+              - listitem [ref=e148]:
+                - link "Browse Products" [ref=e149] [cursor=pointer]:
+                  - /url: /en/products
+              - listitem [ref=e150]:
+                - link "Find Suppliers" [ref=e151] [cursor=pointer]:
+                  - /url: /en/suppliers
+              - listitem [ref=e152]:
+                - link "Join as Buyer" [ref=e153] [cursor=pointer]:
+                  - /url: /en/signup
+              - listitem [ref=e154]:
+                - link "Request Quotes" [ref=e155] [cursor=pointer]:
+                  - /url: /en/dashboard/rfqs/new
+              - listitem [ref=e156]:
+                - link "Buyer Central" [ref=e157] [cursor=pointer]:
+                  - /url: /en/dashboard
+          - generic [ref=e158]:
+            - button "For Sellers":
+              - heading "For Sellers" [level=4]
+            - list [ref=e159]:
+              - listitem [ref=e160]:
+                - link "Supplier Hub" [ref=e161] [cursor=pointer]:
+                  - /url: /en/supplier-hub
+              - listitem [ref=e162]:
+                - link "Start Selling" [ref=e163] [cursor=pointer]:
+                  - /url: /en/signup
+              - listitem [ref=e164]:
+                - link "List Products" [ref=e165] [cursor=pointer]:
+                  - /url: /en/dashboard/products/new
+              - listitem [ref=e166]:
+                - link "Seller Dashboard" [ref=e167] [cursor=pointer]:
+                  - /url: /en/dashboard
+              - listitem [ref=e168]:
+                - link "Get Verified" [ref=e169] [cursor=pointer]:
+                  - /url: /en/dashboard/verification-center
+          - generic [ref=e170]:
+            - button "Company":
+              - heading "Company" [level=4]
+            - list [ref=e171]:
+              - listitem [ref=e172]:
+                - link "How Sourcing Works" [ref=e173] [cursor=pointer]:
+                  - /url: /en/buyer-hub
+              - listitem [ref=e174]:
+                - link "How Selling Works" [ref=e175] [cursor=pointer]:
+                  - /url: /en/supplier-hub
+              - listitem [ref=e176]:
+                - link "Marketplace Rules" [ref=e177] [cursor=pointer]:
+                  - /url: /en/trust
+              - listitem [ref=e178]:
+                - link "About Us" [ref=e179] [cursor=pointer]:
+                  - /url: /en/about
+              - listitem [ref=e180]:
+                - link "Logistics" [ref=e181] [cursor=pointer]:
+                  - /url: /en/logistics
+              - listitem [ref=e182]:
+                - link "Trust & Safety" [ref=e183] [cursor=pointer]:
+                  - /url: /en/order-protection
+              - listitem [ref=e184]:
+                - link "Pricing" [ref=e185] [cursor=pointer]:
+                  - /url: /en/pricing
+              - listitem [ref=e186]:
+                - link "Help Center" [ref=e187] [cursor=pointer]:
+                  - /url: /en/help
+              - listitem [ref=e188]:
+                - link "Contact Us" [ref=e189] [cursor=pointer]:
+                  - /url: /en/contact
+              - listitem [ref=e190]:
+                - link "Join Community" [ref=e191] [cursor=pointer]:
+                  - /url: /en/community
+                  - img [ref=e192]
+                  - text: Join Community
+        - generic [ref=e194]:
+          - generic [ref=e195]:
+            - img [ref=e196]
+            - heading "Your Trust & Security Are Our Priority" [level=3] [ref=e198]
+          - paragraph [ref=e199]: Built with verification, secure transactions, and trade protection from day one.
+          - generic [ref=e200]:
+            - generic [ref=e201]:
+              - img [ref=e202]
+              - generic [ref=e205]:
+                - generic [ref=e206]: Secure Transactions
+                - generic [ref=e207]: Trade with protection mechanisms designed to reduce risk and fraud
+            - generic [ref=e208]:
+              - img [ref=e209]
+              - generic [ref=e211]:
+                - generic [ref=e212]: Verified Suppliers
+                - generic [ref=e213]: Suppliers complete identity and business verification before gaining full access
+            - generic [ref=e214]:
+              - img [ref=e215]
+              - generic [ref=e218]:
+                - generic [ref=e219]: Trade Protection
+                - generic [ref=e220]: Clear rules, dispute handling, and enforcement standards
+        - generic [ref=e221]:
+          - generic [ref=e222]:
+            - img [ref=e226]
+            - generic [ref=e235]:
+              - generic [ref=e236]: SSL Secured
+              - generic [ref=e237]: 256-bit Encryption
+              - generic [ref=e238]: ISO Certified
+              - generic [ref=e239]: Verified Platform
+          - generic [ref=e240]:
+            - generic [ref=e241]:
+              - link "Instagram" [ref=e242] [cursor=pointer]:
+                - /url: https://instagram.com/afrikoni_official
+                - img [ref=e243]
+              - link "LinkedIn" [ref=e246] [cursor=pointer]:
+                - /url: https://linkedin.com/company/afrikoni
+                - img [ref=e247]
+              - link "Facebook" [ref=e251] [cursor=pointer]:
+                - /url: "#"
+                - img [ref=e252]
+              - link "Twitter" [ref=e254] [cursor=pointer]:
+                - /url: "#"
+                - img [ref=e255]
+              - link "YouTube" [ref=e257] [cursor=pointer]:
+                - /url: "#"
+                - img [ref=e258]
+              - link "TikTok" [ref=e261] [cursor=pointer]:
+                - /url: "#"
+              - link "Pinterest" [ref=e262] [cursor=pointer]:
+                - /url: "#"
+            - generic [ref=e263]:
+              - link "Marketplace Rules" [ref=e265] [cursor=pointer]:
+                - /url: /en/trust
+              - link "Privacy Policy" [ref=e267] [cursor=pointer]:
+                - /url: /en/legal/privacy
+              - link "Terms of Use" [ref=e269] [cursor=pointer]:
+                - /url: /en/legal/terms
+              - link "Cookie Policy" [ref=e271] [cursor=pointer]:
+                - /url: /en/cookie-policy
+              - generic [ref=e272]: © 2026 Afrikoni. All rights reserved.
+        - paragraph [ref=e274]: Product volumes shown include verified supplier catalogs and partner inventories available during our beta phase.
+    - dialog "Afrikoni respects your privacy" [ref=e275]:
+      - generic [ref=e277]:
+        - generic [ref=e278]:
+          - img [ref=e280]
+          - generic [ref=e282]:
+            - heading "Afrikoni respects your privacy" [level=3] [ref=e283]
+            - paragraph [ref=e284]:
+              - text: Afrikoni and 3rd parties use essential and non-essential cookies to provide, secure, analyze and improve our Services, and to show you relevant ads (including professional and job ads) on and off Afrikoni.
+              - link "Learn more about our cookie policy" [ref=e285] [cursor=pointer]:
+                - /url: /cookie-policy
+                - text: Learn more in our Cookie Policy.
+            - paragraph [ref=e286]: Select Accept to consent or Reject to decline non-essential cookies for this use. You can update your choices at any time in your settings.
+            - generic [ref=e287]:
+              - link "Privacy Policy" [ref=e288] [cursor=pointer]:
+                - /url: /legal/privacy
+              - generic [ref=e289]: •
+              - link "Cookie Policy" [ref=e290] [cursor=pointer]:
+                - /url: /cookie-policy
+        - generic [ref=e291]:
+          - button "Reject" [ref=e293] [cursor=pointer]
+          - button "Customize" [ref=e295] [cursor=pointer]
+          - button "Accept All" [ref=e297] [cursor=pointer]
+```

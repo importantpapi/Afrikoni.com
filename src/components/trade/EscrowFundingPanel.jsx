@@ -4,9 +4,11 @@ import { Shield, Check, Lock, CreditCard, Building, Smartphone } from 'lucide-re
 import { supabase } from '@/api/supabaseClient';
 import { calculateTradeFees } from '@/services/revenueEngine';
 import { toast } from 'sonner';
+import { PaymentProtectionModal } from '@/components/modals/PaymentProtectionModal';
 
 export default function EscrowFundingPanel({ trade, onNextStep, isTransitioning, capabilities, profile }) {
   const [loading, setLoading] = useState(false);
+  const [showProtectionModal, setShowProtectionModal] = useState(false);
 
   const config = {
     public_key: import.meta.env.VITE_FLUTTERWAVE_PUBLIC_KEY,
@@ -176,12 +178,21 @@ export default function EscrowFundingPanel({ trade, onNextStep, isTransitioning,
 
       {/* ONE BIG BUTTON */}
       <button
-        onClick={handlePayment}
+        onClick={() => setShowProtectionModal(true)}
         disabled={loading || isTransitioning || !capabilities?.can_buy}
         className="w-full h-20 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-os-sm text-os-2xl font-bold transition-colors mb-4"
       >
         {loading ? 'Processing...' : `Pay $${(trade.total_amount || 0).toLocaleString()} Securely →`}
       </button>
+
+      {/* PROTECTION MODAL */}
+      <PaymentProtectionModal
+        isOpen={showProtectionModal}
+        onClose={() => setShowProtectionModal(false)}
+        onProceed={handlePayment}
+        amount={trade.total_amount || 0}
+        currency={trade.currency || 'USD'}
+      />
 
       {/* SUPPORT */}
       <div className="text-center">

@@ -20,7 +20,7 @@ export default function AfCFTAOriginCheck({ trade }) {
     const isQualified = compliance.qualified;
 
     return (
-        <Surface variant="glass" className={`p-5 border ${isQualified ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-amber-500/20 bg-amber-500/5'}`}>
+        <Surface variant="panel" className={`p-5 border ${isQualified ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-amber-500/20 bg-amber-500/5'}`}>
             <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                     <div className={`p-2 rounded-full ${isQualified ? 'bg-emerald-500/10 text-emerald-400' : 'bg-amber-500/10 text-amber-400'}`}>

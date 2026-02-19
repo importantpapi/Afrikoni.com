@@ -21,7 +21,7 @@ export const TradeFlowTimeline = ({ trades = [] }) => {
     ];
 
     return (
-        <Surface variant="glass" className="p-6 border border-os-accent/10">
+        <Surface variant="panel" className="p-6 border border-os-accent/10">
             <div className="flex items-center justify-between mb-6">
                 <h3 className="text-os-sm font-bold uppercase tracking-widest text-gray-700 dark:text-gray-300 flex items-center gap-2">
                     <Activity className="w-4 h-4 text-os-accent" />

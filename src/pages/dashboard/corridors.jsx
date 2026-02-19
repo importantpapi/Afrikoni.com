@@ -41,7 +41,7 @@ export default function CorridorsPage() {
             </div>
 
             {/* Main Map Visualization */}
-            <Surface variant="glass" className="p-1 overflow-hidden">
+            <Surface variant="panel" className="p-1 overflow-hidden">
                 <TradeMap className="w-full" />
             </Surface>
 

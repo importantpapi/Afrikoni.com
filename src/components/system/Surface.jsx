@@ -1,2 +1,3 @@
 import { Surface as SurfaceTSX } from './Surface.tsx';
-export const Surface = SurfaceTSX;
+export { SurfaceTSX as Surface };
+export default SurfaceTSX;

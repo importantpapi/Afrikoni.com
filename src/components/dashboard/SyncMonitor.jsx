@@ -97,7 +97,7 @@ export const SyncMonitor = ({ isSubscribed, lastUpdateAt }) => {
                         </div>
                         <div className="flex items-center gap-1.5">
                             <div className={cn(
-                                "w-1.5 h-1.5 rounded-full animate-pulse",
+                                "w-1.5 h-1.5 rounded-full opacity-50",
                                 isSubscribed ? "bg-emerald-400" : "bg-red-400"
                             )} />
                             <span className="text-os-xs text-gray-400">{isSubscribed ? 'Connected' : 'Disconnected'}</span>

@@ -11,7 +11,7 @@ export default function DashboardEmptyState() {
     const navigate = useNavigate();
 
     return (
-        <Surface variant="glass" className="p-8 md:p-12 border border-os-accent/20 relative overflow-hidden text-center">
+        <Surface variant="panel" className="p-8 md:p-12 border border-os-accent/20 relative overflow-hidden text-center">
             {/* Background Ambience */}
             <div className="absolute inset-0 bg-gradient-to-b from-os-accent/5 to-transparent pointer-events-none" />
             <div className="absolute -top-20 -right-20 w-64 h-64 bg-os-accent/10 rounded-full blur-[80px]" />
@@ -33,37 +33,37 @@ export default function DashboardEmptyState() {
                     {/* Action 1: Buyer Flow */}
                     <button
                         onClick={() => navigate('/dashboard/quick-trade')}
-                        className="group p-5 rounded-os-sm border border-os-accent/20 bg-white/5 hover:bg-os-accent/10 transition-all hover:scale-[1.02] hover:shadow-os-md"
+                        className="group p-5 rounded-os-sm border border-os-stroke bg-white hover:bg-os-bg hover:border-os-accent/30 transition-all hover:scale-[1.02] hover:shadow-os-md text-left relative overflow-hidden"
                     >
-                        <div className="w-10 h-10 rounded-lg bg-os-accent/20 flex items-center justify-center mb-4 text-os-accent group-hover:bg-os-accent group-hover:text-black transition-colors">
+                        <div className="w-10 h-10 rounded-lg bg-os-accent/10 flex items-center justify-center mb-4 text-os-accent group-hover:bg-os-accent group-hover:text-black transition-colors">
                             <Plus className="w-5 h-5" />
                         </div>
                         <h3 className="font-bold text-[var(--os-text-primary)] mb-1">New Trade</h3>
-                        <p className="text-os-xs text-os-muted">Draft a specialized RFQ for cocoa, coffee, or minerals.</p>
+                        <p className="text-os-xs text-os-text-secondary">Draft a specialized RFQ for cocoa, coffee, or minerals.</p>
                     </button>
 
                     {/* Action 2: Seller Flow */}
                     <button
                         onClick={() => navigate('/dashboard/products/new')}
-                        className="group p-5 rounded-os-sm border border-white/10 bg-white/5 hover:bg-white/10 transition-all hover:scale-[1.02]"
+                        className="group p-5 rounded-os-sm border border-os-stroke bg-white hover:bg-os-bg hover:border-blue-200 transition-all hover:scale-[1.02] hover:shadow-os-md text-left"
                     >
-                        <div className="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center mb-4 text-blue-400 group-hover:bg-blue-500 group-hover:text-white transition-colors">
+                        <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center mb-4 text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                             <Package className="w-5 h-5" />
                         </div>
                         <h3 className="font-bold text-[var(--os-text-primary)] mb-1">Add Product</h3>
-                        <p className="text-os-xs text-os-muted">List your inventory to global buyers.</p>
+                        <p className="text-os-xs text-os-text-secondary">List your inventory to global buyers.</p>
                     </button>
 
                     {/* Action 3: Exploration */}
                     <button
                         onClick={() => navigate('/dashboard/corridors')}
-                        className="group p-5 rounded-os-sm border border-white/10 bg-white/5 hover:bg-white/10 transition-all hover:scale-[1.02]"
+                        className="group p-5 rounded-os-sm border border-os-stroke bg-white hover:bg-os-bg hover:border-emerald-200 transition-all hover:scale-[1.02] hover:shadow-os-md text-left"
                     >
-                        <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center mb-4 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-colors">
+                        <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center mb-4 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white transition-colors">
                             <Globe className="w-5 h-5" />
                         </div>
                         <h3 className="font-bold text-[var(--os-text-primary)] mb-1">Explore Routes</h3>
-                        <p className="text-os-xs text-os-muted">Analyze live corridor data and tariffs.</p>
+                        <p className="text-os-xs text-os-text-secondary">Analyze live corridor data and tariffs.</p>
                     </button>
                 </div>
 

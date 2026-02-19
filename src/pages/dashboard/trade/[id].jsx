@@ -332,7 +332,7 @@ export default function TradeWorkspace() {
         <div className="flex-1 space-y-6">
           <TradeOSErrorBoundary>
             <Surface
-              variant="glass"
+              variant="panel"
               className={`p-6 md:p-8 os-rail-glow relative overflow-hidden ${operatorBleed} ${operatorImmersive} ${isSimple ? '' : 'md:px-10 md:py-10'}`}
             >
               {/* Header Content */}
@@ -538,7 +538,7 @@ export default function TradeWorkspace() {
 
             {/* Kernel Ledger */}
             <TradeOSErrorBoundary>
-              <Surface variant="glass" className="p-4 border border-os-stroke/40">
+              <Surface variant="panel" className="p-4 border border-os-stroke/40">
                 <div className="text-os-xs uppercase tracking-widest text-os-muted mb-3 font-bold border-b border-os-stroke/40 pb-2">Kernel Ledger</div>
                 <div className="space-y-3">
                   {kernelConsole.audit.map((item, i) => (

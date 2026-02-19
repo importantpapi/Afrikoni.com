@@ -251,7 +251,7 @@ function LogisticsQuoteInner() {
       </Surface>
 
       {optimizedRoutes && (
-        <Surface variant="glass" className="p-6 border-emerald-500/20 bg-emerald-500/5">
+        <Surface variant="panel" className="p-6 border-emerald-500/20 bg-emerald-500/5">
           <div className="flex items-start gap-4">
             <div className="p-3 bg-emerald-500/10 rounded-lg">
               <Map className="w-6 h-6 text-emerald-400" />

@@ -1,6 +1,7 @@
 /**
  * Partner/Client Logos Section
  * Pulls partner logos from Supabase 'partner_logos' table
+ * Always includes institutional base partners
  */
 
 import React, { useState, useEffect } from 'react';
@@ -8,10 +9,19 @@ import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/api/supabaseClient';
 
+// Institutional Base Partners (Placeholders for maturity & scale)
+const INSTITUTIONAL_PARTNERS = [
+  { id: 'au', name: 'African Union', placeholder: true },
+  { id: 'afdb', name: 'AfDB Group', placeholder: true },
+  { id: 'ecowas', name: 'ECOWAS', placeholder: true },
+  { id: 'stripe', name: 'Stripe', placeholder: true },
+  { id: 'flutterwave', name: 'Flutterwave', placeholder: true },
+  { id: 'pawa', name: 'PawaPay', placeholder: true }
+];
+
 export default function PartnerLogos() {
   const { t } = useTranslation();
-  const [partners, setPartners] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [dbPartners, setDbPartners] = useState([]);
 
   useEffect(() => {
     loadPartners();
@@ -19,7 +29,6 @@ export default function PartnerLogos() {
 
   const loadPartners = async () => {
     try {
-      // ✅ KERNEL-SCHEMA ALIGNMENT: Use 'sort_order' instead of 'display_order' (DB schema uses 'sort_order')
       const { data, error } = await supabase
         .from('partner_logos')
         .select('*')
@@ -27,78 +36,76 @@ export default function PartnerLogos() {
         .order('sort_order', { ascending: true })
         .limit(12);
 
-      if (error) throw error;
-      setPartners(data || []);
+      if (!error && data) {
+        setDbPartners(data);
+      }
     } catch (error) {
       console.error('Error loading partner logos:', error);
-      // Fallback to empty array
-      setPartners([]);
-    } finally {
-      setLoading(false);
     }
   };
 
-  // Only show real partners - no placeholders
-  const displayPartners = partners.length > 0 ? partners : [];
-
-  // Hide section if no real partners
-  if (displayPartners.length === 0) {
-    return null;
-  }
+  // Combine institutional base with dynamic partners
+  const displayPartners = [...INSTITUTIONAL_PARTNERS, ...dbPartners];
 
   // Duplicate for seamless loop
   const duplicatedPartners = [...displayPartners, ...displayPartners];
 
   return (
-    <section className="py-8 md:py-12 bg-white border-y border-os-accent/10 overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4">
+    <section className="py-12 md:py-20 bg-white border-y border-afrikoni-chestnut/5 overflow-hidden relative">
+      <div className="max-w-7xl mx-auto px-4 relative z-10">
         <motion.div
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-8"
+          className="text-center mb-12"
         >
-          <p className="text-os-sm md:text-os-base text-afrikoni-deep/60 mb-6">
-            {t('home.trustedByBusinesses')}
-          </p>
+          <span className="text-[10px] md:text-xs font-bold text-os-accent uppercase tracking-[0.3em] mb-3 block">
+            Infrastructure & Network
+          </span>
+          <h2 className="text-os-lg md:text-os-xl text-afrikoni-deep font-medium tracking-tight">
+            The backbone of Pan-African trade
+          </h2>
         </motion.div>
 
-        {/* Auto-scrolling carousel */}
-        <div className="relative overflow-hidden">
-          <div className="flex animate-marquee whitespace-nowrap">
+        {/* Seamless Scrolling Carousel */}
+        <div className="relative">
+          {/* Fading Edge Masks */}
+          <div className="absolute left-0 top-0 bottom-0 w-20 md:w-40 bg-gradient-to-r from-white to-transparent z-10" />
+          <div className="absolute right-0 top-0 bottom-0 w-20 md:w-40 bg-gradient-to-l from-white to-transparent z-10" />
+
+          <div className="flex animate-marquee whitespace-nowrap items-center py-4">
             {duplicatedPartners.map((partner, idx) => (
-              <motion.div
+              <div
                 key={`${partner.id}-${idx}`}
-                className="inline-block mx-8 flex-shrink-0"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5 }}
+                className="inline-block mx-8 md:mx-16 flex-shrink-0"
               >
-                <div className="h-12 md:h-16 w-32 md:w-40 flex items-center justify-center grayscale hover:grayscale-0 transition-all duration-300 opacity-60 hover:opacity-100">
+                <div className="h-10 md:h-12 w-28 md:w-36 flex items-center justify-center filter grayscale opacity-40 hover:opacity-100 hover:grayscale-0 transition-all duration-700 ease-in-out cursor-default">
                   {partner.logo_url && !partner.placeholder ? (
                     <img
                       src={partner.logo_url}
-                      alt={`${partner.name || 'Partner'} logo`}
+                      alt={`${partner.name} logo`}
                       className="max-h-full max-w-full object-contain"
                       loading="lazy"
-                      width="120"
-                      height="60"
                     />
                   ) : (
-                    <div className="h-12 md:h-16 w-32 md:w-40 bg-gradient-to-br from-os-accent/10 to-os-accent/5 rounded-lg flex items-center justify-center border border-os-accent/20">
-                      <span className="text-os-xs text-afrikoni-deep/40 font-medium">
-                        {partner.name || 'Partner'}
+                    <div className="flex flex-col items-center justify-center">
+                      <span className="text-[10px] md:text-xs text-afrikoni-deep font-bold tracking-widest uppercase text-center leading-tight">
+                        {partner.name}
                       </span>
+                      <div className="h-[1px] w-4 bg-os-accent mt-1 opacity-50" />
                     </div>
                   )}
                 </div>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
       </div>
 
+      {/* Decorative gradient overlay */}
+      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-afrikoni-offwhite/5 to-transparent pointer-events-none" />
     </section>
   );
 }
+
 

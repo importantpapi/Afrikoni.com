@@ -72,14 +72,14 @@ export default function Products() {
   if (isLoading) {
     return (
       <div className="os-page os-stagger space-y-6">
-        <Surface variant="glass" className="p-6 md:p-8">
+        <Surface variant="panel" className="p-6 md:p-8">
           <div className="flex justify-between items-center mb-6">
-            <div className="h-8 w-48 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
-            <div className="h-10 w-32 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
+            <div className="h-8 w-48 bg-gray-200 dark:bg-gray-800 rounded opacity-50" />
+            <div className="h-10 w-32 bg-gray-200 dark:bg-gray-800 rounded opacity-50" />
           </div>
           <div className="flex gap-4">
-            <div className="h-10 flex-1 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
-            <div className="h-10 w-24 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
+            <div className="h-10 flex-1 bg-gray-200 dark:bg-gray-800 rounded opacity-50" />
+            <div className="h-10 w-24 bg-gray-200 dark:bg-gray-800 rounded opacity-50" />
           </div>
         </Surface>
         {view === 'list' ? <TableSkeleton rows={5} columns={6} /> : <CardSkeleton count={6} />}
@@ -102,7 +102,7 @@ export default function Products() {
 
   return (
     <div className="os-page os-stagger space-y-6">
-      <Surface variant="glass" className="p-6 md:p-8">
+      <Surface variant="panel" className="p-6 md:p-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="os-label">Trade OS Catalog</div>

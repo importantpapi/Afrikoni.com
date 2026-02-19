@@ -154,7 +154,7 @@ export default function InvoicesDashboard() {
 
       <div className="grid lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
-          <Surface variant="glass" className="p-8">
+          <Surface variant="panel" className="p-8">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10 border-b border-white/5 pb-8">
               <h2 className="text-os-2xl font-black tracking-tight flex items-center gap-3">
                 Ledger Journal
@@ -261,7 +261,7 @@ export default function InvoicesDashboard() {
 
         <div className="space-y-8">
           {/* Fiscal Identity */}
-          <Surface variant="glass" className="p-8 relative overflow-hidden group">
+          <Surface variant="panel" className="p-8 relative overflow-hidden group">
             <div className="absolute -right-8 -bottom-8 p-12 opacity-[0.02] scale-150 rotate-12 group-hover:rotate-0 transition-transform duration-1000">
               <Shield className="w-32 h-32" />
             </div>
@@ -283,7 +283,7 @@ export default function InvoicesDashboard() {
           </Surface>
 
           {/* Inbound/Outbound Mix */}
-          <Surface variant="glass" className="p-8">
+          <Surface variant="panel" className="p-8">
             <h3 className="text-os-xs font-black uppercase tracking-widest mb-6">Settlement Velocity</h3>
             {invoices.length > 0 ? (() => {
               const paid = invoices.filter(inv => inv.status === 'paid');

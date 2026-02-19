@@ -32,7 +32,7 @@ const DNACommitPulse = () => (
                 />
             ))}
         </div>
-        <span className="text-os-xs font-black uppercase tracking-widest text-emerald-500">DNA Committing to Ledger</span>
+        <span className="text-os-xs font-medium text-emerald-600">Verification in Progress</span>
     </div>
 );
 
@@ -63,7 +63,7 @@ const VerificationReport = ({ score }) => {
     };
 
     return (
-        <Surface variant="glass" className="p-8 border-os-accent/20 bg-os-accent/[0.02] flex flex-col justify-between h-full group overflow-hidden">
+        <Surface variant="panel" className="p-8 border-os-accent/20 bg-os-accent/[0.02] flex flex-col justify-between h-full group overflow-hidden">
             <div className="absolute -right-8 -top-8 p-12 opacity-[0.03] rotate-12 group-hover:rotate-0 transition-transform duration-1000">
                 <ShieldCheck className="w-32 h-32 text-os-accent" />
             </div>
@@ -172,14 +172,14 @@ export default function ContinentalTrustHub() {
 
             if (error) throw error;
 
-            toast.success('Continental Audit Initialized', {
-                description: 'Trust officers will audit your DNA profile within 24 hours.'
+            toast.success('Verification Request Submitted', {
+                description: 'Our team will review your profile within 24 hours.'
             });
 
             queryClient.invalidateQueries(['company', profileCompanyId]);
         } catch (error) {
             console.error('Audit initialization error:', error);
-            toast.error('Failed to initialize audit. Check network link.');
+            toast.error('Failed to submit. Please try again.');
         } finally {
             setIsApplying(false);
         }
@@ -188,7 +188,7 @@ export default function ContinentalTrustHub() {
     return (
         <div className="os-page os-stagger space-y-12 max-w-[1600px] mx-auto px-4 py-8 pb-32">
             {/* 1. Hub Hero */}
-            <Surface variant="glass" className="p-10 md:p-14 relative overflow-hidden group border-white/10 bg-white/[0.02]">
+            <Surface variant="panel" className="p-10 md:p-14 relative overflow-hidden group">
                 <div className="absolute -top-32 -right-32 w-[500px] h-[500px] bg-os-accent/10 rounded-full blur-[140px] group-hover:bg-os-accent/15 transition-all duration-1000" />
                 <div className="absolute -bottom-32 -left-32 w-80 h-80 bg-emerald-500/5 rounded-full blur-[120px]" />
 
@@ -201,7 +201,7 @@ export default function ContinentalTrustHub() {
                             <div className="space-y-0.5">
                                 <h1 className="text-4xl md:text-6xl font-black tracking-tighter">Continental Trust Hub</h1>
                                 <div className="flex items-center gap-3">
-                                    <span className="text-os-xs font-black uppercase tracking-[0.4em] text-os-muted opacity-50">Afrikoni Trade Protocol</span>
+                                    <span className="text-os-xs font-medium text-os-muted opacity-50">Afrikoni Trade Network</span>
                                     <div className="h-px w-20 bg-white/10" />
                                     <Badge className="bg-emerald-500/10 text-emerald-500 border-emerald-500/30 text-os-xs font-black uppercase px-2 py-0">v2026.4</Badge>
                                 </div>
@@ -215,9 +215,9 @@ export default function ContinentalTrustHub() {
 
                         <div className="flex flex-wrap gap-5 pt-4">
                             <DNACommitPulse />
-                            <div className="flex items-center gap-3 px-4 py-2 bg-white/5 rounded-full border border-white/10 backdrop-blur-md">
+                            <div className="flex items-center gap-3 px-4 py-2 bg-gray-50 rounded-full border border-gray-200">
                                 <Lock className="w-4 h-4 text-emerald-500" />
-                                <span className="text-os-xs font-black uppercase tracking-widest text-os-muted">Ledger Sync: Encrypted</span>
+                                <span className="text-os-xs font-medium text-os-muted">Data Encrypted</span>
                             </div>
                         </div>
                     </div>
@@ -230,7 +230,7 @@ export default function ContinentalTrustHub() {
                             <div className="space-y-8 relative z-10">
                                 <div className="flex justify-between items-start">
                                     <div className="space-y-2">
-                                        <span className="text-os-xs font-black uppercase tracking-[0.4em] text-os-accent">Trust DNA Index</span>
+                                        <span className="text-os-xs font-bold text-os-accent">Trust Score</span>
                                         <div className="flex items-baseline gap-1.5">
                                             <div className="text-7xl font-black tracking-tighter">
                                                 {loadingCredit ? '...' : (creditData?.score || trustScore)}
@@ -249,8 +249,8 @@ export default function ContinentalTrustHub() {
                                     </div>
                                 </div>
                                 <div className="space-y-3">
-                                    <div className="flex justify-between text-os-xs font-black uppercase tracking-widest text-os-muted opacity-60">
-                                        <span>Continental Evolution</span>
+                                    <div className="flex justify-between text-os-xs font-medium text-os-muted opacity-60">
+                                        <span>Verification Progress</span>
                                         <span>Tier {isVerified ? '3' : '2'} / 4</span>
                                     </div>
                                     <div className="h-3 bg-white/5 rounded-full overflow-hidden border border-white/10 p-0.5 shadow-inner">
@@ -310,12 +310,12 @@ export default function ContinentalTrustHub() {
                                 {tier.status === 'verified' ? (
                                     <div className="flex items-center gap-2 text-os-xs font-black text-emerald-500 uppercase tracking-[0.3em]">
                                         <CheckCircle className="w-4 h-4" />
-                                        Commit Passed
+                                        Verified
                                     </div>
                                 ) : tier.status === 'pending' ? (
                                     <div className="flex items-center gap-2 text-os-xs font-black text-amber-500 uppercase tracking-[0.3em]">
                                         <Activity className="w-4 h-4 animate-pulse" />
-                                        Audit Active
+                                        In Review
                                     </div>
                                 ) : (
                                     <Button
@@ -335,7 +335,7 @@ export default function ContinentalTrustHub() {
             {/* 3. Advanced Utilities Section */}
             <div className="grid lg:grid-cols-12 gap-8">
                 <div className="lg:col-span-8">
-                    <Surface variant="glass" className="p-10 relative overflow-hidden flex flex-col justify-between h-full bg-white/[0.01]">
+                    <Surface variant="panel" className="p-10 relative overflow-hidden flex flex-col justify-between h-full">
                         <div className="absolute top-0 right-0 p-12 opacity-[0.02] -rotate-12">
                             <Compass className="w-80 h-80" />
                         </div>
@@ -346,16 +346,16 @@ export default function ContinentalTrustHub() {
                                     <Scale className="w-8 h-8 text-os-accent" />
                                 </div>
                                 <div>
-                                    <h3 className="text-3xl font-black tracking-tight">Institutional DNA Ledger</h3>
-                                    <p className="text-os-sm text-os-muted font-medium italic opacity-70">Immutable verification tracking for cross-border settlement.</p>
+                                    <h3 className="text-3xl font-black tracking-tight">Verification Records</h3>
+                                    <p className="text-os-sm text-os-muted font-medium opacity-70">Your verification history and compliance status.</p>
                                 </div>
                             </div>
 
                             <div className="space-y-4">
                                 {[
-                                    { label: 'Biometric Security', ref: 'UID-8201-AX', status: 'Hashed', date: 'Feb 12' },
-                                    { label: 'Fiscal Compliance Node', ref: 'REG-SN-D93', status: 'Confirmed', date: 'Feb 11' },
-                                    { label: 'Anti-Risk Matrix Screening', ref: 'AML-SCAN-48', status: 'Active', date: 'Real-time' }
+                                    { label: 'Identity Verification', ref: 'UID-8201-AX', status: 'Complete', date: 'Feb 12' },
+                                    { label: 'Business Registration', ref: 'REG-SN-D93', status: 'Confirmed', date: 'Feb 11' },
+                                    { label: 'AML Screening', ref: 'AML-SCAN-48', status: 'Active', date: 'Real-time' }
                                 ].map((row, i) => (
                                     <div key={i} className="flex items-center justify-between p-5 bg-white/[0.02] border border-white/5 rounded-os-md group/row hover:bg-white/[0.04] transition-all">
                                         <div className="flex items-center gap-10">
@@ -378,8 +378,8 @@ export default function ContinentalTrustHub() {
                                 <BookOpen className="w-4 h-4 text-os-muted opacity-40" />
                                 <span className="text-os-xs font-bold uppercase tracking-widest text-os-muted opacity-40">AfCFTA Compliance Manual v4.0</span>
                             </div>
-                            <Button variant="ghost" className="text-os-accent font-black uppercase tracking-widest text-os-xs hover:bg-os-accent/10">
-                                View Full Intelligence Ledger <ArrowRight className="w-4 h-4 ml-2" />
+                            <Button variant="ghost" className="text-os-accent font-medium text-os-xs hover:bg-os-accent/10">
+                                View All Records <ArrowRight className="w-4 h-4 ml-2" />
                             </Button>
                         </div>
                     </Surface>
@@ -388,7 +388,7 @@ export default function ContinentalTrustHub() {
                 <div className="lg:col-span-4 flex flex-col gap-8">
                     <VerificationReport score={trustScore} />
 
-                    <Surface variant="glass" className="p-10 border-emerald-500/20 bg-emerald-500/[0.02] text-center flex flex-col items-center justify-center relative group overflow-hidden">
+                    <Surface variant="panel" className="p-10 border-emerald-500/20 bg-emerald-500/[0.02] text-center flex flex-col items-center justify-center relative group overflow-hidden">
                         <div className="absolute inset-0 bg-gradient-to-tr from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
 
                         <div className="relative z-10 space-y-6">
@@ -433,7 +433,7 @@ export default function ContinentalTrustHub() {
                                 ) : (
                                     <div className="flex items-center gap-3">
                                         <Zap className="w-5 h-5" />
-                                        Initialize Tier 3 Audit
+                                        Apply for Tier 3
                                     </div>
                                 )}
                             </Button>

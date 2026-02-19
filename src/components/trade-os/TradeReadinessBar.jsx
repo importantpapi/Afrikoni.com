@@ -176,7 +176,7 @@ export const TradeReadinessBar = ({ systemState }) => {
                     <motion.button
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        onClick={() => navigate('/dashboard/control-plane')}
+                        onClick={() => navigate('/dashboard/operations')}
                         className="flex items-center gap-1 px-2 md:px-4 py-1.5 md:py-2 rounded-full
                          bg-gradient-to-r from-amber-500 to-amber-600 text-white
                          shadow-os-md hover:shadow-os-lg transition-all text-os-xs md:text-os-xs font-bold"

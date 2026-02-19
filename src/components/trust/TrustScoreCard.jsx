@@ -15,7 +15,7 @@ export default function TrustScoreCard({ trustData }) {
     ];
 
     return (
-        <Surface variant="glass" className="p-0 overflow-hidden border border-white/10">
+        <Surface variant="panel" className="p-0 overflow-hidden border border-white/10">
             {/* Header */}
             <div className="p-4 border-b border-white/5 bg-white/5 flex items-center justify-between">
                 <div>

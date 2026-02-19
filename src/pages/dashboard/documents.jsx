@@ -68,7 +68,7 @@ export default function DocumentsPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Document Sidebar */}
                 <div className="space-y-4">
-                    <Surface variant="glass" className="p-4 space-y-2">
+                    <Surface variant="panel" className="p-4 space-y-2">
                         <h3 className="text-os-xs font-bold text-white uppercase tracking-wider mb-4 opacity-50">Available Templates</h3>
                         {['Commercial Invoice', 'Bill of Lading', 'Certificate of Origin', 'Packing List'].map(doc => {
                             // REVENUE ENGINE: Check document access entitlement

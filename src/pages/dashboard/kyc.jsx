@@ -52,7 +52,7 @@ const ScanningAnimation = ({ active = true }) => (
 );
 
 const ComplianceInsight = ({ title, text, confidence = 98.4 }) => (
-  <Surface variant="glass" className="p-6 border-os-accent/20 bg-os-accent/[0.02] relative overflow-hidden group">
+  <Surface variant="panel" className="p-6 border-os-accent/20 bg-os-accent/[0.02] relative overflow-hidden group">
     <div className="absolute -right-6 -top-6 opacity-[0.03] rotate-12 group-hover:rotate-0 transition-transform duration-1000">
       <Sparkles className="w-24 h-24 text-os-accent" />
     </div>
@@ -265,7 +265,7 @@ export default function VerificationPortal() {
           </Surface>
         ))}
 
-        <Surface variant="glass" className="p-6 border-os-accent/20 bg-white shadow-sm">
+        <Surface variant="panel" className="p-6 border-os-accent/20 bg-white shadow-sm">
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <span className="text-xs font-bold uppercase tracking-widest text-os-accent">Trust Score</span>
@@ -286,7 +286,7 @@ export default function VerificationPortal() {
         {/* Left Column: Data & Uploads */}
         <div className="lg:col-span-8 space-y-8">
           {/* Identity Section */}
-          <Surface variant="glass" className="p-10 relative overflow-hidden bg-white shadow-sm border-stone-200">
+          <Surface variant="panel" className="p-10 relative overflow-hidden bg-white shadow-sm border-stone-200">
             <div className="absolute top-0 right-0 p-12 opacity-[0.02] rotate-12">
               <User className="w-64 h-64" />
             </div>
@@ -374,7 +374,7 @@ export default function VerificationPortal() {
           </Surface>
 
           {/* Enterprise Section */}
-          <Surface variant="glass" className="p-10 relative overflow-hidden bg-white shadow-sm border-stone-200">
+          <Surface variant="panel" className="p-10 relative overflow-hidden bg-white shadow-sm border-stone-200">
             <div className="flex items-center gap-5 border-b border-stone-100 pb-6 mb-8">
               <div className="p-3.5 bg-blue-50 rounded-xl border border-blue-100">
                 <Building className="w-7 h-7 text-blue-600" />
@@ -438,7 +438,7 @@ export default function VerificationPortal() {
           </div>
 
           {/* Audit Matrix Chart */}
-          <Surface variant="glass" className="p-8 bg-white border-stone-200 shadow-sm">
+          <Surface variant="panel" className="p-8 bg-white border-stone-200 shadow-sm">
             <div className="flex items-center justify-between mb-8 pb-4 border-b border-stone-100">
               <h3 className="text-xs font-bold uppercase tracking-wider text-stone-400">Verification Progress</h3>
               <BarChart3 className="w-4 h-4 text-stone-400" />
@@ -479,7 +479,7 @@ export default function VerificationPortal() {
           </Surface>
 
           {/* Infrastructure Health */}
-          <Surface variant="glass" className="p-8 group overflow-hidden relative bg-white border-stone-200">
+          <Surface variant="panel" className="p-8 group overflow-hidden relative bg-white border-stone-200">
             <h3 className="text-xs font-bold uppercase tracking-wider mb-8 border-b border-stone-100 pb-4 text-stone-400">System Status</h3>
             <div className="space-y-6 relative z-10">
               {[

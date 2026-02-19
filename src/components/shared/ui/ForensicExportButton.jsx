@@ -21,38 +21,14 @@ export const ForensicExportButton = ({
                 className
             )}
         >
-            {/* DNA Pulse Background */}
-            <div className="absolute inset-0 opacity-10 group-hover:opacity-20 transition-opacity">
-                <div className="flex gap-0.5 items-center justify-center h-full">
-                    {[1, 2, 3, 4, 5].map(i => (
-                        <motion.div
-                            key={i}
-                            animate={{
-                                height: [4, 16, 4],
-                                opacity: [0.3, 1, 0.3]
-                            }}
-                            transition={{
-                                duration: 1.5,
-                                repeat: Infinity,
-                                delay: i * 0.15
-                            }}
-                            className={cn(
-                                "w-0.5 rounded-full",
-                                variant === "outline" ? "bg-emerald-500" : "bg-black"
-                            )}
-                        />
-                    ))}
-                </div>
-            </div>
-
             <div className="relative z-10 flex items-center gap-2">
                 {isGenerating ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                 ) : (
-                    <Fingerprint className="w-4 h-4 animate-pulse" />
+                    <FileText className="w-4 h-4" />
                 )}
                 <span>
-                    {isGenerating ? 'Synthesizing DNA...' : 'Export Forensic Audit'}
+                    {isGenerating ? 'Generating Report...' : 'Export Trade Audit'}
                 </span>
                 {!isGenerating && <Download className="w-3 h-3 ml-1 opacity-50 group-hover:translate-y-0.5 transition-transform" />}
             </div>

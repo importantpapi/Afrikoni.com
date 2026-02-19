@@ -45,7 +45,7 @@ export default function NetworkDashboard() {
 
     return (
         <div className="os-page os-stagger space-y-6">
-            <Surface variant="glass" className="p-8">
+            <Surface variant="panel" className="p-8">
                 <div className="flex items-center gap-3 mb-2">
                     <Network className="w-6 h-6 text-os-accent" />
                     <h1 className="text-os-2xl font-bold">Network Overview</h1>
@@ -64,8 +64,8 @@ export default function NetworkDashboard() {
             </div>
 
             <div className="grid lg:grid-cols-3 gap-6">
-                <Surface variant="glass" className="lg:col-span-2 min-h-[400px] flex items-center justify-center relative overflow-hidden">
-                    <Globe className="w-64 h-64 text-os-accent opacity-5 animate-pulse" />
+                <Surface variant="panel" className="lg:col-span-2 min-h-[400px] flex items-center justify-center relative overflow-hidden">
+                    <Globe className="w-64 h-64 text-os-accent opacity-5" />
                     <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
                         <h3 className="text-os-xl font-bold mb-4">Pan-African Trade Network</h3>
                         <div className="w-full max-w-md h-48 bg-white/5 rounded-os-md border border-white/10 flex items-center justify-center">

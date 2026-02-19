@@ -13,6 +13,8 @@ import { Label } from '@/components/shared/ui/label';
 import { Textarea } from '@/components/shared/ui/textarea';
 import { AlertCircle, Loader2, Send } from 'lucide-react';
 import { transitionTrade, TRADE_STATE } from '@/services/tradeKernel';
+import { supabase } from '@/api/supabaseClient';
+import { toast } from 'sonner';
 
 export default function RFQCreationPanel({ trade, onNextStep, isTransitioning, capabilities }) {
   const [formData, setFormData] = useState({
@@ -39,13 +41,26 @@ export default function RFQCreationPanel({ trade, onNextStep, isTransitioning, c
   async function handlePublish() {
     if (!validate()) return;
 
-    await onNextStep(TRADE_STATE.RFQ_CREATED, {
-      title: formData.title,
-      description: formData.description,
-      quantity: formData.quantity,
-      quantity_unit: formData.quantity_unit,
-      target_price: formData.target_price
-    });
+    try {
+      const { data: limitData, error: limitError } = await supabase.functions.invoke('evaluate-rfq-rate');
+
+      if (limitError || (limitData && !limitData.allowed)) {
+        toast.error('Verification Limit Reached', {
+          description: limitData?.message || 'Institutional rate limits apply to RFQ creation. Please contact support to increase your capacity.'
+        });
+        return;
+      }
+
+      await onNextStep(TRADE_STATE.RFQ_CREATED, {
+        title: formData.title,
+        description: formData.description,
+        quantity: formData.quantity,
+        quantity_unit: formData.quantity_unit,
+        target_price: formData.target_price
+      });
+    } catch (err) {
+      toast.error('Publishing failed', { description: err.message });
+    }
   }
 
   return (

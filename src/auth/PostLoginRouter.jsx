@@ -140,5 +140,5 @@ export default function PostLoginRouter() {
   }, [authReady, user, profile]);
 
   // ✅ Show loading while routing
-  return <LoadingScreen message="Initializing Workspace Handshake..." />;
+  return <LoadingScreen message="Getting your workspace ready..." />;
 }

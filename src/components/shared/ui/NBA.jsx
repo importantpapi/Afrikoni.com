@@ -22,7 +22,7 @@ export function NBA({
 }) {
     return (
         <Surface
-            variant="glass"
+            variant="panel"
             className={cn(
                 "relative overflow-hidden p-8 md:p-12 mb-8 border-none group",
                 "bg-gradient-to-br from-white/40 to-transparent dark:from-white/5",

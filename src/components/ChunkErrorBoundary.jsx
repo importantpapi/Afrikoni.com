@@ -49,7 +49,7 @@ class ChunkErrorBoundary extends React.Component {
             if (this.state.isChunkError) {
                 return (
                     <div className="flex flex-col items-center justify-center min-h-[50vh] p-6 text-center">
-                        <Surface variant="glass" className="max-w-md w-full p-8 border-amber-500/20">
+                        <Surface variant="panel" className="max-w-md w-full p-8 border-amber-500/20">
                             <div className="w-16 h-16 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
                                 <RefreshCw className="w-8 h-8 text-amber-500 animate-spin-slow" />
                             </div>

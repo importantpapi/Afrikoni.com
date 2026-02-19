@@ -72,8 +72,8 @@ function TodaysActions({ compact = false }) {
 
     if (loading) {
         return (
-            <Surface variant="glass" className="p-8">
-                <div className="animate-pulse space-y-4">
+            <Surface variant="panel" className="p-8">
+                <div className="opacity-50 space-y-4">
                     <div className="h-6 bg-os-stroke rounded w-1/3" />
                     <div className="h-4 bg-os-stroke rounded w-2/3" />
                     <div className="h-4 bg-os-stroke rounded w-1/2" />
@@ -84,7 +84,7 @@ function TodaysActions({ compact = false }) {
 
     if (totalActions === 0) {
         return (
-            <Surface variant="glass" className="p-12 text-center">
+            <Surface variant="panel" className="p-12 text-center">
                 <div className="w-16 h-16 rounded-os-md bg-os-accent/10 flex items-center justify-center mx-auto mb-6">
                     <Sparkles className="w-8 h-8 text-os-accent" />
                 </div>
@@ -168,7 +168,7 @@ function ActionSection({ priority, actions, onActionClick }) {
 
     return (
         <Surface
-            variant="glass"
+            variant="panel"
             className={cn(
                 "p-6 border-l-2",
                 priority === 'urgent' ? 'border-l-os-error' :

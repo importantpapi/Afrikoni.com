@@ -1,0 +1,46 @@
+{
+  "cookies": [],
+  "origins": [
+    {
+      "origin": "http://localhost:5173",
+      "localStorage": [
+        {
+          "name": "afrikoni_selected_currency",
+          "value": "EUR"
+        },
+        {
+          "name": "afrikoni-palette",
+          "value": "gold"
+        },
+        {
+          "name": "afrikoni_selected_language",
+          "value": "en"
+        },
+        {
+          "name": "sb-wmjxiazhvjaadzdsroqa-auth-token",
+          "value": "{\"access_token\":\"eyJhbGciOiJFUzI1NiIsImtpZCI6IjJkNTI5N2JmLWRiOGQtNGI3My1iNWU0LTY0MmQ0MTU3YTY1YiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJodHRwczovL3dtanhpYXpodmphYWR6ZHNyb3FhLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJzdWIiOiI3ODdmZjI4ZS1mYTg5LTRmYjctOWRlMi0wNWFmMDQ2YmIwYTciLCJhdWQiOiJhdXRoZW50aWNhdGVkIiwiZXhwIjoxNzcxNDU0OTM0LCJpYXQiOjE3NzE0NTEzMzQsImVtYWlsIjoiYnV5ZXItMTc3MTQ1MTMyODAwMkBhZnJpa29uaS10ZXN0LmNvbSIsInBob25lIjoiIiwiYXBwX21ldGFkYXRhIjp7ImlzX2FkbWluIjpmYWxzZSwicHJvdmlkZXIiOiJlbWFpbCIsInByb3ZpZGVycyI6WyJlbWFpbCJdfSwidXNlcl9tZXRhZGF0YSI6eyJlbWFpbCI6ImJ1eWVyLTE3NzE0NTEzMjgwMDJAYWZyaWtvbmktdGVzdC5jb20iLCJlbWFpbF92ZXJpZmllZCI6ZmFsc2UsImZ1bGxfbmFtZSI6Ikdyb3VwIEJ1eWVyIiwiaW50ZW5kZWRfcm9sZSI6ImJ1eWVyIiwicGhvbmVfdmVyaWZpZWQiOmZhbHNlLCJzdWIiOiI3ODdmZjI4ZS1mYTg5LTRmYjctOWRlMi0wNWFmMDQ2YmIwYTcifSwicm9sZSI6ImF1dGhlbnRpY2F0ZWQiLCJhYWwiOiJhYWwxIiwiYW1yIjpbeyJtZXRob2QiOiJwYXNzd29yZCIsInRpbWVzdGFtcCI6MTc3MTQ1MTMzNH1dLCJzZXNzaW9uX2lkIjoiNGY1Mjk0NDktNTNkNC00M2U3LTk3YWItYWQ4Y2Q5NGI3OWEzIiwiaXNfYW5vbnltb3VzIjpmYWxzZX0.46_5ZUFSRBJPzOyojU_WWEqmYfVLhvUmuO412CD-_TJW4Z4j2HbyXDA3HrfQjVD5F8YouYEQnqAbd9rLAwU-kg\",\"token_type\":\"bearer\",\"expires_in\":3600,\"expires_at\":1771454934,\"refresh_token\":\"snm4hx7icovs\",\"user\":{\"id\":\"787ff28e-fa89-4fb7-9de2-05af046bb0a7\",\"aud\":\"authenticated\",\"role\":\"authenticated\",\"email\":\"buyer-1771451328002@afrikoni-test.com\",\"email_confirmed_at\":\"2026-02-18T21:48:54.84657Z\",\"phone\":\"\",\"confirmed_at\":\"2026-02-18T21:48:54.84657Z\",\"last_sign_in_at\":\"2026-02-18T21:48:54.853636123Z\",\"app_metadata\":{\"is_admin\":false,\"provider\":\"email\",\"providers\":[\"email\"]},\"user_metadata\":{\"email\":\"buyer-1771451328002@afrikoni-test.com\",\"email_verified\":false,\"full_name\":\"Group Buyer\",\"intended_role\":\"buyer\",\"phone_verified\":false,\"sub\":\"787ff28e-fa89-4fb7-9de2-05af046bb0a7\"},\"identities\":[{\"identity_id\":\"5c7c63cc-cced-435e-b2d4-44c918c676c9\",\"id\":\"787ff28e-fa89-4fb7-9de2-05af046bb0a7\",\"user_id\":\"787ff28e-fa89-4fb7-9de2-05af046bb0a7\",\"identity_data\":{\"email\":\"buyer-1771451328002@afrikoni-test.com\",\"email_verified\":false,\"full_name\":\"Group Buyer\",\"intended_role\":\"buyer\",\"phone_verified\":false,\"sub\":\"787ff28e-fa89-4fb7-9de2-05af046bb0a7\"},\"provider\":\"email\",\"last_sign_in_at\":\"2026-02-18T21:48:54.850066705Z\",\"created_at\":\"2026-02-18T21:48:54.850117Z\",\"updated_at\":\"2026-02-18T21:48:54.850117Z\",\"email\":\"buyer-1771451328002@afrikoni-test.com\"}],\"created_at\":\"2026-02-18T21:48:54.84695Z\",\"updated_at\":\"2026-02-18T21:48:54.857591Z\",\"is_anonymous\":false}}"
+        },
+        {
+          "name": "afrikoni_detected_country",
+          "value": "BE"
+        },
+        {
+          "name": "afrikoni-theme",
+          "value": "light"
+        },
+        {
+          "name": "afrikoni_workspace_mode",
+          "value": "U2FsdGVkX19m2DRbMRHKse7iV/ORr3J6c2wEoIdMCfM="
+        },
+        {
+          "name": "afrikoni-cookie-consent",
+          "value": "{\"necessary\":true,\"preferences\":true,\"analytics\":true,\"marketing\":true,\"timestamp\":\"2026-02-18T21:48:53.697Z\"}"
+        },
+        {
+          "name": "afrikoni_language",
+          "value": "en-US"
+        }
+      ]
+    }
+  ]
+}

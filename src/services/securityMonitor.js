@@ -1,11 +1,11 @@
 /**
- * THE FORENSIC SENTINEL
+ * Security Monitor Service
  * 
- * "The Watchdog" of the Afrikoni Trade Protocol.
+ * "The Watchdog" of the Afrikoni Trade Network.
  * Responsible for:
- * 1. Visual Cryptographic Hashing of products (Trade DNA).
+ * 1. Visual Fingerprinting of products.
  * 2. Leakage Prevention (blocking off-platform contact sharing).
- * 3. Dispute Arbitration via DNA comparison.
+ * 3. Dispute Arbitration via evidence comparison.
  */
 
 // Basic Security Warning Message

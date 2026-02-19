@@ -103,14 +103,70 @@ export function StatCardSkeleton({ count = 4 }) {
 
 /**
  * Page loader skeleton
+ * Refined for Apple x Hermès aesthetic (Light, Clean, Institutional)
  */
 export function PageLoader() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#08090A]">
+    <div className="min-h-screen flex items-center justify-center bg-os-bg">
       <div className="text-center relative">
-        <div className="absolute inset-0 bg-blue-500/20 blur-[100px] rounded-full" />
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4 relative z-10" />
-        <p className="text-gray-400 text-os-sm font-medium tracking-tight relative z-10">Initializing OS...</p>
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-os-accent mx-auto mb-6 relative z-10" />
+        <p className="text-os-text-secondary text-os-sm font-medium tracking-wide relative z-10 animate-pulse">
+          Securely connecting...
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Product Details Skeleton
+ * Mimics the 2-column layout of the product page
+ */
+export function ProductDetailsSkeleton() {
+  return (
+    <div className="min-h-screen bg-os-bg">
+      <div className="max-w-screen-xl mx-auto px-4 sm:px-6 pt-6 pb-16">
+        {/* Breadcrumb Mock */}
+        <Skeleton variant="cream" className="h-4 w-64 mb-6" />
+
+        <div className="grid lg:grid-cols-12 gap-8 items-start">
+          {/* Left: Image Gallery (5 cols) */}
+          <div className="lg:col-span-5">
+            <Skeleton variant="cream" className="w-full aspect-square rounded-2xl mb-3" />
+            <div className="flex gap-2 pb-1">
+              <Skeleton variant="cream" className="w-16 h-16 rounded-xl shrink-0" />
+              <Skeleton variant="cream" className="w-16 h-16 rounded-xl shrink-0" />
+              <Skeleton variant="cream" className="w-16 h-16 rounded-xl shrink-0" />
+            </div>
+          </div>
+
+          {/* Center: Product Info (4 cols) */}
+          <div className="lg:col-span-4 space-y-6">
+            <div>
+              <div className="flex gap-2 mb-3">
+                <Skeleton variant="cream" className="h-5 w-24 rounded-full" />
+                <Skeleton variant="gold" className="h-5 w-24 rounded-full" />
+              </div>
+              <Skeleton variant="cream" className="h-8 w-3/4 mb-3" />
+              <Skeleton variant="cream" className="h-4 w-1/2" />
+            </div>
+
+            <Skeleton variant="cream" className="h-24 w-full rounded-xl" />
+
+            <div className="grid grid-cols-2 gap-3">
+              <Skeleton variant="cream" className="h-20 w-full rounded-xl" />
+              <Skeleton variant="cream" className="h-20 w-full rounded-xl" />
+              <Skeleton variant="cream" className="h-20 w-full rounded-xl" />
+              <Skeleton variant="cream" className="h-20 w-full rounded-xl" />
+            </div>
+          </div>
+
+          {/* Right: Actions (3 cols) */}
+          <div className="lg:col-span-3 space-y-4">
+            <Skeleton variant="cream" className="h-64 w-full rounded-2xl" />
+            <Skeleton variant="cream" className="h-40 w-full rounded-2xl" />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -118,61 +174,61 @@ export function PageLoader() {
 
 /**
  * Full Dashboard Shell Skeleton
- * Mimics OSShell layout for smooth boot
+ * Mimics OSShell layout for smooth boot - Light Theme
  */
 export function DashboardSkeleton() {
   return (
-    <div className="h-screen w-full bg-[#08090A] overflow-hidden flex flex-col">
+    <div className="h-screen w-full bg-os-bg overflow-hidden flex flex-col">
       {/* System Layer Mock */}
-      <div className="h-[56px] w-full border-b border-white/5 bg-black/40 px-6 flex items-center justify-between">
-        <Skeleton variant="dark" className="h-4 w-48" />
-        <Skeleton variant="dark" className="h-6 w-32 rounded-full" />
+      <div className="h-[72px] w-full border-b border-os-stroke bg-white px-6 flex items-center justify-between">
+        <Skeleton variant="cream" className="h-5 w-48" />
+        <Skeleton variant="cream" className="h-8 w-32 rounded-full" />
       </div>
 
       {/* Identity Layer Mock */}
-      <div className="h-[48px] w-full border-b border-white/5 bg-black/20 px-6 flex items-center justify-between">
+      <div className="h-[48px] w-full border-b border-os-stroke bg-white/50 px-6 flex items-center justify-between">
         <div className="flex gap-4">
-          <Skeleton variant="dark" className="h-6 w-32" />
-          <Skeleton variant="dark" className="h-6 w-24" />
+          <Skeleton variant="cream" className="h-5 w-32" />
+          <Skeleton variant="cream" className="h-5 w-24" />
         </div>
         <div className="flex gap-3">
-          <Skeleton variant="dark" className="h-8 w-8 rounded-full" />
-          <Skeleton variant="dark" className="h-8 w-24 rounded-lg" />
+          <Skeleton variant="gold" className="h-8 w-8 rounded-full" />
+          <Skeleton variant="cream" className="h-8 w-24 rounded-lg" />
         </div>
       </div>
 
       <div className="flex-1 flex overflow-hidden">
         {/* Sidebar Mock */}
-        <div className="w-[240px] border-r border-white/5 bg-black/10 p-6 hidden md:block">
+        <div className="w-[240px] border-r border-os-stroke bg-white p-6 hidden md:block">
           <div className="space-y-6">
-            <Skeleton variant="dark" className="h-8 w-full" />
+            <Skeleton variant="cream" className="h-8 w-full" />
             <div className="space-y-3">
-              <Skeleton variant="dark" className="h-10 w-full" />
-              <Skeleton variant="dark" className="h-10 w-full" />
-              <Skeleton variant="dark" className="h-10 w-full" />
-              <Skeleton variant="dark" className="h-10 w-full" />
+              <Skeleton variant="cream" className="h-10 w-full" />
+              <Skeleton variant="cream" className="h-10 w-full" />
+              <Skeleton variant="cream" className="h-10 w-full" />
+              <Skeleton variant="cream" className="h-10 w-full" />
             </div>
           </div>
         </div>
 
         {/* Content Surface Mock */}
-        <div className="flex-1 p-8 overflow-hidden space-y-8">
+        <div className="flex-1 p-8 overflow-hidden space-y-8 bg-os-bg">
           <div className="flex justify-between items-center">
             <div className="space-y-2">
-              <Skeleton variant="dark" className="h-8 w-64" />
-              <Skeleton variant="dark" className="h-12 w-[400px]" />
+              <Skeleton variant="cream" className="h-8 w-64" />
+              <Skeleton variant="cream" className="h-12 w-[400px]" />
             </div>
-            <Skeleton variant="blue" className="h-12 w-48 rounded-os-sm" />
+            <Skeleton variant="gold" className="h-12 w-48 rounded-os-sm" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <Skeleton variant="dark" className="h-32 w-full rounded-os-md" />
-            <Skeleton variant="dark" className="h-32 w-full rounded-os-md" />
-            <Skeleton variant="dark" className="h-32 w-full rounded-os-md" />
-            <Skeleton variant="dark" className="h-32 w-full rounded-os-md" />
+            <Skeleton variant="cream" className="h-32 w-full rounded-os-md shadow-sm" />
+            <Skeleton variant="cream" className="h-32 w-full rounded-os-md shadow-sm" />
+            <Skeleton variant="cream" className="h-32 w-full rounded-os-md shadow-sm" />
+            <Skeleton variant="cream" className="h-32 w-full rounded-os-md shadow-sm" />
           </div>
 
-          <Skeleton variant="dark" className="h-[400px] w-full rounded-os-md" />
+          <Skeleton variant="cream" className="h-[400px] w-full rounded-os-md shadow-sm" />
         </div>
       </div>
     </div>

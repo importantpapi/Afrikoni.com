@@ -33,7 +33,7 @@ export function SystemStateBar() {
       ];
 
   return (
-    <Surface variant="glass" className="p-4 flex flex-wrap gap-3 items-center justify-between">
+    <Surface variant="panel" className="p-4 flex flex-wrap gap-3 items-center justify-between">
       <div className="flex items-center gap-2">
         <div className="text-os-xs uppercase tracking-[0.2em] text-muted-foreground">Kernel State</div>
         <StatusBadge label={data?.riskSurface?.toUpperCase?.() || "SCANNING"} tone="neutral" />

@@ -95,6 +95,74 @@ export default function ContractSigningPanel({ trade, onNextStep, isTransitionin
     )
   }
 
+  // --- SIMPLE MODE UI ---
+  if (trade?.metadata?.mode === 'simple') {
+    return (
+      <Card className="border bg-os-surface-base rounded-os-md shadow-sm">
+        <CardContent className="p-8">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-os-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <CheckCircle2 className="w-8 h-8 text-os-accent" />
+            </div>
+            <h2 className="text-2xl font-bold text-os-text-primary">Review Your Order</h2>
+            <p className="text-os-text-secondary mt-2">
+              Please confirm the details below to proceed to payment.
+            </p>
+          </div>
+
+          <div className="bg-os-surface-1 rounded-xl p-6 mb-8 border border-os-stroke">
+            <div className="grid grid-cols-2 gap-y-4 text-sm">
+              <div className="text-os-text-secondary">Product</div>
+              <div className="font-semibold text-right">{trade.title}</div>
+
+              <div className="text-os-text-secondary">Quantity</div>
+              <div className="font-semibold text-right">{trade.quantity} {trade.quantity_unit}</div>
+
+              <div className="text-os-text-secondary">Total Price</div>
+              <div className="font-semibold text-right text-os-accent text-lg">
+                {trade.currency} {(trade.total_value || trade.target_price || 0).toLocaleString()}
+              </div>
+
+              <div className="text-os-text-secondary">Supplier</div>
+              <div className="font-semibold text-right">{trade.seller?.company_name || 'Verified Supplier'}</div>
+            </div>
+          </div>
+
+          <Button
+            onClick={async () => {
+              // Auto-sign and proceed
+              try {
+                if (contract?.id) await signContract(contract.id);
+                // Proceed directly
+                await onNextStep(TRADE_STATE.ESCROW_REQUIRED, {
+                  contractId: contract?.id,
+                  buyerSigned: true,
+                  escrowAmount: trade.total_value,
+                  currency: trade.currency
+                });
+              } catch (e) {
+                toast.error('Failed to confirm order. Please try again.');
+              }
+            }}
+            disabled={isTransitioning}
+            className="w-full h-14 bg-os-accent hover:bg-os-accent/90 text-black font-bold text-lg rounded-xl shadow-lg shadow-os-accent/10"
+          >
+            {isTransitioning ? (
+              <><Loader2 className="w-5 h-5 mr-2 animate-spin" /> Processing...</>
+            ) : (
+              'Confirm & Pay'
+            )}
+          </Button>
+
+          <p className="text-center text-xs text-os-text-secondary mt-4">
+            By clicking "Confirm & Pay", you agree to the <a href="/terms" className="underline">Terms of Service</a>.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // --- STANDARD MODE UI ---
   return (
     <Card className="border bg-gradient-to-br from-[#0E1016] to-[#141B24] rounded-os-md shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
       <CardContent className="p-6">

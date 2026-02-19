@@ -100,7 +100,7 @@ class ErrorBoundary extends React.Component {
           {/* Background Ambient Glow */}
           <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] ${isRecoverable ? 'bg-amber-900/10' : 'bg-red-900/10'} rounded-full blur-[120px] pointer-events-none`} />
 
-          <Surface variant="glass" className={`max-w-xl w-full p-8 md:p-12 ${isRecoverable ? 'border-amber-500/20' : 'border-os-red/20'} relative z-10 shadow-2xl ${isRecoverable ? 'shadow-amber-900/20' : 'shadow-red-900/20'}`}>
+          <Surface variant="panel" className={`max-w-xl w-full p-8 md:p-12 ${isRecoverable ? 'border-amber-500/20' : 'border-os-red/20'} relative z-10 shadow-2xl ${isRecoverable ? 'shadow-amber-900/20' : 'shadow-red-900/20'}`}>
             <div className="flex flex-col items-center text-center">
               <div className={`w-16 h-16 rounded-full ${isRecoverable ? 'bg-amber-500/10' : 'bg-os-red/10'} flex items-center justify-center mb-6 animate-pulse`}>
                 <AlertTriangle className={`w-8 h-8 ${isRecoverable ? 'text-amber-500' : 'text-os-red'}`} />

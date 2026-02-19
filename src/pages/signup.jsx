@@ -57,16 +57,21 @@ export default function Signup() {
             full_name: formData.fullName,
             intended_role: selectedRole,
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${window.location.origin}/${language}/auth/callback`,
         },
       });
 
       if (error) throw error;
 
-      // ✅ Immediate login (Supabase returns session even if email confirmation pending)
-      if (data.user) {
-        toast.success('✅ Account created! Welcome to Afrikoni.');
-        // Session is auto-saved, redirect will happen via useEffect
+      // Handle different signup outcomes
+      if (data.session) {
+        // Immediate session (e.g. auto-confirm enabled)
+        toast.success('Account created! Redirecting...');
+        navigate(`/${language}/auth/post-login`, { replace: true });
+      } else if (data.user) {
+        // User created but no session (email confirmation required)
+        // Redirect to the verify-email page — shows clear instructions + resend button
+        navigate(`/${language}/verify-email?email=${encodeURIComponent(formData.email.trim())}`, { replace: true });
       }
     } catch (error) {
       if (isNetworkError(error)) {
@@ -132,6 +137,7 @@ export default function Signup() {
               <div className="relative">
                 <input
                   type="text"
+                  name="fullName"
                   value={formData.fullName}
                   onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
                   className="w-full bg-white border border-gray-300 rounded-[13px] py-3.5 px-4 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-os-accent/20 focus:border-os-accent transition-all"
@@ -146,6 +152,7 @@ export default function Signup() {
               <div className="relative">
                 <input
                   type="email"
+                  name="email"
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   className="w-full bg-white border border-gray-300 rounded-[13px] py-3.5 px-4 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-os-accent/20 focus:border-os-accent transition-all"
@@ -160,6 +167,7 @@ export default function Signup() {
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
+                  name="password"
                   value={formData.password}
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                   className="w-full bg-white border border-gray-300 rounded-[13px] py-3.5 px-4 pr-12 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-os-accent/20 focus:border-os-accent transition-all"

@@ -92,35 +92,31 @@ export default function DashboardHome() {
 
   const nba = getNextBestAction();
 
-  // 🏛️ DYNAMIC METRICS: Horizon 2026 Secure Architecture
+  // Key Metrics
   const stats = [
     {
       label: t('dashboard.active_deals'),
       value: activeDeals.length.toString(),
-      sub: t('dashboard.active_deals_sub'),
-      color: "text-os-accent",
-      trend: activeDeals.length > 0 ? "Active" : "None"
+      sub: "Active now",
+      color: "text-gray-900",
     },
     {
-      label: t('dashboard.in_escrow'),
+      label: "Escrow",
       value: `$${totalEscrowValue.toLocaleString()}`,
-      sub: "Protected by Secure Escrow",
-      color: "text-os-blue",
-      trend: "Secure"
+      sub: "Protected",
+      color: "text-emerald-600",
     },
     {
-      label: t('dashboard.totalvalue'),
+      label: "Settled",
       value: `$${totalCompletedValue.toLocaleString()}`,
-      sub: "Settled volume",
-      color: "text-os-green",
-      trend: "+100%"
+      sub: "Total volume",
+      color: "text-gray-900",
     },
     {
-      label: t('dashboard.open_rfqs'),
+      label: "Requests",
       value: openRFQs.length.toString(),
-      sub: t('dashboard.open_rfqs_sub'),
-      color: "text-purple-400",
-      trend: "Live"
+      sub: "Open market",
+      color: "text-gray-500",
     }
   ];
 
@@ -133,19 +129,19 @@ export default function DashboardHome() {
 
   return (
     <div className="os-page-layout">
-      {/* ✅ WARM GREETING - WhatsApp/Stripe style */}
+      {/* Warm Greeting - Institutional */}
       <div className="os-header-group">
-        <h1 className="text-4xl md:text-5xl font-bold mb-2">
-          {getGreeting()}, {firstName} 👋
+        <h1 className="text-4xl md:text-5xl font-semibold mb-2 text-gray-900">
+          {getGreeting()}, {firstName}
         </h1>
-        <p className="text-os-lg text-os-text-secondary">
+        <p className="text-lg text-gray-500">
           {t('dashboard.business_status_subtitle')}
         </p>
       </div>
 
-      {/* 🏛️ OPERATIONAL COCKPIT: Horizon 2026 High-Density Interface */}
+      {/* Trade Dashboard - Business Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Zone 1: The Golden Path (Primary Action) */}
+        {/* Zone 1: Primary Action */}
         <div className="lg:col-span-2">
           <NBA
             title={nba.title}
@@ -157,18 +153,16 @@ export default function DashboardHome() {
           />
         </div>
 
-        {/* Zone 2: Intelligence Grid (Key Metrics) */}
+        {/* Zone 2: Key Business Metrics */}
         <div className="grid grid-cols-2 gap-3">
           {stats.slice(0, 4).map((stat, i) => (
-            <Surface key={i} variant="glass" className="p-4 flex flex-col justify-between border-os-stroke/40 hover:border-os-accent/30 transition-all group overflow-hidden relative">
-              <div className="os-ambient-orb" style={{ top: '-50%', right: '-50%', opacity: 0.1 }} />
-              <div className="flex justify-between items-start mb-2 relative z-10">
-                <span className="os-label">{stat.label}</span>
-                <span className={cn("text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-white/5", stat.color)}>{stat.trend}</span>
+            <Surface key={i} variant="panel" className="p-5 flex flex-col justify-between border-gray-100 hover:border-gray-200 transition-all group relative">
+              <div className="flex justify-between items-start mb-2">
+                <span className="text-sm font-medium text-gray-500">{stat.label}</span>
               </div>
-              <div className="relative z-10">
-                <div className="text-2xl font-black font-mono tracking-tighter group-hover:scale-105 transition-transform origin-left">{stat.value}</div>
-                <div className="text-[10px] font-medium text-os-text-secondary/40 uppercase tracking-tighter mt-1">{stat.sub}</div>
+              <div>
+                <div className="text-2xl font-semibold tracking-tight text-gray-900">{stat.value}</div>
+                <div className="text-sm text-gray-400 mt-1">{stat.sub}</div>
               </div>
             </Surface>
           ))}
@@ -179,7 +173,7 @@ export default function DashboardHome() {
       {!hasTradeHistory && (
         <Surface variant="soft" className="flex items-center gap-4 px-5 py-3 border-os-accent/20 bg-os-accent/5">
           <Sparkles className="w-4 h-4 text-os-accent" />
-          <p className="text-os-xs font-semibold text-os-accent/80 tracking-tight">
+          <p className="text-sm font-medium text-os-accent/80">
             {isSeller ? t('dashboard.seller_tip') : t('dashboard.buyer_tip')}
           </p>
         </Surface>
@@ -188,26 +182,26 @@ export default function DashboardHome() {
       {/* Quick Actions - role-aware */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {(isSeller ? [
-          { label: t('dashboard.view_buy_requests_label'), sub: t('dashboard.view_buy_requests_sub'), icon: Globe, link: `/${language}/dashboard/rfqs`, color: "text-os-blue", bg: "bg-os-blue/10" },
-          { label: t('dashboard.add_product_label'), sub: t('dashboard.add_product_sub'), icon: Package, link: `/${language}/dashboard/products/new`, color: "text-os-green", bg: "bg-os-green/10" },
-          { label: t('dashboard.my_orders_label'), sub: t('dashboard.my_orders_sub'), icon: Ship, link: `/${language}/dashboard/orders`, color: "text-purple-500", bg: "bg-purple-500/10" },
+          { label: t('dashboard.view_buy_requests_label'), sub: t('dashboard.view_buy_requests_sub'), icon: Globe, link: `/${language}/dashboard/rfqs`, color: "text-blue-600", bg: "bg-blue-50" },
+          { label: t('dashboard.add_product_label'), sub: t('dashboard.add_product_sub'), icon: Package, link: `/${language}/dashboard/products/new`, color: "text-emerald-600", bg: "bg-emerald-50" },
+          { label: t('dashboard.my_orders_label'), sub: t('dashboard.my_orders_sub'), icon: Ship, link: `/${language}/dashboard/orders`, color: "text-gray-600", bg: "bg-gray-50" },
         ] : [
-          { label: t('dashboard.create_rfq_label'), sub: t('dashboard.create_rfq_sub'), icon: Globe, link: `/${language}/dashboard/rfqs/new`, color: "text-os-blue", bg: "bg-os-blue/10" },
-          { label: t('dashboard.browse_suppliers_label'), sub: t('dashboard.browse_suppliers_sub'), icon: Package, link: `/${language}/suppliers`, color: "text-os-green", bg: "bg-os-green/10" },
-          { label: t('dashboard.my_orders_label'), sub: t('dashboard.my_orders_sub'), icon: Ship, link: `/${language}/dashboard/orders`, color: "text-purple-500", bg: "bg-purple-500/10" },
+          { label: t('dashboard.create_rfq_label'), sub: t('dashboard.create_rfq_sub'), icon: Globe, link: `/${language}/dashboard/rfqs/new`, color: "text-blue-600", bg: "bg-blue-50" },
+          { label: t('dashboard.browse_suppliers_label'), sub: t('dashboard.browse_suppliers_sub'), icon: Package, link: `/${language}/suppliers`, color: "text-emerald-600", bg: "bg-emerald-50" },
+          { label: t('dashboard.my_orders_label'), sub: t('dashboard.my_orders_sub'), icon: Ship, link: `/${language}/dashboard/orders`, color: "text-gray-600", bg: "bg-gray-50" },
         ]).map((item, i) => (
           <Surface
             key={i}
             variant="panel"
             hover
             onClick={() => navigate(item.link)}
-            className="p-6 text-left group border-2 border-transparent hover:border-os-accent/30"
+            className="p-6 text-left group border-2 border-transparent hover:border-gray-200"
           >
-            <div className={cn("w-12 h-12 rounded-os-sm mb-4 flex items-center justify-center group-hover:scale-105 transition-transform", item.bg)}>
+            <div className={cn("w-12 h-12 rounded-lg mb-4 flex items-center justify-center transition-transform", item.bg)}>
               <item.icon className={cn("w-6 h-6", item.color)} />
             </div>
-            <h3 className="font-bold text-os-lg mb-1">{item.label}</h3>
-            <p className="text-os-sm text-os-text-secondary">{item.sub}</p>
+            <h3 className="font-semibold text-lg mb-1 text-gray-900">{item.label}</h3>
+            <p className="text-sm text-gray-500">{item.sub}</p>
           </Surface>
         ))}
       </div>
@@ -217,19 +211,19 @@ export default function DashboardHome() {
           {/* A. MY DEALS */}
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-os-xl font-bold">{t('dashboard.my_active_deals')}</h2>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/orders')} className="text-os-accent font-medium hover:bg-transparent">
+              <h2 className="text-xl font-semibold text-gray-900">{t('dashboard.my_active_deals')}</h2>
+              <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/orders')} className="text-gray-600 font-medium hover:bg-gray-50 hover:text-gray-900">
                 {t('dashboard.see_all_deals')} <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
 
-            <Surface variant="panel" className="p-2 overflow-hidden">
+            <Surface variant="panel" className="p-2 overflow-hidden border-gray-100">
               {tradesLoading ? (
                 <div className="p-8 space-y-4">
-                  {[1, 2, 3].map(i => <div key={i} className="h-20 bg-os-stroke animate-pulse rounded-os-md" />)}
+                  {[1, 2, 3].map(i => <div key={i} className="h-20 bg-gray-50 rounded-lg" />)}
                 </div>
               ) : activeTrades && activeTrades.length > 0 ? (
-                <div className="divide-y divide-os-stroke">
+                <div className="divide-y divide-gray-50">
                   {activeTrades.slice(0, 3).map((trade, i) => (
                     <motion.div
                       key={trade.id}
@@ -237,17 +231,17 @@ export default function DashboardHome() {
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.1 }}
                       onClick={() => navigate(`/dashboard/trade/${trade.id}`)}
-                      className="group flex items-center justify-between p-6 hover:bg-os-surface transition-colors cursor-pointer"
+                      className="group flex items-center justify-between p-6 hover:bg-gray-50/50 transition-colors cursor-pointer"
                     >
                       <div className="flex items-center gap-6">
-                        <div className="w-14 h-14 rounded-os-md bg-os-bg border border-os-stroke flex items-center justify-center group-hover:scale-105 transition-transform">
-                          <Box className="w-7 h-7 text-os-text-secondary" />
+                        <div className="w-14 h-14 rounded-lg bg-gray-50 border border-gray-100 flex items-center justify-center">
+                          <Box className="w-7 h-7 text-gray-400 group-hover:text-gray-600 transition-colors" />
                         </div>
                         <div className="space-y-1">
-                          <h3 className="text-os-lg font-semibold">{trade.productName}</h3>
-                          <div className="flex items-center gap-2 text-os-sm text-os-text-secondary">
-                            <span className="text-amber-500 font-medium">{trade.status || t('dashboard.pending')}</span>
-                            <span className="w-1 h-1 rounded-full bg-os-stroke" />
+                          <h3 className="text-lg font-medium text-gray-900">{trade.productName}</h3>
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <span className="text-amber-600 font-medium">{trade.status || t('dashboard.pending')}</span>
+                            <span className="w-1 h-1 rounded-full bg-gray-300" />
                             <span>{trade.corridor?.originCountry || '—'} to {trade.corridor?.destinationCountry || '—'}</span>
                           </div>
                         </div>
@@ -255,23 +249,23 @@ export default function DashboardHome() {
 
                       <div className="flex items-center gap-6">
                         <div className="text-right hidden sm:block">
-                          <div className="text-os-sm font-black tabular-nums font-mono">${(trade.value || 0).toLocaleString()}</div>
-                          <div className="text-os-xs text-os-muted uppercase font-bold tracking-widest">{t('dashboard.deal_value')}</div>
+                          <div className="text-sm font-semibold text-gray-900 tabular-nums">${(trade.value || 0).toLocaleString()}</div>
+                          <div className="text-xs text-gray-400 font-medium">{t('dashboard.deal_value')}</div>
                         </div>
-                        <ChevronRight className="w-5 h-5 text-os-text-secondary group-hover:translate-x-1 transition-transform" />
+                        <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-gray-500 group-hover:translate-x-1 transition-all" />
                       </div>
                     </motion.div>
                   ))}
                 </div>
               ) : (
                 <div className="text-center py-20">
-                  <Box className="w-16 h-16 text-os-text-secondary mx-auto mb-4" />
-                  <h3 className="text-os-2xl font-bold mb-2">{t('dashboard.no_active_deals')}</h3>
-                  <p className="text-gray-400 text-os-base mb-6">
+                  <Box className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold mb-2 text-gray-900">{t('dashboard.no_active_deals')}</h3>
+                  <p className="text-gray-500 text-base mb-6">
                     {isSeller ? t('dashboard.no_active_deals_desc_seller') : t('dashboard.no_active_deals_desc_buyer')}
                   </p>
                   <Button
-                    className="bg-os-accent hover:bg-os-accent/90 text-black font-bold rounded-os-sm px-8 h-12"
+                    className="bg-gray-900 hover:bg-gray-800 text-white font-medium rounded-lg px-8 h-12 shadow-sm"
                     onClick={() => navigate(`/${language}/dashboard/rfqs`)}
                   >
                     {t('dashboard.browse_buy_requests')}
@@ -280,36 +274,58 @@ export default function DashboardHome() {
               )}
             </Surface>
           </div>
+
+          {/* A2. GROUP PURCHASES */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-gray-900">Active Group Purchases</h2>
+            </div>
+
+            <Surface variant="panel" className="p-0 overflow-hidden border-blue-100 bg-blue-50/30">
+              <div className="p-8 text-center">
+                <Package className="w-10 h-10 text-blue-500/80 mx-auto mb-3" />
+                <p className="text-lg font-semibold text-gray-900 mb-1">No active group purchases</p>
+                <p className="text-sm text-gray-500 mb-6 max-w-sm mx-auto">Join a group purchase to access better pricing on selected products.</p>
+                <Button
+                  variant="outline"
+                  className="border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700 font-medium"
+                  onClick={() => navigate(`/${language}/marketplace?filter=group-buy`)}
+                >
+                  Browse Pools <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            </Surface>
+          </div>
         </div>
 
         <div className="lg:col-span-4 space-y-10">
           {/* B. MY MONEY - Earnings Card */}
           <div className="space-y-6">
-            <h2 className="text-os-xs font-black uppercase tracking-[0.3em] text-os-muted flex items-center gap-3">
-              <CreditCard className="w-4 h-4 text-emerald-500" />
+            <h2 className="text-sm font-semibold text-gray-400 flex items-center gap-2">
+              <CreditCard className="w-4 h-4 text-emerald-600" />
               {t('dashboard.my_money')}
             </h2>
-            <Surface variant="glass" className="p-8 group relative overflow-hidden bg-emerald-500/[0.02]">
+            <Surface variant="panel" className="p-8 group relative overflow-hidden bg-white hover:border-emerald-500/20 transition-colors">
               <div className="flex items-center justify-between mb-8">
                 <div className="space-y-1">
-                  <div className="text-3xl font-black font-mono">${totalCompletedValue.toLocaleString()}</div>
-                  <div className="text-os-xs font-bold uppercase tracking-widest text-emerald-500">{t('dashboard.balance')}</div>
+                  <div className="text-3xl font-semibold tracking-tight text-gray-900">${totalCompletedValue.toLocaleString()}</div>
+                  <div className="text-sm font-medium text-emerald-600">{t('dashboard.balance')}</div>
                 </div>
               </div>
               <div className="space-y-4">
-                <div className="flex justify-between text-os-xs pb-3 border-b border-os-stroke">
-                  <span className="text-os-text-secondary font-bold uppercase tracking-widest">{t('dashboard.in_escrow')}</span>
-                  <span className="font-black text-os-text-primary tabular-nums font-mono">${totalEscrowValue.toLocaleString()}</span>
+                <div className="flex justify-between text-sm pb-3 border-b border-gray-100">
+                  <span className="text-gray-500 font-medium">{t('dashboard.in_escrow')}</span>
+                  <span className="font-semibold text-gray-900 tabular-nums">${totalEscrowValue.toLocaleString()}</span>
                 </div>
-                <div className="flex justify-between text-os-xs">
-                  <span className="text-os-text-secondary font-bold uppercase tracking-widest">{t('dashboard.earn_hint')}</span>
-                  <span className="font-black text-os-text-primary tabular-nums font-mono">—</span>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500 font-medium">{t('dashboard.earn_hint')}</span>
+                  <span className="font-semibold text-gray-900 tabular-nums">—</span>
                 </div>
               </div>
               <Button
                 onClick={() => navigate(`/${language}/dashboard/payments`)}
                 variant="outline"
-                className="w-full mt-8 border-white/10 bg-white/5 hover:bg-white/10 rounded-os-md py-6 text-os-xs font-black uppercase tracking-widest"
+                className="w-full mt-8 border-gray-200 bg-gray-50 hover:bg-gray-100 rounded-lg py-6 text-xs font-semibold uppercase tracking-wide text-gray-900"
               >
                 {t('dashboard.view_payments')}
               </Button>

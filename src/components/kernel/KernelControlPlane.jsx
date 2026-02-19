@@ -71,7 +71,7 @@ export default function KernelControlPlane({ companyId }) {
   };
 
   return (
-    <Surface variant="glass" className="p-6 border border-os-stroke/60">
+    <Surface variant="panel" className="p-6 border border-os-stroke/60">
       <div className="flex items-center justify-between">
         <div>
           <div className="os-label">Kernel Control Plane</div>

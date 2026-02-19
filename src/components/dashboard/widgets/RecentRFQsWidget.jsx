@@ -24,13 +24,13 @@ function RecentRFQsWidget() {
 
     if (loading) {
         return (
-            <Surface variant="glass" className="p-8 h-full">
+            <Surface variant="panel" className="p-8 h-full">
                 <div className="flex items-center justify-between mb-8">
-                    <div className="h-6 w-40 bg-os-stroke rounded animate-pulse" />
+                    <div className="h-6 w-40 bg-os-stroke rounded opacity-50" />
                 </div>
                 <div className="space-y-6">
                     {[1, 2, 3].map(i => (
-                        <div key={i} className="h-20 bg-os-stroke rounded-os-md animate-pulse" />
+                        <div key={i} className="h-20 bg-os-stroke rounded-os-md opacity-50" />
                     ))}
                 </div>
             </Surface>
@@ -38,7 +38,7 @@ function RecentRFQsWidget() {
     }
 
     return (
-        <Surface variant="glass" className="p-0 overflow-hidden h-full flex flex-col border-none">
+        <Surface variant="panel" className="p-0 overflow-hidden h-full flex flex-col border-none">
             <div className="p-6 border-b border-os-stroke flex items-center justify-between bg-os-surface-solid/30">
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-os-accent/10 rounded-lg">

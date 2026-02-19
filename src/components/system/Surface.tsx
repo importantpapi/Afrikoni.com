@@ -2,7 +2,7 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 import { motion, HTMLMotionProps } from 'framer-motion';
 
-type SurfaceVariant = 'panel' | 'soft' | 'glass' | 'flat' | 'ivory' | 'charcoal';
+type SurfaceVariant = 'panel' | 'soft' | 'flat' | 'ivory' | 'charcoal';
 type GlowIntensity = 'subtle' | 'normal' | 'strong' | 'sapphire' | 'emerald' | 'gold';
 
 interface SurfaceProps extends Omit<HTMLMotionProps<"div">, "onDrag" | "onDragStart" | "onDragEnd" | "onAnimationStart"> {
@@ -12,12 +12,11 @@ interface SurfaceProps extends Omit<HTMLMotionProps<"div">, "onDrag" | "onDragSt
 }
 
 const variantClasses: Record<SurfaceVariant, string> = {
-  panel: 'bg-os-card border border-os-stroke rounded-os-md shadow-os-md',
-  soft: 'bg-os-card/40 border border-os-stroke/50 rounded-os-md shadow-os-sm backdrop-blur-xl',
-  glass: 'glass-surface',
+  panel: 'bg-os-surface-solid border border-os-stroke rounded-os-md shadow-os-md', // Solid white/cream
+  soft: 'bg-os-surface-solid border border-os-stroke/50 rounded-os-md shadow-os-sm',
   flat: 'bg-os-surface-solid border border-os-stroke rounded-os-md',
   ivory: 'bg-os-bg border border-os-stroke rounded-os-lg shadow-os-md',
-  charcoal: 'bg-black/60 backdrop-blur-3xl border border-white/5 rounded-os-lg shadow-os-lg',
+  charcoal: 'bg-zinc-900 border border-white/10 rounded-os-lg shadow-os-lg',
 };
 
 const glowClasses: Record<GlowIntensity, string> = {

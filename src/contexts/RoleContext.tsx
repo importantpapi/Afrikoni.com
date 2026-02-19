@@ -1,7 +1,7 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { useAuth } from '../contexts/AuthProvider';
 
-export type UserRole = 'buyer' | 'seller' | 'hybrid' | 'logistics';
+export type UserRole = 'buyer' | 'seller' | 'hybrid' | 'logistics' | 'agent';
 
 type RoleContextValue = {
   role: UserRole | null;
@@ -11,6 +11,7 @@ type RoleContextValue = {
   isSeller: boolean;
   isHybrid: boolean;
   isLogistics: boolean;
+  isAgent: boolean;
 };
 
 const RoleContext = createContext<RoleContextValue | undefined>(undefined);
@@ -28,6 +29,7 @@ export function RoleProvider({ children }: { children: ReactNode }) {
     isSeller: normalizedRole === 'seller',
     isHybrid: normalizedRole === 'hybrid',
     isLogistics: normalizedRole === 'logistics',
+    isAgent: normalizedRole === 'agent',
   };
 
   return <RoleContext.Provider value={value}>{children}</RoleContext.Provider>;

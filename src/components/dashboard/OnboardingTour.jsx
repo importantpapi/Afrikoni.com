@@ -27,7 +27,7 @@ const TOUR_STEPS = {
     ],
     seller: [
         {
-            title: "Sales Command Center",
+            title: "Sales Dashboard",
             content: "Manage RFQs from global buyers and list your inventory for instant discovery.",
             icon: Target,
             target: "sales-stats"
@@ -78,7 +78,7 @@ export function OnboardingTour({ role = 'buyer', onComplete }) {
                     exit={{ opacity: 0, scale: 0.9, y: 20 }}
                     className="max-w-md w-full"
                 >
-                    <Surface variant="glass" className="p-0 overflow-hidden border-os-accent/30 shadow-[0_32px_120px_rgba(212,169,55,0.15)]">
+                    <Surface variant="panel" className="p-0 overflow-hidden border-os-accent/30 shadow-[0_32px_120px_rgba(212,169,55,0.15)]">
                         {/* Header */}
                         <div className="p-6 bg-gradient-to-br from-os-accent/10 to-transparent border-b border-white/5">
                             <div className="flex items-center justify-between mb-2">

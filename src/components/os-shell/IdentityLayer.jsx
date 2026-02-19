@@ -113,7 +113,7 @@ export function IdentityLayer({
                     href="https://wa.me/233550000000"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="hidden lg:flex items-center gap-2 mr-2 px-3 py-1.5 rounded-full bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366]/20 transition-all border border-[#25D366]/20"
+                    className="hidden lg:flex items-center gap-2 mr-2 px-3 py-1.5 rounded-full bg-white text-[#25D366] hover:bg-green-50 transition-all border border-[#25D366]/20 shadow-sm"
                 >
                     <MessageCircle className="w-3.5 h-3.5" />
                     <span className="text-os-xs font-bold">Support 24/7</span>
@@ -207,7 +207,7 @@ export function IdentityLayer({
                             initial={{ opacity: 0, y: -10, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                            className="fixed w-56 bg-os-surface-solid border border-os-stroke rounded-os-sm shadow-2xl z-[1002] overflow-hidden"
+                            className="fixed w-56 bg-white rounded-xl shadow-lg ring-1 ring-black/5 z-[1002] overflow-hidden"
                             style={{
                                 top: `${menuPosition.top}px`,
                                 right: `${menuPosition.right}px`,
@@ -223,7 +223,7 @@ export function IdentityLayer({
                                     </div>
                                 </div>
                                 {[
-                                    { to: `/${language}/dashboard`, icon: LayoutDashboard, label: 'Command Center' },
+                                    { to: `/${language}/dashboard`, icon: LayoutDashboard, label: 'Dashboard' },
                                     { to: `/${language}/dashboard/settings`, icon: UserIcon, label: 'Profile' },
                                     { to: `/${language}/dashboard/notifications`, icon: MessageSquare, label: 'Trade Signals' },
                                     { to: `/${language}/dashboard/orders`, icon: Package, label: 'Orders' },

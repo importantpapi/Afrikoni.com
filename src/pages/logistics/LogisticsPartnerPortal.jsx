@@ -1,6 +1,6 @@
 /**
  * Logistics Partner Portal
- * 2026 OS-grade command center for logistics partners
+ * 2026 OS-grade logistics operations hub
  */
 
 import React, { useEffect, useMemo, useState } from 'react';

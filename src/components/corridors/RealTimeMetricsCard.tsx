@@ -55,7 +55,7 @@ export function RealTimeMetricsCard<T>({
             : `${Math.floor(minutesAgo / 1440)}d ago`;
 
     return (
-        <Surface variant="glass" className={cn('p-4', className)}>
+        <Surface variant="panel" className={cn('p-4', className)}>
             <div className="space-y-3">
                 {/* Header */}
                 <div className="flex items-start justify-between">

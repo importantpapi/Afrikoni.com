@@ -54,11 +54,27 @@ export default function VerifiedSuppliersSection() {
         .from('companies')
         .select('*')
         .eq('verification_status', 'verified')
+        .neq('company_name', 'My Business Name')
         .order('created_at', { ascending: false })
-        .limit(6);
+        .limit(20); // Fetch more to allow for filtering
 
       if (error) throw error;
-      setSuppliers(data || []);
+
+      // Strict Professionalism Filter
+      const professionalSuppliers = (data || []).filter(supplier => {
+        const name = supplier.company_name || '';
+        const country = supplier.country || '';
+        return (
+          name &&
+          name !== 'My Business Name' &&
+          name.trim().length > 2 &&
+          country &&
+          country !== 'N/A' &&
+          country !== 'null'
+        );
+      }).slice(0, 6);
+
+      setSuppliers(professionalSuppliers);
     } catch (err) {
       console.error('Error loading verified suppliers:', err);
       setSuppliers([]);

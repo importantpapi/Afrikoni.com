@@ -74,14 +74,14 @@ export default function FulfillmentPage() {
             </div>
 
             {error && (
-                <Surface variant="glass" className="p-4 border-destructive/20 bg-destructive/5 text-destructive flex items-center gap-3">
+                <Surface variant="panel" className="p-4 border-destructive/20 bg-destructive/5 text-destructive flex items-center gap-3">
                     <AlertCircle className="w-5 h-5 shrink-0" />
                     <p className="text-sm">{error}</p>
                 </Surface>
             )}
 
             {shipments.length === 0 ? (
-                <Surface variant="glass" className="p-20 flex flex-col items-center justify-center text-center gap-6 border-dashed border-os-stroke">
+                <Surface variant="panel" className="p-20 flex flex-col items-center justify-center text-center gap-6 border-dashed border-os-stroke">
                     <div className="p-6 rounded-full bg-os-surface-2 ring-8 ring-os-surface-1">
                         <Truck className="w-12 h-12 text-os-muted/40" />
                     </div>

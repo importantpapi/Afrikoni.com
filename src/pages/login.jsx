@@ -67,15 +67,15 @@ export default function Login() {
     return redirectUrl && redirectUrl !== createPageUrl('Home', language) ? redirectUrl : `/${language}/dashboard`;
   };
 
-  // Loading state
-  if (typeof ready === 'undefined') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-os-bg via-os-bg to-os-bg flex flex-col items-center justify-center p-6">
-        <div className="w-12 h-12 border-3 border-gray-200 border-t-os-accent rounded-full animate-spin mb-4" />
-        <p className="text-sm text-gray-500 font-medium">Loading...</p>
-      </div>
-    );
-  }
+  // Loading state - removed to prevent deadlock
+  // if (typeof ready === 'undefined') {
+  //   return (
+  //     <div className="min-h-screen bg-gradient-to-br from-os-bg via-os-bg to-os-bg flex flex-col items-center justify-center p-6">
+  //       <div className="w-12 h-12 border-3 border-gray-200 border-t-os-accent rounded-full animate-spin mb-4" />
+  //       <p className="text-sm text-gray-500 font-medium">Loading...</p>
+  //     </div>
+  //   );
+  // }
 
   return (
     <AuthLayout

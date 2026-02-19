@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { calculateTradeFees, estimateFX } from '@/services/revenueEngine';
 import { predictHSCode, calculateDutySavings } from '@/services/taxShield';
-import { scanForLeakage } from '@/services/forensicSentinel';
+import { scanForLeakage } from '@/services/securityMonitor';
 import { useNetworkStatus } from '@/hooks/useNetworkStatus';
 import { secureStorage } from '@/utils/secureStorage';
 
@@ -131,7 +131,7 @@ function tradeReducer(state, action) {
                 ...state,
                 logistics: { ...state.logistics, riskScore: action.payload },
                 advice: {
-                    message: action.payload > 50 ? 'High Risk Detected. Sentinel Protocol Active.' : state.advice.message,
+                    message: action.payload > 50 ? 'High Risk Detected. Security Checks Active.' : state.advice.message,
                     tone: action.payload > 50 ? 'critical' : state.advice.tone
                 }
             };

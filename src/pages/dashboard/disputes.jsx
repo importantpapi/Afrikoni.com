@@ -166,7 +166,7 @@ export default function Disputes() {
 
   return (
     <div className="os-page os-stagger space-y-6">
-      <Surface variant="glass" className="p-6">
+      <Surface variant="panel" className="p-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <div className="os-label">Disputes</div>

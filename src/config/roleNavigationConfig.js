@@ -1,7 +1,7 @@
 import {
     LayoutDashboard, GitBranch, MessageSquare, FileText, ShoppingCart,
     Package, Truck, Wallet, Shield, Settings, HelpCircle, BarChart3,
-    Building, Globe, Landmark, Bell, LogOut, Lock, CheckCircle2
+    Building, Globe, Landmark, Bell, LogOut, Lock, CheckCircle2, Activity
 } from 'lucide-react';
 
 export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple', notificationCounts = {}, isAdmin = false }) => {
@@ -169,6 +169,13 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
                     path: '/dashboard/admin/verifications',
                     icon: CheckCircle2,
                     activeMatch: (path) => path.startsWith('/dashboard/admin/verifications')
+                },
+                {
+                    id: 'admin-platform-health',
+                    label: 'Platform Health',
+                    path: '/dashboard/admin/platform-health',
+                    icon: Activity,
+                    activeMatch: (path) => path.startsWith('/dashboard/admin/platform-health')
                 }
             ].filter(Boolean)
         }
