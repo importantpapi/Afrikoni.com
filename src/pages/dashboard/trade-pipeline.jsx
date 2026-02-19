@@ -163,7 +163,7 @@ export default function TradePipeline() {
 
   return (
     <div className="os-page os-stagger space-y-6 pb-10">
-      <Surface variant="glass" className="p-6 md:p-8">
+      <Surface variant="panel" className="p-6 md:p-8">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <div className="os-label">Infrastructure Monitoring</div>

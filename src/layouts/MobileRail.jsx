@@ -48,7 +48,7 @@ export default function MobileRail({ trade }) {
             </div>
 
             {/* High-Impact Info: No heavy tables */}
-            <Surface variant="glass" className="p-6 border-[#222] bg-[#050505]">
+            <Surface variant="panel" className="p-6 border-[#222] bg-[#050505]">
                 <h3 className="text-os-xs font-black text-[#555] uppercase tracking-widest mb-4">Trade Summary</h3>
                 <div className="space-y-4">
                     <dl className="flex justify-between items-center text-os-sm">

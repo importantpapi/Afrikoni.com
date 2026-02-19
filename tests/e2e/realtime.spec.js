@@ -11,9 +11,71 @@ import { test, expect } from '@playwright/test';
  */
 
 test.describe('Realtime Data Updates', () => {
-    const buyerEmail = 'buyer-test@afrikoni-test.com';
-    const sellerEmail = 'seller-test@afrikoni-test.com';
+    let buyerEmail;
+    let sellerEmail;
     const password = 'TestPassword123!';
+
+    test.beforeAll(async ({ browser }) => {
+        // Create unique emails for this test run
+        const timestamp = Date.now();
+        buyerEmail = `buyer-${timestamp}@afrikoni-test.com`;
+        sellerEmail = `seller-${timestamp}@afrikoni-test.com`;
+
+        const context = await browser.newContext();
+        const page = await context.newPage();
+
+        // Helper to signup a user
+        const signupUser = async (email, name, company) => {
+            await page.goto('/en/signup');
+
+            // Dismiss cookie banner
+            const acceptCookies = page.locator('button:has-text("Accept all"), button:has-text("Accept cookies"), button:has-text("I agree")').first();
+            try {
+                if (await acceptCookies.isVisible({ timeout: 2000 })) {
+                    await acceptCookies.click();
+                }
+            } catch (e) {
+                // Ignore if button not found or already gone
+            }
+
+            await page.fill('input[name="fullName"]', name);
+            await page.fill('input[name="email"]', email);
+            await page.fill('input[name="password"]', password);
+            await page.click('button[type="submit"]');
+
+            // Wait for redirect to dashboard or post-login
+            // Just waiting for the URL to change from signup is enough usually
+            // but let's wait for dashboard to be safe, or just wait for the success toast
+            // The current flow redirects to /auth/post-login then /dashboard
+            try {
+                await page.waitForURL(/\/dashboard/, { timeout: 15000 });
+            } catch (e) {
+                console.log(`Signup redirect timeout for ${email}, proceeding to manual login.`);
+
+                // Go to login
+                await page.goto('/en/login');
+                await page.fill('input[name="email"]', email);
+                await page.fill('input[name="password"]', password);
+                await page.click('button[type="submit"]');
+
+                // Wait for dashboard
+                await page.waitForURL(/\/dashboard/, { timeout: 15000 });
+            }
+
+            // Logout to prepare for next signup
+            await page.goto('/en/logout').catch(() => { });
+            // Or manually clear cookies/storage if logout route doesn't exist
+            await context.clearCookies();
+        };
+
+        console.log('Seeding test users...');
+        await signupUser(buyerEmail, 'Test Buyer', 'Buyer Co');
+        await signupUser(sellerEmail, 'Test Seller', 'Seller Co');
+        console.log('Test users seeded.');
+
+        await page.close();
+        await context.close();
+    });
 
     test('should receive new messages in realtime', async ({ browser }) => {
         // Create two contexts for buyer and seller

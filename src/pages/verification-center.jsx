@@ -21,7 +21,7 @@ import { toast } from 'sonner';
 import { logVerificationEvent } from '@/utils/auditLogger';
 import SEO from '@/components/SEO';
 import { SystemPageHero, SystemPageSection, SystemPageCard, SystemPageCTA } from '@/components/system/SystemPageLayout';
-import { generateHeritageDNA } from '@/services/forensicSentinel';
+import { generateHeritageDNA } from '@/services/securityMonitor';
 
 const verificationSteps = [
   {

@@ -119,7 +119,7 @@ export function TradeKernelHUD() {
   return (
     <>
       <div className="hidden xl:block fixed right-5 top-[104px] w-[320px] z-30">
-        <Surface variant="glass" className="p-4 os-stagger">
+        <Surface variant="panel" className="p-4 os-stagger">
           <div className="flex items-center justify-between">
             <div className="os-label">World State</div>
             <StatusBadge label={riskLevel.toUpperCase()} tone={riskTone} />

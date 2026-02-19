@@ -1,0 +1,133 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - region "Notifications alt+T"
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - banner [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]:
+            - link "Home" [ref=e8] [cursor=pointer]:
+              - /url: /
+              - img [ref=e12]
+            - generic [ref=e21]:
+              - button "Language settings" [ref=e22] [cursor=pointer]:
+                - img [ref=e23]
+              - link "Login" [ref=e26] [cursor=pointer]:
+                - /url: /login
+                - img [ref=e27]
+          - generic [ref=e32]:
+            - img [ref=e33]
+            - textbox "Cashew nuts from Benin" [ref=e36]
+          - generic [ref=e38]:
+            - button "🌾Agriculture" [ref=e39] [cursor=pointer]
+            - button "👔Textiles" [ref=e40] [cursor=pointer]
+            - button "🍫Food" [ref=e41] [cursor=pointer]
+            - button "✨Beauty" [ref=e42] [cursor=pointer]
+            - button "⚙️Manufacturing" [ref=e43] [cursor=pointer]
+      - main [ref=e45]:
+        - generic [ref=e47]:
+          - generic [ref=e48]:
+            - generic [ref=e50]:
+              - link [ref=e52] [cursor=pointer]:
+                - /url: /
+                - img [ref=e56]
+              - heading "Sign In" [level=1] [ref=e65]
+              - paragraph [ref=e66]: Authorized access to the Trade Operating System.
+            - generic [ref=e68]:
+              - button "Sign in with Google" [ref=e69] [cursor=pointer]:
+                - img [ref=e70]
+                - generic [ref=e75]: Google
+              - generic [ref=e79]: Or continue with email
+              - generic [ref=e80]:
+                - generic [ref=e81]:
+                  - text: Email Identifier
+                  - textbox "name@company.com" [ref=e82]
+                - generic [ref=e83]:
+                  - generic [ref=e84]:
+                    - generic [ref=e85]: Passcode
+                    - link "Recover Access" [ref=e86] [cursor=pointer]:
+                      - /url: /en/forgot-password
+                  - generic [ref=e87]:
+                    - textbox "••••••••••••" [ref=e88]
+                    - button "Show password" [ref=e89] [cursor=pointer]:
+                      - img [ref=e90]
+                - button "Authorize Access" [ref=e93] [cursor=pointer]
+            - generic [ref=e95]:
+              - text: New to the network?
+              - link "Initialize Account" [ref=e96] [cursor=pointer]:
+                - /url: /en/signup
+          - generic [ref=e97]:
+            - generic [ref=e98]: © 2026 Afrikoni
+            - link "Privacy" [ref=e100] [cursor=pointer]:
+              - /url: /terms
+            - link "Security" [ref=e101] [cursor=pointer]:
+              - /url: /security
+      - navigation "Main navigation" [ref=e102]:
+        - generic [ref=e103]:
+          - link "Home" [ref=e104] [cursor=pointer]:
+            - /url: /
+            - img [ref=e106]
+            - generic [ref=e109]: Home
+          - link "Browse" [ref=e110] [cursor=pointer]:
+            - /url: /marketplace
+            - img [ref=e112]
+            - generic [ref=e115]: Browse
+          - link "RFQ" [ref=e116] [cursor=pointer]:
+            - /url: /rfq/create-mobile
+            - img [ref=e118]
+            - generic [ref=e119]: RFQ
+          - link "Messages" [ref=e120] [cursor=pointer]:
+            - /url: /login
+            - img [ref=e122]
+            - generic [ref=e124]: Messages
+          - link "Login" [ref=e125] [cursor=pointer]:
+            - /url: /login
+            - img [ref=e127]
+            - generic [ref=e130]: Login
+      - dialog "Afrikoni respects your privacy" [ref=e131]:
+        - generic [ref=e133]:
+          - generic [ref=e134]:
+            - img [ref=e136]
+            - generic [ref=e138]:
+              - heading "Afrikoni respects your privacy" [level=3] [ref=e139]
+              - paragraph [ref=e140]:
+                - text: Afrikoni and 3rd parties use essential and non-essential cookies to provide, secure, analyze and improve our Services, and to show you relevant ads (including professional and job ads) on and off Afrikoni.
+                - link "Learn more about our cookie policy" [ref=e141] [cursor=pointer]:
+                  - /url: /cookie-policy
+                  - text: Learn more in our Cookie Policy.
+              - paragraph [ref=e142]: Select Accept to consent or Reject to decline non-essential cookies for this use. You can update your choices at any time in your settings.
+              - generic [ref=e143]:
+                - link "Privacy Policy" [ref=e144] [cursor=pointer]:
+                  - /url: /legal/privacy
+                - generic [ref=e145]: •
+                - link "Cookie Policy" [ref=e146] [cursor=pointer]:
+                  - /url: /cookie-policy
+          - generic [ref=e147]:
+            - button "Reject" [ref=e149] [cursor=pointer]
+            - button "Customize" [ref=e151] [cursor=pointer]
+            - button "Accept All" [ref=e153] [cursor=pointer]
+    - dialog "Afrikoni respects your privacy" [ref=e154]:
+      - generic [ref=e156]:
+        - generic [ref=e157]:
+          - img [ref=e159]
+          - generic [ref=e161]:
+            - heading "Afrikoni respects your privacy" [level=3] [ref=e162]
+            - paragraph [ref=e163]:
+              - text: Afrikoni and 3rd parties use essential and non-essential cookies to provide, secure, analyze and improve our Services, and to show you relevant ads (including professional and job ads) on and off Afrikoni.
+              - link "Learn more about our cookie policy" [ref=e164] [cursor=pointer]:
+                - /url: /cookie-policy
+                - text: Learn more in our Cookie Policy.
+            - paragraph [ref=e165]: Select Accept to consent or Reject to decline non-essential cookies for this use. You can update your choices at any time in your settings.
+            - generic [ref=e166]:
+              - link "Privacy Policy" [ref=e167] [cursor=pointer]:
+                - /url: /legal/privacy
+              - generic [ref=e168]: •
+              - link "Cookie Policy" [ref=e169] [cursor=pointer]:
+                - /url: /cookie-policy
+        - generic [ref=e170]:
+          - button "Reject" [ref=e172] [cursor=pointer]
+          - button "Customize" [ref=e174] [cursor=pointer]
+          - button "Accept All" [ref=e176] [cursor=pointer]
+```

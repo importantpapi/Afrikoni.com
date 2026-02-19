@@ -13,14 +13,14 @@ import React from 'react';
  * @param {string|number} props.width - Width of skeleton
  * @param {string|number} props.height - Height of skeleton
  */
-export const SkeletonLoader = ({ 
-  className = '', 
+export const SkeletonLoader = ({
+  className = '',
   variant = 'rectangular',
   width,
-  height 
+  height
 }) => {
-  const baseClasses = 'animate-pulse bg-gray-200';
-  
+  const baseClasses = 'opacity-50 bg-gray-200';
+
   const variantClasses = {
     rectangular: 'rounded',
     circular: 'rounded-full',
@@ -32,7 +32,7 @@ export const SkeletonLoader = ({
   if (height) style.height = height;
 
   return (
-    <div 
+    <div
       className={`${baseClasses} ${variantClasses[variant]} ${className}`}
       style={style}
     />
@@ -78,7 +78,7 @@ export const TableSkeleton = ({ rows = 5, columns = 4 }) => {
           <SkeletonLoader key={i} className="h-4 flex-1" />
         ))}
       </div>
-      
+
       {/* Rows */}
       {Array.from({ length: rows }).map((_, rowIndex) => (
         <div key={rowIndex} className="p-4 border-b flex gap-4">

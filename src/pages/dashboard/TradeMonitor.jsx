@@ -144,7 +144,7 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
 
             <div className="os-stat-grid">
                 {stats.map((stat) => (
-                    <Surface key={stat.label} variant="glass" className="p-6 flex flex-col gap-2 border-os-stroke/40">
+                    <Surface key={stat.label} variant="panel" className="p-6 flex flex-col gap-2 border-os-stroke/40">
                         <stat.icon className={cn("h-5 w-5 opacity-60", stat.color)} />
                         <div>
                             <div className="os-label">{stat.label}</div>

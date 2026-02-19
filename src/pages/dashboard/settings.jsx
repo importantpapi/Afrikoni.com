@@ -608,7 +608,7 @@ export default function DashboardSettings() {
 
           <TabsContent value="profile" className="space-y-6">
             {/* Identity Surface */}
-            <Surface variant="glass" className="overflow-hidden p-0 rounded-[2rem] border border-gray-200 shadow-xl bg-white/60 backdrop-blur-3xl">
+            <Surface variant="panel" className="overflow-hidden p-0 rounded-[2rem] border border-gray-200 shadow-xl bg-white/60 backdrop-blur-3xl">
               <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50/50 to-transparent p-8">
                 <div className="flex items-center gap-4 text-os-xl font-black text-os-text-primary uppercase tracking-tighter">
                   <div className="p-3 rounded-os-md bg-os-accent/10 border border-os-accent/30">
@@ -780,7 +780,7 @@ export default function DashboardSettings() {
           </TabsContent>
 
           <TabsContent value="company" className="space-y-6">
-            <Surface variant="glass" className="overflow-hidden p-0 rounded-[2rem] border border-gray-200 shadow-xl bg-white/60 backdrop-blur-3xl">
+            <Surface variant="panel" className="overflow-hidden p-0 rounded-[2rem] border border-gray-200 shadow-xl bg-white/60 backdrop-blur-3xl">
               <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50/50 to-transparent p-8">
                 <div className="flex items-center gap-4 text-os-xl font-black text-os-text-primary uppercase tracking-tighter">
                   <div className="p-3 rounded-os-md bg-os-accent/10 border border-os-accent/30">
@@ -957,7 +957,7 @@ export default function DashboardSettings() {
           </TabsContent>
 
           <TabsContent value="role" className="space-y-6">
-            <Surface variant="glass" className="overflow-hidden p-0 rounded-[2rem] border border-gray-200 shadow-xl bg-white/60 backdrop-blur-3xl">
+            <Surface variant="panel" className="overflow-hidden p-0 rounded-[2rem] border border-gray-200 shadow-xl bg-white/60 backdrop-blur-3xl">
               <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50/50 to-transparent p-8">
                 <div className="flex items-center gap-4 text-os-xl font-black text-os-text-primary uppercase tracking-tighter">
                   <div className="p-3 rounded-os-md bg-os-accent/10 border border-os-accent/30">
@@ -1110,7 +1110,7 @@ export default function DashboardSettings() {
           </TabsContent>
 
           <TabsContent value="notifications" className="space-y-6">
-            <Surface variant="glass" className="overflow-hidden p-0 rounded-[2rem] border border-gray-200 shadow-xl bg-white/60 backdrop-blur-3xl">
+            <Surface variant="panel" className="overflow-hidden p-0 rounded-[2rem] border border-gray-200 shadow-xl bg-white/60 backdrop-blur-3xl">
               <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50/50 to-transparent p-8">
                 <div className="flex items-center gap-4 text-os-xl font-black text-os-text-primary uppercase tracking-tighter">
                   <div className="p-3 rounded-os-md bg-os-accent/10 border border-os-accent/30">
@@ -1177,7 +1177,7 @@ export default function DashboardSettings() {
           </TabsContent>
 
           <TabsContent value="security" className="space-y-6">
-            <Surface variant="glass" className="overflow-hidden p-0 rounded-[2rem] border border-gray-200 shadow-xl bg-white/60 backdrop-blur-3xl">
+            <Surface variant="panel" className="overflow-hidden p-0 rounded-[2rem] border border-gray-200 shadow-xl bg-white/60 backdrop-blur-3xl">
               <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50/50 to-transparent p-8">
                 <div className="flex items-center gap-4 text-os-xl font-black text-os-text-primary uppercase tracking-tighter">
                   <div className="p-3 rounded-os-md bg-red-400/10 border border-red-400/30">
@@ -1293,7 +1293,7 @@ export default function DashboardSettings() {
           </TabsContent>
 
           <TabsContent value="system" className="space-y-6">
-            <Surface variant="glass" className="overflow-hidden p-0 rounded-[2rem] border border-gray-200 shadow-xl bg-white/60 backdrop-blur-3xl">
+            <Surface variant="panel" className="overflow-hidden p-0 rounded-[2rem] border border-gray-200 shadow-xl bg-white/60 backdrop-blur-3xl">
               <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50/50 to-transparent p-8">
                 <div className="flex items-center gap-4 text-os-xl font-black text-os-text-primary uppercase tracking-tighter">
                   <div className="p-3 rounded-os-md bg-blue-500/20 backdrop-blur-sm border border-os-blue/20">
@@ -1310,9 +1310,9 @@ export default function DashboardSettings() {
 
                   <div className="relative flex flex-col md:flex-row items-center gap-10">
                     <div className="relative">
-                      <div className="absolute inset-0 bg-blue-500/20 blur-3xl animate-pulse" />
+                      <div className="absolute inset-0 bg-blue-500/20 blur-3xl" />
                       <div className="relative w-24 h-24 rounded-full border-4 border-os-blue/20 flex items-center justify-center">
-                        <Activity className="w-10 h-10 text-blue-400 animate-pulse" />
+                        <Activity className="w-10 h-10 text-blue-400" />
                       </div>
                     </div>
 

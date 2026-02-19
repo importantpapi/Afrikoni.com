@@ -108,8 +108,19 @@ export function AuthProvider({ children }) {
           }
 
           // ⚡ PERFORMANCE HARDENING: Zero-Zero Hydra Handshake
-          const { data: handshake, error: handshakeError } = await supabase
-            .rpc('get_institutional_handshake');
+          // Race the RPC against a 5s timeout to prevent boot hangs
+          const handshakePromise = supabase.rpc('get_institutional_handshake');
+          const timeoutPromise = new Promise(resolve =>
+            setTimeout(() => resolve({
+              data: null,
+              error: { message: 'Handshake timeout (5s limit exceeded)' }
+            }), 5000)
+          );
+
+          const { data: handshake, error: handshakeError } = await Promise.race([
+            handshakePromise,
+            timeoutPromise
+          ]);
 
           if (handshakeError) {
             logger.error('Handshake failed, falling back to legacy hydration', handshakeError);
@@ -236,6 +247,7 @@ export function AuthProvider({ children }) {
       role,
       authReady,
       loading,
+      hasUser: !!user,
       isRestricted: user ? !user.email_confirmed_at : false,
       handshakeData,
       refreshProfile,

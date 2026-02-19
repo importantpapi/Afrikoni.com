@@ -24,7 +24,7 @@ import { AIDescriptionService } from '@/components/services/AIDescriptionService
 import { useLanguage } from '@/i18n/LanguageContext';
 import { generateBuyerInquiry } from '@/ai/aiFunctions';
 import OffPlatformDisclaimer from '@/components/OffPlatformDisclaimer';
-import { scanForLeakage, SECURITY_ALERT } from '@/services/forensicSentinel';
+import { scanForLeakage, SECURITY_ALERT } from '@/services/securityMonitor';
 import { Surface } from '@/components/system/Surface';
 import EmptyState from '@/components/shared/ui/EmptyState';
 import { cn } from '@/lib/utils';
@@ -833,36 +833,36 @@ export default function MessagesPremium() {
 
       {/* FORENSIC SENTINEL: Security Alert Modal */}
       {leakageWarning && (
-          <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 backdrop-blur-2xl">
-            <Surface variant="glass" className="border-red-500/30 rounded-[2rem] max-w-md w-full p-10 text-center shadow-2xl shadow-red-900/40 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-red-600 via-orange-500 to-red-600" />
-              <div className="w-20 h-20 rounded-os-lg bg-os-red/10 border border-os-red/20 flex items-center justify-center mx-auto mb-6 shadow-os-lg shadow-red-500/5">
-                <Shield className="w-10 h-10 text-os-red" />
-              </div>
-              <h3 className="text-os-2xl font-black tracking-tight mb-3 italic">{leakageWarning.title}</h3>
-              <p className="text-os-muted mb-8 leading-relaxed font-medium">
-                {leakageWarning.message}
-              </p>
-              <div className="flex flex-col gap-4">
-                <Button
-                  className="w-full bg-white text-black hover:bg-white/90 font-bold py-4 rounded-lg shadow-lg"
-                  onClick={() => setLeakageWarning(null)}
-                >
-                  Edit My Message
-                </Button>
-                <button
-                  className="text-xs text-red-500/70 hover:text-red-400 font-semibold underline"
-                  onClick={() => {
-                    setLeakageWarning(null);
-                    handleSendMessage(true);
-                  }}
-                >
-                  Send Anyway (I understand the risk)
-                </button>
-              </div>
-            </Surface>
-          </div>
-        )}
+        <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 backdrop-blur-2xl">
+          <Surface variant="panel" className="border-red-500/30 rounded-[2rem] max-w-md w-full p-10 text-center shadow-2xl shadow-red-900/40 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-red-600 via-orange-500 to-red-600" />
+            <div className="w-20 h-20 rounded-os-lg bg-os-red/10 border border-os-red/20 flex items-center justify-center mx-auto mb-6 shadow-os-lg shadow-red-500/5">
+              <Shield className="w-10 h-10 text-os-red" />
+            </div>
+            <h3 className="text-os-2xl font-black tracking-tight mb-3 italic">{leakageWarning.title}</h3>
+            <p className="text-os-muted mb-8 leading-relaxed font-medium">
+              {leakageWarning.message}
+            </p>
+            <div className="flex flex-col gap-4">
+              <Button
+                className="w-full bg-white text-black hover:bg-white/90 font-bold py-4 rounded-lg shadow-lg"
+                onClick={() => setLeakageWarning(null)}
+              >
+                Edit My Message
+              </Button>
+              <button
+                className="text-xs text-red-500/70 hover:text-red-400 font-semibold underline"
+                onClick={() => {
+                  setLeakageWarning(null);
+                  handleSendMessage(true);
+                }}
+              >
+                Send Anyway (I understand the risk)
+              </button>
+            </div>
+          </Surface>
+        </div>
+      )}
 
       {/* Header Area */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 shrink-0">
@@ -906,7 +906,7 @@ export default function MessagesPremium() {
           animate={{ opacity: 1, x: 0 }}
           className={cn("w-full lg:w-[400px] flex flex-col gap-6 shrink-0", selectedConversation ? 'hidden lg:flex' : 'flex')}
         >
-          <Surface variant="glass" className="flex-1 flex flex-col p-0 overflow-hidden relative">
+          <Surface variant="panel" className="flex-1 flex flex-col p-0 overflow-hidden relative">
             <div className="p-5 border-b border-os-stroke">
               <h3 className="text-sm font-semibold text-os-text-secondary mb-4">Conversations</h3>
               <div className="relative group">
@@ -970,7 +970,7 @@ export default function MessagesPremium() {
           animate={{ opacity: 1, x: 0 }}
           className={cn("flex-1 flex gap-8 min-w-0", selectedConversation ? 'flex' : 'hidden lg:flex')}
         >
-          <Surface variant="glass" className="flex-1 flex flex-col p-0 overflow-hidden relative border-os-stroke shadow-massive">
+          <Surface variant="panel" className="flex-1 flex flex-col p-0 overflow-hidden relative border-os-stroke shadow-massive">
             {selectedConversation && selectedConv ? (
               <>
                 <div className="p-6 border-b border-os-stroke flex items-center justify-between relative overflow-hidden">
@@ -1190,7 +1190,7 @@ export default function MessagesPremium() {
 
           {/* AI Strategic Intelligence Panel */}
           {selectedConversation && selectedConv && (
-            <Surface variant="glass" className="hidden xl:flex flex-col w-[350px] shrink-0 p-0 border-os-stroke bg-white/[0.01]">
+            <Surface variant="panel" className="hidden xl:flex flex-col w-[350px] shrink-0 p-0 border-os-stroke bg-white/[0.01]">
               <div className="p-8 border-b border-os-stroke bg-white/[0.02]">
                 <div className="flex items-center gap-4 mb-6">
                   <div className="w-10 h-10 rounded-os-md bg-os-accent/10 border border-os-accent/20 flex items-center justify-center">

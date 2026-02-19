@@ -1,0 +1,101 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - region "Notifications alt+T"
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - banner [ref=e5]:
+        - generic [ref=e6]:
+          - generic [ref=e7]:
+            - link "Home" [ref=e8] [cursor=pointer]:
+              - /url: /
+              - img [ref=e12]
+            - generic [ref=e21]:
+              - button "Language settings" [ref=e22] [cursor=pointer]:
+                - img [ref=e23]
+              - link "Login" [ref=e26] [cursor=pointer]:
+                - /url: /login
+                - img [ref=e27]
+          - generic [ref=e32]:
+            - img [ref=e33]
+            - textbox "Cotton fabric from Mali" [ref=e36]
+          - generic [ref=e38]:
+            - button "🌾Agriculture" [ref=e39] [cursor=pointer]
+            - button "👔Textiles" [ref=e40] [cursor=pointer]
+            - button "🍫Food" [ref=e41] [cursor=pointer]
+            - button "✨Beauty" [ref=e42] [cursor=pointer]
+            - button "⚙️Manufacturing" [ref=e43] [cursor=pointer]
+      - main [ref=e45]:
+        - generic [ref=e46]:
+          - img [ref=e47]
+          - heading "Connection Interrupted" [level=3] [ref=e54]
+          - paragraph [ref=e55]: The connection to the dashboard interface was lost or interrupted.
+          - button "Retry Connection" [ref=e56] [cursor=pointer]
+      - navigation "Main navigation" [ref=e57]:
+        - generic [ref=e58]:
+          - link "Home" [ref=e59] [cursor=pointer]:
+            - /url: /
+            - img [ref=e61]
+            - generic [ref=e64]: Home
+          - link "Browse" [ref=e65] [cursor=pointer]:
+            - /url: /marketplace
+            - img [ref=e67]
+            - generic [ref=e70]: Browse
+          - link "RFQ" [ref=e71] [cursor=pointer]:
+            - /url: /rfq/create-mobile
+            - img [ref=e73]
+            - generic [ref=e74]: RFQ
+          - link "Messages" [ref=e75] [cursor=pointer]:
+            - /url: /login
+            - img [ref=e77]
+            - generic [ref=e79]: Messages
+          - link "Login" [ref=e80] [cursor=pointer]:
+            - /url: /login
+            - img [ref=e82]
+            - generic [ref=e85]: Login
+      - dialog "Afrikoni respects your privacy" [ref=e86]:
+        - generic [ref=e88]:
+          - generic [ref=e89]:
+            - img [ref=e91]
+            - generic [ref=e93]:
+              - heading "Afrikoni respects your privacy" [level=3] [ref=e94]
+              - paragraph [ref=e95]:
+                - text: Afrikoni and 3rd parties use essential and non-essential cookies to provide, secure, analyze and improve our Services, and to show you relevant ads (including professional and job ads) on and off Afrikoni.
+                - link "Learn more about our cookie policy" [ref=e96] [cursor=pointer]:
+                  - /url: /cookie-policy
+                  - text: Learn more in our Cookie Policy.
+              - paragraph [ref=e97]: Select Accept to consent or Reject to decline non-essential cookies for this use. You can update your choices at any time in your settings.
+              - generic [ref=e98]:
+                - link "Privacy Policy" [ref=e99] [cursor=pointer]:
+                  - /url: /legal/privacy
+                - generic [ref=e100]: •
+                - link "Cookie Policy" [ref=e101] [cursor=pointer]:
+                  - /url: /cookie-policy
+          - generic [ref=e102]:
+            - button "Reject" [ref=e104] [cursor=pointer]
+            - button "Customize" [ref=e106] [cursor=pointer]
+            - button "Accept All" [ref=e108] [cursor=pointer]
+    - dialog "Afrikoni respects your privacy" [ref=e109]:
+      - generic [ref=e111]:
+        - generic [ref=e112]:
+          - img [ref=e114]
+          - generic [ref=e116]:
+            - heading "Afrikoni respects your privacy" [level=3] [ref=e117]
+            - paragraph [ref=e118]:
+              - text: Afrikoni and 3rd parties use essential and non-essential cookies to provide, secure, analyze and improve our Services, and to show you relevant ads (including professional and job ads) on and off Afrikoni.
+              - link "Learn more about our cookie policy" [ref=e119] [cursor=pointer]:
+                - /url: /cookie-policy
+                - text: Learn more in our Cookie Policy.
+            - paragraph [ref=e120]: Select Accept to consent or Reject to decline non-essential cookies for this use. You can update your choices at any time in your settings.
+            - generic [ref=e121]:
+              - link "Privacy Policy" [ref=e122] [cursor=pointer]:
+                - /url: /legal/privacy
+              - generic [ref=e123]: •
+              - link "Cookie Policy" [ref=e124] [cursor=pointer]:
+                - /url: /cookie-policy
+        - generic [ref=e125]:
+          - button "Reject" [ref=e127] [cursor=pointer]
+          - button "Customize" [ref=e129] [cursor=pointer]
+          - button "Accept All" [ref=e131] [cursor=pointer]
+```

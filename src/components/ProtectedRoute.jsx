@@ -11,12 +11,12 @@ import React from 'react';
 import { Navigate, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthProvider';
 import { isAdmin } from '@/utils/permissions';
-// PHASE 4: Removed getDashboardRoute import (no longer using role-based routing)
 import { toast } from 'sonner';
 import { LoadingScreen } from '@/components/shared/ui/LoadingScreen';
 import AccessDenied from './AccessDenied';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { useCapability } from '@/contexts/CapabilityContext';
+import { useLanguage } from '@/i18n/LanguageContext';
 
 /**
  * Protects a route - requires authentication
@@ -32,18 +32,15 @@ export const ProtectedRoute = ({ children, requireAdmin: needsAdmin = false, req
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
+  const { language } = useLanguage();
 
-  // ✅ KERNEL GUARD DEPLOYMENT: Show "Synchronizing World" if Kernel is pre-warming
-  // This prevents child components from attempting to load data before Kernel is ready
-  // ✅ FIX: Use useEffect for navigation to prevent render-time side effects
   React.useEffect(() => {
-    // Only redirect if auth is fully ready and we can make a definitive decision
     if (authReady && !loading && capabilities?.ready) {
 
       // 1. Redirect to login if not authenticated
       if (!user) {
         const next = searchParams.get('next') || location.pathname + location.search;
-        navigate(`/login?next=${encodeURIComponent(next)}`);
+        navigate(`/${language}/login?next=${encodeURIComponent(next)}`);
         toast.error('Please log in to continue', { duration: 3000 });
         return;
       }
@@ -105,17 +102,17 @@ export const ProtectedRoute = ({ children, requireAdmin: needsAdmin = false, req
  */
 export const GuestOnlyRoute = ({ children }) => {
   const { user, profile, authReady, loading } = useAuth();
+  const { language } = useLanguage();
 
   if (!authReady || loading) {
     return <LoadingScreen message="Loading..." />;
   }
 
   if (user) {
-    // PHASE 4: Navigate to dashboard if company_id exists, else onboarding
     if (profile?.company_id) {
-      return <Navigate to="/dashboard" replace />;
+      return <Navigate to={`/${language}/dashboard`} replace />;
     }
-    return <Navigate to="/onboarding/company" replace />;
+    return <Navigate to={`/${language}/onboarding/company`} replace />;
   }
 
   return <>{children}</>;

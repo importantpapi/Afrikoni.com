@@ -31,7 +31,7 @@ class TradeOSErrorBoundary extends React.Component {
         if (this.state.hasError) {
             // Custom fallback UI
             return (
-                <Surface variant="glass" className="p-6 border border-os-red/20 bg-red-500/5 flex flex-col items-center justify-center text-center h-full min-h-[200px]">
+                <Surface variant="panel" className="p-6 border border-os-red/20 bg-red-500/5 flex flex-col items-center justify-center text-center h-full min-h-[200px]">
                     <div className="w-10 h-10 rounded-full bg-red-500/20 flex items-center justify-center mb-3">
                         <AlertTriangle className="w-5 h-5 text-os-red" />
                     </div>

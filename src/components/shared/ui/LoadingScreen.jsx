@@ -1,65 +1,44 @@
 import React from 'react';
-import { Loader2, Zap } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Logo } from '@/components/shared/ui/Logo';
 
 /**
- * Unified Loading Screen Component (Horizon 2026)
- * Used across the app for consistent loading states during auth and kernel transitions
+ * Unified Loading Screen Component
+ * Clean, institutional — calm white background, simple spinner.
  */
 export const LoadingScreen = ({
-  message = 'Initializing...',
+  message = 'Loading...',
   showLogo = true,
   size = 'lg'
 }) => {
   return (
-    <div className="min-h-screen bg-[#0A0A0B] flex items-center justify-center py-12 px-4 relative overflow-hidden">
-      {/* 🎬 CINEMATIC DEPTH: Ambient Background Blobs */}
-      <div className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-os-accent/5 rounded-full blur-[120px] animate-pulse" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-os-accent/5 rounded-full blur-[100px] animate-pulse delay-1000" />
-
-      {/* Grid Grain Overlay */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
-
-      <div className="w-full max-w-md text-center z-10">
+    <div className="min-h-screen bg-os-bg flex items-center justify-center py-12 px-4">
+      <div className="w-full max-w-md text-center">
         {showLogo && (
           <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
             className="flex justify-center mb-10"
           >
-            <div className="p-4 bg-os-accent/5 rounded-os-md border border-os-accent/10 backdrop-blur-md">
-              <Logo type="symbol" size={size} />
-            </div>
+            <Logo type="symbol" size={size} />
           </motion.div>
         )}
 
-        <div className="relative mb-8 flex justify-center">
-          <div className="absolute inset-0 animate-ping bg-os-accent/10 rounded-full blur-xl scale-50" />
-          <Loader2 className="w-12 h-12 animate-spin text-os-accent relative z-10" />
+        <div className="flex justify-center mb-8">
+          <Loader2 className="w-8 h-8 animate-spin text-os-accent" />
         </div>
 
         <motion.div
-          initial={{ opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.15, duration: 0.4 }}
         >
-          <p className="text-os-text-primary text-os-xs font-black uppercase tracking-[0.4em] leading-relaxed">
+          <p className="text-sm text-gray-500 font-medium">
             {message}
           </p>
-          <div className="mt-6 flex justify-center gap-1">
-            <span className="w-1 h-1 rounded-full bg-os-accent/40 animate-bounce [animation-delay:-0.3s]" />
-            <span className="w-1 h-1 rounded-full bg-os-accent/40 animate-bounce [animation-delay:-0.15s]" />
-            <span className="w-1 h-1 rounded-full bg-os-accent/40 animate-bounce" />
-          </div>
         </motion.div>
-      </div>
-
-      <div className="absolute bottom-12 left-0 right-0 text-center">
-        <p className="text-os-text-secondary/10 text-os-xs font-black uppercase tracking-[0.6em] select-none">
-          Infrastructure-Grade Trade OS
-        </p>
       </div>
     </div>
   );

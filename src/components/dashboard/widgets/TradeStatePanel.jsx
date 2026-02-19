@@ -3,7 +3,7 @@ import { Surface } from '@/components/system/Surface';
 
 export const TradeStatePanel = ({ label, value, subtext, icon: Icon, tone = 'neutral', onClick }) => (
     <Surface
-        variant="glass"
+        variant="panel"
         className={`
       p-5 flex flex-col justify-between h-[140px] relative overflow-hidden group cursor-pointer border border-white/5 hover:border-white/10 transition-all
       ${onClick ? 'hover:bg-white/5' : ''}
@@ -21,7 +21,7 @@ export const TradeStatePanel = ({ label, value, subtext, icon: Icon, tone = 'neu
       `}>
                 <Icon className="w-4 h-4" />
             </div>
-            {tone === 'bad' && <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />}
+            {tone === 'bad' && <div className="w-2 h-2 rounded-full bg-red-500 opacity-50" />}
         </div>
 
         <div className="z-10">

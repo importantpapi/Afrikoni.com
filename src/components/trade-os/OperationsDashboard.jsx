@@ -1,9 +1,9 @@
 /**
  * ============================================================================
- * CONTROL PLANE DASHBOARD - Trade System Overview
+ * OPERATIONS DASHBOARD - Trade System Overview
  * ============================================================================
  * 
- * This is the main Control Plane view that shows the complete system state.
+ * This is the main Operations view that shows the complete system state.
  * Think of it as "Mission Control" for trade operations.
  */
 
@@ -16,7 +16,7 @@ import { Badge } from '@/components/shared/ui/badge';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 
-const ControlPlaneMetric = ({ icon: Icon, label, value, max, status, tooltip, onClick }) => {
+const OperationsMetric = ({ icon: Icon, label, value, max, status, tooltip, onClick }) => {
     const percentage = max ? (value / max) * 100 : value;
 
     const statusColors = {
@@ -33,7 +33,7 @@ const ControlPlaneMetric = ({ icon: Icon, label, value, max, status, tooltip, on
             onClick={onClick}
             className="group relative p-4 bg-gradient-to-br from-white to-gray-50 rounded-os-sm 
                  border border-gray-200 hover:border-os-accent/40 
-                 transition-all hover:shadow-os-md"
+                 transition-all hover:shadow-os-md text-left w-full h-full flex flex-col"
         >
             {/* Icon */}
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-os-accent/20 to-os-accent/10
@@ -47,14 +47,14 @@ const ControlPlaneMetric = ({ icon: Icon, label, value, max, status, tooltip, on
             </div>
 
             {/* Value */}
-            <div className="text-os-2xl font-bold text-afrikoni-deep mb-3">
+            <div className="text-os-2xl font-bold text-afrikoni-deep mb-3 flex-1">
                 {typeof value === 'number' ? value : value}
                 {max && <span className="text-os-sm text-gray-400">/{max}</span>}
             </div>
 
             {/* Progress Bar */}
             {max && (
-                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
+                <div className="h-2 bg-gray-200 rounded-full overflow-hidden w-full mt-auto">
                     <div
                         className={cn("h-full bg-gradient-to-r transition-all", statusColors[status])}
                         style={{ width: `${percentage}%` }}
@@ -63,19 +63,21 @@ const ControlPlaneMetric = ({ icon: Icon, label, value, max, status, tooltip, on
             )}
 
             {/* Status Badge */}
-            {!max && (
-                <Badge variant={status === 'good' || status === 'low' ? 'success' :
-                    status === 'warning' || status === 'medium' ? 'warning' : 'destructive'}>
-                    {status}
-                </Badge>
+            {!max && status && (
+                <div className="mt-auto">
+                    <Badge variant={status === 'good' || status === 'low' ? 'success' :
+                        status === 'warning' || status === 'medium' ? 'warning' : 'destructive'}>
+                        {status}
+                    </Badge>
+                </div>
             )}
 
             {/* Tooltip */}
             {tooltip && (
                 <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 
                         opacity-0 group-hover:opacity-100 transition-opacity
-                        pointer-events-none">
-                    <div className="bg-gray-900 text-white text-os-xs rounded-lg px-3 py-2 whitespace-nowrap">
+                        pointer-events-none z-10">
+                    <div className="bg-gray-900 text-white text-os-xs rounded-lg px-3 py-2 whitespace-nowrap shadow-lg">
                         {tooltip}
                     </div>
                 </div>
@@ -99,7 +101,7 @@ const BlockerCard = ({ blocker, onResolve }) => {
         low: AlertTriangle,
     };
 
-    const Icon = severityIcons[blocker.severity];
+    const Icon = severityIcons[blocker.severity] || AlertTriangle;
 
     return (
         <div className={cn(
@@ -138,7 +140,7 @@ const BlockerCard = ({ blocker, onResolve }) => {
                             <Button
                                 size="sm"
                                 onClick={() => onResolve(blocker)}
-                                className="bg-os-accent hover:bg-os-accent/90 text-black"
+                                className="bg-os-accent hover:bg-os-accent/90 text-black h-8"
                             >
                                 Resolve
                             </Button>
@@ -150,7 +152,7 @@ const BlockerCard = ({ blocker, onResolve }) => {
     );
 };
 
-export const ControlPlaneDashboard = ({ systemState }) => {
+export const OperationsDashboard = ({ systemState }) => {
     const navigate = useNavigate();
 
     if (!systemState) {
@@ -182,7 +184,7 @@ export const ControlPlaneDashboard = ({ systemState }) => {
             </div>
 
             {/* Overall Readiness */}
-            <Surface className="p-6 border border-os-accent/10">
+            <Surface variant="soft" className="p-6 border border-os-accent/10">
                 <div className="flex items-center justify-between mb-6">
                     <div>
                         <h3 className="text-os-sm font-bold uppercase tracking-wider text-gray-700 mb-1">
@@ -267,8 +269,8 @@ export const ControlPlaneDashboard = ({ systemState }) => {
             </Surface>
 
             {/* Control Metrics */}
-            <div className="grid grid-cols-4 gap-4">
-                <ControlPlaneMetric
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <OperationsMetric
                     icon={Shield}
                     label="Account Security"
                     value={trust.counterpartyScore}
@@ -278,7 +280,7 @@ export const ControlPlaneDashboard = ({ systemState }) => {
                     onClick={() => navigate('/dashboard/trust-center')}
                 />
 
-                <ControlPlaneMetric
+                <OperationsMetric
                     icon={Map}
                     label="Trade Routes"
                     value={logistics.avgCorridorHealth}
@@ -288,7 +290,7 @@ export const ControlPlaneDashboard = ({ systemState }) => {
                     onClick={() => navigate('/dashboard/corridors')}
                 />
 
-                <ControlPlaneMetric
+                <OperationsMetric
                     icon={DollarSign}
                     label="Money Safety"
                     value={financial.paymentRisk}
@@ -297,7 +299,7 @@ export const ControlPlaneDashboard = ({ systemState }) => {
                     onClick={() => navigate('/dashboard/payments')}
                 />
 
-                <ControlPlaneMetric
+                <OperationsMetric
                     icon={Truck}
                     label="Cargo Security"
                     value={logistics.shipmentRisk}
@@ -309,7 +311,7 @@ export const ControlPlaneDashboard = ({ systemState }) => {
 
             {/* Active Blockers */}
             {tradeReadiness.blockers.length > 0 && (
-                <Surface className="p-6">
+                <Surface variant="panel" className="p-6">
                     <h3 className="text-os-sm font-bold uppercase tracking-wider text-gray-700 mb-4">
                         Items Needing Attention ({tradeReadiness.blockers.length})
                     </h3>
@@ -328,7 +330,7 @@ export const ControlPlaneDashboard = ({ systemState }) => {
 
             {/* AI Recommendations */}
             {intelligence.recommendations.length > 0 && (
-                <Surface className="p-6">
+                <Surface variant="soft" className="p-6">
                     <h3 className="text-os-sm font-bold uppercase tracking-wider text-gray-700 mb-4">
                         Smart Business Tips ({intelligence.recommendations.length})
                     </h3>

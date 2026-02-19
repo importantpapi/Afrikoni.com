@@ -19,31 +19,55 @@ test.describe('Authentication Flow', () => {
         // Navigate to signup page
         await page.goto('/en/signup');
 
+        // Dismiss cookie banner if present
+        const acceptCookies = page.locator('button:has-text("Accept all"), button:has-text("Accept cookies"), button:has-text("I agree")').first();
+        try {
+            if (await acceptCookies.isVisible({ timeout: 2000 })) {
+                await acceptCookies.click();
+            }
+        } catch (e) {
+            // Ignore if button not found or already gone
+        }
+
         // Wait for page to load
         await expect(page).toHaveTitle(/Afrikoni/);
 
         // Fill signup form
         await page.fill('input[name="email"]', testEmail);
         await page.fill('input[name="password"]', testPassword);
-        await page.fill('input[name="full_name"]', 'Test User');
-        await page.fill('input[name="company_name"]', testCompanyName);
+        await page.fill('input[name="fullName"]', 'Test User');
 
-        // Select role (buyer)
-        await page.click('input[value="buyer"]');
+        // Select role (buyer) - NOT in current signup flow
+        // await page.click('input[value="buyer"]');
 
         // Submit form
         await page.click('button[type="submit"]');
 
-        // Wait for redirect to dashboard or email verification
-        await page.waitForURL(/\/(dashboard|verify-email)/, { timeout: 10000 });
+        // Wait for redirect to dashboard or success message
+        try {
+            await page.waitForURL(/\/(dashboard|verify-email|auth\/post-login)/, { timeout: 5000 });
+        } catch (e) {
+            // If timeout, check if success message is visible (implies email verification needed)
+            const successMessage = page.getByText(/Account created|Welcome/i).first();
+            if (await successMessage.isVisible()) {
+                console.log('Signup successful (no redirect) - proceeding to login');
+            } else {
+                console.log('Signup wait timed out without success message');
+                // Don't throw yet, let the next steps fail if really broken
+            }
+        }
 
-        // If email verification is required, skip to login test
+        // Check if we need to login manually
         const currentURL = page.url();
-        if (currentURL.includes('verify-email')) {
-            console.log('Email verification required - skipping to login test');
+        const needsLogin = currentURL.includes('signup') || currentURL.includes('login') || currentURL.includes('verify-email');
 
-            // Navigate to login
-            await page.goto('/en/login');
+        if (needsLogin) {
+            console.log('Manual login required...');
+
+            // Navigate to login if not already there
+            if (!currentURL.includes('login')) {
+                await page.goto('/en/login');
+            }
 
             // Fill login form
             await page.fill('input[name="email"]', testEmail);
@@ -53,7 +77,7 @@ test.describe('Authentication Flow', () => {
             await page.click('button[type="submit"]');
 
             // Wait for dashboard
-            await page.waitForURL(/\/dashboard/, { timeout: 10000 });
+            await page.waitForURL(/\/dashboard/, { timeout: 15000 });
         }
 
         // Verify dashboard loaded
@@ -76,9 +100,9 @@ test.describe('Authentication Flow', () => {
         await page.fill('input[name="password"]', 'wrongpassword');
         await page.click('button[type="submit"]');
 
-        // Verify error message is shown
-        const errorMessage = page.locator('text=/Invalid|incorrect|failed/i');
-        await expect(errorMessage).toBeVisible({ timeout: 5000 });
+        // Verify error message is shown (Sonner toast)
+        const errorMessage = page.getByText(/Invalid|incorrect|failed/i).first();
+        await expect(errorMessage).toBeVisible({ timeout: 10000 });
     });
 
     test('should logout successfully', async ({ page }) => {

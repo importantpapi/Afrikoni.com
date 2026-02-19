@@ -429,7 +429,7 @@ export default function Suppliers() {
                 Scale Your African Export Operation
               </h2>
               <p className="text-afrikoni-deep mb-6 max-w-xl">
-                Join the infrastructure-grade B2B marketplace. Afrikoni Shield™ handles the trust gap so you can focus on scale.
+                Join the institutional-grade B2B marketplace. Afrikoni Shield™ handles the trust gap so you can focus on scale.
               </p>
               <Link to={`/${language}/signup`}>
                 <Button className="bg-os-accent text-afrikoni-cream hover:bg-os-accentDark px-8 uppercase tracking-widest font-black">

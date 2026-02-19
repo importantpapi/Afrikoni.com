@@ -4,6 +4,7 @@ import enJson from './en.json';
 import frJson from './fr.json';
 import ptJson from './pt.json';
 import arJson from './ar.json';
+import swJson from './sw.json';
 
 // Helper to flatten nested JSON (dashboard.greeting -> "Good evening")
 const flatten = (obj, prefix = '', res = {}) => {
@@ -24,6 +25,7 @@ const enFlat = flatten(enJson);
 const frFlat = flatten(frJson);
 const ptFlat = flatten(ptJson);
 const arFlat = flatten(arJson);
+const swFlat = flatten(swJson);
 
 const legacyTranslations = {
   en: {
@@ -777,6 +779,8 @@ const legacyTranslations = {
     'signup.signUpWithGoogle': 'Sign up with Google',
     'signup.signUpWithFacebook': 'Sign up with Facebook',
   },
+
+  sw: {},
 
   fr: {
     // Navigation
@@ -2503,7 +2507,8 @@ export const translations = {
   en: { ...legacyTranslations.en, ...enFlat },
   fr: { ...legacyTranslations.fr, ...frFlat },
   pt: { ...legacyTranslations.pt, ...ptFlat },
-  ar: { ...legacyTranslations.ar, ...arFlat }
+  ar: { ...legacyTranslations.ar, ...arFlat },
+  sw: { ...legacyTranslations.sw, ...swFlat }
 };
 
 // Get translation for a key

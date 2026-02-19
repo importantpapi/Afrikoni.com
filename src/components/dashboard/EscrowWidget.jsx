@@ -7,8 +7,8 @@ export default function EscrowWidget({ payment }) {
   // ✅ MOBILE GUARD: Handle missing payment data gracefully
   if (!payment) {
     return (
-      <Surface variant="glass" className="p-5 border border-white/5">
-        <div className="animate-pulse space-y-3">
+      <Surface variant="panel" className="p-5 border border-white/5">
+        <div className="opacity-50 space-y-3">
           <div className="h-6 bg-white/10 rounded w-1/2" />
           <div className="h-2 bg-white/10 rounded" />
           <div className="grid grid-cols-2 gap-3">
@@ -31,7 +31,7 @@ export default function EscrowWidget({ payment }) {
     : 0;
 
   return (
-    <Surface variant="glass" className="p-5 border border-white/5">
+    <Surface variant="panel" className="p-5 border border-white/5">
       <div className="flex items-center justify-between mb-3">
         <div>
           <p className="text-os-sm font-semibold text-[var(--os-text-primary)]">Escrow Overview</p>

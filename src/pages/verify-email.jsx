@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
 import { Button } from '@/components/shared/ui/button';
 import { Mail, Loader2, CheckCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { useLanguage } from '@/i18n/LanguageContext';
 import AuthLayout from '@/components/auth/AuthLayout';
 
 export default function VerifyEmail() {
@@ -12,6 +13,7 @@ export default function VerifyEmail() {
   const [email, setEmail] = useState('');
   const [isVerified, setIsVerified] = useState(false);
   const navigate = useNavigate();
+  const { language } = useLanguage();
 
   useEffect(() => {
     checkEmailStatus();
@@ -29,7 +31,7 @@ export default function VerifyEmail() {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
-        navigate('/login', { replace: true });
+        navigate(`/${language}/login`, { replace: true });
         return;
       }
 
@@ -40,7 +42,7 @@ export default function VerifyEmail() {
         setIsLoading(false);
         // Redirect to PostLoginRouter after a short delay
         setTimeout(() => {
-          navigate('/auth/post-login', { replace: true });
+          navigate(`/${language}/auth/post-login`, { replace: true });
         }, 1500);
       } else {
         setIsVerified(false);
@@ -55,7 +57,7 @@ export default function VerifyEmail() {
   const handleResendEmail = async () => {
     setIsResending(true);
     try {
-      const emailRedirectUrl = `${window.location.origin}/auth/callback`;
+      const emailRedirectUrl = `${window.location.origin}/${language}/auth/callback`;
 
       const { error } = await supabase.auth.resend({
         type: 'signup',

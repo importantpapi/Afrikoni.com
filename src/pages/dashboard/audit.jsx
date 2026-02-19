@@ -285,7 +285,7 @@ export default function AuditLogs() {
     algorithm: 'SHA-256',
     lastCheck: new Date().toISOString(),
     status: 'verified',
-    verificationMessage: 'All audit logs are cryptographically verified and immutable.'
+    verificationMessage: 'All audit logs are securely verified and immutable.'
   };
 
   const handleExport = (format) => {
@@ -826,7 +826,7 @@ export default function AuditLogs() {
                       {integrityData.verificationMessage}
                     </p>
                     <p className="text-os-xs">
-                      All audit logs are cryptographically hashed to ensure immutability and prevent tampering. This is critical for anti-corruption and transparency compliance.
+                      All audit logs are securely hashed to ensure immutability and prevent tampering. This is critical for anti-corruption and transparency compliance.
                     </p>
                   </div>
                   <Button

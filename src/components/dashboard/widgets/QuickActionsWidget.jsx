@@ -19,8 +19,8 @@ function QuickActionsWidget() {
 
     if (!capabilities) {
         return (
-            <Surface variant="glass" className="p-8">
-                <div className="animate-pulse space-y-6">
+            <Surface variant="panel" className="p-8">
+                <div className="opacity-50 space-y-6">
                     <div className="h-6 bg-os-stroke rounded w-1/3" />
                     <div className="h-20 bg-os-stroke rounded-os-md" />
                 </div>
@@ -32,7 +32,7 @@ function QuickActionsWidget() {
     const canBuy = capabilities?.can_buy === true;
 
     return (
-        <Surface variant="glass" className="p-8 space-y-8">
+        <Surface variant="panel" className="p-8 space-y-8">
             <div>
                 <div className="flex items-center gap-3 mb-1">
                     <div className="p-2 bg-os-accent/10 rounded-lg">

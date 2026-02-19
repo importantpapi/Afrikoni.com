@@ -433,7 +433,7 @@ export default function OrderDetail() {
   return (
     <div className="os-page os-stagger space-y-4">
       {/* Header */}
-      <Surface variant="glass" className="p-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <Surface variant="panel" className="p-5 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
         <div>
           <Link to="/dashboard/orders" className="hover:text-os-accentDark text-os-sm mb-2 inline-block">
             ← Back to Orders
@@ -805,7 +805,7 @@ export default function OrderDetail() {
                   <div className="w-8 h-8 rounded-full flex items-center justify-center bg-amber-500/20 text-amber-500">
                     <ShieldCheck className="w-4 h-4" />
                   </div>
-                  <span className="text-os-xs text-amber-500 font-mono font-bold">AI Sentinel</span>
+                  <span className="text-os-xs text-amber-500 font-mono font-bold">AI Security</span>
                   <span className="text-os-xs text-os-text-secondary">Doc Verified</span>
                   <div className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]"></div>
                 </div>

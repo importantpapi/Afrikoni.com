@@ -714,7 +714,7 @@ export default function Marketplace() {
                 {/* Search Suggestions Panel */}
                 {showSuggestions && searchFocused && (
                   <div className="absolute top-[calc(100%+12px)] left-0 right-0 z-[100]">
-                    <Surface variant="glass" className="p-2 border border-os-stroke/40 shadow-premium backdrop-blur-2xl overflow-hidden rounded-os-md bg-os-surface/98">
+                    <Surface variant="panel" className="p-2 border border-os-stroke/40 shadow-premium backdrop-blur-2xl overflow-hidden rounded-os-md bg-os-surface/98">
                       <SearchSuggestions
                         query={searchQuery}
                         onSelectSuggestion={(query, type) => {

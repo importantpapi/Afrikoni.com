@@ -878,7 +878,7 @@ export default function CompanyInfo() {
         <div className="lg:col-span-8 space-y-8">
 
           {/* A. Universal Profile Flow */}
-          <Surface variant="glass" className="p-8 relative">
+          <Surface variant="panel" className="p-8 relative">
             <div className="space-y-8 relative z-10">
               <div className="flex items-center gap-4 border-b border-os-stroke pb-5">
                 <div className="p-2.5 bg-os-accent/10 rounded-lg border border-os-accent/20">
@@ -942,7 +942,7 @@ export default function CompanyInfo() {
 
           {/* B. Visual Identity & Brand DNA */}
           <div className="grid md:grid-cols-2 gap-8">
-            <Surface variant="glass" className="p-8 space-y-6">
+            <Surface variant="panel" className="p-8 space-y-6">
               <h3 className="text-sm font-bold uppercase tracking-wider text-os-text-secondary flex items-center gap-2">
                 <ImageIcon className="w-4 h-4 text-os-accent" />
                 Company Logo
@@ -973,7 +973,7 @@ export default function CompanyInfo() {
               </div>
             </Surface>
 
-            <Surface variant="glass" className="p-8 space-y-6">
+            <Surface variant="panel" className="p-8 space-y-6">
               <h3 className="text-sm font-bold uppercase tracking-wider text-os-text-secondary flex items-center gap-2">
                 <Globe className="w-4 h-4 text-emerald-500" />
                 Contact Details
@@ -1012,7 +1012,7 @@ export default function CompanyInfo() {
         <div className="lg:col-span-4 space-y-8">
 
           {/* AI Auditor Feedback */}
-          <Surface variant="glass" className="p-6 border border-os-accent/20 bg-os-accent/5">
+          <Surface variant="panel" className="p-6 border border-os-accent/20 bg-os-accent/5">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-os-accent/20 rounded-lg border border-os-accent/30">
                 <Activity className="w-4 h-4 text-os-accent" />
@@ -1031,7 +1031,7 @@ export default function CompanyInfo() {
           </Surface>
 
           {/* Team Capacity Node */}
-          <Surface variant="glass" className="p-6 space-y-6 h-full">
+          <Surface variant="panel" className="p-6 space-y-6 h-full">
             <div className="flex items-center justify-between border-b border-os-stroke pb-4">
               <h3 className="text-sm font-bold">Your Team</h3>
               <Users className="w-4 h-4 text-os-text-secondary" />

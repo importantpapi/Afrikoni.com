@@ -218,7 +218,7 @@ export default function DashboardAnalytics() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Standardized KPI Cards */}
           {(analytics.totalOrders !== undefined || analytics.totalSales !== undefined) && (
-            <Surface variant="glass" hover className="p-6">
+            <Surface variant="panel" hover className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <Surface variant="soft" className="w-10 h-10 flex items-center justify-center border-os-stroke/30">
                   <ShoppingCart className="w-5 h-5 text-os-accent" />
@@ -233,7 +233,7 @@ export default function DashboardAnalytics() {
           )}
 
           {(analytics.totalRevenue !== undefined || analytics.totalSpent !== undefined) && (
-            <Surface variant="glass" hover className="p-6 border-os-accent/20">
+            <Surface variant="panel" hover className="p-6 border-os-accent/20">
               <div className="flex justify-between items-start mb-4">
                 <Surface variant="soft" className="w-10 h-10 flex items-center justify-center border-os-stroke/30">
                   <DollarSign className="w-5 h-5 text-os-accent" />
@@ -248,7 +248,7 @@ export default function DashboardAnalytics() {
           )}
 
           {analytics.rfqsReceived !== undefined && (
-            <Surface variant="glass" hover className="p-6">
+            <Surface variant="panel" hover className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <Surface variant="soft" className="w-10 h-10 flex items-center justify-center border-os-stroke/30">
                   <FileText className="w-5 h-5 text-os-blue" />
@@ -261,7 +261,7 @@ export default function DashboardAnalytics() {
           )}
 
           {analytics.winRate !== undefined && (
-            <Surface variant="glass" hover className="p-6">
+            <Surface variant="panel" hover className="p-6">
               <div className="flex justify-between items-start mb-4">
                 <Surface variant="soft" className="w-10 h-10 flex items-center justify-center border-os-stroke/30">
                   <Target className="w-5 h-5 text-os-green" />
@@ -343,7 +343,7 @@ export default function DashboardAnalytics() {
             </div>
           </Surface>
 
-          <Surface variant="glass" className="p-6 border-os-blue/20 bg-os-blue/5">
+          <Surface variant="panel" className="p-6 border-os-blue/20 bg-os-blue/5">
             <h3 className="os-label !text-os-blue mb-4 flex items-center gap-2">
               <Globe className="w-4 h-4" />
               Global Reach

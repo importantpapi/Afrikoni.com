@@ -272,7 +272,7 @@ export default function TraceCenter() {
                     <div className="space-y-6">
                         <h2 className="text-os-xl font-bold text-afrikoni-chestnut flex items-center gap-2">
                             <Shield className="w-6 h-6 text-os-accent" />
-                            Forensic DNA
+                            Verification Data
                         </h2>
 
                         <Card className="border-os-accent/30 bg-afrikoni-cream">
@@ -281,7 +281,7 @@ export default function TraceCenter() {
                                     <img src="https://placehold.co/100x100/1a1a1a/FFF?text=DNA" alt="Baseline" className="w-full h-full object-cover rounded opacity-80" />
                                     <div className="absolute inset-0 bg-gradient-to-t from-os-accent/20 to-transparent" />
                                 </div>
-                                <p className="text-os-xs font-mono text-afrikoni-chestnut/60 mb-1">BASELINE HASH</p>
+                                <p className="text-os-xs font-mono text-afrikoni-chestnut/60 mb-1">REFERENCE ID</p>
                                 <p className="font-mono font-bold text-afrikoni-chestnut truncate">AFK-8F29A-X92</p>
 
                                 <div className="my-4 border-t border-os-accent/10" />

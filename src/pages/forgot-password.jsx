@@ -5,9 +5,11 @@ import { Button } from '@/components/shared/ui/button';
 import { Loader2, CheckCircle, Lock as LockIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { createPageUrl } from '@/utils';
+import { useLanguage } from '@/i18n/LanguageContext';
 import AuthLayout from '@/components/auth/AuthLayout';
 
 export default function ForgotPassword() {
+  const { language } = useLanguage();
   const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
@@ -22,7 +24,7 @@ export default function ForgotPassword() {
     setIsLoading(true);
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: `${window.location.origin}/${language}/reset-password`,
       });
 
       if (error) throw error;

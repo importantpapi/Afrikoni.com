@@ -13,8 +13,47 @@ import { test, expect } from '@playwright/test';
 
 test.describe('RFQ Flow', () => {
     // Use a persistent test account for RFQ tests
-    const buyerEmail = 'buyer-test@afrikoni-test.com';
+    let buyerEmail;
     const buyerPassword = 'TestBuyer123!';
+
+    test.beforeAll(async ({ browser }) => {
+        // Create unique buyer for this test run
+        const timestamp = Date.now();
+        buyerEmail = `rfq-buyer-${timestamp}@afrikoni-test.com`;
+
+        const context = await browser.newContext();
+        const page = await context.newPage();
+
+        // Signup buyer
+        await page.goto('/en/signup');
+
+        // Dismiss cookie banner
+        const acceptCookies = page.locator('button:has-text("Accept all"), button:has-text("Accept cookies"), button:has-text("I agree")').first();
+        try {
+            if (await acceptCookies.isVisible({ timeout: 2000 })) {
+                await acceptCookies.click();
+            }
+        } catch (e) { }
+
+        await page.fill('input[name="fullName"]', 'RFQ Buyer');
+        await page.fill('input[name="email"]', buyerEmail);
+        await page.fill('input[name="password"]', buyerPassword);
+        await page.click('button[type="submit"]');
+
+        try {
+            await page.waitForURL(/\/dashboard/, { timeout: 15000 });
+        } catch (e) {
+            console.log('Signup redirect timeout, manual login...');
+            await page.goto('/en/login');
+            await page.fill('input[name="email"]', buyerEmail);
+            await page.fill('input[name="password"]', buyerPassword);
+            await page.click('button[type="submit"]');
+            await page.waitForURL(/\/dashboard/, { timeout: 15000 });
+        }
+
+        await page.close();
+        await context.close();
+    });
 
     test.beforeEach(async ({ page }) => {
         // Login as buyer before each test

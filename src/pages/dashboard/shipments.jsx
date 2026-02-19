@@ -62,7 +62,7 @@ const Shipments = () => {
   if (isLoading) {
     return (
       <div className="os-page os-stagger space-y-6">
-        <Surface variant="glass" className="p-6 md:p-8">Loading shipments…</Surface>
+        <Surface variant="panel" className="p-6 md:p-8">Loading shipments…</Surface>
       </div>
     );
   }
@@ -70,7 +70,7 @@ const Shipments = () => {
   if (!activeShipment) {
     return (
       <div className="os-page os-stagger space-y-6">
-        <Surface variant="glass" className="p-6 md:p-8">
+        <Surface variant="panel" className="p-6 md:p-8">
           <h1 className="os-title">Shipment Tracking</h1>
           <p className="text-os-sm text-os-muted">No shipments found for your account.</p>
         </Surface>
@@ -80,7 +80,7 @@ const Shipments = () => {
 
   return (
     <div className="os-page os-stagger space-y-6">
-      <Surface variant="glass" className="p-6 md:p-8 mb-6">
+      <Surface variant="panel" className="p-6 md:p-8 mb-6">
         <div>
           <div className="os-label">Logistics Control Tower</div>
           <h1 className="os-title mt-2">Shipment Tracking</h1>

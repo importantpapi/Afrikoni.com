@@ -55,90 +55,80 @@ import { migrateToSecureStorage } from './utils/secureStorage';
 const BootScreen = ({ status, error }) => {
   // Map internal status codes to user-friendly messages
   const statusLabels = {
-    'RESOLVING_IDENTITY': 'Verifying Identity...',
-    'HYDRATING_KERNEL': 'Syncing Trade Data...',
-    'READY': 'Connection Established',
-    'Syncing': 'Optimizing Global Trade Route...',
+    'RESOLVING_IDENTITY': 'Verifying Account...',
+    'HYDRATING_KERNEL': 'Loading Workspace...',
+    'READY': 'Welcome',
+    'Syncing': 'Connecting to Market...',
   };
 
-  const displayStatus = error || statusLabels[status] || status || "Optimizing your trade experience...";
+  const displayStatus = error || statusLabels[status] || status || "Initializing...";
 
   return (
-    <div className="fixed inset-0 bg-background z-[9999] flex flex-col items-center justify-center p-6 text-center select-none overflow-hidden">
-      {/* Background Ambient Depth */}
-      <div className="absolute top-1/4 left-1/4 w-[50vw] h-[50vh] bg-primary/5 rounded-full blur-[120px] animate-pulse" />
-      <div className="absolute bottom-1/4 right-1/4 w-[40vw] h-[40vh] bg-blue-500/5 rounded-full blur-[100px] animate-pulse delay-1000" />
+    <div className="fixed inset-0 bg-white z-[9999] flex flex-col items-center justify-center p-6 text-center select-none overflow-hidden">
+      {/* Subtle Premium Background */}
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gray-50 via-white to-white opacity-80" />
 
-      <div className="relative mb-12">
-        <div className="absolute inset-0 animate-ping bg-primary/20 rounded-full blur-2xl" />
-        <div className="w-24 h-24 border-[3px] border-primary/10 border-t-primary rounded-full animate-spin" />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="p-3 bg-os-accent/5 border border-os-accent/10 rounded-os-md flex items-center justify-center backdrop-blur-md shadow-glow">
-            <Logo type="icon" size="sm" className="text-os-accent" />
-          </div>
-        </div>
-      </div>
+      <div className="max-w-md w-full relative z-10 flex flex-col items-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="mb-12"
+        >
+          <Logo type="full" size="xl" className="text-black" />
+        </motion.div>
 
-      <div className="max-w-md w-full relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-4"
+          transition={{ delay: 0.2, duration: 0.6 }}
+          className="space-y-8 w-full max-w-xs mx-auto"
         >
-          <h2 className="text-foreground font-black text-3xl tracking-tighter uppercase">
-            AFRIKONI <span className="text-primary">HORIZON</span>
-          </h2>
-
-          <div className="flex items-center justify-center gap-3 bg-os-surface-1 py-3.5 px-6 rounded-os-md border border-os-stroke mb-8 backdrop-blur-xl shadow-os-md">
-            {error ? (
-              <AlertCircle className="w-4 h-4 text-destructive" />
-            ) : (
-              <div className="flex items-center gap-1.5">
-                <span className="w-1 h-1 rounded-full bg-primary animate-bounce [animation-delay:-0.32s]" />
-                <span className="w-1 h-1 rounded-full bg-primary animate-bounce [animation-delay:-0.16s]" />
-                <span className="w-1 h-1 rounded-full bg-primary animate-bounce" />
+          {error ? (
+            <div className="flex flex-col items-center gap-4 p-6 rounded-2xl bg-red-50 border border-red-100">
+              <AlertCircle className="w-8 h-8 text-red-500" />
+              <p className="text-sm text-red-600 font-medium">{error}</p>
+              <Button
+                variant="outline"
+                onClick={() => window.location.reload()}
+                className="rounded-full border-red-200 text-red-600 hover:bg-red-100"
+              >
+                Reload Application
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              <div className="flex justify-center">
+                <Loader2 className="w-6 h-6 animate-spin text-os-accent" />
               </div>
-            )}
-            <span className="text-foreground/90 text-os-sm font-mono uppercase tracking-wider">
-              {displayStatus}
-            </span>
-          </div>
 
-          <div className="grid grid-cols-3 gap-5">
-            {[
-              { icon: ShieldCheck, label: 'Kernel', active: status === 'HYDRATING_KERNEL' || status === 'READY' },
-              { icon: UserCheck, label: 'Identity', active: status === 'RESOLVING_IDENTITY' || status === 'HYDRATING_KERNEL' || status === 'READY' },
-              { icon: Globe, label: 'Network', active: status === 'READY' }
-            ].map((step, idx) => (
-              <div key={idx} className="flex flex-col items-center gap-3">
-                <div className={`w-14 h-14 rounded-os-md flex items-center justify-center border transition-all duration-700 ${step.active
-                  ? 'bg-primary/5 border-primary/30 text-primary shadow-glow'
-                  : 'bg-os-surface-1 border-os-stroke text-foreground/20'
-                  }`}>
-                  <step.icon className={`w-6 h-6 ${step.active ? 'animate-pulse' : ''}`} />
-                </div>
-                <span className={`text-os-xs uppercase tracking-[0.2em] font-black transition-colors ${step.active ? 'text-primary' : 'text-foreground/20'}`}>
-                  {step.label}
-                </span>
+              <p className="text-sm font-medium text-gray-500 tracking-wide uppercase">
+                {displayStatus}
+              </p>
+
+              {/* Minimal Status Indicators */}
+              <div className="flex justify-center gap-3 pt-4">
+                {[
+                  { label: 'System', active: status === 'HYDRATING_KERNEL' || status === 'READY' },
+                  { label: 'Account', active: status === 'RESOLVING_IDENTITY' || status === 'HYDRATING_KERNEL' || status === 'READY' },
+                  { label: 'Network', active: status === 'READY' }
+                ].map((step, idx) => (
+                  <div key={idx} className="flex flex-col items-center gap-2">
+                    <div className={`
+                      h-1 w-12 rounded-full transition-all duration-700
+                      ${step.active ? 'bg-os-accent' : 'bg-gray-100'}
+                    `} />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-
-          {error && (
-            <Button
-              variant="ghost"
-              onClick={() => window.location.reload()}
-              className="mt-8 text-primary hover:bg-primary/10 rounded-full text-os-xs uppercase tracking-widest font-bold"
-            >
-              Force Restart Engine
-            </Button>
+            </div>
           )}
         </motion.div>
       </div>
 
-      <div className="absolute bottom-10 left-0 right-0">
-        <p className="text-foreground/10 text-os-xs uppercase tracking-[0.5em] font-black">
-          Global Trade OS &copy; 2026 HORIZON
+      <div className="absolute bottom-12 left-0 right-0">
+        <p className="text-gray-300 text-[10px] uppercase tracking-[0.2em] font-medium">
+          Afrikoni Trade OS &copy; 2026
         </p>
       </div>
     </div>
@@ -152,6 +142,8 @@ import Login from './pages/login';
 import Signup from './pages/signup';
 import SignupSurgery from './pages/SignupSurgery';
 import ForgotPassword from './pages/forgot-password';
+import ResetPassword from './pages/reset-password';
+import VerifyEmail from './pages/verify-email';
 import AuthCallback from './pages/auth-callback';
 import NotFound from './pages/NotFound';
 
@@ -244,8 +236,8 @@ const AnalyticsPage = lazy(() => import('./pages/dashboard/analytics'));
 const PerformancePage = lazy(() => import('./pages/dashboard/performance'));
 const KoniAIPage = lazy(() => import('./pages/dashboard/koniai'));
 
-// TRADE OS CONTROL PLANE (Mission Control)
-const ControlPlanePage = lazy(() => import('./pages/dashboard/control-plane'));
+// TRADE OS OPERATIONS (Mission Control)
+const OperationsPage = lazy(() => import('./pages/dashboard/operations'));
 
 
 // 8. SYSTEM SETTINGS & UTILITIES
@@ -264,6 +256,10 @@ const AgentOnboarding = lazy(() => import('./pages/dashboard/AgentOnboarding'));
 const AdminPayouts = lazy(() => import('./pages/dashboard/admin/Payouts'));
 const AdminDisputes = lazy(() => import('./pages/dashboard/admin/Disputes'));
 const AdminVerifications = lazy(() => import('./pages/dashboard/admin/Verifications'));
+const PlatformHealth = lazy(() => import('./pages/dashboard/admin/PlatformHealth'));
+const AgentDashboard = lazy(() => import('./pages/dashboard/agent/AgentDashboard'));
+const OnboardSupplier = lazy(() => import('./pages/dashboard/agent/OnboardSupplier'));
+const SiteVisit = lazy(() => import('./pages/dashboard/agent/SiteVisit'));
 
 // 9. DEV TOOLS (Development only)
 const TestEmailsPage = lazy(() => import('./pages/dashboard/test-emails'));
@@ -321,7 +317,7 @@ const RFQMobileWizard = lazy(() => import('./pages/rfq-mobile-wizard'));
 const LanguageWrapper = () => {
   const { lang } = useParams();
   const location = useLocation();
-  const supportedLangs = ['en', 'fr', 'pt', 'ar'];
+  const supportedLangs = ['en', 'fr', 'pt', 'ar', 'sw'];
 
   if (!supportedLangs.includes(lang)) {
     return <Navigate to={`/en${location.pathname}`} replace />;
@@ -385,6 +381,8 @@ function AppContent() {
             <Route path="signup" element={<Signup />} />
             <Route path="signup-surgery" element={<SignupSurgery />} />
             <Route path="forgot-password" element={<ForgotPassword />} />
+            <Route path="reset-password" element={<ResetPassword />} />
+            <Route path="verify-email" element={<VerifyEmail />} />
             <Route path="auth/callback" element={<AuthCallback />} />
             <Route path="auth/post-login" element={<PostLoginRouter />} />
             <Route path="products" element={<Products />} />
@@ -490,7 +488,7 @@ function AppContent() {
               <Route path="analytics" element={<AnalyticsPage />} />
               <Route path="performance" element={<PerformancePage />} />
               <Route path="koniai" element={<KoniAIPage />} />
-              <Route path="control-plane" element={<ControlPlanePage />} />
+              <Route path="operations" element={<OperationsPage />} />
               <Route path="settings" element={<SettingsPage />} />
               <Route path="company-info" element={<CompanyInfoPage />} />
               <Route path="team-members" element={<TeamMembersPage />} />
@@ -527,6 +525,10 @@ function AppContent() {
               <Route path="admin/payouts" element={<AdminPayouts />} />
               <Route path="admin/disputes" element={<AdminDisputes />} />
               <Route path="admin/verifications" element={<AdminVerifications />} />
+              <Route path="admin/platform-health" element={<PlatformHealth />} />
+              <Route path="agent" element={<AgentDashboard />} />
+              <Route path="agent/onboard-supplier" element={<OnboardSupplier />} />
+              <Route path="agent/site-visit" element={<SiteVisit />} />
               {/* Dev tools */}
               <Route path="test-emails" element={<TestEmailsPage />} />
             </Route>

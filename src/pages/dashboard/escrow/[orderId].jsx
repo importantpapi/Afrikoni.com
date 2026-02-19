@@ -102,7 +102,7 @@ export default function EscrowDetail() {
 
   return (
     <div className="os-page os-stagger space-y-6">
-      <Surface variant="glass" className="p-6">
+      <Surface variant="panel" className="p-6">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div className="space-y-2">
             <div className="os-label">Escrow</div>

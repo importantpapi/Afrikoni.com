@@ -10,16 +10,21 @@ import { Input } from '@/components/shared/ui/input';
 import { Search, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export function CountrySelect({ value, onValueChange, countries, placeholder = "Select country" }) {
+import { COUNTRY_NAMES } from '@/utils/countries';
+
+export function CountrySelect({ value, onValueChange, countries, placeholder = "Select country", className }) {
     const [searchTerm, setSearchTerm] = useState('');
 
-    const filteredCountries = countries.filter(c =>
+    // Use provided countries or default to all available countries
+    const availableCountries = countries || Object.values(COUNTRY_NAMES);
+
+    const filteredCountries = availableCountries.filter(c =>
         c.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
         <Select value={value} onValueChange={onValueChange}>
-            <SelectTrigger className="h-14 bg-white/[0.03] border-white/10 rounded-os-md text-white focus:ring-os-accent/20 focus:border-os-accent/30 transition-all">
+            <SelectTrigger className={cn("h-14 bg-white/[0.03] border-white/10 rounded-os-md text-white focus:ring-os-accent/20 focus:border-os-accent/30 transition-all", className)}>
                 <div className="flex items-center gap-3">
                     <Globe className="w-4 h-4 text-os-accent opacity-60" />
                     <SelectValue placeholder={placeholder} />

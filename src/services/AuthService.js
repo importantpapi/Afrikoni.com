@@ -210,12 +210,14 @@ export async function logout() {
     }
 
     // Step 3: Hard redirect to physically wipe React Context state
-    // This ensures all React Context providers reset to initial state
-    window.location.href = '/login';
+    // Preserve language prefix (default en) so user lands on login page not 404
+    const lang = window.location.pathname.split('/')[1] || 'en';
+    const supportedLangs = ['en', 'fr', 'pt', 'ar', 'sw'];
+    const targetLang = supportedLangs.includes(lang) ? lang : 'en';
+    window.location.href = `/${targetLang}/login`;
   } catch (error) {
     console.error('[AuthService] Logout error:', error);
-    // Even on error, force redirect to ensure state wipe
-    window.location.href = '/login';
+    window.location.href = '/en/login';
   }
 }
 

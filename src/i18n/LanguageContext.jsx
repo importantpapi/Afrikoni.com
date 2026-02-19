@@ -9,7 +9,7 @@ export function LanguageProvider({ children }) {
   const navigate = useNavigate();
 
   // Supported languages
-  const supportedLangs = ['en', 'fr', 'pt', 'ar'];
+  const supportedLangs = ['en', 'fr', 'pt', 'ar', 'sw'];
 
   // Detect language from path (e.g., /pt/marketplace -> pt)
   const getLangFromPath = () => {

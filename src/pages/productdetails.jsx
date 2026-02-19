@@ -13,10 +13,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/shared/ui
 import {
   Package, MapPin, Star, Shield, ShieldCheck, Building, MessageCircle,
   FileText, CheckCircle, Clock, Zap, Award, Globe, ChevronLeft, ChevronRight,
-  Send, ChevronDown, ChevronUp, Truck, RotateCcw, Lock, HelpCircle, Plus, X, PenTool
+  Send, ChevronDown, ChevronUp, Truck, RotateCcw, Lock, HelpCircle, Plus, X, PenTool, Users
 } from 'lucide-react';
 import QuickQuoteModal from '@/components/products/QuickQuoteModal';
 import { SampleOrderButton } from '@/components/products/SampleOrderButton';
+import GroupBuyModal from '@/components/products/GroupBuyModal';
 import ShippingCalculator from '@/components/shipping/ShippingCalculator';
 import { toast } from 'sonner';
 import NewMessageDialog from '@/components/messaging/NewMessageDialog';
@@ -35,6 +36,7 @@ import Price, { PriceRange } from '@/components/shared/ui/Price';
 import MobileStickyCTA from '@/components/shared/ui/MobileStickyCTA';
 import { createTrade, TRADE_STATE } from '@/services/tradeKernel';
 import { getPrimaryImageFromProduct, getAllImagesFromProduct } from '@/utils/productImages';
+import { ProductDetailsSkeleton } from '@/components/shared/ui/skeletons';
 
 export default function ProductDetail() {
   const { user, profile, authReady } = useAuth();
@@ -44,6 +46,7 @@ export default function ProductDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [showMessageDialog, setShowMessageDialog] = useState(false);
   const [showQuickQuoteModal, setShowQuickQuoteModal] = useState(false);
+  const [showGroupBuyModal, setShowGroupBuyModal] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [similarProducts, setSimilarProducts] = useState([]);
   const [variants, setVariants] = useState([]);
@@ -227,7 +230,7 @@ export default function ProductDetail() {
         target_price: product.price || product.price_min,
         currency: product.currency || 'USD',
         status: TRADE_STATE.CONTRACTED,
-        metadata: { product_id: product.id, supplier_id: supplier?.id, initiator: 'buy_now_button' }
+        metadata: { product_id: product.id, supplier_id: supplier?.id, initiator: 'buy_now_button', mode: 'simple' }
       });
       if (result.success) {
         toast.success('Trade started!', { id: toastId });
@@ -296,15 +299,10 @@ export default function ProductDetail() {
     : null;
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 rounded-full border-4 border-os-accent/20 border-t-os-accent animate-spin" />
-          <p className="text-sm text-os-text-secondary">Loading product...</p>
-        </div>
-      </div>
-    );
+    return <ProductDetailsSkeleton />;
   }
+
+  // ... (rest of component)
 
   if (!product) return null;
 
@@ -569,7 +567,7 @@ export default function ProductDetail() {
                       Chat with Supplier
                     </Button>
 
-                    <div className="pt-2 border-t border-os-stroke/50">
+                    <div className="pt-2 border-t border-os-stroke/50 space-y-2">
                       <SampleOrderButton
                         product={product}
                         supplier={supplier}
@@ -577,6 +575,14 @@ export default function ProductDetail() {
                         size="default"
                         className="w-full h-11 rounded-xl font-medium"
                       />
+                      <Button
+                        variant="outline"
+                        className="w-full h-11 rounded-xl font-medium border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 flex items-center justify-center gap-2"
+                        onClick={() => setShowGroupBuyModal(true)}
+                      >
+                        <Users className="w-4 h-4" />
+                        Join Group Buy (Pool Order)
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -1017,6 +1023,14 @@ export default function ProductDetail() {
         )}
 
         {product && (
+          <GroupBuyModal
+            isOpen={showGroupBuyModal}
+            onClose={() => setShowGroupBuyModal(false)}
+            product={product}
+          />
+        )}
+
+        {product && (
           <MobileStickyCTA
             label={t('product.requestQuote') || 'Request Quote'}
             onClick={handleCreateRFQ}
@@ -1026,7 +1040,7 @@ export default function ProductDetail() {
             secondaryLabel={t('product.contactSupplier') || 'Contact'}
           />
         )}
-      </div>
+      </div >
     </>
   );
 }

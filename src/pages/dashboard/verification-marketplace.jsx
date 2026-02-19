@@ -234,7 +234,7 @@ function VerificationMarketplaceInner() {
       <div className="space-y-8">
         {/* Header Banner */}
         {/* Header Banner */}
-        <Surface variant="glass" className="bg-gradient-to-r from-os-accent/10 to-transparent border-os-accent/20 p-8 relative overflow-hidden">
+        <Surface variant="panel" className="bg-gradient-to-r from-os-accent/10 to-transparent border-os-accent/20 p-8 relative overflow-hidden">
           <div className="absolute top-0 right-0 p-32 bg-os-accent/5 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none" />
           <div className="flex items-center gap-6 relative">
             <div className="w-20 h-20 rounded-os-md bg-gradient-to-br from-os-accent to-amber-600 flex items-center justify-center shadow-os-md shadow-os-accent/20">
@@ -253,7 +253,7 @@ function VerificationMarketplaceInner() {
 
         {/* Current Status */}
         {isVerified ? (
-          <Surface variant="glass" className="p-6">
+          <Surface variant="panel" className="p-6">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-full bg-emerald-500/10 text-emerald-500">
                 <CheckCircle className="w-8 h-8" />
@@ -271,7 +271,7 @@ function VerificationMarketplaceInner() {
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
             {/* Fast-Track Option */}
-            <Surface variant="glass" className="border-os-accent/40 shadow-gold relative overflow-hidden group">
+            <Surface variant="panel" className="border-os-accent/40 shadow-gold relative overflow-hidden group">
               <div className="absolute top-0 right-0 p-20 bg-os-accent/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none" />
 
               <div className="p-6 border-b border-os-accent/10">
@@ -391,7 +391,7 @@ function VerificationMarketplaceInner() {
 
         {/* Benefits Section */}
         {!isVerified && (
-          <Surface variant="glass" className="p-8">
+          <Surface variant="panel" className="p-8">
             <h3 className="text-os-xl font-bold mb-6 text-center text-[var(--os-text-primary)]">Why Get Verified?</h3>
             <div className="grid md:grid-cols-3 gap-8">
               <div className="text-center">

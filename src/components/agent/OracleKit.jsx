@@ -53,7 +53,7 @@ export default function OracleKit({ farmerId, tradeId }) {
     };
 
     return (
-        <Surface variant="glass" className="p-8 border-os-accent/10 bg-os-accent/[0.02] space-y-8">
+        <Surface variant="panel" className="p-8 border-os-accent/10 bg-os-accent/[0.02] space-y-8">
             <div className="flex justify-between items-start">
                 <div>
                     <h3 className="text-os-2xl font-black tracking-tighter text-white">ORACLE KIT v2.0</h3>

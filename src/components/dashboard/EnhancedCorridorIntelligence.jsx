@@ -232,7 +232,7 @@ export default function EnhancedCorridorIntelligence({ corridorId = 'CI-FR-COCOA
     return (
         <div className="space-y-6">
             {/* Corridor Header with Health Score */}
-            <Surface variant="glass" className="p-6 border border-white/10">
+            <Surface variant="panel" className="p-6 border border-white/10">
                 <div className="flex items-start justify-between mb-6">
                     <div>
                         <div className="text-os-xs text-white/50 uppercase tracking-wider mb-2">
@@ -393,7 +393,7 @@ export default function EnhancedCorridorIntelligence({ corridorId = 'CI-FR-COCOA
 
             {/* Your Activity */}
             {userActivity.trades > 0 && (
-                <Surface variant="glass" className="p-6 border border-white/10">
+                <Surface variant="panel" className="p-6 border border-white/10">
                     <h3 className="text-os-lg font-semibold text-white mb-4">Your Activity in This Corridor</h3>
                     <div className="grid md:grid-cols-3 gap-6">
                         <div>
@@ -424,7 +424,7 @@ export default function EnhancedCorridorIntelligence({ corridorId = 'CI-FR-COCOA
             )}
 
             {/* Compliance Requirements */}
-            <Surface variant="glass" className="p-6 border border-white/10">
+            <Surface variant="panel" className="p-6 border border-white/10">
                 <h3 className="text-os-lg font-semibold text-white mb-4">Compliance Requirements</h3>
                 <div className="flex flex-wrap gap-2">
                     {(corridorData.compliance || []).map((req) => (
@@ -449,7 +449,7 @@ export default function EnhancedCorridorIntelligence({ corridorId = 'CI-FR-COCOA
             </Surface>
 
             {/* AI Recommendation */}
-            <Surface variant="glass" className="p-6 border border-os-accent/20 bg-os-accent/5">
+            <Surface variant="panel" className="p-6 border border-os-accent/20 bg-os-accent/5">
                 <div className="flex items-start gap-3">
                     <Sparkles className="w-5 h-5 text-os-accent mt-0.5" />
                     <div className="flex-1">

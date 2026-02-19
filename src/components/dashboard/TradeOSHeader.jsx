@@ -1,173 +1,106 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Search, Bell, Plus, Command, Sparkles,
-  ShieldCheck, Truck, DollarSign, Activity, Menu, Zap,
-  Globe, LayoutDashboard, Database, Sun, Moon
+  Search, Bell, Plus, Menu
 } from 'lucide-react';
-import { useTheme } from '@/contexts/ThemeContext';
 import { useKernelState } from '@/hooks/useKernelState';
 
 export default function TradeOSHeader({
   onOpenCommandPalette,
   onToggleSidebar,
-  onToggleCopilot,
   notificationCount = 0,
   workspaceMode = 'simple',
   onToggleMode = () => { },
   userAvatar,
 }) {
   const navigate = useNavigate();
-  const { theme, toggleTheme } = useTheme();
 
-  // Connect to Kernel State
-  const { data: kernelData, loading: kernelLoading } = useKernelState();
+  // Connect to live system state
+  const { data: systemState, loading: systemLoading } = useKernelState();
 
-  const activeTrades = kernelData?.activeTrades ?? 0;
-  const capitalInMotion = kernelData?.capitalInMotion ?? 0;
-  const complianceReady = kernelData?.complianceReadiness ?? 98;
-  const activeCorridors = kernelData?.activeCorridors ?? 0;
+  const activeTrades = systemState?.activeTrades ?? 0;
+  const capitalInMotion = systemState?.capitalInMotion ?? 0;
+  const activeCorridors = systemState?.activeCorridors ?? 0;
 
   return (
-    <div className="flex flex-col w-full z-40 bg-white/95 dark:bg-[#0A0A0A]/95 backdrop-blur-md border-b border-os-accent/10 sticky top-14 shadow-sm transition-colors duration-300">
-      {/* Main Header Bar */}
-      <header className="h-14 flex items-center px-4 gap-4 relative">
+    <div className="flex flex-col w-full z-40 bg-white/95 dark:bg-[#1C1917]/95 backdrop-blur-md border-b border-gray-100 dark:border-white/5 sticky top-0 transition-colors duration-300">
+      <header className="h-16 flex items-center px-6 gap-6 relative">
         {/* Mobile menu toggle */}
         <button
           onClick={onToggleSidebar}
-          className="md:hidden p-2 rounded-lg text-os-text-secondary dark:text-gray-400 hover:text-os-accent hover:bg-afrikoni-cream/30 dark:hover:bg-white/5 transition-colors"
+          className="md:hidden p-2 rounded-full text-gray-500 hover:bg-gray-100 transition-colors"
         >
           <Menu className="w-5 h-5" />
         </button>
 
-        {/* Command Bar Trigger */}
+        {/* Search */}
         <button
           onClick={onOpenCommandPalette}
-          className="flex items-center gap-2 h-9 px-3 rounded-os-sm bg-afrikoni-cream/20 dark:bg-white/5 border border-os-accent/20 dark:border-white/10 hover:border-os-accent/40 transition-all text-os-sm text-os-text-secondary dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex-1 max-w-md"
+          className="flex items-center gap-3 h-10 px-4 rounded-full bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-all text-sm text-gray-400 hover:text-gray-600 flex-1 max-w-md group"
         >
-          <Search className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Search or run command...</span>
-          <span className="sm:hidden">Search...</span>
+          <Search className="w-4 h-4 text-gray-400 group-hover:text-gray-500" />
+          <span className="hidden sm:inline font-medium">Search workspace</span>
           <div className="ml-auto flex items-center gap-1">
-            <kbd className="hidden md:inline-flex items-center px-1.5 py-0.5 text-os-xs font-medium text-os-text-secondary dark:text-gray-400 bg-white dark:bg-white/10 rounded border border-os-accent/20 dark:border-white/10">
-              <Command className="w-2.5 h-2.5 mr-0.5" />K
+            <kbd className="hidden md:inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold text-gray-400 bg-white rounded border border-gray-200">
+              ⌘ K
             </kbd>
           </div>
         </button>
 
-        {/* Right side actions */}
-        <div className="flex items-center gap-3 ml-auto">
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-lg text-os-text-secondary dark:text-gray-400 hover:text-os-accent hover:bg-afrikoni-cream/30 dark:hover:bg-white/5 transition-colors"
-          >
-            {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-          </button>
-          {/* Mode Toggle */}
+        {/* Right actions */}
+        <div className="flex items-center gap-4 ml-auto">
+
+          {/* Mode toggle */}
           <button
             onClick={onToggleMode}
-            className="hidden sm:flex items-center gap-2 h-8 px-3 rounded-full border border-os-accent/20 text-os-xs font-bold tracking-wider uppercase hover:border-os-accent/40 hover:text-os-accent transition-colors bg-afrikoni-cream/20"
+            className="hidden sm:flex items-center p-1 rounded-full bg-gray-100 dark:bg-white/5"
           >
-            <span className={`${workspaceMode === 'simple' ? 'text-os-accent' : 'text-os-text-secondary'}`}>
-              Simple
+            <span className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${workspaceMode === 'simple' ? 'bg-white text-black shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}>
+              Overview
             </span>
-            <span className="h-3 w-px bg-os-accent/20" />
-            <span className={`${workspaceMode === 'operator' ? 'text-os-accent' : 'text-os-text-secondary'}`}>
-              Operator
+            <span className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${workspaceMode === 'operator' ? 'bg-white text-black shadow-sm' : 'text-gray-500 hover:text-gray-900'}`}>
+              Advanced
             </span>
           </button>
 
-          {/* Quick Add */}
+          <div className="h-6 w-px bg-gray-200 dark:bg-white/10 mx-2" />
+
+          {/* Primary action */}
           <button
             onClick={() => navigate('/dashboard/products/new')}
-            className="hidden sm:flex items-center gap-1.5 h-8 px-3 rounded-lg bg-os-accent hover:bg-os-accent-dark text-black text-os-xs font-bold transition-all shadow-[0_0_15px_rgba(212,169,55,0.2)]"
+            className="flex items-center justify-center w-8 h-8 rounded-full bg-os-accent text-black hover:bg-os-accent/90 transition-colors"
+            title="Create new trade"
           >
-            <Plus className="w-3.5 h-3.5 stroke-[3px]" />
-            <span>NEW</span>
-          </button>
-
-          {/* AI Copilot */}
-          <button
-            onClick={onToggleCopilot}
-            className="p-2 rounded-lg text-os-text-secondary dark:text-gray-400 hover:text-os-accent hover:bg-afrikoni-cream/30 dark:hover:bg-white/5 transition-colors relative group"
-          >
-            <Sparkles className="w-4 h-4" />
-            <div className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-os-accent animate-pulse" />
+            <Plus className="w-4 h-4 ml-0.5 mt-0.5" />
           </button>
 
           {/* Notifications */}
-          <button className="p-2 rounded-lg text-os-text-secondary dark:text-gray-400 hover:text-os-accent hover:bg-afrikoni-cream/30 dark:hover:bg-white/5 transition-colors relative">
-            <Bell className="w-4 h-4" />
+          <button className="p-2 rounded-full text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-colors relative">
+            <Bell className="w-5 h-5" />
             {notificationCount > 0 && (
-              <span className="absolute top-2 right-2.5 w-1.5 h-1.5 rounded-full bg-red-500 ring-2 ring-white" />
+              <span className="absolute top-2 right-2.5 w-1.5 h-1.5 rounded-full bg-red-500 border-2 border-white" />
             )}
           </button>
 
-          {/* User Avatar */}
-          <div className="ml-1 pl-3 border-l border-os-accent/20">
+          <div className="pl-2">
             {userAvatar}
           </div>
         </div>
       </header>
 
-      {/* ═══ LIVE KERNEL RIBBON ═══ */}
-      <div className="h-9 bg-afrikoni-cream/10 border-t border-os-accent/10 flex items-center px-4 overflow-hidden relative">
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none"></div>
-
-        {/* Kernel Status Badge */}
-        <div className="flex items-center gap-2 flex-shrink-0 mr-6 z-10">
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-          <span className="text-os-xs font-black uppercase tracking-[0.2em] text-os-text-secondary">KERNEL ACTIVE</span>
-        </div>
-
-        {/* Scrolling Intelligence Ribbon */}
-        {kernelLoading ? (
-          <div className="flex items-center gap-4 animate-pulse">
-            <div className="h-3 w-20 bg-afrikoni-cream/30 rounded" />
-            <div className="h-3 w-20 bg-afrikoni-cream/30 rounded" />
-            <div className="h-3 w-20 bg-afrikoni-cream/30 rounded" />
+      {!systemLoading && (
+        <div className="h-8 bg-gray-50/50 border-t border-gray-100 flex items-center px-6">
+          <div className="flex items-center gap-8 text-[10px] uppercase tracking-wider text-gray-500 font-medium">
+            <span className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              All systems running
+            </span>
+            <span>Active {activeTrades}</span>
+            <span>Escrow ${(capitalInMotion / 1000).toFixed(0)}k</span>
+            <span>Routes {activeCorridors}</span>
           </div>
-        ) : (
-          <div className="flex-1 overflow-hidden relative z-10 mask-linear-fade">
-            <div className="flex items-center gap-8 animate-marquee whitespace-nowrap">
-              {/* Active Trades */}
-              <div className="flex items-center gap-2 group cursor-pointer hover:bg-afrikoni-cream/20 px-2 py-0.5 rounded transition-colors">
-                <Activity className="w-3 h-3 text-os-accent" />
-                <span className="text-os-xs uppercase tracking-wide text-os-text-secondary group-hover:text-gray-800">Active Trades</span>
-                <span className="text-os-xs font-mono text-afrikoni-deep ml-1">{activeTrades}</span>
-              </div>
-
-              {/* Capital */}
-              <div className="flex items-center gap-2 group cursor-pointer hover:bg-[#111] px-2 py-0.5 rounded transition-colors">
-                <Database className="w-3 h-3 text-emerald-500" />
-                <span className="text-os-xs uppercase tracking-wide text-os-text-secondary group-hover:text-gray-800">Capital Flow</span>
-                <span className="text-os-xs font-mono text-afrikoni-deep ml-1">${(capitalInMotion / 1000).toFixed(0)}K</span>
-              </div>
-
-              {/* Compliance */}
-              <div className="flex items-center gap-2 group cursor-pointer hover:bg-[#111] px-2 py-0.5 rounded transition-colors">
-                <ShieldCheck className="w-3 h-3 text-os-blue" />
-                <span className="text-os-xs uppercase tracking-wide text-os-text-secondary group-hover:text-gray-800">AfCFTA</span>
-                <span className="text-os-xs font-mono text-afrikoni-deep ml-1">{complianceReady}%</span>
-              </div>
-
-              {/* Network */}
-              <div className="flex items-center gap-2 group cursor-pointer hover:bg-[#111] px-2 py-0.5 rounded transition-colors">
-                <Globe className="w-3 h-3 text-purple-500" />
-                <span className="text-os-xs uppercase tracking-wide text-os-text-secondary group-hover:text-gray-800">Corridors</span>
-                <span className="text-os-xs font-mono text-afrikoni-deep ml-1">{activeCorridors} Active</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* System Clock */}
-        <div className="hidden md:flex items-center gap-2 flex-shrink-0 ml-4 z-10 pl-4 border-l border-os-accent/20">
-          <span className="text-os-xs font-mono text-os-text-secondary">UTC {new Date().toISOString().slice(11, 16)}</span>
         </div>
-      </div>
+      )}
     </div>
   );
 }
