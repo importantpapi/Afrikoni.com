@@ -17,6 +17,8 @@ import { supabase } from '@/api/supabaseClient';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { calculateCreditScore } from '@/services/creditScoreService';
 import { generateForensicPDF } from '@/utils/pdfGenerator';
+import UserAuditTrail from '@/components/dashboard/UserAuditTrail';
+import KoniAIService from '@/services/KoniAIService';
 
 // --- Components ---
 
@@ -102,6 +104,8 @@ export default function ContinentalTrustHub() {
     const { profile, organization, profileCompanyId } = useDashboardKernel();
     const queryClient = useQueryClient();
     const [isApplying, setIsApplying] = useState(false);
+    const [isDNAExtracting, setIsDNAExtracting] = useState(false);
+    const [extractedDNA, setExtractedDNA] = useState(null);
 
     // ✅ LIVE CREDIT SCORE
     const { data: creditData, isLoading: loadingCredit } = useQuery({
@@ -183,6 +187,60 @@ export default function ContinentalTrustHub() {
         } finally {
             setIsApplying(false);
         }
+    };
+
+    const handleDNAUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        if (!profileCompanyId) {
+            toast.error('Initialization error: Missing Company Link');
+            return;
+        }
+
+        setIsDNAExtracting(true);
+        const reader = new FileReader();
+
+        reader.onload = async (e) => {
+            try {
+                const base64Image = e.target.result;
+                const result = await KoniAIService.extractDNA({
+                    documentType: 'business_registration',
+                    imageData: base64Image,
+                    context: {
+                        companyName: organization?.company_name,
+                        companyId: profileCompanyId
+                    }
+                });
+
+                if (result) {
+                    setExtractedDNA(result);
+                    toast.success('DNA Extracted Successfully', {
+                        description: `Found ${result.exporter || result.company_name || 'Business Entity'} on ledger.`
+                    });
+
+                    // Update storage with extracted proof
+                    await supabase.from('companies').update({
+                        onboarding_data: {
+                            ...organization?.onboarding_data,
+                            dna_proof: result,
+                            dna_extracted_at: new Date().toISOString()
+                        }
+                    }).eq('id', profileCompanyId);
+
+                    queryClient.invalidateQueries(['company', profileCompanyId]);
+                }
+            } catch (err) {
+                console.error('DNA Extraction Error:', err);
+                toast.error('DNA Protocol Failed', {
+                    description: 'Could not resolve document optics. Try a clearer scan.'
+                });
+            } finally {
+                setIsDNAExtracting(false);
+            }
+        };
+
+        reader.readAsDataURL(file);
     };
 
     return (
@@ -336,11 +394,7 @@ export default function ContinentalTrustHub() {
             <div className="grid lg:grid-cols-12 gap-8">
                 <div className="lg:col-span-8">
                     <Surface variant="glass" className="p-10 relative overflow-hidden flex flex-col justify-between h-full bg-white/[0.01]">
-                        <div className="absolute top-0 right-0 p-12 opacity-[0.02] -rotate-12">
-                            <Compass className="w-80 h-80" />
-                        </div>
-
-                        <div className="space-y-10 relative z-10">
+                        <div className="space-y-10 relative z-10 font-[Inter]">
                             <div className="flex items-center gap-5 border-b border-white/5 pb-8">
                                 <div className="p-3.5 bg-os-accent/10 rounded-os-md border border-os-accent/30 shadow-os-md shadow-os-accent/5">
                                     <Scale className="w-8 h-8 text-os-accent" />
@@ -351,26 +405,7 @@ export default function ContinentalTrustHub() {
                                 </div>
                             </div>
 
-                            <div className="space-y-4">
-                                {[
-                                    { label: 'Biometric Security', ref: 'UID-8201-AX', status: 'Hashed', date: 'Feb 12' },
-                                    { label: 'Fiscal Compliance Node', ref: 'REG-SN-D93', status: 'Confirmed', date: 'Feb 11' },
-                                    { label: 'Anti-Risk Matrix Screening', ref: 'AML-SCAN-48', status: 'Active', date: 'Real-time' }
-                                ].map((row, i) => (
-                                    <div key={i} className="flex items-center justify-between p-5 bg-white/[0.02] border border-white/5 rounded-os-md group/row hover:bg-white/[0.04] transition-all">
-                                        <div className="flex items-center gap-10">
-                                            <div className="text-os-xs font-black text-os-muted uppercase tracking-[0.3em] w-56">{row.label}</div>
-                                            <div className="hidden md:block font-mono text-os-xs text-white/20 uppercase tracking-widest">{row.ref}</div>
-                                        </div>
-                                        <div className="flex items-center gap-6">
-                                            <div className="text-os-xs font-bold text-os-muted opacity-40 uppercase tracking-widest">{row.date}</div>
-                                            <Badge variant="outline" className="bg-emerald-500/5 text-emerald-500 border-emerald-500/20 text-os-xs font-black uppercase px-2.5 shadow-sm">
-                                                {row.status}
-                                            </Badge>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
+                            <UserAuditTrail limit={5} compact={true} />
                         </div>
 
                         <div className="mt-12 pt-8 border-t border-white/5 flex items-center justify-between">
@@ -381,6 +416,82 @@ export default function ContinentalTrustHub() {
                             <Button variant="ghost" className="text-os-accent font-black uppercase tracking-widest text-os-xs hover:bg-os-accent/10">
                                 View Full Intelligence Ledger <ArrowRight className="w-4 h-4 ml-2" />
                             </Button>
+                        </div>
+                    </Surface>
+
+                    {/* NEW: DNA Extractor Section */}
+                    <Surface variant="glass" className="p-10 mt-8 relative overflow-hidden bg-emerald-500/[0.01] border-emerald-500/10">
+                        <div className="flex flex-col md:flex-row gap-10 items-center">
+                            <div className="flex-1 space-y-6">
+                                <div className="flex items-center gap-3">
+                                    <Fingerprint className="w-6 h-6 text-emerald-500" />
+                                    <h3 className="text-2xl font-black tracking-tight uppercase">Document DNA Extractor</h3>
+                                </div>
+                                <p className="text-os-sm text-os-muted font-medium">
+                                    Upload your Business Registration or License. Our AI will automatically extract identity markers and commit them to your Trust Profile.
+                                </p>
+
+                                <div className="relative">
+                                    <input
+                                        type="file"
+                                        accept="image/*,.pdf"
+                                        onChange={handleDNAUpload}
+                                        disabled={isDNAExtracting}
+                                        className="absolute inset-0 opacity-0 cursor-pointer z-20"
+                                    />
+                                    <Button
+                                        variant="outline"
+                                        className="w-full h-14 border-dashed border-emerald-500/30 bg-emerald-500/5 hover:bg-emerald-500/10 text-emerald-500 font-black uppercase tracking-widest"
+                                    >
+                                        {isDNAExtracting ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin mr-3" />
+                                                Parsing Optics...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Compass className="w-4 h-4 mr-3" />
+                                                Locate Document DNA
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
+
+                                {extractedDNA && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="p-5 bg-emerald-500/10 rounded-os-sm border border-emerald-500/20 space-y-3"
+                                    >
+                                        <div className="flex justify-between items-center text-os-xs font-black uppercase text-emerald-400">
+                                            <span>Extracted Metadata</span>
+                                            <Badge className="bg-emerald-500 text-black">Verified Match</Badge>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-4 text-os-xs">
+                                            <div>
+                                                <div className="text-os-muted mb-1 opacity-50 uppercase tracking-widest">Entity</div>
+                                                <div className="font-bold truncate">{extractedDNA.exporter || extractedDNA.company_name || 'N/A'}</div>
+                                            </div>
+                                            <div>
+                                                <div className="text-os-muted mb-1 opacity-50 uppercase tracking-widest">Reg ID</div>
+                                                <div className="font-bold truncate">{extractedDNA.registration_id || extractedDNA.origin || 'N/A'}</div>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </div>
+
+                            <div className="w-48 h-48 rounded-full border-2 border-emerald-500/20 flex items-center justify-center relative shrink-0">
+                                <motion.div
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                                    className="absolute inset-2 border-t-2 border-emerald-500/40 rounded-full"
+                                />
+                                <Fingerprint className={cn(
+                                    "w-16 h-16 transition-all duration-700",
+                                    isDNAExtracting ? "text-emerald-500 scale-125 animate-pulse" : "text-os-muted opacity-20"
+                                )} />
+                            </div>
                         </div>
                     </Surface>
                 </div>
@@ -441,6 +552,6 @@ export default function ContinentalTrustHub() {
                     </Surface>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }

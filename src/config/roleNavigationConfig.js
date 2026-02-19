@@ -1,7 +1,7 @@
 import {
     LayoutDashboard, GitBranch, MessageSquare, FileText, ShoppingCart,
     Package, Truck, Wallet, Shield, Settings, HelpCircle, BarChart3,
-    Building, Globe, Landmark, Bell, LogOut, Lock, CheckCircle2
+    Building, Globe, Landmark, Bell, LogOut, Lock, CheckCircle2, AlertCircle
 } from 'lucide-react';
 
 export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple', notificationCounts = {}, isAdmin = false }) => {
@@ -9,18 +9,35 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
     const isSeller = capabilities?.can_sell === true;
     const isLogistics = capabilities?.can_logistics === true;
 
+    // 🏛️ AFRIKONI 2026: The 5 Action Pillars
+    // Mission: Consolidate 60+ routes into clear operational zones.
     const sections = [
         {
-            id: 'intent',
-            label: 'Business Today',
+            id: 'workbench',
+            label: 'Command',
             items: [
                 {
                     id: 'dashboard',
-                    label: 'My Business',
+                    label: 'Workbench',
                     path: '/dashboard',
                     icon: LayoutDashboard,
-                    activeMatch: (path) => path === '/dashboard'
+                    activeMatch: (path) => path === '/dashboard' || path === '/dashboard/'
                 },
+                {
+                    id: 'messages',
+                    label: 'Inbox',
+                    path: '/dashboard/messages',
+                    icon: MessageSquare,
+                    badge: notificationCounts.messages || 0,
+                    activeMatch: (path) => path.startsWith('/dashboard/messages')
+                }
+            ].filter(Boolean)
+        },
+        {
+            id: 'sourcing',
+            divider: true,
+            label: 'Discovery',
+            items: [
                 isBuyer && {
                     id: 'marketplace',
                     label: 'Marketplace',
@@ -30,7 +47,7 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
                 },
                 (isBuyer || isSeller) && {
                     id: 'rfqs',
-                    label: isSeller ? "Buyer Requests" : "My Requests",
+                    label: isSeller ? "Open Requests" : "My RFQs",
                     path: isSeller ? "/dashboard/supplier-rfqs" : "/dashboard/rfqs",
                     icon: FileText,
                     badge: notificationCounts.rfqs || 0,
@@ -39,107 +56,87 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
             ].filter(Boolean)
         },
         {
-            id: 'match',
+            id: 'inventory',
             divider: true,
-            label: 'Communications',
+            label: 'Supply',
             items: [
-                {
-                    id: 'trade-pipeline',
-                    label: 'Deal Pipeline',
-                    path: '/dashboard/trade-pipeline',
-                    icon: GitBranch,
-                    activeMatch: (path) => path.startsWith('/dashboard/trade-pipeline')
+                isSeller && {
+                    id: 'products',
+                    label: 'My Catalog',
+                    path: '/dashboard/products',
+                    icon: Package,
+                    activeMatch: (path) => path.startsWith('/dashboard/products')
                 },
-                {
-                    id: 'messages',
-                    label: 'Messages',
-                    path: '/dashboard/messages',
-                    icon: MessageSquare,
-                    activeMatch: (path) => path.startsWith('/dashboard/messages')
+                isSeller && workspaceMode === 'pro' && {
+                    id: 'analytics',
+                    label: 'Market Insights',
+                    path: '/dashboard/supplier-analytics',
+                    icon: BarChart3,
+                    activeMatch: (path) => path.startsWith('/dashboard/supplier-analytics')
                 }
             ].filter(Boolean)
         },
         {
-            id: 'contract',
+            id: 'trades',
             divider: true,
-            label: 'Operations',
+            label: 'Fulfillment',
             items: [
                 {
                     id: 'orders',
-                    label: 'My Deals',
+                    label: 'Active Trades',
                     path: '/dashboard/orders',
                     icon: ShoppingCart,
-                    activeMatch: (path) => path.startsWith('/dashboard/orders') || path.startsWith('/dashboard/trade/')
-                }
-            ].filter(Boolean)
-        },
-        {
-            id: 'move',
-            divider: true,
-            label: 'Logistics',
-            items: [
+                    badge: notificationCounts.orders || 0,
+                    activeMatch: (path) => path.startsWith('/dashboard/orders') || path.startsWith('/dashboard/trade/') || path.startsWith('/dashboard/escrow/')
+                },
                 {
-                    id: 'trace',
-                    label: 'Track My Trade',
-                    path: '/dashboard/trace-center',
-                    icon: Lock,
-                    badge: 'LIVE',
-                    activeMatch: (path) => path.startsWith('/dashboard/trace-center')
+                    id: 'pipeline',
+                    label: 'Deal Flow',
+                    path: '/dashboard/trade-pipeline',
+                    icon: GitBranch,
+                    activeMatch: (path) => path.startsWith('/dashboard/trade-pipeline')
                 },
                 (isLogistics || isBuyer || isSeller) && {
                     id: 'logistics',
                     label: 'Shipments',
                     path: '/dashboard/shipments',
                     icon: Truck,
-                    activeMatch: (path) => path.startsWith('/dashboard/shipments')
-                }
-            ].filter(Boolean)
-        },
-        {
-            id: 'finance',
-            divider: true,
-            label: 'Finance',
-            items: [
+                    activeMatch: (path) => path.startsWith('/dashboard/shipments') || path.startsWith('/dashboard/trace-center')
+                },
                 {
-                    id: 'wallet',
-                    label: 'Wallet & Payouts',
+                    id: 'finance',
+                    label: 'Payments',
                     path: '/dashboard/wallet',
                     icon: Wallet,
-                    activeMatch: (path) => path.startsWith('/dashboard/wallet')
-                },
-                {
-                    id: 'payments',
-                    label: 'Transactions',
-                    path: '/dashboard/payments',
-                    icon: BarChart3,
-                    activeMatch: (path) => path.startsWith('/dashboard/payments')
-                },
-                workspaceMode === 'operator' && {
-                    id: 'revenue',
-                    label: 'Platform Treasury',
-                    path: '/dashboard/revenue',
-                    icon: Landmark,
-                    activeMatch: (path) => path.startsWith('/dashboard/revenue')
+                    activeMatch: (path) => path.startsWith('/dashboard/wallet') || path.startsWith('/dashboard/payments') || path.startsWith('/dashboard/invoices')
                 }
             ].filter(Boolean)
         },
         {
-            id: 'compliance',
+            id: 'trust',
             divider: true,
-            label: 'Compliance',
+            label: 'Governance',
             items: [
                 {
                     id: 'verification',
-                    label: 'Verification Center',
+                    label: 'Trust Hub',
                     path: '/dashboard/kyc',
                     icon: Shield,
-                    activeMatch: (path) => path.startsWith('/dashboard/kyc')
+                    activeMatch: (path) => path.startsWith('/dashboard/kyc') || path.startsWith('/dashboard/verification-center') || path.startsWith('/dashboard/trust-health')
+                },
+                workspaceMode === 'pro' && {
+                    id: 'compliance',
+                    label: 'Compliance',
+                    path: '/dashboard/compliance',
+                    icon: Lock,
+                    activeMatch: (path) => path.startsWith('/dashboard/compliance') || path.startsWith('/dashboard/risk') || path.startsWith('/dashboard/audit')
                 },
                 {
                     id: 'disputes',
-                    label: 'Resolution Center',
+                    label: 'Resolutions',
                     path: '/dashboard/disputes',
-                    icon: Lock,
+                    icon: AlertCircle,
+                    badge: notificationCounts.disputes || 0,
                     activeMatch: (path) => path.startsWith('/dashboard/disputes') && !path.includes('/admin/')
                 }
             ].filter(Boolean)
@@ -180,14 +177,14 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
             label: 'Settings',
             path: '/dashboard/settings',
             icon: Settings,
-            activeMatch: (path) => path.startsWith('/dashboard/settings')
+            activeMatch: (path) => path.startsWith('/dashboard/settings') || path.startsWith('/dashboard/company-info') || path.startsWith('/dashboard/team-members')
         },
         {
             id: 'help',
             label: 'Help',
             path: '/dashboard/help',
             icon: HelpCircle,
-            activeMatch: (path) => path.startsWith('/dashboard/help')
+            activeMatch: (path) => path.startsWith('/dashboard/help') || path.startsWith('/dashboard/support')
         },
         {
             id: 'website',

@@ -257,6 +257,23 @@ export async function analyzeRiskIndicators() {
       });
     }
 
+    // 5. Check for AI-detected high fraud risk
+    const { data: aiRisks } = await supabase
+      .from('companies')
+      .select('id, company_name, ai_fraud_score, risk_level')
+      .in('risk_level', ['high', 'critical'])
+      .gte('last_fraud_check_at', twentyFourHoursAgo.toISOString());
+
+    if (aiRisks && aiRisks.length > 0) {
+      risks.push({
+        type: 'fraud_ai',
+        severity: 'critical',
+        title: 'AI Fraud Scoring Alert',
+        description: `${aiRisks.length} companies flagged by AI as High/Critical Risk.`,
+        metadata: { flagged_companies: aiRisks.map(c => c.id) }
+      });
+    }
+
     // Notify admins of detected risks
     for (const risk of risks) {
       await notifyAdminOfRiskEvent(

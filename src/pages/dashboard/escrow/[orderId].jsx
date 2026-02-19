@@ -9,6 +9,8 @@ import EmptyState from '@/components/shared/ui/EmptyState';
 import { Wallet, Lock, ArrowUpRight, Clock } from 'lucide-react';
 import { supabase } from '@/api/supabaseClient';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { toast } from 'sonner';
+import { Loader2 } from 'lucide-react';
 
 export default function EscrowDetail() {
   const { orderId } = useParams();
@@ -22,6 +24,7 @@ export default function EscrowDetail() {
     status: 'pending',
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isPaying, setIsPaying] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -100,6 +103,62 @@ export default function EscrowDetail() {
     ? (payment.heldAmount / payment.totalAmount) * 100
     : 0;
 
+  const handlePayment = async () => {
+    setIsPaying(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/process-flutterwave-payment`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`
+        },
+        body: JSON.stringify({
+          amount: payment.totalAmount,
+          currency: payment.currency || 'USD',
+          orderId: orderId,
+          orderType: 'order',
+          customerEmail: session?.user?.email,
+          customerName: session?.user?.user_metadata?.full_name || 'Afrikoni Trader'
+        })
+      });
+
+      const data = await response.json();
+      if (data.success && data.paymentUrl) {
+        window.location.href = data.paymentUrl;
+      } else {
+        toast.error(data.error || 'Failed to initialize payment');
+      }
+    } catch (err) {
+      console.error('Payment Error:', err);
+      toast.error('An unexpected error occurred');
+    } finally {
+      setIsPaying(false);
+    }
+  };
+
+  const handleSharePaymentLink = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-payment-link`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          orderId,
+          amount: payment.totalAmount,
+          currency: payment.currency || 'USD'
+        })
+      });
+      const data = await response.json();
+      if (data.paymentLink) {
+        const message = `Hello, please use this link to pay for Order ${orderId} on Afrikoni: ${data.paymentLink}`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+      }
+    } catch (err) {
+      toast.error('Failed to generate sharing link');
+    }
+  };
+
   return (
     <div className="os-page os-stagger space-y-6">
       <Surface variant="glass" className="p-6">
@@ -150,10 +209,24 @@ export default function EscrowDetail() {
             <Lock className="w-4 h-4" /> Quick Actions
           </div>
           <div className="space-y-2">
-            <Button className="w-full gap-2">
-              <ArrowUpRight className="w-4 h-4" /> Release next milestone
+            {payment.status === 'pending' && (
+              <Button
+                onClick={handlePayment}
+                disabled={isPaying}
+                className="w-full gap-2 bg-os-accent hover:bg-os-accent-dark"
+              >
+                {isPaying ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowUpRight className="w-4 h-4" />}
+                Pay with Mobile Money / Card
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              className="w-full gap-2 text-os-sm py-2"
+              onClick={handleSharePaymentLink}
+            >
+              Share payment link (WhatsApp)
             </Button>
-            <Button variant="outline" className="w-full gap-2">
+            <Button variant="ghost" className="w-full gap-2 text-os-muted">
               Request amendment
             </Button>
           </div>
@@ -180,8 +253,8 @@ function Milestone({ label, status, amount }) {
     status === 'done'
       ? 'status-verified'
       : status === 'in_progress'
-      ? 'status-in-progress'
-      : 'status-pending';
+        ? 'status-in-progress'
+        : 'status-pending';
   return (
     <div className="flex items-center justify-between border rounded-lg px-3 py-2">
       <div className="flex items-center gap-2">

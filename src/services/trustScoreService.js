@@ -7,10 +7,11 @@
 import { supabase } from '@/api/supabaseClient';
 
 const TRUST_SCORE_WEIGHTS = {
-  completionRate: 0.30,      // 30% - On-time completion
-  deliveryReliability: 0.25, // 25% - Meets delivery dates
-  ratingScore: 0.25,         // 25% - Buyer/seller ratings
-  disputeHistory: 0.20       // 20% - Inverse of disputes (fewer = higher score)
+  completionRate: 0.20,      // 20% - On-time completion
+  deliveryReliability: 0.20, // 20% - Meets delivery dates
+  ratingScore: 0.20,         // 20% - Buyer/seller ratings
+  disputeHistory: 0.15,      // 15% - Inverse of disputes
+  aiTrustScore: 0.25         // 25% - AI Fraud Evaluation (100 - fraud_score)
 };
 
 const INITIAL_TRUST_SCORE = 70; // New companies start at 70
@@ -149,6 +150,23 @@ export async function calculateDisputeScore(companyId) {
   }
 }
 
+// --- AI Trust Logic ---
+export async function getAIFraudScore(companyId) {
+  try {
+    const { data } = await supabase
+      .from('companies')
+      .select('ai_fraud_score')
+      .eq('id', companyId)
+      .single();
+
+    // Default to 30 (Moderate Risk) if never checked, or return inverse for trust
+    const fraudScore = data?.ai_fraud_score ?? 30;
+    return Math.max(0, 100 - fraudScore);
+  } catch (err) {
+    return 70; // Neutral fallback
+  }
+}
+
 /**
  * Calculate overall trust score
  */
@@ -158,12 +176,14 @@ export async function calculateTrustScore(companyId) {
       completionRate,
       deliveryReliability,
       averageRating,
-      disputeScore
+      disputeScore,
+      aiTrustScore
     ] = await Promise.all([
       calculateCompletionRate(companyId),
       calculateDeliveryReliability(companyId),
       calculateAverageRating(companyId),
-      calculateDisputeScore(companyId)
+      calculateDisputeScore(companyId),
+      getAIFraudScore(companyId)
     ]);
 
     // Weighted average
@@ -171,7 +191,8 @@ export async function calculateTrustScore(companyId) {
       (completionRate * TRUST_SCORE_WEIGHTS.completionRate) +
       (deliveryReliability * TRUST_SCORE_WEIGHTS.deliveryReliability) +
       (averageRating * TRUST_SCORE_WEIGHTS.ratingScore) +
-      (disputeScore * TRUST_SCORE_WEIGHTS.disputeHistory)
+      (disputeScore * TRUST_SCORE_WEIGHTS.disputeHistory) +
+      (aiTrustScore * TRUST_SCORE_WEIGHTS.aiTrustScore)
     );
 
     // Update company record

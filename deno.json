@@ -1,11 +1,13 @@
 {
-    "nodeModulesDir": "auto",
     "compilerOptions": {
         "lib": [
             "deno.ns",
             "deno.window",
             "dom"
-        ]
+        ],
+        "allowJs": true,
+        "checkJs": false,
+        "strict": true
     },
     "imports": {
         "supabase": "https://esm.sh/@supabase/supabase-js@2",

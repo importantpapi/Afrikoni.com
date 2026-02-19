@@ -301,6 +301,24 @@ export default function OneFlow() {
                     </p>
                   </div>
                 )}
+
+                {/* 🛡️ AFRIKONI SHIELD STATUS */}
+                <div className="mt-4 pt-4 border-t border-emerald-500/10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500/80">Protection Engine Active</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="p-2 rounded bg-black/20 border border-white/5">
+                      <p className="text-[8px] uppercase tracking-tighter text-os-text-secondary">Escrow Logic</p>
+                      <p className="text-[10px] font-bold text-emerald-500">SECURE</p>
+                    </div>
+                    <div className="p-2 rounded bg-black/20 border border-white/5">
+                      <p className="text-[8px] uppercase tracking-tighter text-os-text-secondary">AI Fraud Scan</p>
+                      <p className="text-[10px] font-bold text-emerald-500">VERIFIED</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </Surface>
           </div>

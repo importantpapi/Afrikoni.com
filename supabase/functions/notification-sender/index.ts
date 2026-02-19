@@ -15,11 +15,11 @@ const corsHeaders = {
 
 interface NotificationRecord {
   id: string;
-  trade_id: string;
-  provider_id: string;
+  trade_id?: string;
+  provider_id?: string;
   notification_type: "sms" | "whatsapp" | "push";
-  message: string;
-  phone_number: string | null;
+  message_body: string;
+  recipient: string | null;
   status: "pending" | "sent" | "delivered" | "failed";
 }
 
@@ -165,12 +165,12 @@ async function sendSMS(
 
   if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
     console.warn("[SMS] Twilio not configured - logging message instead");
-    console.log(`[SMS] To: ${notification.phone_number}`);
-    console.log(`[SMS] Message: ${notification.message}`);
+    console.log(`[SMS] To: ${notification.recipient}`);
+    console.log(`[SMS] Message: ${notification.message_body}`);
     return; // Don't throw error in development
   }
 
-  if (!notification.phone_number) {
+  if (!notification.recipient) {
     throw new Error("Phone number missing");
   }
 
@@ -178,9 +178,9 @@ async function sendSMS(
   const auth = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
 
   const body = new URLSearchParams({
-    To: notification.phone_number,
+    To: notification.recipient,
     From: TWILIO_PHONE_NUMBER,
-    Body: notification.message,
+    Body: notification.message_body,
   });
 
   const response = await fetch(url, {
@@ -213,12 +213,12 @@ async function sendWhatsApp(
 
   if (!TWILIO_ACCOUNT_SID || !TWILIO_AUTH_TOKEN || !TWILIO_PHONE_NUMBER) {
     console.warn("[WhatsApp] Twilio not configured - logging message instead");
-    console.log(`[WhatsApp] To: ${notification.phone_number}`);
-    console.log(`[WhatsApp] Message: ${notification.message}`);
+    console.log(`[WhatsApp] To: ${notification.recipient}`);
+    console.log(`[WhatsApp] Message: ${notification.message_body}`);
     return; // Don't throw error in development
   }
 
-  if (!notification.phone_number) {
+  if (!notification.recipient) {
     throw new Error("Phone number missing");
   }
 
@@ -226,9 +226,9 @@ async function sendWhatsApp(
   const auth = btoa(`${TWILIO_ACCOUNT_SID}:${TWILIO_AUTH_TOKEN}`);
 
   const body = new URLSearchParams({
-    To: `whatsapp:${notification.phone_number}`,
+    To: `whatsapp:${notification.recipient}`,
     From: `whatsapp:${TWILIO_PHONE_NUMBER}`,
-    Body: notification.message,
+    Body: notification.message_body,
   });
 
   const response = await fetch(url, {

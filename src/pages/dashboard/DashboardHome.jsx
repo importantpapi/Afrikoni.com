@@ -6,7 +6,7 @@ import { useTrades } from '@/hooks/queries/useTrades';
 import { useRFQs } from '@/hooks/queries/useRFQs';
 import {
   Box, CreditCard, Ship, Sparkles, Lock as LockIcon,
-  Globe, ShieldCheck, ChevronRight, Package
+  Globe, ShieldCheck, ChevronRight, Package, FileText
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Surface } from '@/components/system/Surface';

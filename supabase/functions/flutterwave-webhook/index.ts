@@ -17,6 +17,7 @@
  *  - Legacy order flow (order_id → orders table)
  */
 
+// @ts-ignore
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 interface FlutterwaveWebhookPayload {
@@ -55,7 +56,8 @@ interface FlutterwaveWebhookPayload {
   };
 }
 
-Deno.serve(async (req) => {
+// @ts-ignore
+Deno.serve(async (req: Request) => {
   if (req.method !== "POST") {
     return new Response(
       JSON.stringify({ success: false, error: "Method not allowed" }),
@@ -63,9 +65,13 @@ Deno.serve(async (req) => {
     );
   }
 
+  // @ts-ignore
   const FLUTTERWAVE_SECRET_HASH = Deno.env.get("FLUTTERWAVE_SECRET_HASH");
+  // @ts-ignore
   const FLUTTERWAVE_SECRET_KEY = Deno.env.get("FLUTTERWAVE_SECRET_KEY");
+  // @ts-ignore
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
+  // @ts-ignore
   const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
 
   if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
@@ -360,7 +366,7 @@ Deno.serve(async (req) => {
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
 
-  } catch (err) {
+  } catch (err: any) {
     console.error("[webhook] Processing error:", err);
     return new Response(
       JSON.stringify({ success: false, error: err.message }),

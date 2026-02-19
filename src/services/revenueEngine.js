@@ -9,31 +9,42 @@
  */
 
 export const REVENUE_CONFIG = {
-    TAKE_RATE_PCT: 0.08, // 8% Total
+    TAKE_RATE_PCT: 0.08,             // 8% Total Base
+    VOLATILITY_BUFFER_PCT: 0.005,    // 0.5% Safety Buffer for Corridor Spikes
     BREAKDOWN: {
         ESCROW_FEE: 0.05,   // 5% Platform/Escrow
         SERVICE_FEE: 0.018, // 1.8% Service Margin
-        FX_SPREAD: 0.012    // 1.2% FX Padding
+        FX_SPREAD: 0.012    // 1.2% FX Padding (Base)
     },
     DOCUMENT_FEE_USD: 25.00,
     ONE_FLOW_PACK_ID: 'one_flow_pack_v1'
 };
 
 /**
+ * Get the current dynamic take-rate including volatility buffers.
+ * Future: Adjust based on real-time corridor risk (e.g. NGN/GHS).
+ */
+export function getDynamicTakeRate() {
+    return REVENUE_CONFIG.TAKE_RATE_PCT + REVENUE_CONFIG.VOLATILITY_BUFFER_PCT;
+}
+
+/**
  * Calculate the full fee breakdown for a trade value
  * @param {number} tradeValueUSD 
  */
 export function calculateTradeFees(tradeValueUSD) {
-    const totalFee = tradeValueUSD * REVENUE_CONFIG.TAKE_RATE_PCT;
+    const dynamicRate = getDynamicTakeRate();
+    const totalFee = tradeValueUSD * dynamicRate;
 
     return {
         total: totalFee,
         breakdown: {
             escrow: tradeValueUSD * REVENUE_CONFIG.BREAKDOWN.ESCROW_FEE,
             service: tradeValueUSD * REVENUE_CONFIG.BREAKDOWN.SERVICE_FEE,
-            fxValuation: tradeValueUSD * REVENUE_CONFIG.BREAKDOWN.FX_SPREAD
+            fxValuation: tradeValueUSD * (REVENUE_CONFIG.BREAKDOWN.FX_SPREAD + REVENUE_CONFIG.VOLATILITY_BUFFER_PCT)
         },
-        netSettlement: tradeValueUSD - totalFee
+        netSettlement: tradeValueUSD - totalFee,
+        appliedRate: dynamicRate
     };
 }
 
