@@ -245,7 +245,7 @@ export default function WalletPage() {
   }
 
   return (
-    <Surface className="p-6 md:p-10 space-y-8">
+    <Surface className="p-6 md:p-10 space-y-8 bg-os-surface-0 border-os-stroke relative z-10">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div className="flex items-center gap-3">
@@ -253,13 +253,13 @@ export default function WalletPage() {
             <Wallet className="w-6 h-6 text-os-accent" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-white">Wallet & Payouts</h1>
-            <p className="text-sm text-white/50">Manage your earnings, escrow balance, and withdrawal requests</p>
+            <h1 className="text-2xl font-bold text-os-text-primary">Wallet & Payouts</h1>
+            <p className="text-sm text-os-text-secondary">Manage your earnings, escrow balance, and withdrawal requests</p>
           </div>
         </div>
         <Button
           onClick={() => setShowPayoutForm(!showPayoutForm)}
-          className="bg-os-accent text-black font-semibold hover:bg-os-accent/90"
+          className="bg-os-accent text-[var(--afrikoni-deep)] font-semibold hover:bg-os-accent/90"
         >
           <ArrowUpRight className="w-4 h-4 mr-2" />
           {showPayoutForm ? 'Cancel' : 'Request Payout'}
@@ -276,42 +276,42 @@ export default function WalletPage() {
           </>
         ) : (
           <>
-            <Card className="bg-white/5 border-white/10 hover:border-green-500/30 transition-colors">
+            <Card className="bg-os-surface-1 border-os-stroke hover:border-green-500/30 transition-colors shadow-sm">
               <CardContent className="p-6">
-                <div className="flex items-center gap-2 text-white/50 text-sm mb-2">
-                  <CheckCircle2 className="w-4 h-4 text-green-400" />
+                <div className="flex items-center gap-2 text-os-text-secondary text-sm mb-2 font-medium">
+                  <CheckCircle2 className="w-4 h-4 text-green-500" />
                   Available Balance
                 </div>
-                <p className="text-3xl font-bold text-green-400">
+                <p className="text-3xl font-bold text-green-600">
                   {formatCurrency(availableBalance)}
                 </p>
-                <p className="text-xs text-white/40 mt-1">Ready for withdrawal</p>
+                <p className="text-xs text-os-muted mt-1 uppercase tracking-wider font-semibold">Ready for withdrawal</p>
               </CardContent>
             </Card>
 
-            <Card className="bg-white/5 border-white/10 hover:border-yellow-500/30 transition-colors">
+            <Card className="bg-os-surface-1 border-os-stroke hover:border-yellow-500/30 transition-colors shadow-sm">
               <CardContent className="p-6">
-                <div className="flex items-center gap-2 text-white/50 text-sm mb-2">
-                  <Clock className="w-4 h-4 text-yellow-400" />
+                <div className="flex items-center gap-2 text-os-text-secondary text-sm mb-2 font-medium">
+                  <Clock className="w-4 h-4 text-yellow-500" />
                   In Escrow
                 </div>
-                <p className="text-3xl font-bold text-yellow-400">
+                <p className="text-3xl font-bold text-yellow-600">
                   {formatCurrency(inEscrow)}
                 </p>
-                <p className="text-xs text-white/40 mt-1">Held until trade completion</p>
+                <p className="text-xs text-os-muted mt-1 uppercase tracking-wider font-semibold">Held until trade completion</p>
               </CardContent>
             </Card>
 
-            <Card className="bg-white/5 border-white/10 hover:border-blue-500/30 transition-colors">
+            <Card className="bg-os-surface-1 border-os-stroke hover:border-blue-500/30 transition-colors shadow-sm">
               <CardContent className="p-6">
-                <div className="flex items-center gap-2 text-white/50 text-sm mb-2">
-                  <DollarSign className="w-4 h-4 text-blue-400" />
+                <div className="flex items-center gap-2 text-os-text-secondary text-sm mb-2 font-medium">
+                  <DollarSign className="w-4 h-4 text-blue-500" />
                   Total Earned
                 </div>
-                <p className="text-3xl font-bold text-blue-400">
+                <p className="text-3xl font-bold text-blue-600">
                   {formatCurrency(totalEarned)}
                 </p>
-                <p className="text-xs text-white/40 mt-1">All-time released earnings</p>
+                <p className="text-xs text-os-muted mt-1 uppercase tracking-wider font-semibold">All-time released earnings</p>
               </CardContent>
             </Card>
           </>
@@ -435,36 +435,36 @@ export default function WalletPage() {
       {/* Transaction History */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <Clock className="w-5 h-5 text-white/50" />
-          <h2 className="text-lg font-semibold text-white">Transaction History</h2>
+          <Clock className="w-5 h-5 text-os-muted" />
+          <h2 className="text-lg font-semibold text-os-text-primary">Transaction History</h2>
         </div>
 
         {txLoading ? (
           <TableSkeleton />
         ) : txError ? (
-          <Surface variant="glass" className="p-8 text-center border border-white/10">
-            <AlertTriangle className="w-8 h-8 text-yellow-400 mx-auto mb-3" />
-            <p className="text-white/60 text-sm">Unable to load transaction history.</p>
-            <p className="text-white/30 text-xs mt-1">{txError}</p>
+          <Surface variant="glass" className="p-8 text-center border border-os-stroke rounded-xl">
+            <AlertTriangle className="w-8 h-8 text-yellow-500 mx-auto mb-3" />
+            <p className="text-os-text-secondary text-sm">Unable to load transaction history.</p>
+            <p className="text-os-muted text-xs mt-1">{txError}</p>
           </Surface>
         ) : transactions.length === 0 ? (
-          <Surface variant="glass" className="p-10 text-center border border-white/10">
-            <Wallet className="w-10 h-10 text-white/20 mx-auto mb-3" />
-            <p className="text-white/50 font-medium">No transactions yet</p>
-            <p className="text-white/30 text-sm mt-1">
+          <Surface variant="glass" className="p-10 text-center border border-os-stroke shadow-sm rounded-xl">
+            <Wallet className="w-10 h-10 text-os-muted mx-auto mb-3 opacity-50" />
+            <p className="text-os-text-secondary font-medium uppercase tracking-widest text-sm">No transactions yet</p>
+            <p className="text-os-muted text-sm mt-2">
               Your transaction history will appear here once you start trading.
             </p>
           </Surface>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-white/10">
+          <div className="overflow-x-auto rounded-lg border border-os-stroke bg-os-surface-0 shadow-sm">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-white/10 bg-white/5">
-                  <th className="text-left px-4 py-3 text-white/50 font-medium">Date</th>
-                  <th className="text-left px-4 py-3 text-white/50 font-medium">Type</th>
-                  <th className="text-right px-4 py-3 text-white/50 font-medium">Amount</th>
-                  <th className="text-center px-4 py-3 text-white/50 font-medium">Status</th>
-                  <th className="text-left px-4 py-3 text-white/50 font-medium">Reference</th>
+                <tr className="border-b border-os-stroke bg-os-surface-1">
+                  <th className="text-left px-4 py-3 text-os-muted font-bold text-xs uppercase tracking-wider">Date</th>
+                  <th className="text-left px-4 py-3 text-os-muted font-bold text-xs uppercase tracking-wider">Type</th>
+                  <th className="text-right px-4 py-3 text-os-muted font-bold text-xs uppercase tracking-wider">Amount</th>
+                  <th className="text-center px-4 py-3 text-os-muted font-bold text-xs uppercase tracking-wider">Status</th>
+                  <th className="text-left px-4 py-3 text-os-muted font-bold text-xs uppercase tracking-wider">Reference</th>
                 </tr>
               </thead>
               <tbody>
@@ -472,17 +472,17 @@ export default function WalletPage() {
                   const status = statusConfig[tx.status] || statusConfig.pending;
                   const typeLabel = (tx.type || 'unknown').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                   return (
-                    <tr key={tx.id} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                      <td className="px-4 py-3 text-white/70 whitespace-nowrap">
+                    <tr key={tx.id} className="border-b border-os-stroke hover:bg-os-surface-1 transition-colors">
+                      <td className="px-4 py-3 text-os-text-secondary whitespace-nowrap font-medium">
                         {formatDate(tx.created_at)}
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex items-center gap-2 text-white/80">
-                          {typeIcons[tx.type] || <DollarSign className="w-4 h-4 text-white/40" />}
+                        <div className="flex items-center gap-2 text-os-text-primary font-semibold">
+                          {typeIcons[tx.type] || <DollarSign className="w-4 h-4 text-os-muted" />}
                           {typeLabel}
                         </div>
                       </td>
-                      <td className="px-4 py-3 text-right font-mono text-white/90 whitespace-nowrap">
+                      <td className="px-4 py-3 text-right font-mono text-os-text-primary font-bold whitespace-nowrap">
                         {formatCurrency(tx.amount, tx.currency || 'USD')}
                       </td>
                       <td className="px-4 py-3 text-center">
@@ -490,7 +490,7 @@ export default function WalletPage() {
                           {status.label}
                         </Badge>
                       </td>
-                      <td className="px-4 py-3 text-white/40 text-xs font-mono">
+                      <td className="px-4 py-3 text-os-muted text-xs font-mono uppercase">
                         {tx.id?.slice(0, 8) || '-'}
                       </td>
                     </tr>

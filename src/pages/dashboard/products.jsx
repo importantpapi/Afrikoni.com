@@ -158,19 +158,23 @@ export default function Products() {
 
       {/* Empty State */}
       {(products || []).length === 0 ? (
-        <EmptyState
-          title="No products found"
-          description="Get started by adding your first product to the catalog."
-          cta="Add Product"
-          ctaAction={() => navigate('/dashboard/products/new')}
-          icon={Package}
-        />
+        <Surface variant="glass" className="py-12">
+          <EmptyState
+            title="No products found"
+            description="Get started by adding your first product to the catalog."
+            cta="Add Product"
+            onCtaClick={() => navigate('/dashboard/products/new')}
+            icon={Package}
+          />
+        </Surface>
       ) : (filtered || []).length === 0 ? (
-        <EmptyState
-          title="No matching products"
-          description="Try adjusting your search or filters."
-          icon={Search}
-        />
+        <Surface variant="glass" className="py-12">
+          <EmptyState
+            title="No matching products"
+            description="Try adjusting your search or filters."
+            icon={Search}
+          />
+        </Surface>
       ) : view === 'list' ? (
         <Surface variant="panel" className="overflow-hidden">
           <div className="overflow-x-auto">

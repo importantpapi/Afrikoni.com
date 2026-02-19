@@ -685,7 +685,7 @@ export default function DashboardSettings() {
                 {/* Form Grid */}
                 <div className="grid md:grid-cols-2 gap-10">
                   <div className="space-y-4">
-                    <Label htmlFor="name" className="text-os-xs uppercase font-black tracking-widest text-gray-400 ml-1">Account Display Name</Label>
+                    <Label htmlFor="name" className="text-os-xs uppercase font-black tracking-widest text-os-muted ml-1">Account Display Name</Label>
                     <Input
                       id="name"
                       value={formData.name || formData.full_name}
@@ -696,9 +696,9 @@ export default function DashboardSettings() {
                   </div>
 
                   <div className="space-y-4">
-                    <Label htmlFor="email" className="text-os-xs uppercase font-black tracking-widest text-gray-400 ml-1 text-emerald-400/60 flex items-center gap-2">
+                    <Label htmlFor="email" className="text-os-xs uppercase font-black tracking-widest text-emerald-600 ml-1 flex items-center gap-2">
                       Email Address
-                      <div className="w-1 h-1 rounded-full bg-emerald-400" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                     </Label>
                     <div className="relative group">
                       <Input
@@ -706,10 +706,10 @@ export default function DashboardSettings() {
                         type="email"
                         value={formData.email}
                         disabled
-                        className="h-14 bg-gray-50 border-gray-200 rounded-os-md text-gray-400 cursor-not-allowed font-mono italic"
+                        className="h-14 bg-gray-50 border-gray-200 rounded-os-md text-os-muted cursor-not-allowed font-mono italic"
                       />
                       <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                        <Lock className="w-4 h-4 text-gray-400 transition-colors" />
+                        <Lock className="w-4 h-4 text-os-muted transition-colors" />
                       </div>
                     </div>
                   </div>

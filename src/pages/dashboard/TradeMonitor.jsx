@@ -221,7 +221,9 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
                                             ${(order.total_value || order.total_amount || 0).toLocaleString()}
                                         </p>
                                         <p className="text-os-xs text-os-muted uppercase">
-                                            {(order.quantity || 0).toLocaleString()} {order.quantity_unit || 'units'}
+                                            {(order.quantity || 0).toLocaleString()}{' '}
+                                            {String(order.quantity_unit || 'units')
+                                                .replace(/pieces.*|tons.*/i, (match) => match.toLowerCase().startsWith('pi') ? 'pieces' : match.toLowerCase().startsWith('to') ? 'tons' : match)}
                                         </p>
                                     </div>
                                 </div>
