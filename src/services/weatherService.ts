@@ -6,11 +6,10 @@
  * Integrates with OpenWeatherMap API to provide real-time weather risk data
  * for trade corridors.
  * 
- * ⚠️ SECURITY: All weather API calls are proxied through Supabase Edge Function
- * ⚠️ DO NOT add VITE_OPENWEATHER_API_KEY to .env (security risk)
- * ⚠️ API key is stored in Supabase secrets only
+ * Integrates with Open-Meteo API to provide real-time weather risk data
+ * for trade corridors. No API Key required.
  * 
- * Confidence: 80-85% (partner tier)
+ * Confidence: 90% (partner tier)
  */
 
 import type { CorridorDataPoint, RiskLevel, DataSource } from '@/types/corridorIntelligence';
@@ -40,10 +39,7 @@ const MEDIUM_RISK_CONDITIONS = [
 
 /**
  * Get weather risk for a specific location
- * 
- * ⚠️ STUBBED: Weather intelligence temporarily disabled
- * Edge Function get-weather has been removed (2,382 TypeScript errors)
- * Returns mock data until weather service is re-integrated
+ * Get weather risk for a specific location using open-source meteorological data
  */
 export async function getWeatherRisk(
     lat: number,
@@ -51,33 +47,45 @@ export async function getWeatherRisk(
     locationName: string = 'Location'
 ): Promise<CorridorDataPoint<RiskLevel>> {
     try {
-        // SURGICAL FIX: Stub the Edge Function call instead of deleting service
-        // This allows logistics flows to continue without errors
-        console.warn('[weatherService] Weather intelligence temporarily disabled');
-        
+        // Make direct call to Open-Meteo (No API key required)
+        const response = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+
+        if (!response.ok) {
+            throw new Error(`Weather API returned ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        // WMO Weather interpretation codes
+        const code = data?.current_weather?.weathercode || 0;
+
+        // Logic mapping 
+        // high: thunderstorms (95-99), heavy snow (75, 77)
+        // medium: rain/showers (61-65, 80-82)
+        let riskValue: RiskLevel = 'low';
+
+        if (code >= 95) riskValue = 'high';
+        else if (code >= 71 && code <= 77) riskValue = 'high';
+        else if (code >= 61 && code <= 67) riskValue = 'medium';
+        else if (code >= 80 && code <= 82) riskValue = 'medium';
+
         return {
-            value: 'low',
-            confidence: 50,
+            value: riskValue,
+            confidence: 90,
             sources: [{
                 type: 'partner',
-                name: 'Weather Service (Disabled)',
-                confidence: 50,
+                name: 'Global Meteorological Data',
+                confidence: 90,
                 lastUpdated: new Date(),
-                url: 'https://openweathermap.org',
+                url: 'https://open-meteo.com',
                 metadata: {
-                    status: 'disabled',
-                    reason: 'Service temporarily unavailable',
-                    message: 'Weather data will be available once integration is complete'
+                    status: 'active',
+                    code_reading: code.toString()
                 },
             }],
             lastUpdated: new Date(),
-            trend: 'stable',
+            trend: riskValue === 'high' || riskValue === 'medium' ? 'increasing' : 'stable',
         };
-
-        // REMOVED: Edge Function invocation (was causing 2,382 TypeScript errors)
-        // const { data: weatherData, error } = await supabase.functions.invoke('get-weather', {
-        //     body: { lat, lon },
-        // });
 
     } catch (error) {
         console.error('[weatherService] Error:', error);

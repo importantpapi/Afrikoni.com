@@ -88,7 +88,7 @@ async function getUserNotificationPreferences(userId, companyId) {
 }
 
 /**
- * Send email notification (mock implementation - ready for real email service)
+ * Send email notification via Supabase Edge Function
  */
 async function sendEmailNotification(email, title, message, link, type = 'default') {
   try {

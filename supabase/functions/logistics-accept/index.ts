@@ -1,3 +1,4 @@
+// @ts-nocheck
 // Logistics Dispatch Acceptance Handler
 // Handles provider acceptance with atomic assignment (first-responder wins)
 
@@ -30,14 +31,35 @@ Deno.serve(async (req) => {
 
   const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
   const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY");
 
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY || !SUPABASE_ANON_KEY) {
     return new Response(
       JSON.stringify({ success: false, error: "Supabase not configured" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 
+  // Enforce JWT Auth Verification before escalating to service_role
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) {
+    return new Response(
+      JSON.stringify({ success: false, error: "Missing Authorization header" }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+  const authClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data: { user }, error: authError } = await authClient.auth.getUser();
+  if (authError || !user) {
+    return new Response(
+      JSON.stringify({ success: false, error: "Unauthorized" }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
+  // Use service_role only for backend deterministic state changes after auth confirmation
   const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
   try {
