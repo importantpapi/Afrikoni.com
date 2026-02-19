@@ -68,7 +68,7 @@ export default function Categories() {
 
   const getProductCount = (categoryId) => {
     const count = productCounts[categoryId] || 0;
-    return count > 0 ? `${count.toLocaleString()}+` : 'Coming soon';
+    return count > 0 ? `${count.toLocaleString()}+` : '0';
   };
 
   return (
@@ -129,8 +129,8 @@ export default function Categories() {
                     <button
                       onClick={() => setSelectedGroup('all')}
                       className={`w-full text-left px-4 py-2 rounded-lg text-os-sm font-bold transition-all ${selectedGroup === 'all'
-                          ? 'bg-os-accent text-white'
-                          : 'text-os-text-secondary hover:bg-os-accent/10'
+                        ? 'bg-os-accent text-white'
+                        : 'text-os-text-secondary hover:bg-os-accent/10'
                         }`}
                     >
                       All
@@ -140,8 +140,8 @@ export default function Categories() {
                         key={group}
                         onClick={() => setSelectedGroup(group)}
                         className={`w-full text-left px-4 py-2 rounded-lg text-os-sm font-bold transition-all ${selectedGroup === group
-                            ? 'bg-os-accent text-white'
-                            : 'text-os-text-secondary hover:bg-os-accent/10'
+                          ? 'bg-os-accent text-white'
+                          : 'text-os-text-secondary hover:bg-os-accent/10'
                           }`}
                       >
                         {group}

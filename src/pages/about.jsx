@@ -72,7 +72,7 @@ export default function About() {
 
   return (
     <>
-      <SEO 
+      <SEO
         title="About Afrikoni - Building Trust & Structure in African B2B Trade"
         description="A digital B2B trade platform focused on building trust, structure, and reliability in African trade. Learn about Afrikoni's vision, mission, and founding story."
         url="/about"
@@ -104,7 +104,7 @@ export default function About() {
             <div className="absolute top-20 left-10 w-72 h-72 bg-os-accent/5 rounded-full blur-3xl"></div>
             <div className="absolute bottom-20 right-10 w-96 h-96 bg-afrikoni-chestnut/5 rounded-full blur-3xl"></div>
           </div>
-          
+
           <div className="max-w-7xl mx-auto px-4 relative z-10">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -119,10 +119,10 @@ export default function About() {
                 className="inline-block mb-6"
               >
                 <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-serif text-afrikoni-chestnut mb-6 leading-tight">
-                About Afrikoni
-              </h1>
+                  About Afrikoni
+                </h1>
               </motion.div>
-              
+
               <motion.p
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -131,7 +131,7 @@ export default function About() {
               >
                 A digital B2B trade platform focused on building trust, structure, and reliability in African trade, starting within Africa and expanding globally over time.
               </motion.p>
-              
+
               <motion.p
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -141,30 +141,8 @@ export default function About() {
                 The platform is designed to support buyers, sellers, and logistics partners through verification, standardized listings, and structured trade workflows.
               </motion.p>
             </motion.div>
-            
-            {/* Video Placeholder */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5, duration: 0.6 }}
-              className="max-w-5xl mx-auto"
-            >
-              <Card className="border-2 border-os-accent/30 shadow-2xl overflow-hidden bg-gradient-to-br from-white to-afrikoni-offwhite">
-                <div className="relative aspect-video bg-gradient-to-br from-os-accent/20 via-afrikoni-chestnut/20 to-os-accent/10 flex items-center justify-center group cursor-pointer hover:from-os-accent/30 hover:via-afrikoni-chestnut/30 hover:to-os-accent/20 transition-all duration-300">
-                  <div className="text-center z-10">
-                    <motion.div
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="w-24 h-24 rounded-full bg-white/30 backdrop-blur-md flex items-center justify-center mx-auto mb-6 shadow-os-lg border-2 border-white/50 group-hover:bg-white/40 transition-all"
-                    >
-                      <Play className="w-12 h-12 text-white ml-1" fill="white" />
-                    </motion.div>
-                    <p className="text-white font-semibold text-os-lg md:text-os-xl">Company Video Coming Soon</p>
-                  </div>
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                </div>
-              </Card>
-            </motion.div>
+
+
           </div>
         </section>
 
@@ -185,23 +163,23 @@ export default function About() {
                     <Sparkles className="w-6 h-6 text-os-accent" />
                   </div>
                   <h2 className="text-3xl md:text-4xl font-bold font-serif text-afrikoni-chestnut">
-                  Our Story
-                </h2>
+                    Our Story
+                  </h2>
                 </div>
-                
+
                 <div className="space-y-5 text-afrikoni-deep leading-relaxed text-os-base md:text-os-lg">
-                      <p>
-                        Afrikoni was born from a simple but critical insight: <span className="font-semibold text-afrikoni-chestnut">without structure, there is no trust, and without trust, trade cannot scale.</span>
-                      </p>
-                      <p>
-                        As entrepreneurs, we experienced firsthand the realities of cross-border trade across African markets: fragmented information, lack of verification, informal processes, and payment risk. These challenges limit the ability of businesses to trade with confidence, even within the continent.
-                      </p>
-                      <p>
-                        Afrikoni is building the foundational digital infrastructure required to formalize and strengthen intra-African B2B trade. The platform is currently in a controlled beta phase, onboarding verified suppliers and validating trusted trade processes across selected African trade corridors.
-                      </p>
-                      <p className="text-afrikoni-chestnut font-medium">
-                        Afrikoni is intentionally developed in phases, prioritizing trust and operational reliability before scale.
-                      </p>
+                  <p>
+                    Afrikoni was born from a simple but critical insight: <span className="font-semibold text-afrikoni-chestnut">without structure, there is no trust, and without trust, trade cannot scale.</span>
+                  </p>
+                  <p>
+                    As entrepreneurs, we experienced firsthand the realities of cross-border trade across African markets: fragmented information, lack of verification, informal processes, and payment risk. These challenges limit the ability of businesses to trade with confidence, even within the continent.
+                  </p>
+                  <p>
+                    Afrikoni is building the foundational digital infrastructure required to formalize and strengthen intra-African B2B trade. The platform is currently in a controlled beta phase, onboarding verified suppliers and validating trusted trade processes across selected African trade corridors.
+                  </p>
+                  <p className="text-afrikoni-chestnut font-medium">
+                    Afrikoni is intentionally developed in phases, prioritizing trust and operational reliability before scale.
+                  </p>
                 </div>
               </motion.div>
 
@@ -224,8 +202,8 @@ export default function About() {
                       To help establish trusted, transparent, and structured trade across African markets, enabling businesses of all sizes to trade with confidence and reliability.
                     </p>
                     <Link to="/services/buyers">
-                      <Button 
-                        size="lg" 
+                      <Button
+                        size="lg"
                         className="w-full md:w-auto bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut font-semibold group"
                       >
                         <ShoppingBag className="w-5 h-5 mr-2" />
@@ -237,7 +215,7 @@ export default function About() {
                 </Card>
               </motion.div>
             </div>
-            
+
             {/* Our Mission */}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -256,7 +234,7 @@ export default function About() {
                   <p className="text-afrikoni-deep leading-relaxed text-os-base md:text-os-lg mb-8">
                     To empower African businesses by providing the digital structure, verification, and governance needed to trade reliably within Africa and, over time, globally.
                   </p>
-                  
+
                   <div className="mb-6">
                     <h4 className="text-os-lg font-bold text-afrikoni-chestnut mb-4">What We Are Building</h4>
                     <div className="grid sm:grid-cols-2 gap-4">
@@ -279,17 +257,17 @@ export default function About() {
                     </div>
                   </div>
 
-              <Link to="/services/suppliers">
-                    <Button 
-                      size="lg" 
+                  <Link to="/services/suppliers">
+                    <Button
+                      size="lg"
                       variant="outline"
                       className="w-full md:w-auto border-2 border-os-accent text-afrikoni-chestnut hover:bg-os-accent/10 font-semibold group"
                     >
                       <Store className="w-5 h-5 mr-2" />
-                  Join as a Supplier
+                      Join as a Supplier
                       <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
-                </Button>
-              </Link>
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
             </motion.div>
@@ -323,8 +301,8 @@ export default function About() {
                     Discover the internal principles guiding how Afrikoni is built and operated. This is not marketing. This is a commitment.
                   </p>
                   <Link to="/afrikoni-code">
-                    <Button 
-                      size="lg" 
+                    <Button
+                      size="lg"
                       className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut px-8 py-6 text-os-lg font-semibold group"
                     >
                       Read The Afrikoni Code
@@ -440,7 +418,7 @@ export default function About() {
                       )}
                       <h3 className="text-os-xl font-bold text-afrikoni-chestnut mb-2">{member.name}</h3>
                       <p className="text-os-base font-semibold text-os-accent mb-4">{member.role}</p>
-                      
+
                       {/* Badges */}
                       {member.badges && (
                         <div className="flex flex-wrap justify-center gap-2 mb-4">
@@ -454,9 +432,9 @@ export default function About() {
                           ))}
                         </div>
                       )}
-                      
+
                       <p className="text-os-sm md:text-os-base text-afrikoni-deep mb-4 leading-relaxed">{member.description}</p>
-                      
+
                       {/* Country Flags */}
                       {member.countries && member.countries.length > 0 ? (
                         <div className="flex flex-wrap items-center justify-center gap-3 text-os-sm text-afrikoni-deep/70">
@@ -482,7 +460,7 @@ export default function About() {
                 </motion.div>
               ))}
             </div>
-            
+
             {/* CTA After Team */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -492,8 +470,8 @@ export default function About() {
               className="text-center mt-12"
             >
               <Link to="/services/logistics">
-                <Button 
-                  size="lg" 
+                <Button
+                  size="lg"
                   variant="outline"
                   className="border-2 border-os-accent text-afrikoni-chestnut hover:bg-os-accent/10 font-semibold group"
                 >
@@ -520,30 +498,30 @@ export default function About() {
                 <CardContent className="p-10 md:p-14">
                   <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold font-serif text-afrikoni-chestnut mb-6">
                     Ready to Build Something Meaningful?
-              </h2>
+                  </h2>
                   <p className="text-os-lg md:text-os-xl text-afrikoni-deep mb-8 max-w-2xl mx-auto leading-relaxed">
                     If you decide to build it, build it RIGHT. Build it with INTEGRITY. Build it to LAST.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/signup">
-                      <Button 
-                        size="lg" 
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                    <Link to="/signup">
+                      <Button
+                        size="lg"
                         className="bg-os-accent hover:bg-os-accentDark text-afrikoni-chestnut px-8 py-6 text-os-lg font-semibold group"
                       >
-                    Get Started
+                        Get Started
                         <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                  </Button>
-                </Link>
-                <Link to="/contact">
-                      <Button 
-                        size="lg" 
-                        variant="outline" 
+                      </Button>
+                    </Link>
+                    <Link to="/contact">
+                      <Button
+                        size="lg"
+                        variant="outline"
                         className="border-2 border-os-accent text-afrikoni-chestnut hover:bg-os-accent/10 px-8 py-6 text-os-lg font-semibold"
                       >
-                    Contact Us
-                  </Button>
-                </Link>
-              </div>
+                        Contact Us
+                      </Button>
+                    </Link>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>

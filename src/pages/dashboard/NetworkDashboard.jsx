@@ -69,7 +69,7 @@ export default function NetworkDashboard() {
                     <div className="absolute inset-0 flex flex-col items-center justify-center p-8 text-center">
                         <h3 className="text-os-xl font-bold mb-4">Pan-African Trade Network</h3>
                         <div className="w-full max-w-md h-48 bg-white/5 rounded-os-md border border-white/10 flex items-center justify-center">
-                            <span className="text-os-muted font-mono italic">Map visualization coming soon</span>
+                            <span className="text-os-muted font-mono italic">Network map active</span>
                         </div>
                     </div>
                 </Surface>

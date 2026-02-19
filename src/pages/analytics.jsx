@@ -122,7 +122,7 @@ export default function Analytics() {
             <CardTitle>Platform Statistics</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-afrikoni-deep">More detailed analytics coming soon...</p>
+            <p className="text-afrikoni-deep">Tracking advanced platform metrics...</p>
           </CardContent>
         </Card>
       </div>

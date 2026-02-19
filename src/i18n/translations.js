@@ -217,7 +217,7 @@ const legacyTranslations = {
     'countries.title': 'All African Countries',
     'countries.subtitle': 'Discover products and suppliers from all 54 African countries',
     'countries.searchPlaceholder': 'Search countries by name...',
-    'countries.comingSoon': 'Coming soon',
+    'countries.comingSoon': '0',
     'countries.products': 'products',
 
     // Dashboard

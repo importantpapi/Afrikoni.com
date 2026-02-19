@@ -20,7 +20,6 @@ import { toast } from 'sonner';
 export default function RFQStep1Need({ formData, updateFormData, categories = [] }) {
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
-  const [voiceRecording, setVoiceRecording] = useState(false);
 
   const handleTitleChange = (e) => {
     updateFormData({ title: e.target.value });
@@ -57,10 +56,10 @@ export default function RFQStep1Need({ formData, updateFormData, categories = []
       const randomStr = Math.random().toString(36).substring(2, 9);
       const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
       const fileName = `rfq-attachments/${timestamp}-${randomStr}-${cleanFileName}`;
-      
+
       const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'files', fileName);
-      updateFormData({ 
-        attachments: [...(formData.attachments || []), file_url] 
+      updateFormData({
+        attachments: [...(formData.attachments || []), file_url]
       });
       toast.success('Photo uploaded');
     } catch (error) {
@@ -77,13 +76,6 @@ export default function RFQStep1Need({ formData, updateFormData, categories = []
     const newAttachments = [...(formData.attachments || [])];
     newAttachments.splice(index, 1);
     updateFormData({ attachments: newAttachments });
-  };
-
-  const handleVoiceStart = () => {
-    // Placeholder for future voice input
-    setVoiceRecording(true);
-    toast.info('Voice input coming soon');
-    setTimeout(() => setVoiceRecording(false), 2000);
   };
 
   return (
@@ -136,11 +128,10 @@ export default function RFQStep1Need({ formData, updateFormData, categories = []
               <Badge
                 key={cat.id}
                 variant={formData.category_id === cat.id ? 'default' : 'outline'}
-                className={`min-h-[44px] px-4 py-2 cursor-pointer transition-all ${
-                  formData.category_id === cat.id
+                className={`min-h-[44px] px-4 py-2 cursor-pointer transition-all ${formData.category_id === cat.id
                     ? 'bg-os-accent text-afrikoni-chestnut'
                     : 'border-os-accent/40 hover:bg-os-accent/10'
-                }`}
+                  }`}
                 onClick={() => handleCategorySelect(
                   formData.category_id === cat.id ? '' : cat.id
                 )}
@@ -157,7 +148,7 @@ export default function RFQStep1Need({ formData, updateFormData, categories = []
         <label className="block text-os-sm font-semibold text-afrikoni-deep">
           Add Photos (Optional)
         </label>
-        
+
         {/* Photo Upload Button */}
         <div className="flex gap-3">
           <input
@@ -176,18 +167,6 @@ export default function RFQStep1Need({ formData, updateFormData, categories = []
           >
             <Camera className="w-5 h-5 mr-2" />
             {isUploading ? 'Uploading...' : 'Add Photo'}
-          </Button>
-
-          {/* Voice Input Button (Placeholder) */}
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleVoiceStart}
-            disabled={voiceRecording}
-            className="min-h-[44px] min-w-[44px] border-os-accent/40"
-            aria-label="Record voice note"
-          >
-            <Mic className={`w-5 h-5 ${voiceRecording ? 'text-os-red' : ''}`} />
           </Button>
         </div>
 

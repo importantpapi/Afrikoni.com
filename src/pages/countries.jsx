@@ -118,7 +118,7 @@ export default function Countries() {
 
   const getProductCount = (countryName) => {
     const count = productCounts[countryName] || 0;
-    if (count === 0) return 'Coming soon';
+    if (count === 0) return '0';
     if (count < 100) return `${count}+`;
     return `${Math.floor(count / 100) * 100}+`;
   };

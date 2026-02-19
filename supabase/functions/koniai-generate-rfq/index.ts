@@ -1,5 +1,7 @@
 // @ts-nocheck
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
+import { Ratelimit } from "https://esm.sh/@upstash/ratelimit";
+import { Redis } from "https://esm.sh/@upstash/redis";
 
 /**
  * Supabase Edge Function: KoniAI RFQ Generator v2.0 (Gemini 3 Upgrade) 
@@ -70,6 +72,42 @@ async function main(req: Request) {
   try {
     if (!GEMINI_API_KEY) {
       throw new Error('Gemini API key not configured');
+    }
+
+    // Rate Limiting Logic via Upstash Redis
+    const upstashRedisUrl = Deno.env.get('UPSTASH_REDIS_REST_URL');
+    const upstashRedisToken = Deno.env.get('UPSTASH_REDIS_REST_TOKEN');
+
+    if (upstashRedisUrl && upstashRedisToken) {
+      const redis = new Redis({
+        url: upstashRedisUrl,
+        token: upstashRedisToken,
+      });
+
+      // Allow 5 requests per 10 minutes per IP
+      const ratelimit = new Ratelimit({
+        redis: redis,
+        limiter: Ratelimit.slidingWindow(5, "10 m"),
+      });
+
+      const ip = req.headers.get("x-forwarded-for") ?? "anonymous";
+      const { success, pending, limit, reset, remaining } = await ratelimit.limit(`ratelimit_rfq_${ip}`);
+
+      if (!success) {
+        return new Response(
+          JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+          {
+            status: 429,
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'application/json',
+              'X-RateLimit-Limit': limit.toString(),
+              'X-RateLimit-Remaining': remaining.toString(),
+              'X-RateLimit-Reset': reset.toString()
+            }
+          }
+        );
+      }
     }
 
     const { description, category, buyerCountry, context = {} } = await req.json();
