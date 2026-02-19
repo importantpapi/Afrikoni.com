@@ -299,6 +299,7 @@ const DisputesPublic = lazy(() => import('./pages/disputes'));
 const InspectionServices = lazy(() => import('./pages/inspection'));
 const AntiFraud = lazy(() => import('./pages/anti-fraud'));
 const ResourcesIndex = lazy(() => import('./pages/resources/index'));
+const ForensicAuditReport = lazy(() => import('./pages/resources/forensic-audit-report'));
 
 // ✅ ENTERPRISE FIX: Mobile-specific pages
 const InboxMobile = lazy(() => import('./pages/inbox-mobile'));
@@ -421,6 +422,7 @@ function AppContent() {
             <Route path="inspection" element={<InspectionServices />} />
             <Route path="anti-fraud" element={<AntiFraud />} />
             <Route path="resources" element={<ResourcesIndex />} />
+            <Route path="resources/forensic-audit-report" element={<ForensicAuditReport />} />
 
             <Route path="inbox-mobile" element={
               <ProtectedRoute>
