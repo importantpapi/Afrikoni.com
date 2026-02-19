@@ -63,10 +63,7 @@ const CORRIDORS = [
  * @param {string} priority 'FASTEST' | 'CHEAPEST' | 'BALANCED'
  */
 export async function optimizeRoute(origin, destination, weightKg, priority = 'BALANCED') {
-    // Simulate calculation latency
-    await new Promise(resolve => setTimeout(resolve, 1200));
-
-    // For demo, return all applicable corridors with scores
+    // Return all applicable corridors with scores
     let options = CORRIDORS.map(route => {
         const totalCost = route.costPerKg * weightKg;
         let score = 0;

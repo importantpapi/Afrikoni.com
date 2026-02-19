@@ -67,15 +67,16 @@ export const TrustEngineService = {
             score += verificationScore;
             factors.verification = verificationScore;
 
-            // B. History (Max 35)
+            // Calculate transaction history score safely
             let historyScore = 0;
             const safeTrades = completedTrades || 0;
-            // 2 points per trade, cap at 20
+
+            // Mathematical bounds: 2 points per trade, cap at 20
             historyScore += Math.min(safeTrades * 2, 20);
 
-            // Volume bonus (mocked logic based on trade count for now)
-            if (safeTrades > 5) historyScore += 10;
-            else if (safeTrades > 0) historyScore += 5;
+            // Volume bonus: Requires more than 5 settled trades for max allocation
+            if (safeTrades >= 15) historyScore += 15;
+            else if (safeTrades >= 5) historyScore += 5;
 
             score += historyScore;
             factors.history = historyScore;
