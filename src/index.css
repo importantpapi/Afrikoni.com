@@ -201,9 +201,7 @@ h4 {
    SURFACE SYSTEM (GLASSMORPHISM)
    ============================================ */
 .glass-surface {
-  background: var(--os-surface);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  background: var(--os-surface-solid);
   border: 1px solid var(--os-stroke);
   border-radius: var(--os-radius-md);
   box-shadow: var(--os-card-shadow);
@@ -442,6 +440,9 @@ body {
   width: 100%;
   padding-inline-start: 1rem;
   padding-inline-end: 1rem;
+  /* Safe area support for horizontal insets */
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
 }
 
 @media (min-width: 640px) {
@@ -679,6 +680,17 @@ body {
 
 .safe-area-top {
   padding-top: env(safe-area-inset-top, 0);
+}
+
+/* ⚡ MOBILE OVERLAY FIX: Ensure content clears the fixed bottom nav */
+.mobile-bottom-nav-fix {
+  padding-bottom: 120px !important;
+}
+
+@media (max-width: 768px) {
+  .mobile-bottom-nav-fix {
+    padding-bottom: 140px !important;
+  }
 }
 
 @media (min-width: 768px) {

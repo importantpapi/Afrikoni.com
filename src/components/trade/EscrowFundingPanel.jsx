@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { useFlutterwave, closePaymentModal } from 'flutterwave-react-v3';
 import { Shield, Check, Lock, CreditCard, Building, Smartphone } from 'lucide-react';
-import { supabase } from '@/api/supabaseClient';
 import { calculateTradeFees } from '@/services/revenueEngine';
 import { toast } from 'sonner';
 
 export default function EscrowFundingPanel({ trade, onNextStep, isTransitioning, capabilities, profile }) {
   const [loading, setLoading] = useState(false);
+
+  const fees = calculateTradeFees(trade.total_amount || 0);
+  const productValue = fees.netSettlement;
+  const platformFee = fees.total;
 
   const config = {
     public_key: import.meta.env.VITE_FLUTTERWAVE_PUBLIC_KEY,
@@ -24,12 +27,24 @@ export default function EscrowFundingPanel({ trade, onNextStep, isTransitioning,
       description: `Escrow for ${trade.product_name || trade.title || 'trade'}`,
       logo: 'https://afrikoni.com/logo.png',
     },
-    // ✅ WEBHOOK FIX: Pass trade_id so the server-side webhook can route this payment
+    // SPLIT PAYMENT: Platform fee (8.5%) goes to Afrikoni immediately.
+    // Remaining 91.5% goes to bank escrow sub-account — held by the bank, not Afrikoni.
+    // Bank releases to seller only after trade reaches ACCEPTED state.
+    subaccounts: [
+      {
+        id: import.meta.env.VITE_FLW_BANK_ESCROW_SUBACCOUNT_ID, // Bank escrow sub-account ID
+        transaction_split_ratio: Math.round(productValue), // Seller portion (91.5%)
+        transaction_charge_type: 'flat_subaccount',
+        transaction_charge: productValue, // Exact amount to bank escrow
+      },
+    ],
     meta: {
       trade_id: trade.id,
       user_id: profile?.id || '',
       company_id: profile?.company_id || '',
       order_type: 'trade',
+      // Bank reference — stored on webhook receipt for release API call later
+      escrow_type: 'bank_held',
     },
   };
 
@@ -38,37 +53,18 @@ export default function EscrowFundingPanel({ trade, onNextStep, isTransitioning,
   const handlePayment = () => {
     handleFlutterPayment({
       callback: async (response) => {
-        // Client-side callback — optimistic UI update only.
+        // Client-side callback — for UI feedback only.
         // The server-side webhook (flutterwave-webhook Edge Function) is the
         // authoritative source that updates the DB, even if browser closes.
         if (response.status === 'successful') {
-          setLoading(true);
-          toast.success('Payment received! Confirming with server…', { duration: 3000 });
-
-          // Optimistic update — webhook will also do this server-side
-          const { error } = await supabase
-            .from('trades')
-            .update({
-              status: 'ESCROW_FUNDED',
-              escrow_funded_at: new Date().toISOString(),
-              payment_reference: response.transaction_id,
-            })
-            .eq('id', trade.id);
-
-          if (!error) {
-            toast.success('✅ Escrow funded! Your money is protected until delivery.', { duration: 6000 });
-            if (onNextStep) {
-              onNextStep('ESCROW_FUNDED');
-            }
-          } else {
-            // Webhook will still handle it — just show a softer message
-            toast.info('Payment confirmed. Trade will update shortly.', { duration: 6000 });
-          }
+          toast.success('✅ Payment received! Your escrow is being confirmed…', { duration: 6000 });
+          closePaymentModal();
+          // Notify parent to refetch — actual DB state set by webhook only
+          if (onNextStep) onNextStep('ESCROW_FUNDED');
         } else {
           toast.error('Payment was not completed. Please try again.');
+          closePaymentModal();
         }
-
-        closePaymentModal();
         setLoading(false);
       },
       onClose: () => {
@@ -77,10 +73,7 @@ export default function EscrowFundingPanel({ trade, onNextStep, isTransitioning,
     });
   };
 
-  // ✅ FEE FIX: Use revenue engine (8% total) instead of hardcoded 4%
-  const fees = calculateTradeFees(trade.total_amount || 0);
-  const productValue = fees.netSettlement;
-  const platformFee = fees.total;
+  // Fees calculated above config block
 
   return (
     <div className="max-w-3xl mx-auto p-8">
@@ -108,7 +101,7 @@ export default function EscrowFundingPanel({ trade, onNextStep, isTransitioning,
           <div className="flex items-start gap-3">
             <Check className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
             <span className="text-os-lg">
-              Your ${(trade.total_amount || 0).toLocaleString()} is held in escrow (not sent to supplier yet)
+              Your ${(trade.total_amount || 0).toLocaleString()} is held by our partner bank — not by Afrikoni, not by the supplier
             </span>
           </div>
           <div className="flex items-start gap-3">
@@ -187,7 +180,7 @@ export default function EscrowFundingPanel({ trade, onNextStep, isTransitioning,
       <div className="text-center">
         <p className="text-os-sm text-gray-600 mb-2">
           <Lock className="w-4 h-4 inline mr-1" />
-          Secured by Flutterwave · 256-bit encryption
+          Funds held in bank escrow · Secured by Flutterwave · 256-bit encryption
         </p>
         <p className="text-os-sm text-gray-600">
           Need help?{' '}

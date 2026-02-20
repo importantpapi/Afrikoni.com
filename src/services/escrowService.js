@@ -101,7 +101,7 @@ export async function initiateEscrowPayment({
     // 1. Get escrow and trade details to determine corridor
     const { data: escrow, error: escrowError } = await supabase
       .from('escrows')
-      .select('*, trade:trades(buyer_id, seller_id, buyer:companies!buyer_id(country), seller:companies!seller_id(country))')
+      .select('*, trade:trades(buyer_company_id, seller_company_id, buyer:companies!buyer_company_id(country), seller:companies!seller_company_id(country))')
       .eq('id', escrowId)
       .single();
 

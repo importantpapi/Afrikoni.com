@@ -70,7 +70,7 @@ export function IdentityLayer({
     };
 
     const userName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
-    const orgName = organization?.name || 'Organization';
+    const orgName = organization?.company_name || organization?.name || 'Organization';
 
     // Added: Smarter initial derivation
     const getInitial = () => {
@@ -85,23 +85,24 @@ export function IdentityLayer({
                 <Button
                     variant="ghost"
                     size="icon"
-                    className="md:hidden"
+                    className="md:hidden flex-shrink-0"
                     onClick={onToggleSidebar}
+                    aria-label="Toggle Navigation"
                 >
-                    <Menu className="w-5 h-5" />
+                    <Menu className="w-5 h-5 text-os-text-primary" />
                 </Button>
 
                 <div
                     ref={userMenuButtonRef}
                     onClick={handleUserMenuClick}
-                    className="flex items-center gap-3 cursor-pointer p-1.5 px-2 hover:bg-os-stroke rounded-os-sm transition-colors"
+                    className="flex items-center gap-2 md:gap-3 cursor-pointer p-1 rounded-os-sm transition-colors max-w-[140px] md:max-w-none"
                 >
-                    <div className="w-8 h-8 rounded-full bg-os-accent/10 border border-os-accent/20 flex items-center justify-center text-os-accent text-os-xs font-semibold">
+                    <div className="w-8 h-8 rounded-full bg-os-accent/10 border border-os-accent/20 flex items-center justify-center text-os-accent text-os-xs font-semibold flex-shrink-0">
                         {getInitial()}
                     </div>
-                    <div className="flex flex-col">
-                        <span className="text-os-sm font-semibold tracking-tight">{userName}</span>
-                        <span className="text-os-xs text-os-text-secondary font-medium">{orgName}</span>
+                    <div className="flex flex-col min-w-0">
+                        <span className="text-os-sm font-semibold tracking-tight truncate">{userName}</span>
+                        <span className="text-[10px] md:text-os-xs text-os-text-secondary font-medium truncate uppercase tracking-tighter">{orgName}</span>
                     </div>
                 </div>
             </div>
@@ -144,11 +145,14 @@ export function IdentityLayer({
                 <Button
                     variant="ghost"
                     size="sm"
-                    onClick={onToggleMode}
-                    className="hidden md:flex items-center gap-2 px-3 text-os-text-secondary hover:text-os-text-primary"
+                    onClick={() => {
+                        console.log('[IdentityLayer] Mode button clicked, current mode:', workspaceMode);
+                        onToggleMode?.();
+                    }}
+                    className="hidden md:flex items-center gap-2 px-3 text-os-text-secondary hover:text-os-text-primary hover:bg-os-accent/10 transition-all cursor-pointer"
                 >
-                    <span className="text-os-xs font-medium">
-                        {workspaceMode === 'simple' ? 'Simple' : 'Operator'}
+                    <span className="text-os-xs font-semibold">
+                        {workspaceMode === 'simple' ? 'Simple' : workspaceMode === 'pro' ? 'Pro' : 'Operator'}
                     </span>
                     <ChevronDown className="w-3 h-3" />
                 </Button>
@@ -166,7 +170,7 @@ export function IdentityLayer({
                     )}
                 </Button>
 
-                {/* AI Copilot - HIDDEN FOR V1 LAUNCH */}
+                {/* AI Copilot - HIDDEN FOR V1 LAUNCH: AI is now contextual only */}
                 {/* 
                 <Button
                     variant="ghost"
@@ -207,9 +211,10 @@ export function IdentityLayer({
                             initial={{ opacity: 0, y: -10, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                            className="fixed w-56 bg-os-surface-solid border border-os-stroke rounded-os-sm shadow-2xl z-[1002] overflow-hidden"
+                            className="fixed w-56 bg-white dark:bg-[#1a1512] border border-os-stroke rounded-lg shadow-2xl z-[1002] overflow-hidden"
                             style={{
                                 top: `${menuPosition.top}px`,
+                                left: 'auto',
                                 right: `${menuPosition.right}px`,
                             }}
                         >
@@ -223,8 +228,8 @@ export function IdentityLayer({
                                     </div>
                                 </div>
                                 {[
-                                    { to: `/${language}/dashboard`, icon: LayoutDashboard, label: 'Command Center' },
-                                    { to: `/${language}/dashboard/settings`, icon: UserIcon, label: 'Profile' },
+                                    { to: `/${language}/dashboard`, icon: LayoutDashboard, label: 'Dashboard' },
+                                    { to: `/${language}/dashboard/profile`, icon: UserIcon, label: 'Profile' },
                                     { to: `/${language}/dashboard/notifications`, icon: MessageSquare, label: 'Trade Signals' },
                                     { to: `/${language}/dashboard/orders`, icon: Package, label: 'Orders' },
                                     { to: `/${language}/dashboard/rfqs`, icon: FileText, label: 'RFQs' },

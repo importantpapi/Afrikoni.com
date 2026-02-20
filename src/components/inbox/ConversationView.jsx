@@ -22,11 +22,13 @@ import SupplierHeaderCard from './SupplierHeaderCard';
 import QuickReplies from './QuickReplies';
 import SystemMessage from './SystemMessage';
 import DealActions from './DealActions';
+import { getKernelNextAction } from '@/services/tradeKernel';
 import AntiBypassWarning from './AntiBypassWarning';
 import { toast } from 'sonner';
 import { notifyNewMessage } from '@/services/notificationService';
 
 export default function ConversationView({ conversationId, conversation, currentUser, companyId, onBack }) {
+  const [nextAction, setNextAction] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -37,6 +39,16 @@ export default function ConversationView({ conversationId, conversation, current
   useEffect(() => {
     loadMessages();
     subscribeToMessages();
+    // Fetch next-best-action from the kernel
+    if (conversationId) {
+      getKernelNextAction(conversationId).then((result) => {
+        if (result && result.success && result.nextAction) {
+          setNextAction(result.nextAction);
+        } else {
+          setNextAction(null);
+        }
+      });
+    }
   }, [conversationId]);
 
   useEffect(() => {
@@ -228,20 +240,29 @@ export default function ConversationView({ conversationId, conversation, current
         )}
       </div>
 
-      {/* Deal Actions - Show when conversation has supplier (not system conversation) */}
-      {otherCompany && conversation && conversation.seller_company_id && (
-        <DealActions
-          conversation={conversation}
-          companyId={companyId}
-          onActionComplete={(action) => {
-            // Reload messages after action
-            loadMessages();
-          }}
-        />
+
+      {/* Next-Best-Action: Only show the single, contextually relevant action */}
+      {nextAction && (
+        <div className="px-4 py-3 border-t">
+          <Button
+            variant="accent"
+            className="w-full h-12 text-os-base font-black uppercase tracking-widest rounded-os-sm"
+            onClick={async () => {
+              // For demo: try to transition to the next state if provided
+              if (nextAction.nextState) {
+                // Optionally, call a prop or context handler to trigger the transition
+                // For now, just reload messages after a short delay
+                setTimeout(() => loadMessages(), 1000);
+              }
+            }}
+          >
+            {nextAction.label || 'Proceed'}
+          </Button>
+        </div>
       )}
 
-      {/* Quick Replies (if no messages) */}
-      {messages.length === 0 && otherCompany && (
+      {/* Quick Replies (if no messages and no next-best-action) */}
+      {messages.length === 0 && otherCompany && !nextAction && (
         <div className="px-4 py-2 border-t">
           <QuickReplies
             onSelect={handleQuickReply}

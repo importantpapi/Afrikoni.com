@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ShieldCheck, Wallet, Truck, TrendingUp, AlertTriangle, Sparkles, Globe } from 'lucide-react';
 import { SignalChip } from './SignalChip';
 import { useTradeKernelState } from '@/hooks/useTradeKernelState';
+import { cn } from '@/lib/utils';
 
 export function OSStatusBar() {
   const {
@@ -33,8 +34,10 @@ export function OSStatusBar() {
     <div className="flex flex-wrap items-center gap-3">
       {/* TRADE IS ACTIVE - Horizon 2026 Calm Status */}
       <div className="health-capsule">
-        <div className="health-dot" />
-        <span className="text-os-text-primary">Trade is Active</span>
+        <div className={cn("health-dot", loading ? "animate-pulse" : (shipmentsInTransit > 0 ? "bg-emerald-500" : "bg-blue-400"))} />
+        <span className="text-os-text-primary">
+          {loading ? 'Synchronizing...' : (shipmentsInTransit > 0 ? 'Live Logistics' : 'Ready for Trade')}
+        </span>
       </div>
 
       <SignalChip
@@ -54,12 +57,6 @@ export function OSStatusBar() {
         label="Escrow"
         value={loading ? '...' : escrowDisplay}
         tone="gold"
-      />
-      <SignalChip
-        icon={TrendingUp}
-        label="Pipeline"
-        value={loading ? '...' : pipelineDisplay}
-        tone="blue"
       />
       <SignalChip
         icon={Truck}

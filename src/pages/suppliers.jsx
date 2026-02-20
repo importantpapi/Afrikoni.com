@@ -77,6 +77,8 @@ export default function Suppliers() {
         .in('id', sellerCompanyIds)
         .eq('verified', true)
         .eq('verification_status', 'verified')
+        .not('company_name', 'is', null)
+        .not('country', 'is', null)
         .order('trust_score', { ascending: false })
         .limit(100);
 

@@ -74,7 +74,7 @@ export default function DashboardHome() {
         title: t('dashboard.find_buyers_title'),
         description: t('dashboard.find_buyers_desc'),
         actionLabel: t('dashboard.browse_requests'),
-        onAction: () => navigate(`/${language}/dashboard/rfqs`),
+        onAction: () => navigate(`/${language}/dashboard/trades`),
         icon: Sparkles,
         status: t('dashboard.ready_to_trade_status')
       };
@@ -143,9 +143,9 @@ export default function DashboardHome() {
         </p>
       </div>
 
-      {/* 🏛️ OPERATIONAL COCKPIT: Horizon 2026 High-Density Interface */}
+      {/* Dashboard Overview */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Zone 1: The Golden Path (Primary Action) */}
+        {/* Primary Action */}
         <div className="lg:col-span-2">
           <NBA
             title={nba.title}
@@ -157,7 +157,7 @@ export default function DashboardHome() {
           />
         </div>
 
-        {/* Zone 2: Intelligence Grid (Key Metrics) */}
+        {/* Key Metrics */}
         <div className="grid grid-cols-2 gap-3">
           {stats.slice(0, 4).map((stat, i) => (
             <Surface key={i} variant="glass" className="p-4 flex flex-col justify-between border-os-stroke/40 hover:border-os-accent/30 transition-all group overflow-hidden relative">
@@ -175,7 +175,7 @@ export default function DashboardHome() {
         </div>
       </div>
 
-      {/* Zone 3: Quick Tip */}
+      {/* Getting Started Tip */}
       {!hasTradeHistory && (
         <Surface variant="soft" className="flex items-center gap-4 px-5 py-3 border-os-accent/20 bg-os-accent/5">
           <Sparkles className="w-4 h-4 text-os-accent" />
@@ -188,13 +188,13 @@ export default function DashboardHome() {
       {/* Quick Actions - role-aware */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {(isSeller ? [
-          { label: t('dashboard.view_buy_requests_label'), sub: t('dashboard.view_buy_requests_sub'), icon: Globe, link: `/${language}/dashboard/rfqs`, color: "text-os-blue", bg: "bg-os-blue/10" },
+          { label: t('dashboard.view_buy_requests_label'), sub: t('dashboard.view_buy_requests_sub'), icon: Globe, link: `/${language}/dashboard/trades`, color: "text-os-blue", bg: "bg-os-blue/10" },
           { label: t('dashboard.add_product_label'), sub: t('dashboard.add_product_sub'), icon: Package, link: `/${language}/dashboard/products/new`, color: "text-os-green", bg: "bg-os-green/10" },
-          { label: t('dashboard.my_orders_label'), sub: t('dashboard.my_orders_sub'), icon: Ship, link: `/${language}/dashboard/orders`, color: "text-purple-500", bg: "bg-purple-500/10" },
+          { label: t('dashboard.my_orders_label'), sub: t('dashboard.my_orders_sub'), icon: Ship, link: `/${language}/dashboard/trades`, color: "text-purple-500", bg: "bg-purple-500/10" },
         ] : [
           { label: t('dashboard.create_rfq_label'), sub: t('dashboard.create_rfq_sub'), icon: Globe, link: `/${language}/dashboard/rfqs/new`, color: "text-os-blue", bg: "bg-os-blue/10" },
           { label: t('dashboard.browse_suppliers_label'), sub: t('dashboard.browse_suppliers_sub'), icon: Package, link: `/${language}/suppliers`, color: "text-os-green", bg: "bg-os-green/10" },
-          { label: t('dashboard.my_orders_label'), sub: t('dashboard.my_orders_sub'), icon: Ship, link: `/${language}/dashboard/orders`, color: "text-purple-500", bg: "bg-purple-500/10" },
+          { label: t('dashboard.my_orders_label'), sub: t('dashboard.my_orders_sub'), icon: Ship, link: `/${language}/dashboard/trades`, color: "text-purple-500", bg: "bg-purple-500/10" },
         ]).map((item, i) => (
           <Surface
             key={i}
@@ -218,7 +218,7 @@ export default function DashboardHome() {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-os-xl font-bold">{t('dashboard.my_active_deals')}</h2>
-              <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/orders')} className="text-os-accent font-medium hover:bg-transparent">
+              <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/trades')} className="text-os-accent font-medium hover:bg-transparent">
                 {t('dashboard.see_all_deals')} <ChevronRight className="w-4 h-4 ml-1" />
               </Button>
             </div>
@@ -272,7 +272,7 @@ export default function DashboardHome() {
                   </p>
                   <Button
                     className="bg-os-accent hover:bg-os-accent/90 text-black font-bold rounded-os-sm px-8 h-12"
-                    onClick={() => navigate(`/${language}/dashboard/rfqs`)}
+                    onClick={() => navigate(`/${language}/dashboard/trades`)}
                   >
                     {t('dashboard.browse_buy_requests')}
                   </Button>

@@ -5,6 +5,8 @@ import { Input } from '@/components/shared/ui/input';
 import { Textarea } from '@/components/shared/ui/textarea';
 import { Label } from '@/components/shared/ui/label';
 import { createRFQ } from '@/services/rfqService';
+import { matchSuppliersToRFQ, notifyMatchedSuppliers, storeMatchedSuppliers } from '@/services/supplierMatchingService';
+import { parseRFQFromText, detectFraudRisk, predictRFQSuccess, reRankSuppliersWithAI } from '@/services/aiIntelligenceService';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { useQueryClient } from '@tanstack/react-query';
 import {
@@ -15,6 +17,7 @@ import { toast } from 'sonner';
 import { rfqSchema, validate } from '@/schemas/trade';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/shared/ui/dialog';
 import { motion, AnimatePresence } from 'framer-motion';
+import PostRFQSuccessModal from '@/components/rfq/PostRFQSuccessModal';
 
 /**
  * IntakeEngine - The AI-First Entry Point for Trade OS
@@ -50,15 +53,112 @@ export default function IntakeEngine() {
   // Soft Gate State
   const [showGate, setShowGate] = useState(false);
 
+  // AI Matching State
+  const [matchedSuppliers, setMatchedSuppliers] = useState([]);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [createdRFQId, setCreatedRFQId] = useState(null);
+
   // AI Heuristic Parser with Advanced Spell & Topography Correction
   const analyzeIntent = async () => {
     if (!magicInput.trim()) return;
     setIsAnalyzing(true);
     setAnalysisReport([]);
 
+    try {
+      // Use REAL AI parsing instead of mock rules
+      const userContext = {
+        userId: user?.id,
+        companyId: profile?.company_id,
+        country: profile?.country || user?.country,
+        industry: profile?.supplier_category || user?.industry,
+        verified: profile?.verified || false,
+        companyAge: profile?.company_age_days || 0,
+        companyDescription: profile?.company_description || ''
+      };
+
+      // Call real AI parsing service
+      const parseResult = await parseRFQFromText(magicInput, userContext);
+
+      if (parseResult.success && parseResult.data) {
+        const aiData = parseResult.data;
+
+        // Build human-readable title
+        const titleText = aiData.quantity
+          ? `${aiData.quantity} ${aiData.quantity_unit} of ${aiData.product}`
+          : aiData.product;
+
+        setForm(prev => ({
+          ...prev,
+          title: titleText,
+          description: magicInput,
+          quantity: aiData.quantity?.toString() || '',
+          unit: aiData.quantity_unit || 'units',
+          target_price: aiData.budget_per_unit?.toString() || '',
+          currency: aiData.currency || 'USD',
+          delivery_location: aiData.target_country !== 'Any' ? `${aiData.target_country} Port` : '',
+          target_country: aiData.target_country !== 'Any' ? aiData.target_country : '',
+          target_city: '',
+        }));
+
+        // Show AI corrections
+        const report = [{
+          type: 'ai_parsed',
+          original: 'Raw Input',
+          fixed: `${aiData.product} (Verified Match)`,
+          urgency: aiData.urgency,
+          category: aiData.category
+        }];
+
+        // Add behavioral insights if available
+        if (aiData.behavioral_insights) {
+          report.push({
+            type: 'behavior',
+            original: 'User pattern',
+            fixed: aiData.behavioral_insights.is_repeat_buyer
+              ? `Repeat buyer (${aiData.behavioral_insights.similar_past_orders} similar orders)`
+              : 'First order in this category'
+          });
+        }
+
+        setAnalysisReport(report);
+
+        // Run fraud detection
+        const fraudCheck = await detectFraudRisk(aiData, userContext);
+        if (fraudCheck.should_block) {
+          toast.error('This RFQ has been flagged for review. Please contact support.');
+          setIsAnalyzing(false);
+          return;
+        }
+
+        if (fraudCheck.should_flag_for_review) {
+          toast.warning('This RFQ will be reviewed by our team before going live.');
+        }
+
+        // Predict success
+        const prediction = await predictRFQSuccess(aiData, userContext);
+        if (prediction.success_probability < 50) {
+          toast.info(`${prediction.recommendation} - Consider adding more details.`);
+        }
+
+        setMode('form');
+      } else {
+        toast.error('Unable to parse RFQ. Please try the manual form.');
+      }
+    } catch (error) {
+      console.error('[RFQ] AI parsing error:', error);
+      toast.error('AI parsing failed. Using fallback rules.');
+
+      // Fallback to old rule-based parsing
+      await analyzeIntentFallback();
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  // Fallback rule-based parsing (keep old logic)
+  const analyzeIntentFallback = async () => {
     // Simulate AI processing delay for realistic "thinking" feel
-    // Shortened for better UX - "snappy but thoughtful"
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 800));
 
     let correctedText = magicInput;
     const report = [];
@@ -197,25 +297,69 @@ export default function IntakeEngine() {
 
     try {
       const enrichedUser = { ...user, company_id: profile?.company_id };
-      await new Promise(r => setTimeout(r, 800));
 
-      const { success, error: err } = await createRFQ({
+      // Step 1: Create RFQ
+      const { success, data: rfqData, error: err } = await createRFQ({
         user: enrichedUser,
         formData: payload,
       });
 
-      if (success) {
-        toast.success('Sourcing request created successfully');
-        queryClient.invalidateQueries({ queryKey: ['rfqs'] });
-        navigate('/dashboard/rfqs');
-      } else {
+      if (!success) {
         setError(err || 'Unable to create request');
         setSubmitting(false);
+        toast.error('Could not create request');
+        return;
       }
+
+      const rfqId = rfqData?.id;
+      setCreatedRFQId(rfqId);
+
+      // Step 2: Match suppliers using AI (2026 intelligence)
+      const matchResult = await matchSuppliersToRFQ({
+        product: form.title || form.description,
+        country: form.target_country || '',
+        quantity: form.quantity || 0,
+        budget: form.target_price || null
+      }, 20); // Get top 20 initially for AI re-ranking
+
+      if (matchResult.success && matchResult.suppliers.length > 0) {
+        // Step 2.5: AI re-ranking based on behavioral data
+        const reRankedSuppliers = await reRankSuppliersWithAI(
+          matchResult.suppliers,
+          {
+            product: form.title,
+            quantity: form.quantity,
+            urgency: form.urgency
+          }
+        );
+
+        // Take top 10 after AI re-ranking
+        const topSuppliers = reRankedSuppliers.slice(0, 10);
+        setMatchedSuppliers(topSuppliers);
+
+        // Step 3: Store matched suppliers in RFQ metadata
+        const supplierIds = topSuppliers.map(s => s.supplier_id);
+        await storeMatchedSuppliers(rfqId, supplierIds);
+
+        // Step 4: Notify matched suppliers
+        await notifyMatchedSuppliers(rfqId, topSuppliers);
+
+        console.log(`[RFQ Created] Matched ${topSuppliers.length} suppliers (AI re-ranked)`);
+      } else {
+        console.warn('[RFQ Created] No suppliers matched');
+        setMatchedSuppliers([]);
+      }
+
+      // Step 5: Show success modal (not toast)
+      queryClient.invalidateQueries({ queryKey: ['rfqs'] });
+      setSubmitting(false);
+      setShowSuccessModal(true);
+
     } catch (err) {
       setSubmitting(false);
       setError(err.message);
       toast.error('Could not create request');
+      console.error('[RFQ Creation Error]:', err);
     }
   };
 
@@ -307,6 +451,45 @@ export default function IntakeEngine() {
               animate={{ opacity: 1, y: 0 }}
               className="space-y-8"
             >
+              {/* Progress Steps */}
+              <div className="bg-white rounded-2xl shadow-sm border border-stone-100 p-6">
+                <div className="flex items-center justify-between max-w-3xl mx-auto">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-green-50 text-green-600 text-sm font-semibold">
+                      <CheckCircle2 className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-stone-900">Step 1</p>
+                      <p className="text-xs text-stone-500">Describe Request</p>
+                    </div>
+                  </div>
+                  
+                  <ChevronRight className="w-5 h-5 text-stone-300" />
+                  
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[#B8922F] text-white text-sm font-semibold">
+                      2
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-stone-900">Step 2</p>
+                      <p className="text-xs text-stone-500">Review Details</p>
+                    </div>
+                  </div>
+                  
+                  <ChevronRight className="w-5 h-5 text-stone-300" />
+                  
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-stone-100 text-stone-400 text-sm font-semibold">
+                      3
+                    </div>
+                    <div>
+                      <p className="text-sm font-semibold text-stone-400">Step 3</p>
+                      <p className="text-xs text-stone-400">Publish & Match</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Header */}
               <div className="flex items-baseline justify-between">
                 <h2 className="text-3xl font-semibold text-stone-900">Review Details</h2>
@@ -439,6 +622,18 @@ export default function IntakeEngine() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Success Modal with Supplier Matching */}
+      <PostRFQSuccessModal
+        open={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          navigate('/dashboard/rfqs');
+        }}
+        rfqData={form}
+        matchedSuppliers={matchedSuppliers}
+        rfqId={createdRFQId}
+      />
     </div>
   );
 }

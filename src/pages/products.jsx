@@ -53,13 +53,32 @@ export default function Products() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      // Fixed: Remove companies join for anonymous access (public products page)
+      // Fetch verified company IDs first
+      const { data: verifiedCompanies, error: compError } = await supabase
+        .from('companies')
+        .select('id')
+        .eq('verified', true)
+        .eq('verification_status', 'verified')
+        .not('company_name', 'is', null);
+
+      if (compError) throw compError;
+      const verifiedCompanyIds = (verifiedCompanies || []).map(c => c.id);
+
+      if (verifiedCompanyIds.length === 0) {
+        setProducts([]);
+        setCategories([]);
+        setPagination(prev => ({ ...prev, isLoading: false }));
+        setIsLoading(false);
+        return;
+      }
+
       const [productsResult, categoriesRes] = await Promise.all([
         paginateQuery(
           supabase
             .from('products')
             .select('*, categories(*)')
-            .eq('status', 'active'),
+            .eq('status', 'active')
+            .in('company_id', verifiedCompanyIds),
           { page: pagination.page, pageSize: 20, orderBy: 'created_at', ascending: false }
         ),
         supabase.from('categories').select('*')
@@ -89,11 +108,29 @@ export default function Products() {
   const applyFilters = async () => {
     setIsLoading(true);
     try {
-      // Fixed: Remove companies join for anonymous access
+      // Fetch verified company IDs first
+      const { data: verifiedCompanies, error: compError } = await supabase
+        .from('companies')
+        .select('id')
+        .eq('verified', true)
+        .eq('verification_status', 'verified')
+        .not('company_name', 'is', null);
+
+      if (compError) throw compError;
+      const verifiedCompanyIds = (verifiedCompanies || []).map(c => c.id);
+
+      if (verifiedCompanyIds.length === 0) {
+        setProducts([]);
+        setPagination(prev => ({ ...prev, isLoading: false }));
+        setIsLoading(false);
+        return;
+      }
+
       let query = supabase
         .from('products')
         .select('*, categories(*)')
-        .eq('status', 'active');
+        .eq('status', 'active')
+        .in('company_id', verifiedCompanyIds);
 
       // Apply sorting
       const sortField = sortBy.startsWith('-') ? sortBy.slice(1) : sortBy;

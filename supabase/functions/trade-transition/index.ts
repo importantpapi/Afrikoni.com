@@ -304,6 +304,48 @@ async function executeStateSideEffects({ supabase, trade, nextState, metadata }:
     await supabase.from("shipments").update({ status: "in_transit" }).eq("trade_id", tradeId);
   }
 
+  // ========================================================================
+  // ACCEPTED → Release bank escrow to seller
+  // ========================================================================
+  // The buyer has confirmed delivery. The bank-held escrow (91.5% of trade
+  // value) is now released to the seller via Flutterwave Transfer API.
+  // Afrikoni's 8.5% fee was already collected at payment time (split payment)
+  // so we are cash-positive regardless of when the seller is paid.
+  if (nextState === "accepted") {
+    try {
+      const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+      const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+
+      const releaseResponse = await fetch(`${SUPABASE_URL}/functions/v1/bank-escrow-release`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+        },
+        body: JSON.stringify({ trade_id: tradeId }),
+      });
+
+      const releaseResult = await releaseResponse.json();
+
+      if (!releaseResult.success && !releaseResult.queued) {
+        console.error("[Kernel] Bank escrow release failed:", releaseResult.error);
+        // Log failure but don't block state transition — admin can manually trigger
+        await supabase.from("trade_events").insert({
+          trade_id: tradeId,
+          event_type: "escrow_release_failed",
+          metadata: { error: releaseResult.error },
+        });
+      } else if (releaseResult.queued) {
+        console.log(`[Kernel] Escrow release queued — seller missing bank details: ${tradeId}`);
+      } else {
+        console.log(`[Kernel] Escrow released to seller: ${releaseResult.transfer_ref}`);
+      }
+    } catch (error) {
+      console.error("[Kernel] Failed to invoke bank-escrow-release:", error);
+      // Log but don't block the state transition
+    }
+  }
+
   return { success: true, error: null };
 }
 

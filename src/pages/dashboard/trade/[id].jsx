@@ -26,7 +26,11 @@ import {
   Sparkles,
   Clock,
   AlertTriangle,
+  Timer,
 } from 'lucide-react';
+import EscrowLockCard from '@/components/escrow/EscrowLockCard';
+import DeliveryConfidenceBadge from '@/components/trade/DeliveryConfidenceBadge';
+import LiveDeliveryCard from '@/components/logistics/LiveDeliveryCard';
 import { useTrustScore } from '@/hooks/useTrustScore';
 import TrustBadge from '@/components/trust/TrustBadge';
 import { getQuotesForRFQ } from '@/services/quoteService';
@@ -412,7 +416,16 @@ export default function TradeWorkspace() {
                   </div>
                   <div className="p-3 bg-white/5 rounded-lg border border-white/5">
                     <div className="text-os-xs uppercase text-white/40 mb-1">ETA</div>
-                    <div className="text-os-lg font-mono text-white">{trade?.delivery_date || 'TBD'}</div>
+                    {trade?.origin_country && trade?.destination_country ? (
+                      <DeliveryConfidenceBadge
+                        originCountry={trade.origin_country}
+                        destinationCountry={trade.destination_country}
+                        supplierId={trade.seller_company_id}
+                        compact
+                      />
+                    ) : (
+                      <div className="text-os-lg font-mono text-white">{trade?.delivery_date || 'TBD'}</div>
+                    )}
                   </div>
                   <div className="p-3 bg-white/5 rounded-lg border border-white/5 col-span-2">
                     <div className="text-os-xs uppercase text-white/40 mb-1">Compliance</div>
@@ -445,6 +458,25 @@ export default function TradeWorkspace() {
                 </div>
               </Surface>
             </TradeOSErrorBoundary>
+
+            {/* Live Delivery Card — shows who is moving the goods (Uber-style) */}
+            {['pickup_scheduled', 'in_transit', 'delivered', 'accepted', 'settled'].includes(trade?.status) && (
+              <TradeOSErrorBoundary>
+                <Surface variant="panel" className="p-5">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Ship className="w-4 h-4 text-os-accent" />
+                    <span className="text-os-sm font-bold">Your Carrier</span>
+                    <span className="ml-auto text-os-xs text-white/30">Live</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  </div>
+                  <LiveDeliveryCard
+                    tradeId={trade?.id}
+                    shipmentId={trade?.metadata?.shipment_id}
+                    tradeStatus={trade?.status}
+                  />
+                </Surface>
+              </TradeOSErrorBoundary>
+            )}
 
             <TradeOSErrorBoundary>
               <Surface variant="panel" className="p-5">
@@ -550,6 +582,44 @@ export default function TradeWorkspace() {
                 </div>
               </Surface>
             </TradeOSErrorBoundary>
+
+            {/* Live Carrier Rail — shows when goods are in motion */}
+            {['pickup_scheduled', 'in_transit', 'delivered', 'accepted', 'settled'].includes(trade?.status) && (
+              <TradeOSErrorBoundary>
+                <Surface variant="glass" className="p-4 border border-os-stroke/40">
+                  <div className="text-os-xs uppercase tracking-widest text-os-muted mb-3 font-bold border-b border-os-stroke/40 pb-2 flex items-center gap-2">
+                    <span>Live Carrier</span>
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                  </div>
+                  <LiveDeliveryCard
+                    tradeId={trade?.id}
+                    shipmentId={trade?.metadata?.shipment_id}
+                    tradeStatus={trade?.status}
+                  />
+                </Surface>
+              </TradeOSErrorBoundary>
+            )}
+
+            {/* Escrow Lock Card */}
+            <TradeOSErrorBoundary>
+              <EscrowLockCard
+                tradeId={trade?.id}
+                tradeAmount={tradeValue}
+                currency={trade?.currency || 'USD'}
+                viewerRole={tradeType === 'rfq' ? 'buyer' : 'seller'}
+              />
+            </TradeOSErrorBoundary>
+
+            {/* Delivery Intelligence */}
+            {trade?.origin_country && trade?.destination_country && (
+              <TradeOSErrorBoundary>
+                <DeliveryConfidenceBadge
+                  originCountry={trade.origin_country}
+                  destinationCountry={trade.destination_country}
+                  supplierId={trade.seller_company_id}
+                />
+              </TradeOSErrorBoundary>
+            )}
           </div>
         </div>
       </div>

@@ -20,11 +20,11 @@ export async function fetchKernelState() {
 
   let tradeQuery = supabase
     .from('trades')
-    .select('id, status, origin_country, destination_country, target_price, price_min, price_max, buyer_id, seller_id')
+    .select('id, status, origin_country, destination_country, target_price, price_min, price_max, buyer_company_id, seller_company_id')
     .order('created_at', { ascending: false });
 
   if (companyId) {
-    tradeQuery = tradeQuery.or(`buyer_id.eq.${companyId},seller_id.eq.${companyId}`);
+    tradeQuery = tradeQuery.or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId}`);
   }
 
   const { data: trades } = await tradeQuery;
@@ -109,10 +109,10 @@ export async function fetchCorridors() {
   const companyId = await getProfileCompanyId();
   let tradeQuery = supabase
     .from('trades')
-    .select('id, origin_country, destination_country, target_price, price_min, price_max, metadata, buyer_id, seller_id');
+    .select('id, origin_country, destination_country, target_price, price_min, price_max, metadata, buyer_company_id, seller_company_id');
 
   if (companyId) {
-    tradeQuery = tradeQuery.or(`buyer_id.eq.${companyId},seller_id.eq.${companyId}`);
+    tradeQuery = tradeQuery.or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId}`);
   }
 
   const { data: trades } = await tradeQuery;
@@ -147,9 +147,9 @@ export async function fetchCapitalState() {
   const companyId = await getProfileCompanyId();
   let escrowQuery = supabase
     .from('escrows')
-    .select('amount, balance, status, buyer_id, seller_id');
+    .select('amount, balance, status, buyer_company_id, seller_company_id');
   if (companyId) {
-    escrowQuery = escrowQuery.or(`buyer_id.eq.${companyId},seller_id.eq.${companyId}`);
+    escrowQuery = escrowQuery.or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId}`);
   }
   const { data: escrows } = await escrowQuery;
   const totalCapitalLocked = (escrows || []).reduce((sum, row) => sum + Number(row.amount || 0), 0);

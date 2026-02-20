@@ -34,6 +34,10 @@ type Props = {
    * Where to redirect in 'redirect' mode (default: /dashboard)
    */
   redirectTo?: string;
+  /**
+   * If true, allows access if status is 'pending' even if requireApproved is true
+   */
+  allowPending?: boolean;
 };
 
 /**
@@ -55,6 +59,7 @@ export default function RequireCapability({
   canLogistics,
   canAdmin,
   requireApproved = false,
+  allowPending = false,
   mode = 'inline',
   fallbackMessage,
   redirectTo = '/dashboard'
@@ -139,13 +144,19 @@ export default function RequireCapability({
       hasAccess = false;
       missingLabel = 'buy';
     }
-    if (canSell && (!capability.can_sell || (requireApproved && capability.sell_status !== 'approved'))) {
-      hasAccess = false;
-      missingLabel = requireApproved ? 'approved seller' : 'sell';
+    if (canSell && (!capability.can_sell || (requireApproved && !allowPending && capability.sell_status !== 'approved'))) {
+      const isAllowedPending = allowPending && capability.sell_status === 'pending';
+      if (!isAllowedPending) {
+        hasAccess = false;
+        missingLabel = requireApproved ? 'approved seller' : 'sell';
+      }
     }
-    if (canLogistics && (!capability.can_logistics || (requireApproved && capability.logistics_status !== 'approved'))) {
-      hasAccess = false;
-      missingLabel = requireApproved ? 'approved logistics' : 'logistics';
+    if (canLogistics && (!capability.can_logistics || (requireApproved && !allowPending && capability.logistics_status !== 'approved'))) {
+      const isAllowedPending = allowPending && capability.logistics_status === 'pending';
+      if (!isAllowedPending) {
+        hasAccess = false;
+        missingLabel = requireApproved ? 'approved logistics' : 'logistics';
+      }
     }
   }
 

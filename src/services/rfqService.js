@@ -68,6 +68,25 @@ export async function createRFQ({ user, formData }) {
     }
     console.log('[rfqService] Company ID resolved:', companyId);
 
+    // 🔒 ANTI-SPAM CHECK (2026 Protection)
+    try {
+      const { data: canPostData } = await supabase.rpc('can_post_rfq', {
+        p_company_id: companyId
+      });
+
+      if (canPostData && !canPostData.can_post) {
+        return {
+          success: false,
+          error: canPostData.message || 'You have reached your RFQ posting limit.',
+          reason: canPostData.reason,
+          limit_data: canPostData
+        };
+      }
+    } catch (limitError) {
+      console.warn('[rfqService] Could not check posting limits:', limitError);
+      // Continue - don't block if check fails
+    }
+
     const expires = buildDates(formData.closing_date || formData.expires_at);
 
     // KERNEL MAPPING
@@ -105,6 +124,14 @@ export async function createRFQ({ user, formData }) {
         };
       }
       return { success: false, error: result.error || 'Failed to create RFQ Trade. Please try again.' };
+    }
+
+    // ✅ INCREMENT RFQ COUNT (track usage)
+    try {
+      await supabase.rpc('increment_rfq_count', { p_company_id: companyId });
+    } catch (countError) {
+      console.warn('[rfqService] Could not increment RFQ count:', countError);
+      // Non-blocking
     }
 
     return { success: true, data: result.data, isMinimalProfile: false };
@@ -193,12 +220,12 @@ export async function getRFQs({ user, companyId, role = 'buyer', status = 'all' 
     // ✅ FORENSIC FIX: Query TRADES table directly (Source of Truth)
     let query = supabase
       .from('trades')
-      .select('*, quotes:quotes(count), buyer:companies!buyer_id(company_name)', { count: 'exact' })
+      .select('*, quotes:quotes(count), buyer:companies!buyer_company_id(company_name)', { count: 'exact' })
       .eq('trade_type', 'rfq');
 
     if (role === 'buyer') {
       // Buyers see their own RFQs
-      query = query.eq('buyer_id', companyId);
+      query = query.eq('buyer_company_id', companyId);
     } else {
       // Suppliers see RFQs they are matched to OR public ones
       // For now, allow seeing active RFQs

@@ -27,13 +27,13 @@ export async function calculateCompletionRate(companyId) {
     const { count: totalTrades } = await supabase
       .from('trades')
       .select('id', { count: 'exact' })
-      .or(`buyer_id.eq.${companyId},seller_id.eq.${companyId}`);
+      .or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId}`);
 
     // Count completed trades (status = 'settled' or 'closed')
     const { data: completedTrades } = await supabase
       .from('trades')
       .select('id')
-      .or(`buyer_id.eq.${companyId},seller_id.eq.${companyId}`)
+      .or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId}`)
       .in('status', ['settled', 'closed']);
 
     const completionRate = totalTrades > 0
@@ -55,8 +55,8 @@ export async function calculateDeliveryReliability(companyId) {
     // Get all completed trades for this company
     const { data: trades } = await supabase
       .from('trades')
-      .select(`id, status, seller_id, buyer_id`)
-      .or(`buyer_id.eq.${companyId},seller_id.eq.${companyId}`)
+      .select(`id, status, seller_company_id, buyer_company_id`)
+      .or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId}`)
       .in('status', ['settled', 'closed']);
 
     if (!trades?.length) return 100; // Perfect score if no history

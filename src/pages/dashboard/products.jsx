@@ -17,7 +17,10 @@ import {
   Clock,
   AlertCircle,
   Pause,
+  Trash2,
 } from 'lucide-react';
+import { supabase } from '@/api/supabaseClient';
+import { toast } from 'sonner';
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
 import { Badge } from '@/components/shared/ui/badge';
@@ -28,6 +31,7 @@ import { TableSkeleton, CardSkeleton } from '@/components/shared/ui/skeletons';
 import ErrorState from '@/components/shared/ui/ErrorState';
 import EmptyState from '@/components/shared/ui/EmptyState';
 import { getPrimaryImageFromProduct } from '@/utils/productImages';
+import { SupplyTruthBadge } from '@/components/supply/SupplyProofGate';
 
 const statusConfig = {
   active: { label: 'Active', icon: CheckCircle2 },
@@ -57,6 +61,19 @@ export default function Products() {
       window.history.replaceState({}, document.title);
     }
   }, [location.state, canLoadData, loadProducts]);
+
+  const handleDelete = async (e, id) => {
+    e.stopPropagation();
+    if (!window.confirm("Are you sure you want to delete this product? This action cannot be undone.")) return;
+    try {
+      const { error: delError } = await supabase.from('products').delete().eq('id', id).eq('company_id', profileCompanyId);
+      if (delError) throw delError;
+      toast.success("Product deleted successfully");
+      loadProducts();
+    } catch (err) {
+      toast.error(err.message || "Failed to delete product");
+    }
+  };
 
   const filtered = useMemo(() => {
     return (products || []).filter((product) => {
@@ -105,10 +122,10 @@ export default function Products() {
       <Surface variant="glass" className="p-6 md:p-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="os-label">Trade OS Catalog</div>
+            <div className="os-label">Verified Trade Catalog</div>
             <h1 className="os-title mt-2">Products</h1>
             <p className="text-os-sm text-os-muted">
-              {(products || []).length} products in your catalog
+              {(products || []).length} professional listings active
             </p>
           </div>
           <Button
@@ -181,7 +198,7 @@ export default function Products() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-os-stroke bg-os-surface-1">
-                  {['Product', 'Category', 'Price', 'MOQ', 'Status', 'Views', 'Inquiries', ''].map(
+                  {['Product', 'Category', 'Price', 'MOQ', 'Status', 'Supply', 'Views', ''].map(
                     (header) => (
                       <th
                         key={header}
@@ -258,31 +275,43 @@ export default function Products() {
                         </div>
                       </td>
                       <td className="px-4 py-3">
+                        <SupplyTruthBadge
+                          status={product.supply_truth_status || 'unverified'}
+                          expiresAt={product.supply_proof_expires_at}
+                          score={product.supply_truth_score || 0}
+                          compact
+                        />
+                      </td>
+                      <td className="px-4 py-3">
                         <span className="flex items-center gap-1 text-os-sm text-os-muted tabular-nums">
                           <Eye className="h-3 w-3" /> {views.toLocaleString()}
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="flex items-center gap-1 text-os-sm text-os-muted tabular-nums">
-                          <MessageSquare className="h-3 w-3" /> {inquiries}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <Button
-                            variant="ghost"
+                            variant="outline"
                             size="sm"
                             className="h-8 text-os-xs font-semibold"
                             onClick={(e) => {
+                              e.preventDefault();
                               e.stopPropagation();
                               navigate(`/dashboard/products/edit/${product.id}`);
                             }}
                           >
                             Edit
                           </Button>
-                          <button className="p-1.5 rounded-lg hover:bg-os-surface-2 transition-all">
-                            <MoreHorizontal className="h-4 w-4 text-os-muted" />
-                          </button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 border-red-100 hover:border-red-200"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              handleDelete(e, product.id);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       </td>
                     </tr>
@@ -343,9 +372,44 @@ export default function Products() {
                   </span>
                   <span>MOQ {Number(moq).toLocaleString()} {unit}</span>
                 </div>
-                <div className="mt-4 flex items-center justify-between">
-                  <Button variant="outline" size="sm" onClick={() => navigate(`/dashboard/products/${product.id}`)}>View</Button>
-                  <Button variant="outline" size="sm" onClick={() => navigate(`/dashboard/products/edit/${product.id}`)}>Edit</Button>
+                <div className="mt-4 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        navigate(`/dashboard/products/${product.id}`);
+                      }}
+                      className="h-8"
+                    >
+                      View
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        navigate(`/dashboard/products/edit/${product.id}`);
+                      }}
+                      className="h-8"
+                    >
+                      Edit
+                    </Button>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleDelete(e, product.id);
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
                 </div>
               </Surface>
             );

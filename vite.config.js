@@ -54,9 +54,9 @@ export default defineConfig({
   },
   // Ensure public directory files are served correctly
   publicDir: 'public',
-  // ✅ TOTAL SYSTEM SYNC: Force re-optimization, but as a valid config option 'optimizeDeps'
+  // ✅ TOTAL SYSTEM SYNC: Enable caching in dev mode for faster refreshes
   optimizeDeps: {
-    force: true,
+    force: false,
   }
 });
 

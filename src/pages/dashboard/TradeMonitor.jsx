@@ -85,19 +85,20 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
 
             return [
                 { label: "Total Sales", value: count, icon: ShoppingCart, color: "text-os-gold" },
-                { label: "Revenue", value: `$${(totalValue / 1000).toFixed(1)}k`, icon: DollarSign, color: "text-emerald-400" },
-                { label: "Pending", value: `$${(pending / 1000).toFixed(1)}k`, icon: TrendingUp, color: "text-amber-400" },
+                { label: "Revenue", value: `$${totalValue.toLocaleString()}`, icon: DollarSign, color: "text-emerald-400" },
+                { label: "Pending", value: `$${pending.toLocaleString()}`, icon: TrendingUp, color: "text-amber-400" },
                 { label: "Active", value: toFulfill, icon: Package, color: "text-blue-400" },
             ];
         } else {
             const inTransit = trades.filter(t => ["shipped", "in_transit"].includes(t.status)).length;
-            const pipelineValue = tradesData.pipelineValue || 0;
+            const totalOpen = trades.filter(t => !['closed', 'settled'].includes(t.status)).length;
+            const totalPending = trades.filter(t => t.payment_status === 'pending').length;
 
             const dashboardStats = [
-                { label: "Pipeline", value: `$${(pipelineValue / 1000).toFixed(1)}k`, icon: DollarSign, color: "text-os-gold" },
-                { label: "Active", value: trades.filter(t => !['closed', 'settled'].includes(t.status)).length, icon: Package, color: "text-blue-400" },
+                { label: "Total Orders", value: count, icon: ShoppingCart, color: "text-os-gold" },
+                { label: "Active Orders", value: totalOpen, icon: Package, color: "text-blue-400" },
                 { label: "In Transit", value: inTransit, icon: Truck, color: "text-emerald-400" },
-                { label: "Resolved", value: trades.filter(t => ['closed', 'settled'].includes(t.status)).length, icon: CheckCircle2, color: "text-os-muted" },
+                { label: "Completed", value: trades.filter(t => ['closed', 'settled'].includes(t.status)).length, icon: CheckCircle2, color: "text-os-muted" },
             ];
 
             return isSimple ? dashboardStats.slice(1, 3) : dashboardStats;
@@ -179,11 +180,35 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
 
             <div className="space-y-4">
                 {filteredTrades.length === 0 ? (
-                    <EmptyState
-                        icon={Package}
-                        title="No trades found"
-                        description="Your trade ledger is currently empty."
-                    />
+                    <div className="flex flex-col items-center justify-center py-24 px-4 text-center">
+                        <div className="mb-6 p-6 bg-gradient-to-br from-[#B8922F]/10 to-[#B8922F]/5 rounded-3xl">
+                            <Package className="h-16 w-16 text-[#B8922F]" />
+                        </div>
+                        <h3 className="text-2xl font-semibold text-stone-900 mb-3">
+                            Your First Trade Awaits
+                        </h3>
+                        <p className="text-stone-500 mb-8 max-w-md">
+                            Source products, negotiate terms, and track your orders in one unified workspace
+                        </p>
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            <Button
+                                onClick={() => navigate('/dashboard/rfqs/new')}
+                                className="h-12 px-8 bg-[#B8922F] hover:bg-[#A68A2E] text-white rounded-full font-medium shadow-lg shadow-[#B8922F]/20"
+                            >
+                                Create Trade Request →
+                            </Button>
+                            <Button
+                                variant="outline"
+                                onClick={() => navigate('/dashboard/marketplace')}
+                                className="h-12 px-8 border-stone-200 text-stone-700 hover:bg-stone-50 rounded-full font-medium"
+                            >
+                                Browse Suppliers
+                            </Button>
+                        </div>
+                        <p className="text-xs text-stone-400 mt-6">
+                            Over 1,200+ verified suppliers ready to quote
+                        </p>
+                    </div>
                 ) : (
                     filteredTrades.map((order) => {
                         const status = statusLabels[order.status] || { label: order.status, tone: 'neutral' };

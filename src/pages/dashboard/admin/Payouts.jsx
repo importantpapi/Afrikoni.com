@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 import { Surface } from '@/components/system/Surface';
@@ -10,10 +11,15 @@ import { Loader2, CheckCircle, XCircle, AlertTriangle, Building, CreditCard } fr
 import { format } from 'date-fns';
 
 export default function AdminPayouts() {
-    const { user } = useAuth();
+    const { user, profile } = useAuth();
     const [requests, setRequests] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [processingId, setProcessingId] = useState(null);
+
+    // 🔒 SECURITY: Only admins may access this page
+    if (!profile?.is_admin) {
+        return <Navigate to="/en/dashboard" replace />;
+    }
 
     useEffect(() => {
         fetchRequests();
@@ -25,7 +31,7 @@ export default function AdminPayouts() {
             // Fetch withdrawals
             const { data, error } = await supabase
                 .from('wallet_transactions')
-                .select('*, companies(name, country, verification_status)')
+                .select('*, companies(company_name, country, verification_status)')
                 .eq('type', 'withdrawal_request')
                 .order('created_at', { ascending: false });
 
@@ -109,7 +115,7 @@ export default function AdminPayouts() {
 
                                         <div className="flex items-center gap-2">
                                             <Building className="w-4 h-4 text-gray-400" />
-                                            <span className="font-bold text-lg">{req.companies?.name || 'Unknown Company'}</span>
+                                            <span className="font-bold text-lg">{req.companies?.company_name || 'Unknown Company'}</span>
                                             {req.companies?.verification_status === 'verified' && (
                                                 <CheckCircle className="w-4 h-4 text-emerald-500" />
                                             )}
@@ -189,7 +195,7 @@ export default function AdminPayouts() {
                                     <td className="px-6 py-4 font-mono text-gray-500">
                                         {format(new Date(req.created_at), 'yyyy-MM-dd HH:mm')}
                                     </td>
-                                    <td className="px-6 py-4 font-medium">{req.companies?.name}</td>
+                                    <td className="px-6 py-4 font-medium">{req.companies?.company_name}</td>
                                     <td className="px-6 py-4 font-bold text-gray-900">
                                         {new Intl.NumberFormat('en-US', { style: 'currency', currency: req.currency }).format(req.amount)}
                                     </td>

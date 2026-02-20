@@ -73,13 +73,13 @@ export function useKernelEventStream({ companyId, limit = 14 } = {}) {
             metadata,
             created_at,
             triggered_by,
-            trade:trades!inner(buyer_id,seller_id)
+            trade:trades!inner(buyer_company_id,seller_company_id)
           `)
           .order('created_at', { ascending: false })
           .limit(limit);
 
         if (companyId) {
-          query = query.or(`buyer_id.eq.${companyId},seller_id.eq.${companyId}`, { foreignTable: 'trade' });
+          query = query.or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId}`, { foreignTable: 'trade' });
         }
 
         const { data, error: fetchError } = await query;

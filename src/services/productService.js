@@ -183,7 +183,13 @@ export async function createProduct({ user, formData, companyId, publish = false
       featured: formData.featured || false,
       published_at: publish ? new Date().toISOString() : null,
       views: 0,
-      images: formData.images || []
+      images: formData.images || [],
+      // Supply Truth Engine fields
+      stock_type: formData.stockType || formData.availability || 'in_stock',
+      warehouse_city: formData.warehouseCity || null,
+      warehouse_country: formData.warehouseCountry || null,
+      serviced_corridors: formData.servicedCorridors?.length ? formData.servicedCorridors : [],
+      supply_truth_status: 'unverified', // must upload proof to go to 'verified'
     };
 
     // ✅ KERNEL: Insert product

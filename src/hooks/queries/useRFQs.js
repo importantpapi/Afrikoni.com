@@ -24,7 +24,7 @@ async function fetchRFQs(profileCompanyId) {
     const { data: tradeData, error: tradeError } = await supabase
       .from('trades')
       .select('*')
-      .eq('buyer_id', profileCompanyId)
+      .eq('buyer_company_id', profileCompanyId)
       .eq('trade_type', 'rfq')
       .order('created_at', { ascending: false });
 
@@ -49,7 +49,7 @@ async function fetchRFQs(profileCompanyId) {
         ...existing, // Keep legacy fields if they exist
         ...item,     // Override with trade data
         // Normalize field names mismatch between tables
-        buyer_company_id: item.buyer_id || existing?.buyer_company_id,
+        buyer_company_id: item.buyer_company_id || existing?.buyer_company_id,
         unit: item.quantity_unit || existing?.unit,
         status: item.status === 'rfq_open' ? 'open' : (item.status === 'draft' ? 'draft' : 'open'), // Map kernel to UI
         source: 'kernel'

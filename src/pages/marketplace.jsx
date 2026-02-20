@@ -421,7 +421,7 @@ export default function Marketplace() {
           categories (
             name
           ),
-          companies!company_id (
+          companies!products_company_id_fkey!inner (
             company_name,
             country,
             verified,
@@ -429,6 +429,7 @@ export default function Marketplace() {
           )
         `, { count: 'exact' })
         .eq('status', 'active');
+      // .eq('companies.verified', true); // Temporarily relaxed for 'One Flow' visibility audit
 
       if (selectedFilters.category) {
         query = query.eq('category_id', selectedFilters.category);

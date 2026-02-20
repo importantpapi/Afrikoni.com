@@ -10,7 +10,7 @@ import { Input } from '@/components/shared/ui/input';
 import { Search, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
-export function CountrySelect({ value, onValueChange, countries, placeholder = "Select country" }) {
+export function CountrySelect({ value, onValueChange, countries = [], placeholder = "Select country" }) {
     const [searchTerm, setSearchTerm] = useState('');
 
     const filteredCountries = countries.filter(c =>
@@ -31,7 +31,7 @@ export function CountrySelect({ value, onValueChange, countries, placeholder = "
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-os-muted opacity-50" />
                         <Input
-                            placeholder="Search nodes..."
+                            placeholder="Search countries..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="pl-9 h-10 bg-white/5 border-white/5 rounded-os-sm text-os-xs font-bold focus:bg-white/10 transition-all"
@@ -59,7 +59,7 @@ export function CountrySelect({ value, onValueChange, countries, placeholder = "
                         ))
                     ) : (
                         <div className="py-8 px-4 text-center">
-                            <p className="text-os-xs font-black uppercase tracking-widest text-os-muted opacity-40">No nodes found</p>
+                            <p className="text-os-xs font-black uppercase tracking-widest text-os-muted opacity-40">No countries found</p>
                         </div>
                     )}
                 </div>

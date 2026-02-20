@@ -58,7 +58,7 @@ export default function TradeOSSidebar({
     <aside
       className={`
         relative h-full bg-os-bg border-r border-os-accent/20
-        flex flex-col
+        flex flex-col overflow-y-auto overflow-x-visible
         shadow-[8px_0_40px_rgba(0,0,0,0.12)]
         ${sidebarOpen ? 'w-[240px]' : 'w-[88px]'}
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
@@ -67,7 +67,7 @@ export default function TradeOSSidebar({
     >
       {/* OS Logo - Official Afrikoni Mark */}
       <Link
-        to={getLocalizedPath("/dashboard")}
+        to={getLocalizedPath("/")}
         onClick={onClose}
         className={cn("my-6 relative group z-50 flex items-center gap-3", sidebarOpen ? "w-full px-6" : "px-2 justify-center")}
       >
@@ -127,7 +127,7 @@ export default function TradeOSSidebar({
 
                   {/* 🏷️ Apple-Grade Hover Label (Collapsed ONLY) */}
                   {!sidebarOpen && (
-                    <div className="absolute left-16 px-4 py-2 bg-os-surface-solid border border-os-accent/30 rounded-os-sm text-os-xs font-bold text-os-text-primary opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300 whitespace-nowrap pointer-events-none z-[100] flex items-center gap-3 shadow-os-lg translate-x-[-8px]">
+                    <div className="absolute left-16 px-4 py-2 bg-os-surface-solid border border-os-accent/30 rounded-os-sm text-os-xs font-bold text-os-text-primary opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all duration-300 whitespace-nowrap pointer-events-none z-[1200] flex items-center gap-3 shadow-os-lg translate-x-[-8px]">
                       <div className="w-1.5 h-1.5 rounded-full bg-os-accent" />
                       {item.label}
                       {item.badge && (

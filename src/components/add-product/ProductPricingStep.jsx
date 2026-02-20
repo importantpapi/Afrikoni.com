@@ -1,10 +1,10 @@
-import { DollarSign, Package, Truck, Clock, MapPin, Lightbulb } from 'lucide-react';
+import { DollarSign, Package, Truck, Clock, MapPin, Lightbulb, ShieldCheck, Warehouse } from 'lucide-react';
 import { Button } from '@/components/shared/ui/button';
 import { Input } from '@/components/shared/ui/input';
 import { Label } from '@/components/shared/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
 import { Checkbox } from '@/components/shared/ui/checkbox';
-import { UNITS, CURRENCIES, DELIVERY_REGIONS, MOQ_SUGGESTIONS } from './types';
+import { UNITS, CURRENCIES, DELIVERY_REGIONS, MOQ_SUGGESTIONS, AFRICAN_CORRIDORS } from './types';
 import { cn } from '@/lib/utils';
 
 export default function ProductPricingStep({ formData, onUpdate }) {
@@ -17,6 +17,15 @@ export default function ProductPricingStep({ formData, onUpdate }) {
       onUpdate({ deliveryRegions: current.filter((r) => r !== region) });
     } else {
       onUpdate({ deliveryRegions: [...current, region] });
+    }
+  };
+
+  const toggleCorridor = (code) => {
+    const current = formData.servicedCorridors || [];
+    if (current.includes(code)) {
+      onUpdate({ servicedCorridors: current.filter((c) => c !== code) });
+    } else {
+      onUpdate({ servicedCorridors: [...current, code] });
     }
   };
 
@@ -204,6 +213,102 @@ export default function ProductPricingStep({ formData, onUpdate }) {
               </label>
             );
           })}
+        </div>
+      </div>
+
+      {/* ── Supply Truth Section ── */}
+      <div className="space-y-4 pt-2 border-t border-white/10">
+        <div className="flex items-center gap-2 text-os-sm font-medium text-[var(--os-text-primary)]">
+          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          Supply Truth
+          <span className="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full ml-1">
+            Required to go public
+          </span>
+        </div>
+
+        <div className="p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+          <p className="text-os-xs text-[var(--os-text-secondary)]">
+            Tell buyers where your stock is. Only listings with a verified location go live.
+            You'll upload proof (photo/video) after saving.
+          </p>
+        </div>
+
+        {/* Stock type */}
+        <div className="space-y-2">
+          <Label className="text-os-sm font-medium">Stock Type <span className="text-white/70">*</span></Label>
+          <Select
+            value={formData.stockType || 'in_stock'}
+            onValueChange={(value) => onUpdate({ stockType: value })}
+          >
+            <SelectTrigger className="h-12 os-input">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="in_stock">🟢 In Stock – I have it ready</SelectItem>
+              <SelectItem value="made_to_order">🟡 Made to Order – I produce on demand</SelectItem>
+              <SelectItem value="sourcing_partner">🔵 Sourcing Partner – I have a confirmed supplier</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Warehouse location */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-2">
+            <Label htmlFor="warehouseCity" className="text-os-sm font-medium">
+              <Warehouse className="w-3.5 h-3.5 inline mr-1 opacity-60" />
+              Warehouse City
+            </Label>
+            <Input
+              id="warehouseCity"
+              value={formData.warehouseCity || ''}
+              onChange={(e) => onUpdate({ warehouseCity: e.target.value })}
+              placeholder="e.g., Lagos"
+              className="h-12 os-input"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="warehouseCountry" className="text-os-sm font-medium">Country</Label>
+            <Input
+              id="warehouseCountry"
+              value={formData.warehouseCountry || ''}
+              onChange={(e) => onUpdate({ warehouseCountry: e.target.value })}
+              placeholder="e.g., Nigeria"
+              className="h-12 os-input"
+            />
+          </div>
+        </div>
+
+        {/* Corridor targeting */}
+        <div className="space-y-2">
+          <Label className="text-os-sm font-medium">
+            <MapPin className="w-3.5 h-3.5 inline mr-1 opacity-60" />
+            I can ship to <span className="text-white/70">(select corridors)</span>
+          </Label>
+          <div className="grid grid-cols-2 gap-2">
+            {AFRICAN_CORRIDORS.map((corridor) => {
+              const selected = (formData.servicedCorridors || []).includes(corridor.value);
+              return (
+                <label
+                  key={corridor.value}
+                  className={cn(
+                    'flex items-center gap-2 p-2.5 rounded-lg border cursor-pointer transition-all text-os-xs',
+                    selected
+                      ? 'border-emerald-400/50 bg-emerald-500/10 text-emerald-200'
+                      : 'border-white/10 hover:border-white/30 text-[var(--os-text-secondary)]'
+                  )}
+                >
+                  <Checkbox
+                    checked={selected}
+                    onChange={() => toggleCorridor(corridor.value)}
+                  />
+                  {corridor.label}
+                  {corridor.tier === 1 && (
+                    <span className="ml-auto text-[9px] bg-white/10 px-1.5 py-0.5 rounded-full">Top</span>
+                  )}
+                </label>
+              );
+            })}
+          </div>
         </div>
       </div>
 

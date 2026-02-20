@@ -1,3 +1,5 @@
+// (Removed duplicate variable declarations and route blocks for Trust/Risk, KoniAI, Verification, KYC, Compliance)
+
 // App.jsx - COMPLETE FIXED VERSION
 // Replace your entire src/App.jsx with this
 
@@ -44,21 +46,16 @@ import { migrateToSecureStorage } from './utils/secureStorage';
 
 /**
  * =============================================================================
- * BOOT SCREEN - Handshake UI
- * =============================================================================
- */
-/**
- * =============================================================================
  * BOOT SCREEN - Handshake UI (Horizon 2026)
  * =============================================================================
  */
 const BootScreen = ({ status, error }) => {
   // Map internal status codes to user-friendly messages
   const statusLabels = {
-    'RESOLVING_IDENTITY': 'Verifying Identity...',
-    'HYDRATING_KERNEL': 'Syncing Trade Data...',
-    'READY': 'Connection Established',
-    'Syncing': 'Optimizing Global Trade Route...',
+    'RESOLVING_IDENTITY': 'Securing your account...',
+    'HYDRATING_KERNEL': 'Optimizing your workspace...',
+    'READY': 'Connection established',
+    'Syncing': 'Syncing your trade data...',
   };
 
   const displayStatus = error || statusLabels[status] || status || "Optimizing your trade experience...";
@@ -106,7 +103,7 @@ const BootScreen = ({ status, error }) => {
 
           <div className="grid grid-cols-3 gap-5">
             {[
-              { icon: ShieldCheck, label: 'Kernel', active: status === 'HYDRATING_KERNEL' || status === 'READY' },
+              { icon: ShieldCheck, label: 'Security', active: status === 'HYDRATING_KERNEL' || status === 'READY' },
               { icon: UserCheck, label: 'Identity', active: status === 'RESOLVING_IDENTITY' || status === 'HYDRATING_KERNEL' || status === 'READY' },
               { icon: Globe, label: 'Network', active: status === 'READY' }
             ].map((step, idx) => (
@@ -130,7 +127,7 @@ const BootScreen = ({ status, error }) => {
               onClick={() => window.location.reload()}
               className="mt-8 text-primary hover:bg-primary/10 rounded-full text-os-xs uppercase tracking-widest font-bold"
             >
-              Force Restart Engine
+              Try Again
             </Button>
           )}
         </motion.div>
@@ -138,7 +135,7 @@ const BootScreen = ({ status, error }) => {
 
       <div className="absolute bottom-10 left-0 right-0">
         <p className="text-foreground/10 text-os-xs uppercase tracking-[0.5em] font-black">
-          Global Trade OS &copy; 2026 HORIZON
+          &copy; 2026 Afrikoni
         </p>
       </div>
     </div>
@@ -183,6 +180,9 @@ const PostLoginRouter = lazy(() => import('./auth/PostLoginRouter'));
 const ProductsPage = lazy(() => import('./pages/dashboard/products'));
 const ProductsNewPage = lazy(() => import('./pages/dashboard/products/new'));
 const ProductsEditPage = lazy(() => import('./pages/dashboard/products/edit'));
+const TradePipelinePage = lazy(() => import('./pages/dashboard/trade-pipeline'));
+const KYCPage = lazy(() => import('./pages/dashboard/kyc'));
+const CompliancePage = lazy(() => import('./pages/dashboard/compliance'));
 // const SalesPage = lazy(() => import('./pages/dashboard/sales')); // DEPRECATED
 // const SupplierRFQsPage = lazy(() => import('./pages/dashboard/supplier-rfqs')); // DEPRECATED
 const SupplierAnalyticsPage = lazy(() => import('./pages/dashboard/supplier-analytics'));
@@ -191,7 +191,7 @@ const SupplierAnalyticsPage = lazy(() => import('./pages/dashboard/supplier-anal
 // const OrdersPage = lazy(() => import('./pages/dashboard/orders')); // DEPRECATED
 const TradeMonitor = lazy(() => import('./pages/dashboard/TradeMonitor')); // [NEW] Unified
 const RFQMonitor = lazy(() => import('./pages/dashboard/RFQMonitor')); // [NEW] Unified
-const TraceCenterPage = lazy(() => import('./pages/dashboard/TraceCenter')); // [NEW] The Unbroken Flow
+// const TraceCenterPage = lazy(() => import('./pages/dashboard/TraceCenter')); // Ops tool — no sidebar entry yet
 // const RFQsPage = lazy(() => import('./pages/dashboard/rfqs')); // DEPRECATED
 const RFQsNewPage = lazy(() => import('./pages/dashboard/rfqs/new'));
 const TradeWorkspacePage = lazy(() => import('./pages/dashboard/OneFlow'));
@@ -214,16 +214,11 @@ const ReturnDetailPage = lazy(() => import('./pages/dashboard/returns/[id]'));
 const EscrowPage = lazy(() => import('./pages/dashboard/escrow/[orderId]'));
 
 // 5. GOVERNANCE & SECURITY (The Firewall)
-const CompliancePage = lazy(() => import('./pages/dashboard/compliance'));
 const RiskPage = lazy(() => import('./pages/dashboard/risk'));
 const TrustHealthPage = lazy(() => import('./pages/dashboard/trust-health'));
-const KYCPage = lazy(() => import('./pages/dashboard/kyc'));
-const VerificationStatusPage = lazy(() => import('./pages/dashboard/verification-status'));
-const VerificationMarketplacePage = lazy(() => import('./pages/dashboard/verification-marketplace'));
 const AnticorruptionPage = lazy(() => import('./pages/dashboard/anticorruption'));
 const AuditPage = lazy(() => import('./pages/dashboard/audit'));
 const ProtectionPage = lazy(() => import('./pages/dashboard/protection'));
-const VerificationCenter = lazy(() => import('./pages/dashboard/VerificationCenter'));
 const NetworkDashboard = lazy(() => import('./pages/dashboard/NetworkDashboard'));
 
 // 6. COMMUNITY & ENGAGEMENT
@@ -232,9 +227,6 @@ const DisputesPage = lazy(() => import('./pages/dashboard/disputes'));
 const NotificationsPage = lazy(() => import('./pages/dashboard/notifications'));
 const SupportChatPage = lazy(() => import('./pages/dashboard/support-chat'));
 const HelpPage = lazy(() => import('./pages/dashboard/help'));
-
-// TRADE PIPELINE
-const TradePipelinePage = lazy(() => import('./pages/dashboard/trade-pipeline'));
 
 // QUICK TRADE WIZARD (The Killer Flow)
 const QuickTradeWizard = lazy(() => import('./pages/dashboard/QuickTradeWizard'));
@@ -264,10 +256,11 @@ const AgentOnboarding = lazy(() => import('./pages/dashboard/AgentOnboarding'));
 const AdminPayouts = lazy(() => import('./pages/dashboard/admin/Payouts'));
 const AdminDisputes = lazy(() => import('./pages/dashboard/admin/Disputes'));
 const AdminVerifications = lazy(() => import('./pages/dashboard/admin/Verifications'));
+const OperationsCenter = lazy(() => import('./pages/admin/OperationsCenter'));
 
-// 9. DEV TOOLS (Development only)
+// 9. DEV TOOLS (Development only — only loaded when import.meta.env.DEV is true)
 const TestEmailsPage = lazy(() => import('./pages/dashboard/test-emails'));
-const DesignDemoPage = lazy(() => import('./pages/design-demo'));
+// DesignDemoPage — dev only, not routed in production
 // Messages: Removed unused MessagesPage import - messages handled separately via inbox-mobile.jsx or will be added as nested route later
 
 /* ===== Lazy routes ===== */
@@ -334,6 +327,15 @@ const LanguageWrapper = () => {
 const SmartRedirect = ({ prefix = '/en' }) => {
   const location = useLocation();
   return <Navigate to={`${prefix}${location.pathname}`} replace />;
+};
+
+// 🔒 SECURITY: Route guard — only users with is_admin=true may proceed
+const RequireAdmin = () => {
+  const { profile, authReady } = useAuth();
+  const { lang } = useParams();
+  if (!authReady) return null;
+  if (!profile?.is_admin) return <Navigate to={`/${lang || 'en'}/dashboard`} replace />;
+  return <Outlet />;
 };
 
 // ============================================
@@ -466,69 +468,77 @@ function AppContent() {
               }
             >
               <Route index element={<DashboardHome />} />
+
+              {/* 1. NAVIGATION OPS */}
+              <Route path="trade-pipeline" element={<TradePipelinePage />} />
               <Route path="products" element={<ProductsPage />} />
               <Route path="products/new" element={<ProductsNewPage />} />
               <Route path="products/edit/:productId" element={<ProductsEditPage />} />
-              <Route path="sales" element={<TradeMonitor viewMode="sell" />} />
-              <Route path="supplier-rfqs" element={<RFQMonitor viewMode="supplier" />} />
-              <Route path="supplier-analytics" element={<SupplierAnalyticsPage />} />
               <Route path="orders" element={<TradeMonitor viewMode="buy" />} />
-              <Route path="orders/:id" element={<TradeWorkspacePage />} />
-              <Route path="rfqs" element={<RFQMonitor viewMode="buyer" />} />
+              <Route path="sales" element={<TradeMonitor viewMode="sell" />} />
+              <Route path="rfqs" element={<TradeMonitor viewMode="rfqs" />} />
               <Route path="rfqs/new" element={<RFQsNewPage />} />
-              <Route path="rfqs/:id" element={<TradeWorkspacePage />} />
-              <Route path="trade/:id" element={<TradeWorkspacePage />} />
-              <Route path="saved" element={<SavedItemsPage />} />
-              <Route path="shipments" element={<ShipmentsPage />} />
-              <Route path="shipments/:id" element={<ShipmentDetailPage />} />
-              <Route path="payments" element={<PaymentsPage />} />
+              <Route path="supplier-rfqs" element={<TradeMonitor viewMode="rfqs-received" />} />
+              <Route path="trades" element={<TradeMonitor viewMode="all" />} />
+              <Route path="trades/:id" element={<TradeWorkspacePage />} />
+              <Route path="messages" element={<MessagesPage />} />
+              <Route path="payments" element={<WalletPage />} />
+              <Route path="revenue" element={<RevenuePage />} />
               <Route path="invoices" element={<InvoicesPage />} />
-              <Route path="compliance" element={<CompliancePage />} />
-              <Route path="trust-center" element={<TrustHealthPage />} />
-              <Route path="verification-center" element={<VerificationCenter />} />
-              <Route path="network" element={<NetworkDashboard />} />
+              <Route path="invoices/:id" element={<InvoiceDetailPage />} />
+              <Route path="shipments" element={<ShipmentsPage />} />
+              <Route path="shipments/new" element={<ShipmentNewPage />} />
+              <Route path="fulfillment" element={<FulfillmentPage />} />
+
+              {/* 2. INTELLIGENCE & INSIGHTS */}
               <Route path="analytics" element={<AnalyticsPage />} />
               <Route path="performance" element={<PerformancePage />} />
               <Route path="koniai" element={<KoniAIPage />} />
+              <Route path="risk" element={<RiskPage />} />
+              <Route path="audit" element={<AuditPage />} />
               <Route path="control-plane" element={<ControlPlanePage />} />
+
+              {/* 3. TRUST & COMPLIANCE */}
+              <Route path="reviews" element={<ReviewsPage />} />
+              <Route path="disputes" element={<DisputesPage />} />
+              <Route path="kyc" element={<KYCPage />} />
+              <Route path="compliance" element={<CompliancePage />} />
+              <Route path="trust-health" element={<TrustHealthPage />} />
+              <Route path="anticorruption" element={<AnticorruptionPage />} />
+              <Route path="protection" element={<ProtectionPage />} />
+
+              {/* 4. SETTINGS & UTILITIES */}
               <Route path="settings" element={<SettingsPage />} />
               <Route path="company-info" element={<CompanyInfoPage />} />
               <Route path="team-members" element={<TeamMembersPage />} />
-              <Route path="messages" element={<MessagesPage />} />
-              <Route path="revenue" element={<RevenuePage />} />
-              <Route path="wallet" element={<WalletPage />} />
-              {/* ✅ FORENSIC FIX: Previously imported but NEVER routed — now wired */}
-              <Route path="disputes" element={<DisputesPage />} />
-              <Route path="reviews" element={<ReviewsPage />} />
-              <Route path="kyc" element={<KYCPage />} />
-              <Route path="subscriptions" element={<SubscriptionsPage />} />
-              <Route path="shipments/new" element={<ShipmentNewPage />} />
-              <Route path="fulfillment" element={<FulfillmentPage />} />
-              <Route path="returns" element={<ReturnsPage />} />
-              <Route path="returns/:id" element={<ReturnDetailPage />} />
-              <Route path="notifications" element={<NotificationsPage />} />
+              <Route path="help" element={<HelpPage />} />
               <Route path="support" element={<SupportChatPage />} />
-              <Route path="trade-pipeline" element={<TradePipelinePage />} />
+              <Route path="notifications" element={<NotificationsPage />} />
+
+              {/* 5. SPECIALIZED FLOWS */}
               <Route path="quick-trade" element={<QuickTradeWizard />} />
               <Route path="corridors" element={<CorridorsPage />} />
               <Route path="documents" element={<DocumentsPage />} />
-              <Route path="risk" element={<RiskPage />} />
-              <Route path="trust-health" element={<TrustHealthPage />} />
-              <Route path="anticorruption" element={<AnticorruptionPage />} />
-              <Route path="audit" element={<AuditPage />} />
-              <Route path="protection" element={<ProtectionPage />} />
-              <Route path="verification-status" element={<VerificationStatusPage />} />
-              <Route path="verification-marketplace" element={<VerificationMarketplacePage />} />
-              <Route path="logistics-quote" element={<LogisticsQuotePage />} />
-              <Route path="invoices/:id" element={<InvoiceDetailPage />} />
+              <Route path="returns" element={<ReturnsPage />} />
+              <Route path="returns/:id" element={<ReturnDetailPage />} />
               <Route path="escrow/:orderId" element={<EscrowPage />} />
+              <Route path="logistics-quote" element={<LogisticsQuotePage />} />
               <Route path="agent-onboarding" element={<AgentOnboarding />} />
-              <Route path="admin" element={<AdminPayouts />} />
-              <Route path="admin/payouts" element={<AdminPayouts />} />
-              <Route path="admin/disputes" element={<AdminDisputes />} />
-              <Route path="admin/verifications" element={<AdminVerifications />} />
-              {/* Dev tools */}
-              <Route path="test-emails" element={<TestEmailsPage />} />
+              <Route path="wallet" element={<Navigate to="payments" replace />} />
+              <Route path="network" element={<NetworkDashboard />} />
+
+              {/* DEV-ONLY routes */}
+              {import.meta.env.DEV && (
+                <Route path="test-emails" element={<TestEmailsPage />} />
+              )}
+
+              {/* 🔒 Admin-only routes */}
+              <Route element={<RequireAdmin />}>
+                <Route path="admin" element={<AdminPayouts />} />
+                <Route path="admin/payouts" element={<AdminPayouts />} />
+                <Route path="admin/disputes" element={<AdminDisputes />} />
+                <Route path="admin/operations" element={<OperationsCenter />} />
+              </Route>
             </Route>
           </Route>
 

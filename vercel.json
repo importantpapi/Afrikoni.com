@@ -2,6 +2,12 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "crons": [
+    {
+      "path": "/api/cron/supply-proof-expiry",
+      "schedule": "0 3 * * *"
+    }
+  ],
   "headers": [
     {
       "source": "/index.html",

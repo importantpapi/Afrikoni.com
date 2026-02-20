@@ -167,13 +167,13 @@ export default function TradePipeline() {
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
           <div>
             <div className="os-label">Infrastructure Monitoring</div>
-            <h1 className="os-title mt-2">Trade Pipeline Ledger</h1>
+            <h1 className="os-title mt-2">Order Tracking Ledger</h1>
             <p className="text-os-sm text-os-muted mt-2">
               Real-time monitoring of all active contracts and supply chain events.
             </p>
           </div>
           <div className="text-right p-4 rounded-os-sm bg-black/20 border border-white/5 backdrop-blur">
-            <p className="text-os-xs text-os-muted uppercase tracking-widest font-mono">Live Pipeline Value</p>
+            <p className="text-os-xs text-os-muted uppercase tracking-widest font-mono">Live Transaction Value</p>
             <p className="text-3xl font-bold text-os-gold tabular-nums mt-1">
               ${pipelineValue.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
             </p>
@@ -216,8 +216,8 @@ export default function TradePipeline() {
               <stat.icon className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-os-xl font-bold tabular-nums">${stat.value}</p>
-              <p className="text-os-xs uppercase text-os-muted font-medium tracking-wider">${stat.label}</p>
+              <p className="text-os-xl font-bold tabular-nums">{stat.value}</p>
+              <p className="text-os-xs uppercase text-os-muted font-medium tracking-wider">{stat.label}</p>
             </div>
           </Surface>
         ))}
@@ -226,8 +226,8 @@ export default function TradePipeline() {
       <Surface variant="panel" className="p-6">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-             <div className="w-1.5 h-1.5 rounded-full bg-os-gold animate-pulse" />
-             <h2 className="text-os-base font-semibold">
+            <div className="w-1.5 h-1.5 rounded-full bg-os-gold animate-pulse" />
+            <h2 className="text-os-base font-semibold">
               {selectedStage
                 ? `${PIPELINE_STAGES.find(s => s.id === selectedStage)?.label || ''} Trades`
                 : 'Recent Ledger Activity'
@@ -240,7 +240,7 @@ export default function TradePipeline() {
             </Button>
           )}
         </div>
-        
+
         <div className="space-y-3">
           {trades.length === 0 ? (
             <EmptyState

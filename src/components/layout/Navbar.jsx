@@ -370,7 +370,7 @@ export default function Navbar({ user, onLogout }) {
   };
 
   return (
-    <nav className={`fixed top-0 start-0 end-0 w-full bg-[var(--os-surface)] backdrop-blur-xl text-os-text-primary border-b border-os-stroke z-[10000] transition-all duration-300 ${isScrolled ? 'shadow-premium' : 'shadow-none'} overflow-visible`} style={{ height: '72px' }}>
+    <nav className={`fixed top-0 start-0 end-0 w-full bg-white dark:bg-[#1a1512] text-os-text-primary border-b border-os-stroke z-[10000] transition-all duration-300 ${isScrolled ? 'shadow-os-lg' : 'shadow-os-md'} overflow-visible`} style={{ height: '72px' }}>
       {/* Top bar */}
       <div className="max-w-[1440px] mx-auto px-3 sm:px-4 flex items-center justify-between gap-2 sm:gap-4 lg:gap-6 h-full overflow-visible">
         {/* Left: logo + explore + quick link */}
@@ -435,7 +435,7 @@ export default function Navbar({ user, onLogout }) {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2, ease: 'easeOut' }}
-                    className="absolute end-0 mt-2 w-96 max-w-[calc(100vw-2rem)] bg-os-card rounded-lg shadow-2xl border-2 border-os-accent/30 z-[70] p-6 max-h-[600px] overflow-y-auto"
+                    className="absolute end-0 mt-2 w-96 max-w-[calc(100vw-2rem)] bg-white dark:bg-[#1a1512] rounded-lg shadow-2xl border-2 border-os-accent/30 z-[70] p-6 max-h-[600px] overflow-y-auto"
                   >
                     <h3 className="text-os-lg font-bold text-os-text-primary mb-2">Select Delivery Country</h3>
                     <p className="text-os-sm text-os-text-secondary/70 mb-4">
@@ -449,7 +449,7 @@ export default function Navbar({ user, onLogout }) {
                         placeholder="Search country..."
                         value={countrySearchQuery}
                         onChange={(e) => setCountrySearchQuery(e.target.value)}
-                        className="w-full px-4 py-2 bg-os-surface-solid border border-os-stroke rounded-lg focus:outline-none focus:ring-2 focus:ring-os-accent text-os-sm text-os-text-primary"
+                        className="w-full px-4 py-2 bg-white dark:bg-[#1a1512] border border-os-stroke rounded-lg focus:outline-none focus:ring-2 focus:ring-os-accent text-os-sm text-os-text-primary"
                         id="country-search"
                         autoFocus
                       />
@@ -527,7 +527,7 @@ export default function Navbar({ user, onLogout }) {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -10 }}
                     transition={{ duration: 0.2, ease: 'easeOut' }}
-                    className="absolute end-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-os-card rounded-lg shadow-2xl border-2 border-os-accent/30 z-[70] p-6 max-h-[80vh] overflow-y-auto"
+                    className="absolute end-0 mt-2 w-80 max-w-[calc(100vw-2rem)] bg-white dark:bg-[#1a1512] rounded-lg shadow-2xl border-2 border-os-accent/30 z-[70] p-6 max-h-[80vh] overflow-y-auto"
                   >
                     <h3 className="text-os-lg font-bold text-os-text-primary mb-2">Set Language & Currency</h3>
                     <p className="text-os-sm text-os-text-secondary/70 mb-6">
@@ -653,7 +653,7 @@ export default function Navbar({ user, onLogout }) {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.2, ease: 'easeOut' }}
-                        className="absolute end-0 mt-2 w-64 md:w-72 max-w-[90vw] bg-os-card border border-os-accent/20 rounded-lg shadow-os-lg z-[70] overflow-hidden"
+                        className="absolute end-0 mt-2 w-64 md:w-72 max-w-[90vw] bg-white dark:bg-[#1a1512] border border-os-accent/20 rounded-lg shadow-os-lg z-[70] overflow-hidden"
                       >
                         <div className="py-1">
                           <div className="px-4 py-3 border-b border-os-accent/20">

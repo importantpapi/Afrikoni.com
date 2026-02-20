@@ -135,7 +135,7 @@ export default function OSShell({
         <MotionConfig reducedMotion={reducedMotion ? "always" : "never"}>
             {/* 🏛️ GRID ROOT: The foundational shell architecture */}
             <div className={cn(
-                "grid grid-cols-1 md:grid-cols-[88px_1fr] grid-rows-[56px_1fr] w-full h-screen overflow-hidden bg-os-bg transition-all duration-300",
+                "grid grid-cols-1 md:grid-cols-[88px_1fr] grid-rows-[56px_1fr] w-full h-screen bg-os-bg transition-all duration-300 isolate pt-safe pb-safe",
                 sidebarOpen && "md:grid-cols-[240px_1fr]",
                 isLiteMode && "lite-mode-active"
             )}>
@@ -143,9 +143,10 @@ export default function OSShell({
                 {/* 1. Workspace Navigation (Sidebar) - Spans both rows */}
                 <div
                     className={cn(
-                        "hidden md:block row-span-2 h-full border-r border-os-stroke bg-os-surface-solid relative transition-all duration-300 overflow-hidden"
+                        "hidden md:block row-span-2 h-full border-r border-os-stroke bg-os-surface-solid relative transition-all duration-300 overflow-hidden",
+                        "z-[1100] will-change-transform"
                     )}
-                    style={{ zIndex: OS_Z_INDEX.workspaceNav }}
+                    style={{ isolation: 'isolate' }}
                 >
                     <TradeOSSidebar
                         capabilities={capabilities}
@@ -159,7 +160,8 @@ export default function OSShell({
 
                 {/* 2. Identity Layer (Header) - Col 2, Row 1 */}
                 <header
-                    className="col-span-1 md:col-start-2 row-start-1 h-14 border-b border-os-stroke glass-surface z-50 px-4 flex items-center"
+                    className="col-span-1 md:col-start-2 row-start-1 h-14 border-b border-os-stroke bg-os-surface-solid z-[1050] px-4 flex items-center pt-safe"
+                    style={{ isolation: 'isolate' }}
                 >
                     <IdentityLayer
                         user={user}
@@ -178,7 +180,10 @@ export default function OSShell({
                 </header>
 
                 {/* 3. Content Surface - Col 2, Row 2 */}
-                <main className="col-span-1 md:col-start-2 row-start-2 overflow-hidden relative">
+                <main
+                    className="col-span-1 md:col-start-2 row-start-2 relative z-[1] overflow-y-auto overflow-x-hidden"
+                    style={{ isolation: 'isolate' }}
+                >
                     <ContentSurface
                         copilotOpen={copilotOpen}
                         reservedTop={0}
@@ -186,7 +191,7 @@ export default function OSShell({
                     >
                         <PullToRefresh
                             onRefresh={async () => {
-                                console.log('[Kernel] OSShell manual refresh triggered');
+                                console.log('[System] OSShell manual refresh triggered');
                                 await new Promise(resolve => setTimeout(resolve, 800));
                             }}
                         >
@@ -219,7 +224,7 @@ export default function OSShell({
                                 )}
                             </AnimatePresence>
 
-                            <div className="p-4 md:p-6 pb-24 md:pb-6">
+                            <div className="p-4 md:p-6 pb-36 md:pb-6">
                                 {children}
                             </div>
                         </PullToRefresh>

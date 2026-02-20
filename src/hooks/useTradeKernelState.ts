@@ -78,8 +78,8 @@ export function useTradeKernelState(): TradeKernelState {
         // Step 1: fetch trades with product_id
         const tradesRes = await supabase
           .from('trades')
-          .select('id, status, origin_country, destination_country, target_price, price_min, price_max, buyer_id, seller_id, product_id, product_name, milestones')
-          .or(`buyer_id.eq.${profileCompanyId},seller_id.eq.${profileCompanyId}`)
+          .select('id, status, origin_country, destination_country, target_price, price_min, price_max, buyer_company_id, seller_company_id, product_id, product_name, milestones')
+          .or(`buyer_company_id.eq.${profileCompanyId},seller_company_id.eq.${profileCompanyId}`)
           .order('created_at', { ascending: false });
 
         let productsMap = {};
@@ -142,8 +142,8 @@ export function useTradeKernelState(): TradeKernelState {
       try {
         const escrowRes = await supabase
           .from('escrows')
-          .select('id, amount, balance, status, buyer_id, seller_id')
-          .or(`buyer_id.eq.${profileCompanyId},seller_id.eq.${profileCompanyId}`);
+          .select('id, amount, balance, status, buyer_company_id, seller_company_id')
+          .or(`buyer_company_id.eq.${profileCompanyId},seller_company_id.eq.${profileCompanyId}`);
 
         if (escrowRes.data) {
           const locked = escrowRes.data

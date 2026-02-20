@@ -97,9 +97,8 @@ export default function ProductCard({ product, priority = false }) {
           {/* Origin & Meta Layer */}
           <div className="flex items-center justify-between mb-2 h-4">
             <div className="flex items-center gap-2 text-[10px] font-black text-os-text-secondary uppercase tracking-[0.2em] opacity-60">
-              <span className="text-14 grayscale-[0.2] group-hover:grayscale-0 transition-all">{flag}</span>
               {countryName ? (
-                <span className="truncate max-w-[120px]">{t('marketplace.origin')}: {countryName}</span>
+                <span className="truncate max-w-[150px]">{flag} {countryName}</span>
               ) : (
                 <span className="text-os-text-secondary/50 italic">Origin not listed</span>
               )}
@@ -123,12 +122,6 @@ export default function ProductCard({ product, priority = false }) {
               <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-os-accent/5 border border-os-accent/10 rounded-md text-[9px] font-bold uppercase text-os-accent tracking-wider">
                 <Award className="w-3 h-3" />
                 <span>{product.certifications[0]}</span>
-              </div>
-            )}
-            {isVerified && (
-              <div className="inline-flex items-center gap-1.5 px-2 py-1 bg-green-500/5 border border-green-500/10 rounded-md text-[9px] font-bold uppercase text-green-600 tracking-wider">
-                <ShieldCheck className="w-3 h-3" />
-                <span>{t('marketplace.verifiedSupplier')}</span>
               </div>
             )}
           </div>

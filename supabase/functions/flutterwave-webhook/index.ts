@@ -161,6 +161,15 @@ Deno.serve(async (req: Request) => {
           console.log(`[webhook] Trade OS payment confirmed for trade: ${meta.trade_id}`);
 
           // Update trade status to ESCROW_FUNDED
+          // ── BANK ESCROW: Store the Flutterwave transaction reference.
+          // The bank holds the seller's portion (91.5%) in the escrow sub-account.
+          // When the trade reaches ACCEPTED, the trade-transition function calls
+          // the bank release API using `bank_escrow_reference` to pay out the seller.
+          // Afrikoni's platform fee (8.5%) was already split to our account at
+          // collection time via Flutterwave subaccounts — we are always cash positive.
+          const bankEscrowReference = verified.flw_ref; // Flutterwave transaction ref = release key
+          const sellerAmount = verified.amount - (verified.app_fee || 0) - (verified.merchant_fee || 0);
+
           const { error: tradeErr } = await supabase
             .from("trades")
             .update({
@@ -174,6 +183,11 @@ Deno.serve(async (req: Request) => {
                 currency: verified.currency,
                 payment_type: verified.payment_type,
                 confirmed_at: new Date().toISOString(),
+                // Bank escrow fields — used for release on ACCEPTED
+                bank_escrow_reference: bankEscrowReference,
+                bank_escrow_subaccount_id: Deno.env.get("FLW_BANK_ESCROW_SUBACCOUNT_ID"),
+                seller_release_amount: sellerAmount,
+                escrow_type: meta.escrow_type || "bank_held",
               },
             })
             .eq("id", meta.trade_id)

@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, CheckCircle } from 'lucide-react';
 import { Logo } from '@/components/shared/ui/Logo';
 import { useLanguage } from '@/i18n/LanguageContext';
 
@@ -15,6 +15,7 @@ export default function AuthCallback() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isEmailVerification, setIsEmailVerification] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
 
   useEffect(() => {
     const handleAuthCallback = async () => {
@@ -113,6 +114,13 @@ export default function AuthCallback() {
         // PostLoginRouter will handle profile creation, role checking, and redirects
         const redirectUrl = searchParams.get('redirect_to') || searchParams.get('redirect');
 
+        if (isEmailVerify) {
+          setIsVerified(true);
+          setIsLoading(false);
+          // Wait 3 seconds to show success message
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        }
+
         if (redirectUrl && redirectUrl !== window.location.origin && !redirectUrl.includes('/dashboard') && !redirectUrl.includes('/auth/')) {
           navigate(redirectUrl);
         } else {
@@ -126,7 +134,9 @@ export default function AuthCallback() {
           navigate(`/${language}/login`);
         }, 3000);
       } finally {
-        setIsLoading(false);
+        if (!isEmailVerify) {
+          setIsLoading(false);
+        }
       }
     };
 
@@ -153,6 +163,19 @@ export default function AuthCallback() {
               <p className="text-[14px] text-gray-600">
                 Please wait a moment...
               </p>
+            </>
+          ) : isVerified ? (
+            <>
+              <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6 animate-in zoom-in duration-300">
+                <CheckCircle className="w-8 h-8 text-green-600" />
+              </div>
+              <h2 className="text-[20px] font-semibold text-gray-900 mb-2">
+                Email verified!
+              </h2>
+              <p className="text-[14px] text-gray-600 mb-4">
+                Your account is now confirmed. Welcome to Afrikoni.
+              </p>
+              <p className="text-[13px] text-gray-500">Redirecting to your dashboard...</p>
             </>
           ) : error ? (
             <>

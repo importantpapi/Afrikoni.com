@@ -69,7 +69,7 @@ async function getPaymentPerformance(companyId) {
     const { data: trades } = await supabase
         .from('trades')
         .select('metadata')
-        .eq('buyer_id', companyId)
+        .eq('buyer_company_id', companyId)
         .not('metadata->funding_delay_hours', 'is', null);
 
     if (!trades?.length) return 70; // Default buffer for new users
@@ -90,7 +90,7 @@ async function getTradeVolumeScore(companyId) {
     const { data: stats } = await supabase
         .from('trades')
         .select('total_value')
-        .or(`buyer_id.eq.${companyId},seller_id.eq.${companyId}`)
+        .or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId}`)
         .in('status', ['settled', 'closed']);
 
     const totalGMV = stats?.reduce((acc, t) => acc + (t.total_value || 0), 0) || 0;
@@ -127,7 +127,7 @@ async function getDisputePerformance(companyId) {
     const { count: totalTrades } = await supabase
         .from('trades')
         .select('id', { count: 'exact' })
-        .or(`buyer_id.eq.${companyId},seller_id.eq.${companyId}`);
+        .or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId}`);
 
     const { count: disputes } = await supabase
         .from('disputes')

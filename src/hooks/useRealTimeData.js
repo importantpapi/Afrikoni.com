@@ -348,7 +348,7 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
             event: '*',
             schema: 'public',
             table: 'trades',
-            filter: `buyer_id = eq.${companyId} `,
+            filter: `buyer_company_id = eq.${companyId} `,
           },
           (payload) => {
             console.log('[Realtime] Trade (buyer) update:', payload.eventType);
@@ -361,7 +361,7 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
             event: '*',
             schema: 'public',
             table: 'trades',
-            filter: `seller_id = eq.${companyId} `,
+            filter: `seller_company_id = eq.${companyId} `,
           },
           (payload) => {
             console.log('[Realtime] Trade (seller) update:', payload.eventType);
@@ -393,7 +393,7 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
             event: '*',
             schema: 'public',
             table: 'escrows',
-            filter: `buyer_id = eq.${companyId} `,
+            filter: `buyer_company_id = eq.${companyId} `,
           },
           (payload) => {
             console.log('[Realtime] Escrow (buyer) update:', payload.eventType);
@@ -406,7 +406,7 @@ export function useRealTimeDashboardData(companyId, userId, onUpdate, enabled = 
             event: '*',
             schema: 'public',
             table: 'escrows',
-            filter: `seller_id = eq.${companyId} `,
+            filter: `seller_company_id = eq.${companyId} `,
           },
           (payload) => {
             console.log('[Realtime] Escrow (seller) update:', payload.eventType);

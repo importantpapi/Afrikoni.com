@@ -6,14 +6,15 @@
  * Once accepted, this triggers automatic payment release from escrow.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import { Checkbox } from '@/components/shared/ui/checkbox';
 import { Textarea } from '@/components/shared/ui/textarea';
 import { Badge } from '@/components/shared/ui/badge';
-import { Loader2, CheckCircle2, Star, AlertCircle } from 'lucide-react';
+import { Loader2, CheckCircle2, Star, AlertCircle, Clock } from 'lucide-react';
 import { transitionTrade, TRADE_STATE } from '@/services/tradeKernel';
+import { differenceInDays, differenceInHours, parseISO, addDays } from 'date-fns';
 
 export default function DeliveryAcceptancePanel({ trade, onNextStep, isTransitioning, capabilities }) {
   const [isAccepted, setIsAccepted] = useState(false);
@@ -21,6 +22,33 @@ export default function DeliveryAcceptancePanel({ trade, onNextStep, isTransitio
   const [notes, setNotes] = useState('');
   const [rating, setRating] = useState(5);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState(null);
+
+  // Calculate escrow auto-release countdown (typically 7 days after delivery)
+  useEffect(() => {
+    if (trade?.delivered_at || trade?.metadata?.delivery_confirmed_at) {
+      const deliveryDate = trade.delivered_at || trade.metadata.delivery_confirmed_at;
+      const releaseDate = addDays(parseISO(deliveryDate), 7); // 7 day inspection period
+      
+      const updateCountdown = () => {
+        const now = new Date();
+        const daysLeft = differenceInDays(releaseDate, now);
+        const hoursLeft = differenceInHours(releaseDate, now) % 24;
+        
+        if (daysLeft < 0) {
+          setTimeRemaining('Escrow released');
+        } else if (daysLeft === 0) {
+          setTimeRemaining(`${hoursLeft}h remaining`);
+        } else {
+          setTimeRemaining(`${daysLeft}d ${hoursLeft}h remaining`);
+        }
+      };
+      
+      updateCountdown();
+      const interval = setInterval(updateCountdown, 60000); // Update every minute
+      return () => clearInterval(interval);
+    }
+  }, [trade]);
 
   async function handleAcceptDelivery() {
     if (isSubmitting) return;
@@ -57,6 +85,35 @@ export default function DeliveryAcceptancePanel({ trade, onNextStep, isTransitio
 
   return (
     <div className="space-y-4">
+      {/* Escrow Auto-Release Countdown */}
+      {timeRemaining && (
+        <div className="bg-gradient-to-r from-[#B8922F]/10 to-transparent border border-[#B8922F]/20 rounded-lg p-4 flex items-center gap-3">
+          <div className="p-2 bg-[#B8922F]/10 rounded-full">
+            <Clock className="w-5 h-5 text-[#B8922F]" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-stone-900">Automatic Escrow Release</p>
+            <p className="text-xs text-stone-600">
+              {timeRemaining === 'Escrow released' ? (
+                'Funds automatically released to supplier'
+              ) : (
+                <>Payment will auto-release in <span className="font-bold text-[#B8922F]">{timeRemaining}</span> if no issues reported</>
+              )}
+            </p>
+          </div>
+          {timeRemaining !== 'Escrow released' && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.location.href = `/dashboard/disputes?trade_id=${trade.id}`}
+              className="border-red-200 text-red-600 hover:bg-red-50"
+            >
+              Report Issue
+            </Button>
+          )}
+        </div>
+      )}
+      
       <Card className="border bg-gradient-to-br from-[#0E1016] to-[#141B24] rounded-os-md shadow-[0_24px_80px_rgba(0,0,0,0.35)]">
         <CardContent className="p-6">
           <div className="mb-6">

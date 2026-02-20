@@ -15,7 +15,30 @@ export const initialProductFormData = {
   deliveryRegions: [],
   leadTime: '',
   isDraft: false,
+  // Supply Truth Engine fields
+  stockType: 'in_stock',          // in_stock | made_to_order | sourcing_partner
+  warehouseCity: '',              // city where stock is held
+  warehouseCountry: '',           // country
+  servicedCorridors: [],          // African countries this product can ship to
 };
+
+// Top African trade corridors for corridor-targeted listings
+export const AFRICAN_CORRIDORS = [
+  { value: 'NG', label: '🇳🇬 Nigeria', tier: 1 },
+  { value: 'GH', label: '🇬🇭 Ghana', tier: 1 },
+  { value: 'CI', label: '🇨🇮 Ivory Coast', tier: 1 },
+  { value: 'KE', label: '🇰🇪 Kenya', tier: 1 },
+  { value: 'UG', label: '🇺🇬 Uganda', tier: 1 },
+  { value: 'TZ', label: '🇹🇿 Tanzania', tier: 1 },
+  { value: 'ZA', label: '🇿🇦 South Africa', tier: 1 },
+  { value: 'ET', label: '🇪🇹 Ethiopia', tier: 2 },
+  { value: 'CM', label: '🇨🇲 Cameroon', tier: 2 },
+  { value: 'SN', label: '🇸🇳 Senegal', tier: 2 },
+  { value: 'EG', label: '🇪🇬 Egypt', tier: 2 },
+  { value: 'MA', label: '🇲🇦 Morocco', tier: 2 },
+  { value: 'RW', label: '🇷🇼 Rwanda', tier: 2 },
+  { value: 'ZM', label: '🇿🇲 Zambia', tier: 2 },
+];
 
 export const CATEGORIES = [
   { value: 'agricultural', label: 'Agricultural Products', icon: '🌾' },
@@ -82,13 +105,50 @@ export const SUBCATEGORIES = {
 };
 
 export const UNITS = [
-  { value: 'kg', label: 'Kilograms (kg)' },
-  { value: 'tons', label: 'Metric Tons' },
-  { value: 'pieces', label: 'Pieces' },
-  { value: 'liters', label: 'Liters' },
-  { value: 'bags', label: 'Bags' },
-  { value: 'cartons', label: 'Cartons' },
-  { value: 'containers', label: '20ft Containers' },
+  // ── Weight ──────────────────────────────────────────────
+  { value: 'g',          label: 'Grams (g)',             group: 'Weight' },
+  { value: 'kg',         label: 'Kilograms (kg)',         group: 'Weight' },
+  { value: 'tons',       label: 'Metric Tons (t)',        group: 'Weight' },
+  { value: 'lbs',        label: 'Pounds (lbs)',           group: 'Weight' },
+  { value: 'oz',         label: 'Ounces (oz)',            group: 'Weight' },
+  { value: 'quintal',    label: 'Quintal (100 kg)',       group: 'Weight' },
+
+  // ── Volume / Liquid ──────────────────────────────────────
+  { value: 'ml',         label: 'Milliliters (ml)',       group: 'Volume' },
+  { value: 'liters',     label: 'Liters (L)',             group: 'Volume' },
+  { value: 'gallons',    label: 'Gallons (gal)',          group: 'Volume' },
+  { value: 'barrels',    label: 'Barrels (bbl)',          group: 'Volume' },
+  { value: 'drums',      label: 'Drums (200L)',           group: 'Volume' },
+  { value: 'jerricans',  label: 'Jerricans (25L)',        group: 'Volume' },
+
+  // ── Count / Unit ─────────────────────────────────────────
+  { value: 'pieces',     label: 'Pieces (pcs)',           group: 'Count' },
+  { value: 'pairs',      label: 'Pairs',                  group: 'Count' },
+  { value: 'sets',       label: 'Sets',                   group: 'Count' },
+  { value: 'dozens',     label: 'Dozens (doz)',           group: 'Count' },
+
+  // ── Packaging ────────────────────────────────────────────
+  { value: 'bags',       label: 'Bags',                   group: 'Packaging' },
+  { value: 'sacks',      label: 'Sacks (50 kg)',          group: 'Packaging' },
+  { value: 'cartons',    label: 'Cartons',                group: 'Packaging' },
+  { value: 'boxes',      label: 'Boxes',                  group: 'Packaging' },
+  { value: 'pallets',    label: 'Pallets',                group: 'Packaging' },
+  { value: 'bales',      label: 'Bales',                  group: 'Packaging' },
+  { value: 'bundles',    label: 'Bundles',                group: 'Packaging' },
+  { value: 'rolls',      label: 'Rolls',                  group: 'Packaging' },
+  { value: 'crates',     label: 'Crates',                 group: 'Packaging' },
+
+  // ── Length / Area ────────────────────────────────────────
+  { value: 'm',          label: 'Meters (m)',             group: 'Length' },
+  { value: 'cm',         label: 'Centimeters (cm)',       group: 'Length' },
+  { value: 'yards',      label: 'Yards (yd)',             group: 'Length' },
+  { value: 'sqm',        label: 'Square Meters (m²)',     group: 'Length' },
+
+  // ── Shipping Containers ──────────────────────────────────
+  { value: 'containers', label: '20ft Containers',        group: 'Containers' },
+  { value: '40ft',       label: '40ft Containers',        group: 'Containers' },
+  { value: 'fcl',        label: 'FCL (Full Container)',   group: 'Containers' },
+  { value: 'lcl',        label: 'LCL (Part Container)',   group: 'Containers' },
 ];
 
 export const CURRENCIES = [

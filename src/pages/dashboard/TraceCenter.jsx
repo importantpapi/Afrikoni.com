@@ -10,10 +10,10 @@ import { Shield, Truck, DollarSign, CheckCircle2, AlertTriangle, FileText, Lock,
 import { motion, AnimatePresence } from 'framer-motion';
 
 /**
- * THE TRACE CENTER
+ * TRANSACTION AUDIT CENTER
  * 
  * Visual Command for "The Unbroken Flow".
- * Replaces standard tables with a "Pulse Rail" and "Money Map".
+ * Replaces standard tables with a "Logistics Timeline" and "Escrow Progress".
  */
 export default function TraceCenter() {
     const { isSystemReady } = useDashboardKernel();
@@ -30,7 +30,7 @@ export default function TraceCenter() {
     // ✅ KERNEL FIX: Removed automatic demo-trade initiation. 
     // Trace Center now strictly reflects existing trade state or requires an explicit initiation via the UI.
 
-    // Calculate Money Map Progress
+    // Calculate Escrow Progress
     const moneyProgress =
         financials?.escrowState === 'locked' ? 25 :
             financials?.escrowState === 'funded' ? 50 :
@@ -52,12 +52,12 @@ export default function TraceCenter() {
                         <div>
                             <div className="flex items-center gap-2 mb-2">
                                 <Badge variant="outline" className="border-os-accent/30 text-os-text-secondary font-mono tracking-widest text-os-xs uppercase">
-                                    Trace ID: {state.tradeId || 'INITIALIZING...'}
+                                    REF: {state.tradeId || 'INITIALIZING...'}
                                 </Badge>
                                 {state.status === 'active' && (
                                     <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 animate-pulse">
                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-2" />
-                                        LIVE ON RAIL
+                                        ACTIVE TRANSACTION
                                     </Badge>
                                 )}
                             </div>
@@ -107,7 +107,7 @@ export default function TraceCenter() {
                     {/* FX Snapshot */}
                     <div className="flex items-center gap-6 mt-6 ml-2 p-3 rounded-lg bg-afrikoni-cream/20 w-fit backdrop-blur-sm border border-os-accent/10">
                         <div className="flex items-center gap-2">
-                            <span className="text-os-text-secondary text-os-xs">PIVOT CURRENCY</span>
+                            <span className="text-os-text-secondary text-os-xs">TRANSCODE</span>
                             <span className="text-afrikoni-deep font-mono font-bold">USD</span>
                         </div>
                         <div className="w-px h-4 bg-os-accent/20" />
@@ -127,7 +127,7 @@ export default function TraceCenter() {
                         <div className="flex items-center justify-between">
                             <CardTitle className="flex items-center gap-2 text-slate-800">
                                 <Lock className="w-5 h-5 text-os-accent" />
-                                Secure Money Map
+                                Escrow Progress
                             </CardTitle>
                             <div className="text-right">
                                 <p className="text-os-sm text-slate-500">Total Value Locked</p>
@@ -208,7 +208,7 @@ export default function TraceCenter() {
                     <div className="md:col-span-2 space-y-6">
                         <h2 className="text-os-xl font-bold text-afrikoni-chestnut flex items-center gap-2">
                             <Truck className="w-6 h-6 text-os-accent" />
-                            Logistics Pulse Rail
+                            Logistics Timeline
                         </h2>
 
                         <div className="bg-white rounded-os-md shadow-sm border border-slate-200 p-6 relative">
@@ -272,7 +272,7 @@ export default function TraceCenter() {
                     <div className="space-y-6">
                         <h2 className="text-os-xl font-bold text-afrikoni-chestnut flex items-center gap-2">
                             <Shield className="w-6 h-6 text-os-accent" />
-                            Forensic DNA
+                            Audit Trail
                         </h2>
 
                         <Card className="border-os-accent/30 bg-afrikoni-cream">
@@ -281,7 +281,7 @@ export default function TraceCenter() {
                                     <img src="https://placehold.co/100x100/1a1a1a/FFF?text=DNA" alt="Baseline" className="w-full h-full object-cover rounded opacity-80" />
                                     <div className="absolute inset-0 bg-gradient-to-t from-os-accent/20 to-transparent" />
                                 </div>
-                                <p className="text-os-xs font-mono text-afrikoni-chestnut/60 mb-1">BASELINE HASH</p>
+                                <p className="text-os-xs font-mono text-afrikoni-chestnut/60 mb-1">AUDIT REFERENCE</p>
                                 <p className="font-mono font-bold text-afrikoni-chestnut truncate">AFK-8F29A-X92</p>
 
                                 <div className="my-4 border-t border-os-accent/10" />

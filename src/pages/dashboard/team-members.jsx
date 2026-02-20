@@ -681,8 +681,13 @@ function TeamMembersInner() {
 export default function TeamMembers() {
   return (
     <>
-      {/* PHASE 5B: Team members requires sell capability (approved) */}
-      <RequireCapability canSell={true} requireApproved={true}>
+      {/* PHASE 5B: Team members requires sell capability - relaxed to allow pending/setup */}
+      <RequireCapability
+        canSell={true}
+        requireApproved={false}
+        allowPending={true}
+        fallback={<SubscriptionUpsell variant="banner" placement="team" />}
+      >
         <TeamMembersInner />
       </RequireCapability>
     </>

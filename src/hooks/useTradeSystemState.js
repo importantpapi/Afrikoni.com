@@ -237,7 +237,7 @@ export const useTradeSystemState = () => {
                 supabase.from('companies').select('*').eq('id', profile.company_id).single(),
                 supabase.from('trades')
                     .select('*')
-                    .or(`buyer_id.eq.${profile.company_id},seller_id.eq.${profile.company_id}`)
+                    .or(`buyer_company_id.eq.${profile.company_id},seller_company_id.eq.${profile.company_id}`)
                     .order('created_at', { ascending: false })
                     .range(0, 49),
                 supabase.from('payments').select('*').eq('company_id', profile.company_id),

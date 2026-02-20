@@ -17,10 +17,10 @@ async function fetchTrades(profileCompanyId) {
     .from('trades')
     .select(`
       *,
-      buyer:companies!buyer_id(*),
-      seller:companies!seller_id(*)
+      buyer:companies!buyer_company_id(*),
+      seller:companies!seller_company_id(*)
     `)
-    .or(`buyer_id.eq.${profileCompanyId},seller_id.eq.${profileCompanyId}`)
+    .or(`buyer_company_id.eq.${profileCompanyId},seller_company_id.eq.${profileCompanyId}`)
     .order('created_at', { ascending: false });
 
   if (tradesError) throw tradesError;

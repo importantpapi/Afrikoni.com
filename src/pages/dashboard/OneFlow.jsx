@@ -6,34 +6,40 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import { useDashboardKernel } from '@/hooks/useDashboardKernel'; // system state, not shown to user
 import { useTrade } from '@/hooks/queries/useTrade';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent } from '@/components/shared/ui/card';
 import { Button } from '@/components/shared/ui/button';
 import TradeTimeline from '@/components/trade/TradeTimeline';
 import { supabase } from '@/api/supabaseClient';
-import { transitionTrade, clearLocalCurrency, TRADE_STATE, TRADE_STATE_LABELS } from '@/services/tradeKernel';
+import { transitionTrade, clearLocalCurrency, TRADE_STATE, TRADE_STATE_LABELS } from '@/services/tradeKernel'; // internal only
 import { useTradeEventLedger } from '@/hooks/useTradeEventLedger';
-import { generateForensicProfile } from '@/utils/auditReportGenerator';
+// import { generateForensicProfile } from '@/utils/auditReportGenerator'; // Forensic audit hidden from user
 import RFQCreationPanel from '@/components/trade/RFQCreationPanel';
 import QuoteReviewPanel from '@/components/trade/QuoteReviewPanel';
 import ContractSigningPanel from '@/components/trade/ContractSigningPanel';
 import EscrowFundingPanel from '@/components/trade/EscrowFundingPanel';
 import ShipmentTrackingPanel from '@/components/trade/ShipmentTrackingPanel';
 import DeliveryAcceptancePanel from '@/components/trade/DeliveryAcceptancePanel';
-import MultiSigBridge from '@/components/trade/MultiSigBridge';
+import ConversationList from '@/components/inbox/ConversationList';
+import ConversationView from '@/components/inbox/ConversationView';
+// import MultiSigBridge from '@/components/trade/MultiSigBridge'; // Hide Multi-Sig Bridge from UI
 import { Surface } from '@/components/system/Surface';
-import { ForensicExportButton } from '@/components/shared/ui/ForensicExportButton';
-import { generateForensicPDF } from '@/utils/pdfGenerator';
+import VerificationPanel from '@/components/verification/VerificationPanel';
+// import { ForensicExportButton } from '@/components/shared/ui/ForensicExportButton'; // Hide forensic export from UI
+// import { generateForensicPDF } from '@/utils/pdfGenerator';
 import ReviewModal from '@/components/trade/ReviewModal';
-import { ArrowLeft, Fingerprint, ShieldAlert, Cpu, Sparkles, Terminal, Activity, Shield, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Fingerprint, ShieldAlert, Cpu, Sparkles, Terminal, Activity, Shield, MessageCircle, ShieldCheck, Ship } from 'lucide-react';
 import { toast } from 'sonner';
 import { PageLoader } from '@/components/shared/ui/skeletons';
+import { cn } from '@/lib/utils';
+import LiveDeliveryCard from '@/components/logistics/LiveDeliveryCard';
+// DeliveryConfidenceBadge removed: trust/confidence now ambient only
 
 const FLOW_PANELS = {
   [TRADE_STATE.DRAFT]: RFQCreationPanel,
-  [TRADE_STATE.RFQ_CREATED]: RFQCreationPanel,
+  [TRADE_STATE.RFQ_OPEN]: RFQCreationPanel,
   [TRADE_STATE.QUOTED]: QuoteReviewPanel,
   [TRADE_STATE.CONTRACTED]: ContractSigningPanel,
   [TRADE_STATE.ESCROW_REQUIRED]: EscrowFundingPanel,
@@ -48,8 +54,13 @@ const FLOW_PANELS = {
   [TRADE_STATE.CLOSED]: ClosedPanel
 };
 
+// Transit states where carrier tracking is relevant
+const CARRIER_STATES = new Set(['pickup_scheduled', 'in_transit', 'delivered', 'accepted', 'settled']);
+
 export default function OneFlow() {
-  const { tradeId } = useParams();
+  // Route may pass param as :id (trade/:id, orders/:id, rfqs/:id) or :tradeId — handle both
+  const params = useParams();
+  const tradeId = params.tradeId || params.id;
   const navigate = useNavigate();
   const { isSystemReady, profile, capabilities } = useDashboardKernel();
 
@@ -69,23 +80,7 @@ export default function OneFlow() {
 
   const [isExporting, setIsExporting] = useState(false);
 
-  const handleExportAudit = async () => {
-    if (!trade || !kernelTimeline) return;
-    setIsExporting(true);
-
-    try {
-      const profileData = generateForensicProfile(trade, kernelTimeline.map(t => t.raw));
-      await generateForensicPDF(profileData.reportHtml, `Forensic_Audit_${trade.id.substring(0, 8)}.pdf`);
-
-      toast.success('Institutional Audit Exported', {
-        description: 'Your bankable trade profile has been generated.'
-      });
-    } catch (err) {
-      toast.error('Export Failed', { description: 'Could not generate institutional PDF.' });
-    } finally {
-      setIsExporting(false);
-    }
-  };
+  // Forensic export hidden from user
 
   async function handleStateTransition(nextState, metadata = {}) {
     setIsTransitioning(true);
@@ -132,208 +127,114 @@ export default function OneFlow() {
       <div className="max-w-2xl mx-auto p-8">
         <Button variant="ghost" onClick={() => navigate('/dashboard')}>
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Command Center
+          Back to Dashboard
         </Button>
-        <Surface variant="panel" className="mt-4 p-12 text-center">
-          <p className="font-semibold text-os-muted">Trade data not found or access denied.</p>
-        </Surface>
+        <div className="os-page-layout">
+          {/* COMMAND HEADER */}
+          <div className="os-header-group flex flex-col md:flex-row md:items-start justify-between gap-6">
+            <div className="flex-1">
+              <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')} className="pl-0 hover:bg-transparent text-os-text-secondary">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Dashboard
+              </Button>
+              <h1 className="mt-2 tracking-tight">
+                {trade?.title}
+              </h1>
+              <p className="text-os-xs font-mono mt-1 uppercase tracking-widest text-os-text-secondary">
+                {trade?.buyer?.company_name} <span className="mx-2 opacity-30">/</span> {trade?.seller ? trade.seller.company_name : 'PENDING'}
+              </p>
+            </div>
+            <div className="flex flex-col items-end gap-3">
+              {/* Ambient Secure Shield: always visible */}
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-6 h-6 text-emerald-500 animate-pulse" />
+                <span className="text-os-xs font-bold text-emerald-600 uppercase tracking-widest">Protected by Afrikoni Secure</span>
+              </div>
+            </div>
+          </div>
+          {/* MAIN CHAT PANEL */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <div className="lg:col-span-7 space-y-8">
+              {/* WhatsApp-style chat interface for this trade */}
+              <Surface variant="panel" className="p-0 md:p-0 overflow-hidden">
+                <ConversationView
+                  conversationId={trade?.id}
+                  conversation={{
+                    ...trade,
+                    otherCompany: trade?.seller || trade?.buyer,
+                    id: trade?.id
+                  }}
+                  currentUser={profile}
+                  companyId={profile?.company_id || profile?.id}
+                  onBack={() => navigate('/dashboard')}
+                />
+              </Surface>
+              {/* Unified Verification & Compliance Panel: only show if not fully verified */}
+              <VerificationPanel />
+              {/* Review Modal */}
+              {showReviewModal && (
+                <ReviewModal
+                  isOpen={showReviewModal}
+                  onClose={() => setShowReviewModal(false)}
+                  trade={trade}
+                  onSubmit={handleReviewSubmit}
+                />
+              )}
+            </div>
+            {/* SIDEBAR: Trade Timeline, Live Delivery, Activity Log */}
+            <div className="lg:col-span-5 space-y-8">
+              {CARRIER_STATES.has(trade?.status) && (
+                <LiveDeliveryCard
+                  tradeId={trade?.id}
+                  shipmentId={trade?.metadata?.shipment_id}
+                  tradeStatus={trade?.status}
+                  compact
+                />
+              )}
+              <TradeTimeline
+                tradeId={tradeId}
+                currentState={trade?.status}
+              />
+              <div className="space-y-4">
+                <h2 className="os-label flex items-center gap-2">
+                  <Terminal className="w-4 h-4" />
+                  Activity Log
+                </h2>
+                <Surface variant="panel" className="p-0 border-os-stroke bg-black/40 overflow-hidden">
+                  <div className="p-3 border-b border-os-stroke/50 flex items-center justify-between">
+                    <div className="flex gap-1.5">
+                      <div className="w-2.5 h-2.5 rounded-full bg-red-500/30" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-amber-500/30" />
+                      <div className="w-2.5 h-2.5 rounded-full bg-green-500/30" />
+                    </div>
+                    <span className="os-label opacity-40 lowercase">trade-activity</span>
+                  </div>
+                  <div className="p-4 font-mono text-[10px] space-y-2 h-[200px] overflow-y-auto">
+                    {kernelTimeline?.slice(0, 8).map((item) => (
+                      <div key={item.id} className="flex items-center justify-between text-os-text-secondary/70">
+                        <span className="truncate pr-4">&gt; {item.label}</span>
+                        <span className="shrink-0 opacity-40">{item.time}</span>
+                      </div>
+                    ))}
+                    {!kernelTimeline?.length && (
+                      <div className="text-os-text-secondary/40 italic">No recent activity.</div>
+                    )}
+                  </div>
+                </Surface>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
-  }
-
-  const PanelComponent = FLOW_PANELS[trade.status] || DefaultPanel;
-
-  return (
-    <div className="os-page-layout">
-      {/* COMMAND HEADER */}
-      <div className="os-header-group flex flex-col md:flex-row md:items-start justify-between gap-6">
-        <div className="flex-1">
-          <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')} className="pl-0 hover:bg-transparent text-os-text-secondary">
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Command Center
-          </Button>
-          <h1 className="mt-2 tracking-tight">
-            {trade.title}
-          </h1>
-          <p className="text-os-xs font-mono mt-1 uppercase tracking-widest text-os-text-secondary">
-            {trade.buyer?.company_name} <span className="mx-2 opacity-30">/</span> {trade.seller ? trade.seller.company_name : 'PENDING'}
-          </p>
-        </div>
-
-        <div className="flex flex-col items-end gap-3">
-          <TrustDNAIndex mutation={trade.metadata?.trust_mutation || 0} baseScore={profile?.trust_score || 72} />
-          <div className="flex items-center gap-3">
-            <Link to={`/dashboard/disputes?trade_id=${tradeId}`}>
-              <Button variant="outline" size="sm" className="h-[34px] text-os-xs border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-300 transition-colors gap-2">
-                <ShieldAlert className="w-3.5 h-3.5" />
-                Dispute Trade
-              </Button>
-            </Link>
-            <Surface variant="soft" className="px-4 py-1.5 border-os-stroke/40">
-              <div className="flex items-center justify-end gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-os-accent animate-pulse" />
-                <p className="os-label !text-os-accent">
-                  {TRADE_STATE_LABELS[trade.status] || trade.status}
-                </p>
-              </div>
-            </Surface>
-          </div>
-        </div>
-      </div>
-
-      {/* CORE GRID */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* MAIN FLOW PANEL */}
-        <div className="lg:col-span-7 space-y-8">
-          <Surface variant="panel" className="p-4 md:p-6 overflow-hidden">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-4">
-                <Surface variant="soft" className="w-12 h-12 flex items-center justify-center border-os-stroke/30">
-                  <Activity className="w-6 h-6 text-os-accent" />
-                </Surface>
-                <div>
-                  <h2 className="text-os-lg font-bold">Execution Engine</h2>
-                  <p className="os-label">Kernel v8.0.21</p>
-                </div>
-              </div>
-              <div className="text-os-xs text-os-text-secondary font-mono">ID: {trade.id.substring(0, 8)}</div>
-            </div>
-
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={trade.status}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-              >
-                <PanelComponent
-                  trade={trade}
-                  onNextStep={handleStateTransition}
-                  onExportAudit={handleExportAudit}
-                  isGeneratingExport={isExporting}
-                  isTransitioning={isTransitioning}
-                  capabilities={capabilities}
-                  profile={profile}
-                />
-              </motion.div>
-            </AnimatePresence>
-
-            {/* Multi-Sig Bridge Visualization */}
-            {(trade.status !== TRADE_STATE.DRAFT && trade.status !== TRADE_STATE.CLOSED) && (
-              <div className="mt-8">
-                <MultiSigBridge tradeId={tradeId} status={trade.status} />
-              </div>
-            )}
-
-            {error && (
-              <Surface variant="soft" className="mt-4 border-os-error/20 bg-os-error/5 p-4 text-os-sm text-os-error">
-                {error}
-              </Surface>
-            )}
-          </Surface>
-
-          {/* Review Modal */}
-          {showReviewModal && (
-            <ReviewModal
-              isOpen={showReviewModal}
-              onClose={() => setShowReviewModal(false)}
-              trade={trade}
-              onSubmit={handleReviewSubmit}
-            />
-          )}
-        </div>
-
-        {/* SIDEBAR: CONSOLE & LEDGER */}
-        <div className="lg:col-span-5 space-y-8">
-          <TradeTimeline
-            tradeId={tradeId}
-            currentState={trade.status}
-          />
-
-          {/* 🔧 KERNEL CONSOLE */}
-          <div className="space-y-4">
-            <h2 className="os-label flex items-center gap-2">
-              <Terminal className="w-4 h-4" />
-              Kernel Console
-            </h2>
-            <Surface variant="panel" className="p-0 border-os-stroke bg-black/40 overflow-hidden">
-              <div className="p-3 border-b border-os-stroke/50 flex items-center justify-between">
-                <div className="flex gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-red-500/30" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-amber-500/30" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-green-500/30" />
-                </div>
-                <span className="os-label opacity-40 lowercase">ssh: kernel-prod-8</span>
-              </div>
-              <div className="p-4 font-mono text-[10px] space-y-2 h-[200px] overflow-y-auto">
-                {kernelTimeline?.slice(0, 8).map((item) => (
-                  <div key={item.id} className="flex items-center justify-between text-os-text-secondary/70">
-                    <span className="truncate pr-4">&gt; {item.label}</span>
-                    <span className="shrink-0 opacity-40">{item.time}</span>
-                  </div>
-                ))}
-                {!kernelTimeline?.length && (
-                  <div className="text-os-text-secondary/40 italic">Waiting for kernel signals...</div>
-                )}
-              </div>
-            </Surface>
-          </div>
-
-          {/* 📁 FORENSIC LEDGER */}
-          <div className="space-y-4">
-            <h2 className="os-label flex items-center gap-2">
-              <Shield className="w-4 h-4" />
-              Activity Log
-            </h2>
-            <Surface variant="panel" className="p-6 border-emerald-500/20 bg-emerald-500/5">
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <p className="text-os-sm font-medium">Record Secured</p>
-                </div>
-                <p className="text-os-xs text-os-text-secondary leading-relaxed">
-                  Every transition generates a unique hash, cryptographically linked to your Trust Profile.
-                </p>
-                {trade.metadata?.trade_dna && (
-                  <div className="p-2 bg-black/20 rounded border border-white/5 overflow-hidden">
-                    <p className="text-[9px] font-mono text-emerald-500/50 break-all select-all">
-                      SHA-256: {trade.metadata.trade_dna}
-                    </p>
-                  </div>
-                )}
-
-                {/* 🛡️ AFRIKONI SHIELD STATUS */}
-                <div className="mt-4 pt-4 border-t border-emerald-500/10">
-                  <div className="flex items-center gap-2 mb-2">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500/80">Protection Engine Active</span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="p-2 rounded bg-black/20 border border-white/5">
-                      <p className="text-[8px] uppercase tracking-tighter text-os-text-secondary">Escrow Logic</p>
-                      <p className="text-[10px] font-bold text-emerald-500">SECURE</p>
-                    </div>
-                    <div className="p-2 rounded bg-black/20 border border-white/5">
-                      <p className="text-[8px] uppercase tracking-tighter text-os-text-secondary">AI Fraud Scan</p>
-                      <p className="text-[10px] font-bold text-emerald-500">VERIFIED</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Surface>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
 }
 
 function DefaultPanel({ trade }) {
   return (
     <Surface variant="soft" className="p-12 text-center border-dashed">
       <Cpu className="w-10 h-10 text-os-text-secondary/20 mx-auto mb-4" />
-      <h3 className="text-os-lg font-bold">State: {trade.status}</h3>
-      <p className="text-os-sm text-os-text-secondary mt-1">No execution logic defined for this kernel state.</p>
+      <h3 className="text-os-lg font-bold">Status: {TRADE_STATE_LABELS[trade.status] || trade.status}</h3>
+      <p className="text-os-sm text-os-text-secondary mt-1">No further actions are required at this stage.</p>
     </Surface>
   );
 }

@@ -30,6 +30,8 @@ export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState({ email: '', password: '', general: '' });
 
+  const [isEmailSent, setIsEmailSent] = useState(false);
+
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectUrl = searchParams.get('redirect') || createPageUrl('Home', language);
@@ -65,8 +67,8 @@ export default function Signup() {
 
       // ✅ Immediate login (Supabase returns session even if email confirmation pending)
       if (data.user) {
-        toast.success('✅ Account created! Welcome to Afrikoni.');
-        // Session is auto-saved, redirect will happen via useEffect
+        toast.success('✅ Account created!');
+        setIsEmailSent(true);
       }
     } catch (error) {
       if (isNetworkError(error)) {
@@ -96,118 +98,148 @@ export default function Signup() {
         className="w-full max-w-[460px] z-10"
       >
         <div className="bg-white rounded-[28px] shadow-[0_20px_60px_rgba(0,0,0,0.12),0_8px_20px_rgba(0,0,0,0.08)] p-12 border border-black/[0.08]">
-          <div className="text-center mb-12">
-            <div className="flex justify-center mb-10">
-              <Logo type="symbol" size="md" />
-            </div>
-            <h1 className="text-[26px] font-semibold text-gray-900 mb-3 tracking-[-0.02em] leading-tight">
-              Create your account
-            </h1>
-            <p className="text-sm text-gray-600 font-normal leading-relaxed">
-              Access Afrikoni's private network of verified<br />African producers and suppliers
-            </p>
-          </div>
+          {isEmailSent ? (
+            <div className="text-center py-4">
+              <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-8 animate-in zoom-in duration-300">
+                <Mail className="w-10 h-10 text-green-600" />
+              </div>
+              <h1 className="text-[26px] font-semibold text-gray-900 mb-4 tracking-[-0.02em] leading-tight">
+                Check your email
+              </h1>
+              <p className="text-[15px] text-gray-600 font-normal leading-relaxed mb-10">
+                We've sent a verification link to <span className="font-semibold text-gray-900">{formData.email}</span>. <br />
+                Please click the link to confirm your account.
+              </p>
 
-          {/* Google Sign In */}
-          <div className="mb-8">
-            <GoogleSignIn
-              redirectTo={getOAuthRedirectPath()}
-              intendedRole={selectedRole}
-              className="w-full h-[52px] bg-white hover:bg-gray-50 active:bg-gray-100 text-gray-800 border border-gray-300 rounded-[14px] font-medium text-[15px] transition-all flex items-center justify-center gap-3 shadow-sm hover:shadow-md active:shadow-sm"
-            />
-          </div>
-
-          <div className="relative my-8">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-gray-200" />
+              <div className="space-y-4">
+                <Button
+                  variant="outline"
+                  className="w-full h-[52px] rounded-[14px] text-gray-600 hover:text-gray-900 border-gray-200 hover:border-gray-300 transition-all font-medium"
+                  onClick={() => setIsEmailSent(false)}
+                >
+                  Back to signup
+                </Button>
+                <div className="text-[13px] text-gray-400">
+                  Didn't receive an email? Check your spam folder or contact support.
+                </div>
+              </div>
             </div>
-            <div className="relative flex justify-center text-[13px] font-medium text-gray-500">
-              <span className="bg-white px-4">or continue with email</span>
-            </div>
-          </div>
+          ) : (
+            <>
+              <div className="text-center mb-12">
+                <div className="flex justify-center mb-10">
+                  <Logo type="symbol" size="md" />
+                </div>
+                <h1 className="text-[26px] font-semibold text-gray-900 mb-3 tracking-[-0.02em] leading-tight">
+                  Create your account
+                </h1>
+                <p className="text-sm text-gray-600 font-normal leading-relaxed">
+                  Access Afrikoni's private network of verified<br />African producers and suppliers
+                </p>
+              </div>
 
-          <form onSubmit={handleSignup} className="space-y-6">
-            <div className="space-y-2.5">
-              <label className="text-[13px] font-medium text-gray-700 block">Full name</label>
-              <div className="relative">
-                <input
-                  type="text"
-                  value={formData.fullName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
-                  className="w-full bg-white border border-gray-300 rounded-[13px] py-3.5 px-4 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-os-accent/20 focus:border-os-accent transition-all"
-                  placeholder="Ama Mensah"
-                  required
+              {/* Google Sign In */}
+              <div className="mb-8">
+                <GoogleSignIn
+                  redirectTo={getOAuthRedirectPath()}
+                  intendedRole={selectedRole}
+                  className="w-full h-[52px] bg-white hover:bg-gray-50 active:bg-gray-100 text-gray-800 border border-gray-300 rounded-[14px] font-medium text-[15px] transition-all flex items-center justify-center gap-3 shadow-sm hover:shadow-md active:shadow-sm"
                 />
               </div>
-            </div>
 
-            <div className="space-y-2.5">
-              <label className="text-[13px] font-medium text-gray-700 block">Work email</label>
-              <div className="relative">
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  className="w-full bg-white border border-gray-300 rounded-[13px] py-3.5 px-4 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-os-accent/20 focus:border-os-accent transition-all"
-                  placeholder="name@company.com"
-                  required
-                />
+              <div className="relative my-8">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-200" />
+                </div>
+                <div className="relative flex justify-center text-[13px] font-medium text-gray-500">
+                  <span className="bg-white px-4">or continue with email</span>
+                </div>
               </div>
-            </div>
 
-            <div className="space-y-2.5">
-              <label className="text-[13px] font-medium text-gray-700 block">Password</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? "text" : "password"}
-                  value={formData.password}
-                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                  className="w-full bg-white border border-gray-300 rounded-[13px] py-3.5 px-4 pr-12 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-os-accent/20 focus:border-os-accent transition-all"
-                  placeholder="Minimum 8 characters"
-                  required
-                />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors">
-                  {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
-                </button>
+              <form onSubmit={handleSignup} className="space-y-6">
+                <div className="space-y-2.5">
+                  <label className="text-[13px] font-medium text-gray-700 block text-os-accent font-bold uppercase tracking-widest text-[11px]">Business Name / Contact Name</label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      value={formData.fullName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, fullName: e.target.value }))}
+                      className="w-full bg-white border border-gray-300 rounded-[13px] py-3.5 px-4 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-os-accent/20 focus:border-os-accent transition-all"
+                      placeholder="e.g. Mensah Trading or Ama Mensah"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2.5">
+                  <label className="text-[13px] font-medium text-gray-700 block">Work email</label>
+                  <div className="relative">
+                    <input
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                      className="w-full bg-white border border-gray-300 rounded-[13px] py-3.5 px-4 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-os-accent/20 focus:border-os-accent transition-all"
+                      placeholder="name@company.com"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2.5">
+                  <label className="text-[13px] font-medium text-gray-700 block">Password</label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={formData.password}
+                      onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                      className="w-full bg-white border border-gray-300 rounded-[13px] py-3.5 px-4 pr-12 text-[15px] text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-os-accent/20 focus:border-os-accent transition-all"
+                      placeholder="Minimum 8 characters"
+                      required
+                    />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors">
+                      {showPassword ? <EyeOff className="w-[18px] h-[18px]" /> : <Eye className="w-[18px] h-[18px]" />}
+                    </button>
+                  </div>
+                </div>
+
+                {fieldErrors.general && (
+                  <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm text-center">
+                    {fieldErrors.general}
+                  </div>
+                )}
+
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full h-[52px] bg-os-accent hover:bg-os-accent-dark active:bg-os-accent-dark text-white font-semibold text-[15px] rounded-[14px] transition-all shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(212,169,55,0.15)] hover:shadow-[0_2px_4px_rgba(0,0,0,0.1),0_6px_16px_rgba(212,169,55,0.2)] active:shadow-[0_1px_2px_rgba(0,0,0,0.12)] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
+                >
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-[18px] h-[18px] mr-2 animate-spin" />
+                      Creating account...
+                    </>
+                  ) : (
+                    'Create account'
+                  )}
+                </Button>
+
+                {/* Trust signal */}
+                <div className="flex items-center justify-center gap-2 text-[13px] text-gray-500 pt-2">
+                  <Lock className="w-3.5 h-3.5" />
+                  <span>Your information is encrypted and protected</span>
+                </div>
+              </form>
+
+              <div className="text-center text-sm text-gray-600 mt-10 pt-8 border-t border-gray-100">
+                <p>
+                  Already have an account?{' '}
+                  <Link to={`/${language}/login`} className="text-os-accent hover:text-os-accent-dark font-medium transition-colors">
+                    Sign in
+                  </Link>
+                </p>
               </div>
-            </div>
-
-            {fieldErrors.general && (
-              <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm text-center">
-                {fieldErrors.general}
-              </div>
-            )}
-
-            <Button
-              type="submit"
-              disabled={isLoading}
-              className="w-full h-[52px] bg-os-accent hover:bg-os-accent-dark active:bg-os-accent-dark text-white font-semibold text-[15px] rounded-[14px] transition-all shadow-[0_1px_2px_rgba(0,0,0,0.08),0_4px_12px_rgba(212,169,55,0.15)] hover:shadow-[0_2px_4px_rgba(0,0,0,0.1),0_6px_16px_rgba(212,169,55,0.2)] active:shadow-[0_1px_2px_rgba(0,0,0,0.12)] disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-[18px] h-[18px] mr-2 animate-spin" />
-                  Creating account...
-                </>
-              ) : (
-                'Create account'
-              )}
-            </Button>
-
-            {/* Trust signal */}
-            <div className="flex items-center justify-center gap-2 text-[13px] text-gray-500 pt-2">
-              <Lock className="w-3.5 h-3.5" />
-              <span>Your information is encrypted and protected</span>
-            </div>
-          </form>
-
-          <div className="text-center text-sm text-gray-600 mt-10 pt-8 border-t border-gray-100">
-            <p>
-              Already have an account?{' '}
-              <Link to={`/${language}/login`} className="text-os-accent hover:text-os-accent-dark font-medium transition-colors">
-                Sign in
-              </Link>
-            </p>
-          </div>
+            </>
+          )}
         </div>
 
         <p className="mt-10 text-center text-[13px] text-gray-400 leading-relaxed">

@@ -547,7 +547,7 @@ export default function DashboardSettings() {
                     <div className="flex items-center gap-2 mb-1">
                       <div className="h-px w-8 bg-os-accent/40" />
                       <span className="text-os-xs uppercase font-black tracking-[0.4em] text-os-accent/80">
-                        System Control
+                        Preferences
                       </span>
                     </div>
                     <h1 className="text-3xl md:text-5xl font-black tracking-tight text-os-text-primary mb-2">
@@ -561,9 +561,9 @@ export default function DashboardSettings() {
 
                 <div className="flex flex-wrap items-center gap-3">
                   {[
-                    { label: 'Kernel 4.0', color: 'emerald' },
-                    { label: 'High-Trust', color: 'os-accent' },
-                    { label: 'Obsidian', color: 'blue' }
+                    { label: 'Enterprise', color: 'emerald' },
+                    { label: 'Premium', color: 'os-accent' },
+                    { label: 'Verified', color: 'blue' }
                   ].map((tag) => (
                     <div key={tag.label} className={cn(
                       "flex items-center gap-2 rounded-full border px-4 py-1.5 text-os-xs font-black uppercase tracking-widest backdrop-blur-md",
@@ -1304,7 +1304,7 @@ export default function DashboardSettings() {
               </div>
 
               <div className="p-8 md:p-12 space-y-12">
-                {/* Kernel Status */}
+                {/* System Status */}
                 <div className="p-10 rounded-[2.5rem] bg-gray-50 border border-gray-200 relative overflow-hidden group">
                   <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-transparent" />
 

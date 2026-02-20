@@ -92,10 +92,8 @@ export function AuthProvider({ children }) {
       // Race the resolution against the safety timeout
       const resolutionPromise = (async () => {
         try {
+          // 1. Get Session (sub-50ms)
           const { data: { session } } = await supabase.auth.getSession();
-
-          // Background schema validation (Non-blocking)
-          validateSchema();
 
           if (!session?.user) {
             setUser(null);
@@ -107,13 +105,18 @@ export function AuthProvider({ children }) {
             return;
           }
 
-          // ⚡ PERFORMANCE HARDENING: Zero-Zero Hydra Handshake
+          // 2. Background schema validation (Non-blocking)
+          validateSchema();
+
+          // 3. ⚡ ZERO-DELAY HANDSHAKE: Fire RPC immediately
+          // This RPC is now optimized with partial indexes on the backend
           const { data: handshake, error: handshakeError } = await supabase
             .rpc('get_institutional_handshake');
 
           if (handshakeError) {
-            logger.error('Handshake failed, falling back to legacy hydration', handshakeError);
-            // Fallback to legacy single-fetch profile
+            logger.error('Handshake failed, falling back to legacy recovery', handshakeError);
+
+            // Legacy Recovery: Atomic fetch for profile
             const { data: profileData } = await supabase
               .from('profiles')
               .select('*')
@@ -129,12 +132,18 @@ export function AuthProvider({ children }) {
             setProfile(resolvedProfile);
             setRole(resolvedProfile?.role || null);
           } else {
-            logger.info('⚡ Handshake successful', handshake);
-
+            // Handshake Successful - Populate Kernel State
             setUser(session.user);
             setProfile(handshake.profile);
             setRole(handshake.profile?.role || null);
             setHandshakeData(handshake);
+
+            if (import.meta.env.DEV) {
+              console.log('⚡ [Auth] Handshake Synchronized', {
+                role: handshake.profile?.role,
+                company: handshake.company?.company_name
+              });
+            }
           }
 
           setAuthReady(true);

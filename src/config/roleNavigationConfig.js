@@ -1,7 +1,8 @@
 import {
     LayoutDashboard, GitBranch, MessageSquare, FileText, ShoppingCart,
     Package, Truck, Wallet, Shield, Settings, HelpCircle, BarChart3,
-    Building, Globe, Landmark, Bell, LogOut, Lock, CheckCircle2, AlertCircle
+    Building, Globe, Landmark, Bell, LogOut, Lock, CheckCircle2, AlertCircle,
+    Target, Sparkles, Star, Users, User, Receipt
 } from 'lucide-react';
 
 export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple', notificationCounts = {}, isAdmin = false }) => {
@@ -9,135 +10,196 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
     const isSeller = capabilities?.can_sell === true;
     const isLogistics = capabilities?.can_logistics === true;
 
-    // 🏛️ AFRIKONI 2026: The 5 Action Pillars
-    // Mission: Consolidate 60+ routes into clear operational zones.
+    // 🏛️ AFRIKONI 2026: The Operational Pillars
+    // Mission: Simplified Trade OS navigation.
     const sections = [
         {
-            id: 'workbench',
-            label: 'Command',
+            id: 'navigation',
+            label: 'Navigation',
             items: [
                 {
-                    id: 'dashboard',
-                    label: 'Workbench',
+                    id: 'home',
+                    label: 'Dashboard Home',
                     path: '/dashboard',
                     icon: LayoutDashboard,
                     activeMatch: (path) => path === '/dashboard' || path === '/dashboard/'
                 },
                 {
-                    id: 'messages',
-                    label: 'Inbox',
-                    path: '/dashboard/messages',
-                    icon: MessageSquare,
-                    badge: notificationCounts.messages || 0,
-                    activeMatch: (path) => path.startsWith('/dashboard/messages')
-                }
-            ].filter(Boolean)
-        },
-        {
-            id: 'sourcing',
-            divider: true,
-            label: 'Discovery',
-            items: [
-                isBuyer && {
-                    id: 'marketplace',
-                    label: 'Marketplace',
-                    path: '/marketplace',
-                    icon: Globe,
-                    activeMatch: (path) => path.startsWith('/marketplace')
-                },
-                (isBuyer || isSeller) && {
-                    id: 'rfqs',
-                    label: isSeller ? "Open Requests" : "My RFQs",
-                    path: isSeller ? "/dashboard/supplier-rfqs" : "/dashboard/rfqs",
-                    icon: FileText,
-                    badge: notificationCounts.rfqs || 0,
-                    activeMatch: (path) => path.startsWith('/dashboard/rfqs') || path.startsWith('/dashboard/supplier-rfqs')
-                }
-            ].filter(Boolean)
-        },
-        {
-            id: 'inventory',
-            divider: true,
-            label: 'Supply',
-            items: [
-                isSeller && {
-                    id: 'products',
-                    label: 'My Catalog',
-                    path: '/dashboard/products',
-                    icon: Package,
-                    activeMatch: (path) => path.startsWith('/dashboard/products')
-                },
-                isSeller && workspaceMode === 'pro' && {
-                    id: 'analytics',
-                    label: 'Market Insights',
-                    path: '/dashboard/supplier-analytics',
-                    icon: BarChart3,
-                    activeMatch: (path) => path.startsWith('/dashboard/supplier-analytics')
-                }
-            ].filter(Boolean)
-        },
-        {
-            id: 'trades',
-            divider: true,
-            label: 'Fulfillment',
-            items: [
-                {
-                    id: 'orders',
-                    label: 'Active Trades',
-                    path: '/dashboard/orders',
-                    icon: ShoppingCart,
-                    badge: notificationCounts.orders || 0,
-                    activeMatch: (path) => path.startsWith('/dashboard/orders') || path.startsWith('/dashboard/trade/') || path.startsWith('/dashboard/escrow/')
-                },
-                {
                     id: 'pipeline',
-                    label: 'Deal Flow',
+                    label: 'Trade Pipeline',
                     path: '/dashboard/trade-pipeline',
                     icon: GitBranch,
                     activeMatch: (path) => path.startsWith('/dashboard/trade-pipeline')
                 },
-                (isLogistics || isBuyer || isSeller) && {
-                    id: 'logistics',
-                    label: 'Shipments',
-                    path: '/dashboard/shipments',
-                    icon: Truck,
-                    activeMatch: (path) => path.startsWith('/dashboard/shipments') || path.startsWith('/dashboard/trace-center')
+                {
+                    id: 'products',
+                    label: 'Products',
+                    path: '/dashboard/products',
+                    icon: Package,
+                    activeMatch: (path) => path.startsWith('/dashboard/products')
                 },
                 {
-                    id: 'finance',
+                    id: 'orders',
+                    label: 'Orders',
+                    path: '/dashboard/orders',
+                    icon: ShoppingCart,
+                    badge: notificationCounts.orders || 0,
+                    activeMatch: (path) => path.startsWith('/dashboard/orders')
+                },
+                isSeller && {
+                    id: 'sales',
+                    label: 'Sales',
+                    path: '/dashboard/sales',
+                    icon: ShoppingCart,
+                    activeMatch: (path) => path.startsWith('/dashboard/sales')
+                },
+                {
+                    id: 'rfqs',
+                    label: 'RFQs (My Requests)',
+                    path: '/dashboard/rfqs',
+                    icon: FileText,
+                    activeMatch: (path) => path.startsWith('/dashboard/rfqs') && !path.includes('/new')
+                },
+                isSeller && {
+                    id: 'rfqs-received',
+                    label: 'RFQs Received',
+                    path: '/dashboard/supplier-rfqs',
+                    icon: FileText,
+                    activeMatch: (path) => path.startsWith('/dashboard/supplier-rfqs')
+                },
+                {
+                    id: 'messages',
+                    label: 'Messages',
+                    path: '/dashboard/messages',
+                    icon: MessageSquare,
+                    badge: notificationCounts.messages || 0,
+                    activeMatch: (path) => path.startsWith('/dashboard/messages')
+                },
+                {
+                    id: 'payments',
                     label: 'Payments',
                     path: '/dashboard/wallet',
                     icon: Wallet,
-                    activeMatch: (path) => path.startsWith('/dashboard/wallet') || path.startsWith('/dashboard/payments') || path.startsWith('/dashboard/invoices')
+                    activeMatch: (path) => path.startsWith('/dashboard/wallet') || path.startsWith('/dashboard/payments')
+                },
+                {
+                    id: 'invoices',
+                    label: 'Invoices',
+                    path: '/dashboard/invoices',
+                    icon: Receipt,
+                    activeMatch: (path) => path.startsWith('/dashboard/invoices')
+                },
+                {
+                    id: 'shipments',
+                    label: 'Shipments',
+                    path: '/dashboard/shipments',
+                    icon: Truck,
+                    activeMatch: (path) => path.startsWith('/dashboard/shipments')
+                },
+                {
+                    id: 'fulfillment',
+                    label: 'Fulfillment',
+                    path: '/dashboard/fulfillment',
+                    icon: Package,
+                    activeMatch: (path) => path.startsWith('/dashboard/fulfillment')
                 }
             ].filter(Boolean)
         },
         {
-            id: 'trust',
+            id: 'intelligence',
             divider: true,
-            label: 'Governance',
+            label: 'Intelligence',
             items: [
                 {
-                    id: 'verification',
-                    label: 'Trust Hub',
+                    id: 'analytics',
+                    label: 'Analytics',
+                    path: '/dashboard/analytics',
+                    icon: BarChart3,
+                    activeMatch: (path) => path.startsWith('/dashboard/analytics')
+                },
+                {
+                    id: 'performance',
+                    label: 'Performance Metrics',
+                    path: '/dashboard/performance',
+                    icon: Target,
+                    activeMatch: (path) => path.startsWith('/dashboard/performance')
+                },
+                {
+                    id: 'koniai',
+                    label: 'KoniAI Assistant',
+                    path: '/dashboard/koniai',
+                    icon: Sparkles,
+                    activeMatch: (path) => path.startsWith('/dashboard/koniai')
+                }
+            ].filter(Boolean)
+        },
+        {
+            id: 'trust-compliance',
+            divider: true,
+            label: 'Trust & Compliance',
+            items: [
+                {
+                    id: 'reviews',
+                    label: 'Reviews & Trust',
+                    path: '/dashboard/reviews',
+                    icon: Star,
+                    activeMatch: (path) => path.startsWith('/dashboard/reviews')
+                },
+                {
+                    id: 'disputes',
+                    label: 'Disputes',
+                    path: '/dashboard/disputes',
+                    icon: AlertCircle,
+                    activeMatch: (path) => path.startsWith('/dashboard/disputes')
+                },
+                {
+                    id: 'kyc',
+                    label: 'KYC Verification',
                     path: '/dashboard/kyc',
                     icon: Shield,
-                    activeMatch: (path) => path.startsWith('/dashboard/kyc') || path.startsWith('/dashboard/verification-center') || path.startsWith('/dashboard/trust-health')
+                    activeMatch: (path) => path.startsWith('/dashboard/kyc')
                 },
-                workspaceMode === 'pro' && {
+                {
                     id: 'compliance',
                     label: 'Compliance',
                     path: '/dashboard/compliance',
                     icon: Lock,
-                    activeMatch: (path) => path.startsWith('/dashboard/compliance') || path.startsWith('/dashboard/risk') || path.startsWith('/dashboard/audit')
+                    activeMatch: (path) => path.startsWith('/dashboard/compliance')
+                }
+            ].filter(Boolean)
+        },
+        {
+            id: 'settings-section',
+            divider: true,
+            label: 'Settings',
+            items: [
+                {
+                    id: 'settings',
+                    label: 'Settings',
+                    path: '/dashboard/settings',
+                    icon: Settings,
+                    activeMatch: (path) => path === '/dashboard/settings'
                 },
                 {
-                    id: 'disputes',
-                    label: 'Resolutions',
-                    path: '/dashboard/disputes',
-                    icon: AlertCircle,
-                    badge: notificationCounts.disputes || 0,
-                    activeMatch: (path) => path.startsWith('/dashboard/disputes') && !path.includes('/admin/')
+                    id: 'company',
+                    label: 'Company Info',
+                    path: '/dashboard/company-info',
+                    icon: Building,
+                    activeMatch: (path) => path.startsWith('/dashboard/company-info')
+                },
+                {
+                    id: 'team',
+                    label: 'Team Members',
+                    path: '/dashboard/team-members',
+                    icon: Users,
+                    activeMatch: (path) => path.startsWith('/dashboard/team-members')
+                },
+                {
+                    id: 'help',
+                    label: 'Help & Support',
+                    path: '/dashboard/help',
+                    icon: HelpCircle,
+                    activeMatch: (path) => path.startsWith('/dashboard/help') || path.startsWith('/dashboard/support')
                 }
             ].filter(Boolean)
         },
@@ -148,24 +210,17 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
             items: [
                 {
                     id: 'admin-payouts',
-                    label: 'Payout Approval',
+                    label: 'Payouts',
                     path: '/dashboard/admin/payouts',
                     icon: Wallet,
                     activeMatch: (path) => path.startsWith('/dashboard/admin/payouts')
                 },
                 {
                     id: 'admin-disputes',
-                    label: 'Manage Disputes',
+                    label: 'Disputes',
                     path: '/dashboard/admin/disputes',
                     icon: Shield,
                     activeMatch: (path) => path.startsWith('/dashboard/admin/disputes')
-                },
-                {
-                    id: 'admin-verifications',
-                    label: 'Verification Desk',
-                    path: '/dashboard/admin/verifications',
-                    icon: CheckCircle2,
-                    activeMatch: (path) => path.startsWith('/dashboard/admin/verifications')
                 }
             ].filter(Boolean)
         }

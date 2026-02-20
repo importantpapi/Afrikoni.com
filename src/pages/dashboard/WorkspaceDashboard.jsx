@@ -1,5 +1,5 @@
 import React, { useCallback, useState, useEffect } from 'react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import OSShell from '@/layouts/OSShell';
 import DashboardRealtimeManager from '@/components/dashboard/DashboardRealtimeManager';
@@ -44,6 +44,7 @@ import { DashboardSkeleton } from '@/components/shared/ui/skeletons';
 export default function WorkspaceDashboard() {
   const location = useLocation();
   const navigate = useNavigate();
+  const { lang = 'en' } = useParams();
 
   // ✅ KERNEL MIGRATION: Get everything from the Single Source of Truth
   const {
@@ -54,7 +55,8 @@ export default function WorkspaceDashboard() {
     profileCompanyId,
     capabilities,
     isSystemReady,
-    isPreWarming // ✅ FULL-STACK SYNC: Pre-warming state
+    isPreWarming,
+    organization
   } = useDashboardKernel();
 
   const { systemState, refresh: refreshSystemState } = useTradeSystemState();
@@ -79,7 +81,7 @@ export default function WorkspaceDashboard() {
         companyIdFromProfile: profile?.company_id,
         pathname: location.pathname
       });
-      navigate('/dashboard/company-info', { replace: true });
+      navigate(`/${lang}/dashboard/company-info`, { replace: true });
     } else if (isSystemReady && profileCompanyId) {
       console.log('[WorkspaceDashboard] ✅ Kernel Synced:', { companyId: profileCompanyId });
     }
@@ -93,8 +95,13 @@ export default function WorkspaceDashboard() {
   // Pre-warming and system readiness are both handled by a single guard
   // This prevents multiple sequential loading screens ("skeleton problem")
   // useDashboardKernel already handles pre-warming timeout (3s → redirect to onboarding)
+  // ✅ SKELETON FIX: Consolidated loading check with safe area support
   if (!isSystemReady) {
-    return <DashboardSkeleton />;
+    return (
+      <div className="pt-safe pb-safe bg-os-bg min-h-screen">
+        <DashboardSkeleton />
+      </div>
+    );
   }
 
   // ✅ KERNEL MIGRATION: Prepare capabilities data for OSShell
@@ -120,9 +127,13 @@ export default function WorkspaceDashboard() {
         capabilities={capabilitiesData}
         user={user}
         profile={profile}
-        organization={profile?.company_name ? { name: profile.company_name } : null}
+        organization={organization}
         workspaceMode={mode}
-        onToggleMode={() => setMode(mode === 'simple' ? 'operator' : 'simple')}
+        onToggleMode={() => {
+          const newMode = mode === 'simple' ? 'pro' : 'simple';
+          console.log('[WorkspaceDashboard] Toggling mode:', mode, '->', newMode);
+          setMode(newMode);
+        }}
         onOpenCommandPalette={() => { }} // Controlled within OSShell state now
         notificationCount={notificationCount}
         isAdmin={isAdmin}

@@ -208,7 +208,7 @@ export async function transitionTrade(tradeId, nextState, metadata = {}) {
  */
 export async function clearLocalCurrency(tradeId, amount, currency) {
   try {
-    const { data: trade } = await supabase.from('trades').select('buyer_id, seller_id, seller:companies(currency)').eq('id', tradeId).single();
+    const { data: trade } = await supabase.from('trades').select('buyer_company_id, seller_company_id, seller:companies(currency)').eq('id', tradeId).single();
     if (!trade) throw new Error('Trade not found');
 
     const result = await initiatePAPSSSettlement(
@@ -251,8 +251,11 @@ export async function createTrade(tradeData) {
       title: tradeData.title
     });
 
+    const { buyer_id, seller_id, ...otherData } = tradeData;
     const tradePayload = {
-      ...tradeData,
+      ...otherData,
+      buyer_company_id: buyer_id,
+      seller_company_id: seller_id,
       metadata: {
         ...tradeData.metadata,
         created_at_platform: new Date().toISOString(),

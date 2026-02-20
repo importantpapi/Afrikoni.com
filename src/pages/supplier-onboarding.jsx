@@ -33,13 +33,20 @@ export default function SupplierOnboarding() {
   const [direction, setDirection] = useState(1);
 
   const [formData, setFormData] = useState({
-    company_name: '',
+    company_name: profile?.full_name || '',
     industry: '',
     website: '',
     description: '',
     country: '',
     city: ''
   });
+
+  // ✅ ONE FLOW: Initialize from profile if available
+  useEffect(() => {
+    if (profile?.full_name && !formData.company_name) {
+      setFormData(prev => ({ ...prev, company_name: profile.full_name }));
+    }
+  }, [profile]);
 
   // Calculate steps based on role
   const isSeller = ['seller', 'hybrid', 'services'].includes(profile?.role);
@@ -71,19 +78,21 @@ export default function SupplierOnboarding() {
 
       if (profileError) throw profileError;
 
-      // 2. Create/Update Company if Seller
-      if (isSeller) {
+      // 2. ENRICH COMPANY: Use the existing company record (One Flow)
+      if (profile?.company_id) {
         const { error: companyError } = await supabase
           .from('companies')
-          .insert({
+          .update({
             company_name: formData.company_name,
             business_type: formData.industry,
             website: formData.website,
             description: formData.description,
-            user_id: user.id
-          });
-        // Note: insert handles new companies, update would be a separate flow
-        // In this simple onboarding, we insert. If they already have one, insert might fail or we handle it.
+            country: formData.country,
+            city: formData.city
+          })
+          .eq('id', profile.company_id);
+
+        if (companyError) throw companyError;
       }
 
       toast.success('IDENTITY GENESIS COMPLETE');
