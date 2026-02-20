@@ -15,11 +15,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Search, 
-  X, 
-  Globe, 
-  User, 
+import {
+  Search,
+  X,
+  Globe,
+  User,
   Menu,
   ChevronDown
 } from 'lucide-react';
@@ -47,7 +47,14 @@ const SEARCH_PLACEHOLDERS = [
   'Coffee beans from Ethiopia',
 ];
 
-export default function UnifiedMobileHeader({ user, transparent = false }) {
+export default function UnifiedMobileHeader({
+  user,
+  transparent = false,
+  title = undefined,
+  onBack = undefined,
+  showClose = false,
+  onClose = undefined
+}) {
   const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -57,6 +64,8 @@ export default function UnifiedMobileHeader({ user, transparent = false }) {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const searchRef = useRef(null);
 
+  const isWizardMode = !!title || !!onBack || showClose;
+
   // Scroll detection for collapse behavior
   useEffect(() => {
     let lastScrollY = window.scrollY;
@@ -64,7 +73,7 @@ export default function UnifiedMobileHeader({ user, transparent = false }) {
 
     const handleScroll = () => {
       const scrollY = window.scrollY;
-      
+
       if (!ticking) {
         window.requestAnimationFrame(() => {
           // Collapsed state after 60px scroll
@@ -143,46 +152,75 @@ export default function UnifiedMobileHeader({ user, transparent = false }) {
         <div className="h-full flex flex-col overflow-hidden">
           {/* Top Bar: Home + Actions */}
           <div className="flex items-center justify-between px-4 py-2">
-            {/* Left: Home Link */}
-            <Link 
-              to="/" 
-              className="flex-shrink-0 touch-manipulation active:scale-95 transition-transform"
-              aria-label="Home"
-            >
-              <Logo type="icon" size="sm" link={false} />
-            </Link>
-
-            {/* Right Actions */}
-            <div className="flex items-center gap-3">
-              {/* Language/Region */}
+            {/* Left Action: Back or Logo */}
+            {onBack ? (
               <button
-                onClick={() => navigate('/settings')}
-                className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-os-accent/10 active:scale-95 transition-all touch-manipulation"
-                aria-label="Language settings"
+                onClick={onBack}
+                className="w-10 h-10 -ml-2 rounded-full flex items-center justify-center active:scale-90 transition-all touch-manipulation"
+                aria-label="Go back"
               >
-                <Globe className="w-5 h-5 text-afrikoni-deep/70" />
+                <ChevronDown className="w-6 h-6 text-afrikoni-deep rotate-90" />
               </button>
-
-              {/* Profile */}
+            ) : (
               <Link
-                to={user ? '/dashboard' : '/login'}
-                className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-os-accent/10 active:scale-95 transition-all touch-manipulation"
-                aria-label={user ? 'Profile' : 'Login'}
+                to="/"
+                className="flex-shrink-0 touch-manipulation active:scale-95 transition-transform"
+                aria-label="Home"
               >
-                {user ? (
-                  <div className="w-10 h-10 rounded-full bg-os-accent/20 flex items-center justify-center text-sm font-semibold text-os-accent">
-                    {user.email?.[0]?.toUpperCase() || 'U'}
-                  </div>
-                ) : (
-                  <User className="w-5 h-5 text-afrikoni-deep/70" />
-                )}
+                <Logo type="icon" size="sm" link={false} />
               </Link>
+            )}
+
+            {/* Center: Title (Wizard Mode) */}
+            {title && (
+              <div className="absolute left-1/2 -translate-x-1/2 text-base font-bold text-afrikoni-deep truncate max-w-[60%]">
+                {title}
+              </div>
+            )}
+
+            {/* Right Actions: Close or Profile/Language */}
+            <div className="flex items-center gap-2">
+              {showClose ? (
+                <button
+                  onClick={onClose || (() => navigate(-1))}
+                  className="w-10 h-10 -mr-2 rounded-full flex items-center justify-center bg-afrikoni-ivory/50 active:scale-90 transition-all touch-manipulation"
+                  aria-label="Close"
+                >
+                  <X className="w-5 h-5 text-afrikoni-deep" />
+                </button>
+              ) : (
+                <>
+                  {/* Language/Region */}
+                  <button
+                    onClick={() => navigate('/settings')}
+                    className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-os-accent/10 active:scale-95 transition-all touch-manipulation"
+                    aria-label="Language settings"
+                  >
+                    <Globe className="w-5 h-5 text-afrikoni-deep/70" />
+                  </button>
+
+                  {/* Profile */}
+                  <Link
+                    to={user ? '/dashboard' : '/login'}
+                    className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-os-accent/10 active:scale-95 transition-all touch-manipulation"
+                    aria-label={user ? 'Profile' : 'Login'}
+                  >
+                    {user ? (
+                      <div className="w-10 h-10 rounded-full bg-os-accent/20 flex items-center justify-center text-sm font-semibold text-os-accent">
+                        {user.email?.[0]?.toUpperCase() || 'U'}
+                      </div>
+                    ) : (
+                      <User className="w-5 h-5 text-afrikoni-deep/70" />
+                    )}
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 
-          {/* Search Bar (Collapses on scroll) */}
+          {/* Search Bar (Collapses on scroll) - Hidden in Wizard Mode */}
           <AnimatePresence>
-            {!isScrolled && (
+            {!isScrolled && !isWizardMode && (
               <motion.div
                 initial={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
@@ -202,7 +240,7 @@ export default function UnifiedMobileHeader({ user, transparent = false }) {
                     )}
                   >
                     <Search className="w-5 h-5 text-os-accent/60 flex-shrink-0" />
-                    
+
                     <input
                       type="text"
                       placeholder={currentPlaceholder}
@@ -263,9 +301,9 @@ export default function UnifiedMobileHeader({ user, transparent = false }) {
             )}
           </AnimatePresence>
 
-          {/* Category Chips (Hidden when collapsed) */}
+          {/* Category Chips (Hidden when collapsed or in Wizard Mode) */}
           <AnimatePresence>
-            {!isScrolled && (
+            {!isScrolled && !isWizardMode && (
               <motion.div
                 initial={{ opacity: 1, height: 'auto' }}
                 exit={{ opacity: 0, height: 0 }}
@@ -295,9 +333,9 @@ export default function UnifiedMobileHeader({ user, transparent = false }) {
             )}
           </AnimatePresence>
 
-          {/* Collapsed Search (Shows when scrolled) */}
+          {/* Collapsed Search (Shows when scrolled) - Hidden in Wizard Mode */}
           <AnimatePresence>
-            {isScrolled && (
+            {isScrolled && !isWizardMode && (
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}

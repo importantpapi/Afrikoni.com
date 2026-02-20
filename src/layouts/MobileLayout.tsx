@@ -1,19 +1,20 @@
 /**
- * Mobile Layout System
+ * MOBILE LAYOUT (LUXURY OS-GRADE)
+ * Apple iOS + Hermès Standard
  * 
- * Unified mobile layout wrapper that provides:
- * - Mobile header (56px, sticky)
- * - Safe content padding (top: 16px, bottom: 96px)
- * - Bottom navigation (72px, fixed)
- * - Proper z-index layering
- * - Safe area support for notched devices
- * 
- * Only active on mobile viewports (max-width: 768px)
+ * Unified mobile experience with:
+ * - Single cohesive header (supports wizard flows)
+ * - Premium unified bottom nav
+ * - Proper safe-area spacing
+ * - Role-aware navigation
  */
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useLocation } from 'react-router-dom';
 import UnifiedMobileHeader from '@/components/mobile/UnifiedMobileHeader';
-import MobileBottomNav from '@/components/mobile/MobileBottomNav';
+import UnifiedMobileBottomNav from '@/components/mobile/UnifiedMobileBottomNav';
+import WhatsAppButton from '@/components/shared/ui/WhatsAppButton';
+import CookieBanner from '@/components/shared/ui/CookieBanner';
 
 interface MobileLayoutProps {
   children: React.ReactNode;
@@ -21,21 +22,53 @@ interface MobileLayoutProps {
   userRole?: 'buyer' | 'seller' | 'hybrid' | 'logistics';
 }
 
-export default function MobileLayout({ children, user, userRole = 'buyer' }: MobileLayoutProps) {
-  // MobileLayout is only called when isMobile is true in parent Layout component
-  // No need to check again here - just render the mobile layout
-  return (
-    <div className="mobile-layout min-h-screen bg-afrikoni-offwhite">
-      {/* Mobile Header - Unified, no overlap */}
-      <UnifiedMobileHeader user={user} transparent={false} />
+export default function MobileLayout({
+  children,
+  user,
+  userRole = 'buyer'
+}: MobileLayoutProps) {
+  const location = useLocation();
 
-      {/* Main Content - Safe padding for header and bottom nav */}
-      <main className="mobile-page-content pt-4 pb-24 md:pb-0">
+  // Detect specialized flows for the header
+  const isRFQWizard = location.pathname.includes('/rfq/create-mobile');
+  const isInbox = location.pathname.includes('/inbox-mobile');
+
+  // Pages where we hide the bottom nav
+  const hideBottomNav = [
+    '/login',
+    '/signup',
+    '/forgot-password',
+    '/auth-callback',
+  ].some(path => location.pathname.includes(path));
+
+  // Premium Header Logic
+  const headerProps = {
+    user,
+    transparent: location.pathname === '/',
+    title: isRFQWizard ? 'Sourcing Request' : isInbox ? 'Messages' : undefined,
+    showClose: isRFQWizard,
+    onClose: isRFQWizard ? () => window.history.back() : undefined
+  };
+
+  return (
+    <div className="mobile-layout min-h-screen bg-gradient-to-b from-white via-afrikoni-ivory/20 to-afrikoni-ivory/40">
+      {/* Unified Premium Header */}
+      <UnifiedMobileHeader {...headerProps} />
+
+      {/* Main Content Area */}
+      {/* pb-32 ensures content clears the PremiumBottomNav + safe area footer */}
+      <main className={isRFQWizard ? "pb-36" : "pb-32"}>
         {children}
       </main>
 
-      {/* Mobile Bottom Navigation - Fixed, 72px height, z-50 */}
-      <MobileBottomNav user={user} userRole={userRole} />
+      {/* Unified Role-Aware Bottom Navigation */}
+      {!hideBottomNav && (
+        <UnifiedMobileBottomNav user={user} userRole={userRole} />
+      )}
+
+      {/* Persistent Utilities */}
+      <WhatsAppButton />
+      <CookieBanner />
     </div>
   );
 }

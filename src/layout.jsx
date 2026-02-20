@@ -13,7 +13,7 @@ import { Logo } from '@/components/shared/ui/Logo';
 import WhatsAppButton from '@/components/shared/ui/WhatsAppButton';
 import CookieBanner from '@/components/shared/ui/CookieBanner';
 
-import MobileMainNav from './components/layout/MobileMainNav';
+// MobileMainNav removed (consolidated into UnifiedMobileBottomNav)
 import { PageLoader } from '@/components/shared/ui/skeletons';
 
 // Lazy load MobileLayout outside component to prevent re-creation on every render
@@ -489,8 +489,8 @@ export default function Layout({ children }) {
       {/* Footer */}
       <Footer />
 
-      {/* Mobile Bottom Navigation (Main Site) - Hidden on product pages (sticky CTA shown instead) */}
-      {!isProductPage && !isDashboardRoute && <MobileMainNav user={user} />}
+      {/* Mobile Bottom Navigation (Main Site) - Handled within MobileLayout wrapper for mobile */}
+      {/* desktop layout doesn't need this */}
 
       {/* WhatsApp Sticky Button */}
       <WhatsAppButton />

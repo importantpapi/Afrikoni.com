@@ -23,7 +23,7 @@ import { AICopilotSidebar } from '@/components/ai/AICopilotSidebar';
 import { zIndex } from '@/config/zIndex';
 
 import { Globe, LogOut, LayoutDashboard, User as UserIcon, MessageSquare, Package, FileText, Shield, Settings } from 'lucide-react';
-import MobileBottomNav from '@/components/dashboard/MobileBottomNav';
+import UnifiedMobileBottomNav from '@/components/mobile/UnifiedMobileBottomNav';
 import CommandPalette from '@/components/dashboard/CommandPalette';
 import { useAuth } from '@/contexts/AuthProvider';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -263,11 +263,9 @@ export default function OSShell({
                     )}
                 </AnimatePresence>
 
-                <MobileBottomNav
-                    isBuyer={isBuyer}
-                    isSeller={isSeller}
-                    isLogistics={isLogistics}
-                    isHybrid={isHybridCapability}
+                <UnifiedMobileBottomNav
+                    user={user}
+                    userRole={isLogistics ? 'logistics' : isSeller ? 'seller' : 'buyer'}
                 />
 
                 <CommandPalette
