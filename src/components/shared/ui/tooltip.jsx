@@ -31,7 +31,7 @@ export function Tooltip({ children, content, position = 'top', className }) {
       const tooltipRect = tooltipRef.current.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
-      
+
       let top = 0;
       let left = 0;
 
@@ -96,14 +96,14 @@ export function Tooltip({ children, content, position = 'top', className }) {
             >
               {content}
               {/* Arrow pointer */}
-              <div 
+              <div
                 className={cn(
                   'absolute w-3 h-3 bg-afrikoni-chestnut rotate-45 border-os-accent/30',
                   position === 'top' && 'bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 border-b border-r',
                   position === 'bottom' && 'top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 border-t border-l',
                   position === 'left' && 'right-0 top-1/2 -translate-y-1/2 translate-x-1/2 border-l border-b',
                   position === 'right' && 'left-0 top-1/2 -translate-y-1/2 -translate-x-1/2 border-r border-t'
-                )} 
+                )}
               />
             </motion.div>
           )}

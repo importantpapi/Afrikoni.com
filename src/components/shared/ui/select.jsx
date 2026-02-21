@@ -23,7 +23,7 @@ export const SelectTrigger = React.forwardRef(({ className, children, ...props }
       type="button"
       onClick={() => setOpen(!open)}
       className={cn(
-        'flex h-10 sm:h-10 min-h-[44px] sm:min-h-0 w-full items-center justify-between rounded-md border border-os-stroke bg-os-surface-0 px-3 py-2 text-os-sm ring-offset-os-bg placeholder:text-os-text-secondary/60 text-os-text-primary focus:outline-none focus:ring-2 focus:ring-os-accent focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 touch-manipulation transition-all',
+        'flex h-10 sm:h-10 min-h-[44px] sm:min-h-0 w-full items-center justify-between rounded-md border border-os-stroke bg-white px-3 py-2 text-os-sm ring-offset-os-bg placeholder:text-os-text-secondary/60 text-os-text-primary focus:outline-none focus:ring-2 focus:ring-os-accent focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 touch-manipulation transition-all',
         className
       )}
       {...props}
@@ -78,7 +78,7 @@ export const SelectContent = ({ children, className }) => {
       <div
         ref={contentRef}
         className={cn(
-          'absolute z-50 min-w-[8rem] w-full sm:w-auto max-h-[300px] sm:max-h-[400px] overflow-y-auto rounded-md border border-os-stroke bg-os-card text-os-text-primary shadow-os-lg',
+          'absolute z-50 min-w-[8rem] w-full sm:w-auto max-h-[300px] sm:max-h-[400px] overflow-y-auto rounded-md border border-os-stroke bg-white text-os-text-primary shadow-os-lg top-full mt-1',
           className
         )}
         onClick={(e) => {

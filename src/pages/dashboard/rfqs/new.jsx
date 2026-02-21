@@ -24,10 +24,20 @@ import PostRFQSuccessModal from '@/components/rfq/PostRFQSuccessModal';
  * "Warm, Human, Luxury" Redesign (Apple x Hermès)
  */
 
+import { useViewPermissions } from '@/hooks/useViewPermissions';
+
 export default function IntakeEngine() {
   const navigate = useNavigate();
   const { user, profile } = useDashboardKernel();
+  const { isDistribution } = useViewPermissions();
   const queryClient = useQueryClient();
+
+  // 🛡️ UNIFIED TRADER GUARD: Prevent Distribution mode from accessing Sourcing tools
+  useEffect(() => {
+    if (isDistribution) {
+      navigate('/dashboard');
+    }
+  }, [isDistribution, navigate]);
 
   // Modes: 'magic' (Natural Language) vs 'form' (Review)
   const [mode, setMode] = useState('magic');
@@ -463,9 +473,9 @@ export default function IntakeEngine() {
                       <p className="text-xs text-stone-500">Describe Request</p>
                     </div>
                   </div>
-                  
+
                   <ChevronRight className="w-5 h-5 text-stone-300" />
-                  
+
                   <div className="flex items-center gap-3 flex-1">
                     <div className="flex items-center justify-center w-10 h-10 rounded-full bg-[#B8922F] text-white text-sm font-semibold">
                       2
@@ -475,9 +485,9 @@ export default function IntakeEngine() {
                       <p className="text-xs text-stone-500">Review Details</p>
                     </div>
                   </div>
-                  
+
                   <ChevronRight className="w-5 h-5 text-stone-300" />
-                  
+
                   <div className="flex items-center gap-3 flex-1">
                     <div className="flex items-center justify-center w-10 h-10 rounded-full bg-stone-100 text-stone-400 text-sm font-semibold">
                       3

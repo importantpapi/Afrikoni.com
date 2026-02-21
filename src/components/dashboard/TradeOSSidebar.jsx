@@ -14,14 +14,18 @@ const cn = (...args) => {
   }
 };
 
+import { useViewPermissions } from '@/hooks/useViewPermissions';
+
 export default function TradeOSSidebar({
   capabilities,
   isAdmin = false,
   notificationCounts = {},
   onClose,
   sidebarOpen = true,
-  workspaceMode = 'simple',
+  workspaceMode: propsWorkspaceMode = 'simple',
 }) {
+  const { isSourcing, isDistribution } = useViewPermissions();
+  const workspaceMode = propsWorkspaceMode;
   const location = useLocation();
   const { language: lang = 'en' } = useLanguage();
 
@@ -51,7 +55,14 @@ export default function TradeOSSidebar({
     return `/${lang}${cleanPath}`;
   };
 
-  const { sections, systemApps } = getRoleNavigation({ capabilities, workspaceMode, notificationCounts, isAdmin });
+  const { sections, systemApps } = getRoleNavigation({
+    capabilities,
+    workspaceMode,
+    notificationCounts,
+    isAdmin,
+    isSourcing,
+    isDistribution
+  });
 
 
   return (

@@ -5,10 +5,16 @@ import {
     Target, Sparkles, Star, Users, User, Receipt
 } from 'lucide-react';
 
-export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple', notificationCounts = {}, isAdmin = false }) => {
-    const isBuyer = capabilities?.can_buy === true;
+export const getRoleNavigation = ({
+    capabilities = {},
+    workspaceMode = 'simple',
+    notificationCounts = {},
+    isAdmin = false,
+    isSourcing = true,
+    isDistribution = false
+}) => {
     const isSeller = capabilities?.can_sell === true;
-    const isLogistics = capabilities?.can_logistics === true;
+    const isTrader = capabilities?.displayRole === 'Unified Trader' || capabilities?.role === 'trader';
 
     // 🏛️ AFRIKONI 2026: The Operational Pillars
     // Mission: Simplified Trade OS navigation.
@@ -31,42 +37,45 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
                     icon: GitBranch,
                     activeMatch: (path) => path.startsWith('/dashboard/trade-pipeline')
                 },
-                {
+                // --- SOURCING TOOLS ---
+                isSourcing && {
+                    id: 'rfqs',
+                    label: 'My RFQs',
+                    path: '/dashboard/rfqs',
+                    icon: FileText,
+                    activeMatch: (path) => path.startsWith('/dashboard/rfqs') && !path.includes('/new')
+                },
+                // --- DISTRIBUTION TOOLS ---
+                isDistribution && {
                     id: 'products',
-                    label: 'Products',
+                    label: 'Inventory',
                     path: '/dashboard/products',
                     icon: Package,
                     activeMatch: (path) => path.startsWith('/dashboard/products')
                 },
-                {
+                isDistribution && {
                     id: 'orders',
-                    label: 'Orders',
+                    label: 'Orders Received',
                     path: '/dashboard/orders',
                     icon: ShoppingCart,
                     badge: notificationCounts.orders || 0,
                     activeMatch: (path) => path.startsWith('/dashboard/orders')
                 },
-                isSeller && {
-                    id: 'sales',
-                    label: 'Sales',
-                    path: '/dashboard/sales',
-                    icon: ShoppingCart,
-                    activeMatch: (path) => path.startsWith('/dashboard/sales')
-                },
-                {
-                    id: 'rfqs',
-                    label: 'RFQs (My Requests)',
-                    path: '/dashboard/rfqs',
-                    icon: FileText,
-                    activeMatch: (path) => path.startsWith('/dashboard/rfqs') && !path.includes('/new')
-                },
-                isSeller && {
+                isDistribution && {
                     id: 'rfqs-received',
                     label: 'RFQs Received',
                     path: '/dashboard/supplier-rfqs',
                     icon: FileText,
                     activeMatch: (path) => path.startsWith('/dashboard/supplier-rfqs')
                 },
+                {
+                    id: 'marketplace',
+                    label: 'Marketplace',
+                    path: '/marketplace',
+                    icon: Globe,
+                    activeMatch: (path) => path.startsWith('/marketplace')
+                },
+                // --- COMMON SHARED TOOLS ---
                 {
                     id: 'messages',
                     label: 'Messages',
@@ -91,17 +100,10 @@ export const getRoleNavigation = ({ capabilities = {}, workspaceMode = 'simple',
                 },
                 {
                     id: 'shipments',
-                    label: 'Shipments',
+                    label: 'Logistics',
                     path: '/dashboard/shipments',
                     icon: Truck,
                     activeMatch: (path) => path.startsWith('/dashboard/shipments')
-                },
-                {
-                    id: 'fulfillment',
-                    label: 'Fulfillment',
-                    path: '/dashboard/fulfillment',
-                    icon: Package,
-                    activeMatch: (path) => path.startsWith('/dashboard/fulfillment')
                 }
             ].filter(Boolean)
         },

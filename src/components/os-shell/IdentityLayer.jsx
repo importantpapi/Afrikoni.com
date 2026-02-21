@@ -23,6 +23,7 @@ import { useAuth } from '@/contexts/AuthProvider';
 import { useLanguage } from '@/i18n/LanguageContext';
 import { AnimatePresence, motion } from 'framer-motion';
 import { cn as utilsCn } from '@/lib/utils';
+import { TradingModeToggle } from './TradingModeToggle';
 
 // Bulletproof helper to prevent ReferenceError: cn is not defined
 const cn = (...args) => {
@@ -45,10 +46,11 @@ export function IdentityLayer({
     onToggleCopilot,
     onToggleHealth,
     isLiteMode = false,
-    onToggleLiteMode
+    onToggleLiteMode,
+    capabilities // Add this prop
 }) {
     const { theme, toggleTheme } = useTheme();
-    const { signOut } = useAuth();
+    const { logout } = useAuth();
     const navigate = useNavigate();
     const { language = 'en' } = useLanguage();
     const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -65,12 +67,13 @@ export function IdentityLayer({
     };
 
     const handleLogout = async () => {
-        await signOut();
+        await logout();
         navigate(`/${language}/login`);
     };
 
     const userName = profile?.full_name || user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User';
     const orgName = organization?.company_name || organization?.name || 'Organization';
+    const displayRole = capabilities?.displayRole || profile?.role || 'Trader';
 
     // Added: Smarter initial derivation
     const getInitial = () => {
@@ -102,13 +105,22 @@ export function IdentityLayer({
                     </div>
                     <div className="flex flex-col min-w-0">
                         <span className="text-os-sm font-semibold tracking-tight truncate">{userName}</span>
-                        <span className="text-[10px] md:text-os-xs text-os-text-secondary font-medium truncate uppercase tracking-tighter">{orgName}</span>
+                        <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="text-[10px] md:text-os-xs text-os-text-secondary font-medium truncate uppercase tracking-tighter">{orgName}</span>
+                            <span className="w-1 h-1 rounded-full bg-os-stroke flex-shrink-0" />
+                            <span className="text-[10px] md:text-os-xs text-os-accent font-bold truncate uppercase tracking-tighter">{displayRole}</span>
+                        </div>
                     </div>
                 </div>
             </div>
 
             {/* Right: Orchestration Controls */}
             <div className="flex items-center gap-2">
+                {/* Unified Trading Mode Toggle */}
+                <div className="hidden sm:block mr-2">
+                    <TradingModeToggle />
+                </div>
+
                 {/* WhatsApp Support - Trust Signal */}
                 <a
                     href="https://wa.me/233550000000"
@@ -141,21 +153,7 @@ export function IdentityLayer({
 
                 <div className="w-[1px] h-4 bg-os-stroke mx-1" />
 
-                {/* Mode Selector */}
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                        console.log('[IdentityLayer] Mode button clicked, current mode:', workspaceMode);
-                        onToggleMode?.();
-                    }}
-                    className="hidden md:flex items-center gap-2 px-3 text-os-text-secondary hover:text-os-text-primary hover:bg-os-accent/10 transition-all cursor-pointer"
-                >
-                    <span className="text-os-xs font-semibold">
-                        {workspaceMode === 'simple' ? 'Simple' : workspaceMode === 'pro' ? 'Pro' : 'Operator'}
-                    </span>
-                    <ChevronDown className="w-3 h-3" />
-                </Button>
+                {/* Mode Selector - REMOVED AS PER USER REQUEST */}
 
                 {/* Notifications */}
                 <Button
@@ -183,19 +181,7 @@ export function IdentityLayer({
                 </Button> 
                 */}
 
-                {/* Lite Mode Toggle - Phase 2 Market Expansion */}
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={onToggleLiteMode}
-                    className={cn(
-                        "w-10 h-10 rounded-full transition-all",
-                        isLiteMode ? "bg-os-accent text-black" : "text-os-text-secondary hover:text-os-text-primary"
-                    )}
-                    title={isLiteMode ? "Disable Lite Mode" : "Enable Lite Mode (Low Data)"}
-                >
-                    <ZapOff className="w-4 h-4" />
-                </Button>
+                {/* Lite Mode Toggle - REMOVED AS PER USER REQUEST */}
             </div>
 
             {/* User Menu Dropdown */}
@@ -203,15 +189,15 @@ export function IdentityLayer({
                 {userMenuOpen && (
                     <>
                         <div
-                            className="fixed inset-0 z-[1001]"
-                            style={{ zIndex: 1001 }}
+                            className="fixed inset-0 z-[1199]"
+                            style={{ zIndex: 1199 }}
                             onClick={() => setUserMenuOpen(false)}
                         />
                         <motion.div
                             initial={{ opacity: 0, y: -10, scale: 0.95 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                            className="fixed w-56 bg-white dark:bg-[#1a1512] border border-os-stroke rounded-lg shadow-2xl z-[1002] overflow-hidden"
+                            className="fixed w-56 bg-white dark:bg-[#1a1512] border border-os-stroke rounded-lg shadow-2xl z-[1200] overflow-hidden"
                             style={{
                                 top: `${menuPosition.top}px`,
                                 left: 'auto',

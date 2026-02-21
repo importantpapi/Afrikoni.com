@@ -461,65 +461,70 @@ function TeamMembersInner() {
                           <div className="mt-4 grid grid-cols-2 md:grid-cols-5 gap-3">
                             <div className="flex items-center gap-2">
                               <Switch
+                                id={`payouts-${member.id}`}
                                 checked={member.can_view_payouts || false}
                                 onCheckedChange={(checked) =>
                                   handleUpdatePermissions(member.id, { can_view_payouts: checked })
                                 }
                                 disabled={member.status !== 'active'}
                               />
-                              <Label className="text-os-xs flex items-center gap-1">
+                              <Label htmlFor={`payouts-${member.id}`} className="text-os-xs flex items-center gap-1">
                                 <DollarSign className="w-3 h-3" />
                                 Payouts
                               </Label>
                             </div>
                             <div className="flex items-center gap-2">
                               <Switch
+                                id={`tracking-${member.id}`}
                                 checked={member.can_view_tracking || false}
                                 onCheckedChange={(checked) =>
                                   handleUpdatePermissions(member.id, { can_view_tracking: checked })
                                 }
                                 disabled={member.status !== 'active'}
                               />
-                              <Label className="text-os-xs flex items-center gap-1">
+                              <Label htmlFor={`tracking-${member.id}`} className="text-os-xs flex items-center gap-1">
                                 <Truck className="w-3 h-3" />
                                 Tracking
                               </Label>
                             </div>
                             <div className="flex items-center gap-2">
                               <Switch
+                                id={`products-${member.id}`}
                                 checked={member.can_manage_products || false}
                                 onCheckedChange={(checked) =>
                                   handleUpdatePermissions(member.id, { can_manage_products: checked })
                                 }
                                 disabled={member.status !== 'active'}
                               />
-                              <Label className="text-os-xs flex items-center gap-1">
+                              <Label htmlFor={`products-${member.id}`} className="text-os-xs flex items-center gap-1">
                                 <Package className="w-3 h-3" />
                                 Products
                               </Label>
                             </div>
                             <div className="flex items-center gap-2">
                               <Switch
+                                id={`orders-${member.id}`}
                                 checked={member.can_manage_orders || false}
                                 onCheckedChange={(checked) =>
                                   handleUpdatePermissions(member.id, { can_manage_orders: checked })
                                 }
                                 disabled={member.status !== 'active'}
                               />
-                              <Label className="text-os-xs flex items-center gap-1">
+                              <Label htmlFor={`orders-${member.id}`} className="text-os-xs flex items-center gap-1">
                                 <FileText className="w-3 h-3" />
                                 Orders
                               </Label>
                             </div>
                             <div className="flex items-center gap-2">
                               <Switch
+                                id={`rfqs-${member.id}`}
                                 checked={member.can_manage_rfqs || false}
                                 onCheckedChange={(checked) =>
                                   handleUpdatePermissions(member.id, { can_manage_rfqs: checked })
                                 }
                                 disabled={member.status !== 'active'}
                               />
-                              <Label className="text-os-xs flex items-center gap-1">
+                              <Label htmlFor={`rfqs-${member.id}`} className="text-os-xs flex items-center gap-1">
                                 <FileText className="w-3 h-3" />
                                 RFQs
                               </Label>
@@ -554,24 +559,30 @@ function TeamMembersInner() {
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label>Email Address *</Label>
+                <Label htmlFor="inviteEmail">Email Address *</Label>
                 <Input
+                  id="inviteEmail"
+                  name="email"
                   type="email"
+                  autoComplete="email"
                   value={inviteForm.email}
                   onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
                   placeholder="team.member@afrikoni.com"
                 />
               </div>
               <div>
-                <Label>Name (Optional)</Label>
+                <Label htmlFor="inviteName">Name (Optional)</Label>
                 <Input
+                  id="inviteName"
+                  name="name"
+                  autoComplete="name"
                   value={inviteForm.name}
                   onChange={(e) => setInviteForm({ ...inviteForm, name: e.target.value })}
                   placeholder="John Doe"
                 />
               </div>
               <div>
-                <Label>Role</Label>
+                <Label htmlFor="inviteRole">Role</Label>
                 <Select value={inviteForm.role} onValueChange={(value) => {
                   setInviteForm({ ...inviteForm, role: value });
                   // Auto-set permissions based on role
@@ -583,7 +594,7 @@ function TeamMembersInner() {
                     setInviteForm(prev => ({ ...prev, can_view_tracking: true, can_manage_orders: true }));
                   }
                 }}>
-                  <SelectTrigger>
+                  <SelectTrigger id="inviteRole" name="role">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -606,51 +617,56 @@ function TeamMembersInner() {
                 <Label className="text-os-base font-semibold mb-3 block">Permissions</Label>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <Label className="flex items-center gap-2">
+                    <Label htmlFor="permPayouts" className="flex items-center gap-2">
                       <DollarSign className="w-4 h-4" />
                       View Payouts & Financial Data
                     </Label>
                     <Switch
+                      id="permPayouts"
                       checked={inviteForm.can_view_payouts}
                       onCheckedChange={(checked) => setInviteForm({ ...inviteForm, can_view_payouts: checked })}
                     />
                   </div>
                   <div className="flex items-center justify-between">
-                    <Label className="flex items-center gap-2">
+                    <Label htmlFor="permTracking" className="flex items-center gap-2">
                       <Truck className="w-4 h-4" />
                       View Tracking & Shipments
                     </Label>
                     <Switch
+                      id="permTracking"
                       checked={inviteForm.can_view_tracking}
                       onCheckedChange={(checked) => setInviteForm({ ...inviteForm, can_view_tracking: checked })}
                     />
                   </div>
                   <div className="flex items-center justify-between">
-                    <Label className="flex items-center gap-2">
+                    <Label htmlFor="permProducts" className="flex items-center gap-2">
                       <Package className="w-4 h-4" />
                       Manage Products
                     </Label>
                     <Switch
+                      id="permProducts"
                       checked={inviteForm.can_manage_products}
                       onCheckedChange={(checked) => setInviteForm({ ...inviteForm, can_manage_products: checked })}
                     />
                   </div>
                   <div className="flex items-center justify-between">
-                    <Label className="flex items-center gap-2">
+                    <Label htmlFor="permOrders" className="flex items-center gap-2">
                       <FileText className="w-4 h-4" />
                       Manage Orders
                     </Label>
                     <Switch
+                      id="permOrders"
                       checked={inviteForm.can_manage_orders}
                       onCheckedChange={(checked) => setInviteForm({ ...inviteForm, can_manage_orders: checked })}
                     />
                   </div>
                   <div className="flex items-center justify-between">
-                    <Label className="flex items-center gap-2">
+                    <Label htmlFor="permRfqs" className="flex items-center gap-2">
                       <FileText className="w-4 h-4" />
                       Manage RFQs
                     </Label>
                     <Switch
+                      id="permRfqs"
                       checked={inviteForm.can_manage_rfqs}
                       onCheckedChange={(checked) => setInviteForm({ ...inviteForm, can_manage_rfqs: checked })}
                     />

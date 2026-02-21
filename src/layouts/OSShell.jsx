@@ -91,7 +91,7 @@ export default function OSShell({
 
 
     const { theme, toggleTheme } = useTheme();
-    const { signOut } = useAuth();
+    const { logout } = useAuth();
     const { reducedMotion } = useOSSettings();
     const navigate = useNavigate();
 
@@ -127,7 +127,7 @@ export default function OSShell({
     const isHybridCapability = isBuyer && isSeller;
 
     const handleLogout = async () => {
-        await signOut();
+        await logout();
         navigate('/login');
     };
 
@@ -160,8 +160,7 @@ export default function OSShell({
 
                 {/* 2. Identity Layer (Header) - Col 2, Row 1 */}
                 <header
-                    className="col-span-1 md:col-start-2 row-start-1 h-14 border-b border-os-stroke bg-os-surface-solid z-[1050] px-4 flex items-center pt-safe"
-                    style={{ isolation: 'isolate' }}
+                    className="col-span-1 md:col-start-2 row-start-1 h-14 border-b border-os-stroke bg-os-surface-solid z-[1150] px-4 flex items-center pt-safe"
                 >
                     <IdentityLayer
                         user={user}
@@ -176,6 +175,7 @@ export default function OSShell({
                         onToggleHealth={() => setSystemHealthOpen(!systemHealthOpen)}
                         isLiteMode={isLiteMode}
                         onToggleLiteMode={() => setIsLiteMode(!isLiteMode)}
+                        capabilities={capabilities}
                     />
                 </header>
 

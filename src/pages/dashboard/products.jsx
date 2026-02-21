@@ -41,10 +41,20 @@ const statusConfig = {
   rejected: { label: 'Rejected', icon: AlertCircle },
 };
 
+import { useViewPermissions } from '@/hooks/useViewPermissions';
+
 export default function Products() {
   const navigate = useNavigate();
   const location = useLocation();
   const { profileCompanyId, canLoadData } = useDashboardKernel();
+  const { isSourcing } = useViewPermissions();
+
+  // 🛡️ UNIFIED TRADER GUARD: Prevent Sourcing mode from accessing Distribution tools
+  useEffect(() => {
+    if (isSourcing) {
+      navigate('/dashboard');
+    }
+  }, [isSourcing, navigate]);
 
   // \u2705 REACT QUERY: Auto-refresh, cache management, race condition handling
   const { data: products = [], isLoading, error: queryError, refetch: loadProducts } = useProducts();

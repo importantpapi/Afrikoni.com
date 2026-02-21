@@ -14,19 +14,21 @@ import { Label } from '@/components/shared/ui/label';
 import { Textarea } from '@/components/shared/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/shared/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/shared/ui/select';
-import { CountrySelect } from '@/components/shared/ui/CountrySelect';
 import { Badge } from '@/components/shared/ui/badge';
+import { SearchableSelect } from '@/components/shared/ui/SearchableSelect';
 import { Surface } from '@/components/system/Surface';
+import { MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   Building, Save, CheckCircle, AlertCircle, Upload, X,
-  Image as ImageIcon, Users, Plus, Trash2, Sparkles,
+  ImageIcon, Users, Plus, Trash2, Sparkles,
   Zap, Globe, Activity, ShieldCheck, Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/shared/ui/tabs';
 import { useTrustScore } from '@/hooks/useTrustScore';
 import TrustScoreCard from '@/components/trust/TrustScoreCard';
+
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 
 const AFRICAN_COUNTRIES = [
@@ -34,51 +36,69 @@ const AFRICAN_COUNTRIES = [
   'Central African Republic', 'Chad', 'Comoros', 'Congo', 'DR Congo', "Côte d'Ivoire", 'Djibouti',
   'Egypt', 'Equatorial Guinea', 'Eritrea', 'Eswatini', 'Ethiopia', 'Gabon', 'Gambia', 'Ghana',
   'Guinea', 'Guinea-Bissau', 'Kenya', 'Lesotho', 'Liberia', 'Libya', 'Madagascar', 'Malawi',
-  'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibia', 'Niger', 'Nigeria',
+  'Mali', 'Mauritania', 'Mauritius', 'Morocco', 'Mozambique', 'Namibe', 'Niger', 'Nigeria',
   'Rwanda', 'São Tomé and Príncipe', 'Senegal', 'Seychelles', 'Sierra Leone', 'Somalia',
   'South Africa', 'South Sudan', 'Sudan', 'Tanzania', 'Togo', 'Tunisia', 'Uganda', 'Zambia', 'Zimbabwe'
 ];
 
-// Validation function for company form
+const CITY_BY_COUNTRY = {
+  'DR Congo': ['Kinshasa', 'Lubumbashi', 'Mbuji-Mayi', 'Kananga', 'Kisangani', 'Bukavu', 'Goma', 'Likasi', 'Tshikapa', 'Kindu', 'Uvira', 'Matadi', 'Mbandaka', 'Beni', 'Butembo', 'Kolwezi', 'Isiro', 'Mwene-Ditu', 'Kikwit', 'Kalemie', 'Kamina', 'Gandajika', 'Bandundu', 'Gemena', 'Kipushi', 'Boma', 'Kasongo', 'Bunia', 'Mbanza-Ngungu'],
+  'Congo': ['Brazzaville', 'Pointe-Noire', 'Dolisie', 'Madingou', 'Ouenze', 'Loandjili'],
+  'Nigeria': ['Lagos', 'Kano', 'Ibadan', 'Abuja', 'Port Harcourt', 'Benin City', 'Maiduguri', 'Zaria', 'Aba', 'Jos', 'Ilorin', 'Oyo', 'Enugu', 'Abeokuta', 'Onitsha', 'Warri', 'Sokoto', 'Ikorodu', 'Oshogbo', 'Calabar'],
+  'Kenya': ['Nairobi', 'Mombasa', 'Kisumu', 'Nakuru', 'Eldoret', 'Kehancha', 'Ruiru', 'Kikuyu', 'Kangundo-Tala', 'Malindi'],
+  'South Africa': ['Johannesburg', 'Cape Town', 'Ethekwini', 'Ekurhuleni', 'Tshwane', 'Nelson Mandela Bay', 'Buffalo City', 'Manguang', 'Emfuleni', 'Polokwane'],
+  'Egypt': ['Cairo', 'Alexandria', 'Giza', 'Shubra El Kheima', 'Port Said', 'Suez', 'Luxor', 'Mansoura', 'El Mahalla El Kubra', 'Tanta'],
+  'Ghana': ['Accra', 'Kumasi', 'Tamale', 'Sekondi-Takoradi', 'Ashaiman', 'Sunyani', 'Cape Coast', 'Obuasi', 'Teshie', 'Tema'],
+  'Morocco': ['Casablanca', 'Fez', 'Tangier', 'Marrakech', 'Salé', 'Meknes', 'Rabat', 'Oujda', 'Kenitra', 'Agadir'],
+  'Ethiopia': ['Addis Ababa', 'Gondar', 'Mek\'ele', 'Adama', 'Awasa', 'Bahir Dar', 'Dire Dawa', 'Dessie', 'Jimma', 'Jijiga'],
+  'Tanzania': ['Dar es Salaam', 'Mwanza', 'Arusha', 'Dodoma', 'Mbeya', 'Morogoro', 'Tanga', 'Kahama', 'Tabora', 'Zanzibar City'],
+  'Angola': ['Luanda', 'N\'dalatando', 'Huambo', 'Lobito', 'Benguela', 'Kuito', 'Lubango', 'Malanje', 'Namibe', 'Soy'],
+  "Côte d'Ivoire": ['Abidjan', 'Bouaké', 'Daloa', 'Korhogo', 'Yamoussoukro', 'San-Pédro', 'Gagnoa', 'Man', 'Divo', 'Anyama'],
+  'Senegal': ['Dakar', 'Touba', 'Thiès', 'Rufisque', 'Kaolack', 'M\'bour', 'Ziguinchor', 'Saint-Louis', 'Diourbel', 'Louga'],
+  'Cameroon': ['Douala', 'Yaoundé', 'Bamenda', 'Bafoussam', 'Garoua', 'Maroua', 'Ngaoundéré', 'Kumba', 'Nkongsamba', 'Buea'],
+  'Uganda': ['Kampala', 'Nansana', 'Kira', 'Ssabagabo', 'Mbarara', 'Mukono', 'Gulu', 'Lugazi', 'Masaka', 'Kasese'],
+  'Algeria': ['Algiers', 'Oran', 'Constantine', 'Batna', 'Djelfa', 'Sétif', 'Sidi Bel Abbès', 'Biskra', 'Tébessa', 'El Oued'],
+  'Gabon': ['Libreville', 'Port-Gentil', 'Franceville', 'Oyem', 'Moanda'],
+  'Togo': ['Lomé', 'Sokodé', 'Kara', 'Atakpamé', 'Kpalimé'],
+  'Benin': ['Cotonou', 'Abomey-Calavi', 'Porto-Novo', 'Parakou', 'Djougou'],
+  'Mali': ['Bamako', 'Sikasso', 'Kalabancoro', 'Koutiala', 'Mopti'],
+  'Niger': ['Niamey', 'Zinder', 'Maradi', 'Tahoua', 'Agadez'],
+  'Burkina Faso': ['Ouagadougou', 'Bobo-Dioulasso', 'Koudougou', 'Banfora', 'Ouahigouya'],
+  'Guinea': ['Conakry', 'Nzérékoré', 'Kankan', 'Kindia', 'Labé'],
+  'Libya': ['Tripoli', 'Benghazi', 'Misrata', 'Tarhuna', 'Al Khums'],
+  'Tunisia': ['Tunis', 'Sfax', 'Sousse', 'Ettadhamen', 'Kairouan'],
+  'Sudan': ['Khartoum', 'Omdurman', 'Nyala', 'Port Sudan', 'Kassala'],
+  'Zambia': ['Lusaka', 'Kitwe', 'Ndola', 'Kabwe', 'Chingola'],
+  'Zimbabwe': ['Harare', 'Bulawayo', 'Chitungwiza', 'Mutare', 'Epworth']
+};
+
 const validateCompanyForm = (formData) => {
   const errors = {};
-
   if (!formData.company_name || formData.company_name.trim().length < 2) {
     errors.company_name = 'Company name must be at least 2 characters';
   }
-
   if (!formData.country) {
     errors.country = 'Please select a country';
   }
-
-  if (!formData.phone || formData.phone.trim().length < 5) {
+  if (formData.phone && formData.phone.trim().length < 5) {
     errors.phone = 'Please enter a valid phone number';
   }
-
   if (formData.business_email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.business_email)) {
     errors.business_email = 'Please enter a valid email address';
   }
-
   if (formData.website && !/^https?:\/\/.+/.test(formData.website)) {
     errors.website = 'Please enter a valid website URL (starting with http:// or https://)';
   }
-
   return errors;
 };
 
 export default function CompanyInfo() {
-  // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
   const { profileCompanyId, userId, user, canLoadData, capabilities, isSystemReady } = useDashboardKernel();
-
-  // ✅ TRUST SCORE INTEGRATION
   const { trustData, loading: trustLoading } = useTrustScore(profileCompanyId);
-
   const [searchParams] = useSearchParams();
   const returnUrl = searchParams.get('return') || '/dashboard';
   const navigate = useNavigate();
   const location = useLocation();
-
-  // ✅ GLOBAL HARDENING: Data freshness tracking (30 second threshold)
   const { isStale, markFresh } = useDataFreshness(30000);
   const lastLoadTimeRef = useRef(null);
 
@@ -106,10 +126,8 @@ export default function CompanyInfo() {
   const [teamMembers, setTeamMembers] = useState([]);
   const [newTeamMember, setNewTeamMember] = useState({ email: '', role: 'member' });
   const [isAddingTeamMember, setIsAddingTeamMember] = useState(false);
-  const [currentRole, setCurrentRole] = useState(capabilities?.role || 'buyer');
   const [errors, setErrors] = useState({});
 
-  // ✅ KERNEL MIGRATION: Use isSystemReady for loading state (UI Gate)
   if (!isSystemReady) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -118,466 +136,87 @@ export default function CompanyInfo() {
     );
   }
 
-  // ✅ KERNEL MIGRATION: Check if user is authenticated (Safe Navigation)
   useEffect(() => {
     if (isSystemReady && !userId) {
       navigate('/login');
     }
   }, [isSystemReady, userId, navigate]);
 
-  if (!userId || !isSystemReady) {
-    return null;
-  }
-
   const handleLogoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       toast.error('Please upload an image file');
-      e.target.value = '';
       return;
     }
-
-    // Validate file size
     if (file.size > 5 * 1024 * 1024) {
       toast.error('Logo file size must be less than 5MB');
-      e.target.value = '';
       return;
     }
-
     setUploadingLogo(true);
     try {
-      // Generate unique filename with proper sanitization
       const timestamp = Date.now();
       const randomStr = Math.random().toString(36).substring(2, 9);
-      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const fileName = `company-logos/${timestamp}-${randomStr}-${cleanFileName}`;
-
+      const fileName = `company-logos/${timestamp}-${randomStr}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
       const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'files', fileName);
       setLogoUrl(file_url);
       toast.success('Logo uploaded successfully');
     } catch (error) {
-      // ✅ GLOBAL HARDENING: Enhanced error logging
-      logError('handleLogoUpload', error, {
-        table: 'companies',
-        companyId: profileCompanyId,
-        userId: userId
-      });
-      toast.error(`Failed to upload logo: ${error.message || 'Please try again'}`);
+      logError('handleLogoUpload', error, { table: 'companies', companyId: profileCompanyId, userId });
+      toast.error(`Failed to upload logo: ${error.message}`);
     } finally {
       setUploadingLogo(false);
-      // Reset file input
       e.target.value = '';
     }
   };
 
-  const handleCoverUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      toast.error('Please upload an image file');
-      e.target.value = '';
-      return;
-    }
-
-    // Validate file size
-    if (file.size > 10 * 1024 * 1024) {
-      toast.error('Cover image size must be less than 10MB');
-      e.target.value = '';
-      return;
-    }
-
-    setUploadingCover(true);
+  const loadData = async () => {
+    if (!profileCompanyId) return;
     try {
-      // Generate unique filename with proper sanitization
-      const fileExt = file.name.split('.').pop();
-      const timestamp = Date.now();
-      const randomStr = Math.random().toString(36).substring(2, 9);
-      const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const fileName = `company-covers/${timestamp}-${randomStr}-${cleanFileName}`;
-
-      const { file_url } = await supabaseHelpers.storage.uploadFile(file, 'files', fileName);
-      setCoverUrl(file_url);
-      toast.success('Cover image uploaded successfully');
-    } catch (error) {
-      // ✅ GLOBAL HARDENING: Enhanced error logging
-      logError('handleCoverUpload', error, {
-        table: 'companies',
-        companyId: profileCompanyId,
-        userId: userId
-      });
-      toast.error(`Failed to upload cover image: ${error.message || 'Please try again'}`);
-    } finally {
-      setUploadingCover(false);
-      // Reset file input
-      e.target.value = '';
-    }
-  };
-
-  const handleGalleryUpload = async (e) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length === 0) return;
-
-    // Validate file count
-    if (galleryImages.length + files.length > 10) {
-      toast.error('Maximum 10 gallery images allowed');
-      return;
-    }
-
-    // Validate file types and sizes before uploading
-    const validFiles = [];
-    const invalidFiles = [];
-
-    files.forEach(file => {
-      // Check file type
-      if (!file.type.startsWith('image/')) {
-        invalidFiles.push(`${file.name} is not an image file`);
-        return;
-      }
-
-      // Check file size
-      if (file.size > 10 * 1024 * 1024) {
-        invalidFiles.push(`${file.name} is too large (max 10MB)`);
-        return;
-      }
-
-      validFiles.push(file);
-    });
-
-    // Show errors for invalid files
-    if (invalidFiles.length > 0) {
-      invalidFiles.forEach(msg => toast.error(msg));
-    }
-
-    if (validFiles.length === 0) {
-      return;
-    }
-
-    setUploadingGallery(true);
-    try {
-      // Use Promise.allSettled to handle individual failures
-      const uploadPromises = validFiles.map(async (file) => {
-        try {
-          // Generate unique filename with proper sanitization
-          const fileExt = file.name.split('.').pop();
-          const timestamp = Date.now();
-          const randomStr = Math.random().toString(36).substring(2, 9);
-          const cleanFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-          const fileName = `company-gallery/${timestamp}-${randomStr}-${cleanFileName}`;
-
-          const result = await supabaseHelpers.storage.uploadFile(
-            file,
-            'files',
-            fileName
-          );
-
-
-          if (!result || !result.file_url) {
-            // ✅ GLOBAL HARDENING: Enhanced error logging
-            logError('handleGalleryUpload-missingUrl', new Error('Upload succeeded but file_url is missing'), {
-              table: 'companies',
-              companyId: profileCompanyId,
-              userId: userId,
-              result: result
-            });
-            throw new Error('Upload succeeded but file URL is missing');
-          }
-
-          return { success: true, url: result.file_url, fileName: file.name };
-        } catch (error) {
-          logError('handleGalleryUpload-file', error, {
-            table: 'companies',
-            companyId: profileCompanyId,
-            userId: userId,
-            fileName: file.name
-          });
-          return { success: false, fileName: file.name, error: error.message };
-        }
-      });
-
-      const results = await Promise.allSettled(uploadPromises);
-
-      // Process results
-      const successfulUploads = [];
-      const failedUploads = [];
-
-      results.forEach((result, index) => {
-        if (result.status === 'fulfilled' && result.value.success && result.value.url) {
-          successfulUploads.push(result.value.url);
-        } else {
-          const fileName = result.status === 'fulfilled'
-            ? result.value.fileName
-            : validFiles[index]?.name || 'unknown';
-          logError('handleGalleryUpload-fileFailed', result.reason || new Error('Upload failed'), {
-            table: 'companies',
-            companyId: profileCompanyId,
-            userId: userId,
-            fileName: fileName
-          });
-          failedUploads.push(fileName);
-        }
-      });
-
-
-      // Update gallery with successful uploads
-      if (successfulUploads.length > 0) {
-
-        // Filter out any null/undefined URLs
-        const validUrls = successfulUploads.filter(url => url && typeof url === 'string' && url.trim().length > 0);
-
-        if (validUrls.length === 0) {
-          logError('handleGalleryUpload-invalidUrls', new Error('No valid URLs in successful uploads'), {
-            table: 'companies',
-            companyId: profileCompanyId,
-            userId: userId,
-            successfulUploads: successfulUploads
-          });
-          toast.error('Images uploaded but URLs are invalid. Please try again.');
-          // Reset file input and clear uploading state
-          if (e.target) e.target.value = '';
-          setUploadingGallery(false);
-          return;
-        }
-
-        // Update state and get the updated value for auto-save
-        let updatedGalleryImages;
-        setGalleryImages(prev => {
-          updatedGalleryImages = [...prev, ...validUrls];
-          return updatedGalleryImages;
+      if (!formData.company_name) setIsLoading(true);
+      const { data: companyData, error: companyError } = await supabase
+        .from('companies')
+        .select('*')
+        .eq('id', profileCompanyId)
+        .single();
+      if (companyError) throw companyError;
+      if (companyData) {
+        setFormData({
+          company_name: companyData.company_name || '',
+          business_type: companyData.business_type || 'manufacturer',
+          country: companyData.country || '',
+          city: companyData.city || '',
+          phone: companyData.phone || '',
+          business_email: companyData.email || user?.email || '',
+          website: companyData.website || '',
+          year_established: companyData.year_established || '',
+          company_size: companyData.employee_count || '1-10',
+          company_description: companyData.description || ''
         });
-
-        // Auto-save gallery images to database immediately (don't wait for form submission)
-        if (profileCompanyId && updatedGalleryImages) {
-          try {
-            const { error: saveError } = await supabase
-              .from('companies')
-              .update({
-                gallery_images: updatedGalleryImages
-              })
-              .eq('id', profileCompanyId);
-
-            if (saveError) {
-              logError('autoSaveGallery', saveError, {
-                table: 'companies',
-                companyId: profileCompanyId,
-                userId: userId
-              });
-              // Don't show error to user - images are in state, just not persisted yet
-            } else {
-            }
-          } catch (saveErr) {
-            logError('autoSaveGallery', saveErr, {
-              table: 'companies',
-              companyId: profileCompanyId,
-              userId: userId
-            });
-          }
-        }
-
-        toast.success(`${validUrls.length} image(s) uploaded and displayed successfully`);
+        setLogoUrl(companyData.logo_url || '');
+        setCoverUrl(companyData.cover_image_url || '');
+        setGalleryImages(Array.isArray(companyData.gallery_images) ? companyData.gallery_images : []);
       }
-
-      // Show errors for failed uploads
-      if (failedUploads.length > 0) {
-        toast.error(`Failed to upload ${failedUploads.length} image(s): ${failedUploads.join(', ')}`);
-      }
-
-      // If all failed, show generic error
-      if (successfulUploads.length === 0 && failedUploads.length > 0) {
-        toast.error('Failed to upload gallery images. Please check file sizes and try again.');
-      }
-    } catch (error) {
-      // ✅ GLOBAL HARDENING: Enhanced error logging
-      logError('handleGalleryUpload', error, {
-        table: 'companies',
-        companyId: profileCompanyId,
-        userId: userId
-      });
-      toast.error('Failed to upload gallery images. Please try again.');
+      const { data: teamData } = await supabase.from('company_team').select('*').eq('company_id', profileCompanyId).order('created_at', { ascending: false });
+      setTeamMembers(teamData || []);
+      lastLoadTimeRef.current = Date.now();
+      markFresh();
+    } catch (err) {
+      logError('loadData', err, { profileCompanyId });
+      toast.error('Failed to load company information');
     } finally {
-      setUploadingGallery(false);
-      // Reset file input to allow re-uploading the same file
-      e.target.value = '';
+      setIsLoading(false);
     }
-  };
-
-  const removeGalleryImage = (index) => {
-    setGalleryImages(prev => prev.filter((_, i) => i !== index));
-    toast.success('Image removed');
   };
 
   useEffect(() => {
-    let isMounted = true;
-    let timeoutId = null;
-
-    // Safety timeout: Force loading to false after 15 seconds
-    timeoutId = setTimeout(() => {
-      if (isMounted) {
-        console.warn('[CompanyInfo] Loading timeout - forcing loading to false');
-        setIsLoading(false);
-      }
-    }, 15000);
-
-    const loadData = async () => {
-      if (!profileCompanyId) {
-        if (isMounted) {
-          clearTimeout(timeoutId);
-          setIsLoading(false);
-        }
-        return;
-      }
-
-      try {
-        // ✅ STALE-WHILE-REVALIDATE: Only set loading on first load
-        // During background refresh, keep existing form visible
-        if (!formData.company_name) {
-          setIsLoading(true);
-        }
-        setError(null);
-
-        // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
-        // If profile has company_id, load company data
-        // ✅ GLOBAL REFACTOR: Use .single() instead of .maybeSingle() for companies
-        const { data: companyData, error: companyError } = await supabase
-          .from('companies')
-          .select('*')
-          .eq('id', profileCompanyId)
-          .single();
-
-        // ✅ GLOBAL HARDENING: Enhanced error logging with PGRST116 handling
-        if (companyError) {
-          // Handle PGRST116 (not found) - company doesn't exist, redirect to onboarding
-          if (companyError.code === 'PGRST116') {
-            navigate('/onboarding/company', { replace: true });
-            return;
-          }
-          logError('loadData-companies', companyError, {
-            table: 'companies',
-            companyId: profileCompanyId,
-            userId: userId
-          });
-          throw companyError;
-        }
-
-        // ✅ KERNEL COMPLIANCE: Use user from kernel instead of direct auth API call
-        const userEmail = user?.email || '';
-
-        if (companyData) {
-          setFormData({
-            company_name: companyData.company_name || '',
-            business_type: companyData.business_type || 'manufacturer',
-            country: companyData.country || '',
-            city: companyData.city || '',
-            phone: companyData.phone || '',
-            business_email: companyData.email || userEmail || '',
-            website: companyData.website || '',
-            year_established: companyData.year_established || '',
-            company_size: companyData.employee_count || '1-10',
-            company_description: companyData.description || ''
-          });
-          setLogoUrl(companyData.logo_url || '');
-          setCoverUrl(companyData.cover_image_url ?? companyData.cover_url ?? ''); // ✅ KERNEL-CENTRIC: Vibranium defaults
-          setGalleryImages(Array.isArray(companyData.gallery_images) ? companyData.gallery_images : []);
-        } else {
-          // No company data yet - set default email if available
-          if (userEmail) {
-            setFormData(prev => ({
-              ...prev,
-              business_email: userEmail
-            }));
-          }
-        }
-
-        // ✅ SCHEMA ALIGNMENT: Load team members (table now exists with required columns)
-        if (profileCompanyId) {
-          const { data: teamData, error: teamError } = await supabase
-            .from('company_team')
-            .select('*')
-            .eq('company_id', profileCompanyId)
-            .order('created_at', { ascending: false });
-
-          // ✅ GLOBAL HARDENING: Enhanced error logging
-          if (teamError) {
-            // ✅ VIBRANIUM STABILIZATION: Ignore PGRST204/205 errors - UI stays alive
-            if (teamError.code === 'PGRST204' || teamError.code === 'PGRST205') {
-              setTeamMembers([]);
-            } else {
-              logError('loadData-team', teamError, {
-                table: 'company_team',
-                companyId: profileCompanyId,
-                userId: userId
-              });
-              setTeamMembers([]);
-            }
-          } else {
-            setTeamMembers(teamData || []);
-          }
-        }
-
-        // ✅ GLOBAL HARDENING: Mark fresh ONLY on successful load
-        lastLoadTimeRef.current = Date.now();
-        markFresh();
-
-        // ✅ GLOBAL HARDENING: Derive role from capabilities instead of role prop
-        const isLogistics = capabilities?.can_logistics === true && capabilities?.logistics_status === 'approved';
-        const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
-        const normalizedRole = isLogistics ? 'logistics' : (isSeller ? 'seller' : 'buyer');
-        setCurrentRole(normalizedRole);
-      } catch (err) {
-        // ✅ VIBRANIUM STABILIZATION: Ignore PGRST204/205 errors - UI stays alive
-        if (err?.code === 'PGRST204' || err?.code === 'PGRST205') {
-          // Don't set error state - allow UI to continue
-          return;
-        }
-
-        // ✅ GLOBAL HARDENING: Enhanced error logging
-        logError('loadData', err, {
-          table: 'companies',
-          companyId: profileCompanyId,
-          userId: userId
-        });
-        setError(err.message || 'Failed to load company information');
-        if (isMounted) {
-          toast.error('Failed to load company information');
-        }
-      } finally {
-        // ✅ VIBRANIUM STABILIZATION: Always reset loading state (non-negotiable)
-        if (isMounted) {
-          clearTimeout(timeoutId);
-          setIsLoading(false);
-        }
-      }
-    };
-
-    // ✅ KERNEL MIGRATION: Use canLoadData guard
-    if (!canLoadData) {
-      return;
-    }
-
-    // ✅ GLOBAL HARDENING: Check if data is stale (older than 30 seconds)
-    const shouldRefresh = isStale ||
-      !lastLoadTimeRef.current ||
-      (Date.now() - lastLoadTimeRef.current > 30000);
-
-    // Only load data when system is ready
-    if (shouldRefresh) {
+    if (canLoadData && (isStale || !lastLoadTimeRef.current || (Date.now() - lastLoadTimeRef.current > 30000))) {
       loadData();
     }
-
-    return () => {
-      isMounted = false;
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [canLoadData, profileCompanyId, userId, location.pathname, isStale, navigate]);
+  }, [canLoadData, profileCompanyId, userId, isStale]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Validate form
     const validationErrors = validateCompanyForm(formData);
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors);
@@ -588,250 +227,128 @@ export default function CompanyInfo() {
     setErrors({});
     setIsSaving(true);
 
-    // Add timeout wrapper to prevent infinite hanging
     const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('Save operation timed out after 30 seconds')), 30000);
+      setTimeout(() => reject(new Error('Save operation timed out')), 30000);
     });
 
     try {
-
       if (!userId) {
         navigate('/login');
         return;
       }
 
-      // ✅ KERNEL COMPLIANCE: Use user from kernel instead of direct auth API call
       const userEmail = user?.email || '';
-
       let finalCompanyId = profileCompanyId;
+      let yearEstablishedValue = null;
+      if (formData.year_established) {
+        const year = parseInt(formData.year_established, 10);
+        if (!isNaN(year)) yearEstablishedValue = year;
+      }
 
-      // ✅ KERNEL MIGRATION: Create or update company with timeout
-      if (profileCompanyId) {
-        // Update existing company
-        // Convert year_established to integer or null (database expects integer, not empty string)
-        let yearEstablished = null;
-        if (formData.year_established) {
-          const year = typeof formData.year_established === 'string'
-            ? parseInt(formData.year_established.trim(), 10)
-            : formData.year_established;
-          if (!isNaN(year) && year > 1900 && year <= new Date().getFullYear()) {
-            yearEstablished = year;
-          }
-        }
-
-        const updatePromise = supabase
+      // 1. IDENTITY RECOVERY
+      if (!finalCompanyId && userEmail) {
+        const { data: existingMatch } = await supabase
           .from('companies')
-          .update({
-            company_name: formData.company_name,
-            business_type: formData.business_type,
-            country: formData.country || null,
-            city: formData.city || null,
-            phone: formData.phone || null,
-            email: formData.business_email || userEmail || null,
-            website: formData.website || null,
-            year_established: yearEstablished, // INTEGER: null or valid year
-            employee_count: formData.company_size || '1-10',
-            description: formData.company_description || null,
-            logo_url: logoUrl || null,
-            cover_image_url: coverUrl ?? null, // ✅ KERNEL-CENTRIC: Vibranium defaults
-            gallery_images: galleryImages || null
-          })
-          .eq('id', profileCompanyId);
+          .select('id')
+          .eq('owner_email', userEmail)
+          .maybeSingle();
+        if (existingMatch) finalCompanyId = existingMatch.id;
+      }
 
-        const { error: updateErr } = await Promise.race([updatePromise, timeoutPromise]);
+      // 2. CREATE OR UPDATE COMPANY
+      const companyPayload = {
+        company_name: formData.company_name,
+        business_type: formData.business_type,
+        country: formData.country || null,
+        city: formData.city || null,
+        phone: formData.phone || null,
+        email: formData.business_email || userEmail || null,
+        owner_email: userEmail || null,
+        website: formData.website || null,
+        year_established: yearEstablishedValue,
+        employee_count: formData.company_size || '1-10',
+        description: formData.company_description || null,
+        logo_url: logoUrl || null,
+        cover_image_url: coverUrl || null,
+        gallery_images: galleryImages || null
+      };
 
+      if (finalCompanyId) {
+        const { error: updateErr } = await Promise.race([
+          supabase.from('companies').update(companyPayload).eq('id', finalCompanyId),
+          timeoutPromise
+        ]);
         if (updateErr) {
-          logError('updateCompany', updateErr, {
-            table: 'companies',
-            companyId: profileCompanyId,
-            userId: userId
-          });
-          throw new Error(`Failed to update company: ${updateErr.message || 'Unknown error'}`);
+          if (updateErr.code === '42501' || updateErr.message?.includes('permission denied')) {
+            throw new Error(`Permission Denied (RLS): Your account is not authorized to update this record. Please apply the latest migrations.`);
+          }
+          throw updateErr;
         }
       } else {
-        // Create new company
-        const insertData = {
+        const { data: newCompany, error: insertErr } = await Promise.race([
+          supabase.from('companies').insert(companyPayload).select('id').single(),
+          timeoutPromise
+        ]);
+        if (insertErr) throw insertErr;
+        finalCompanyId = newCompany.id;
+      }
+
+      // 3. SECURE LINKING (RPC)
+      const { error: linkErr } = await Promise.race([
+        supabase.rpc('link_user_to_company', {
+          target_user_id: String(userId),
+          target_company_id: String(finalCompanyId)
+        }),
+        timeoutPromise
+      ]);
+
+      if (linkErr) {
+        console.warn('[CompanyInfo] RPC Link failed, using direct update fallback', linkErr);
+        await supabase.from('profiles').update({ company_id: finalCompanyId }).eq('id', userId);
+      }
+
+      // 4. SECONDARY SYNC (Hardened)
+      const { error: profileErr } = await Promise.race([
+        supabase.from('profiles').update({
           company_name: formData.company_name,
           business_type: formData.business_type,
           country: formData.country || null,
           city: formData.city || null,
           phone: formData.phone || null,
-          email: formData.business_email || userEmail || null,
           website: formData.website || null,
-          year_established: yearEstablished,
-          employee_count: formData.company_size || '1-10',
-          description: formData.company_description || null,
-          logo_url: logoUrl || null,
-          cover_image_url: coverUrl ?? null,
-          gallery_images: galleryImages || null
-        };
+          year_established: String(yearEstablishedValue || ''),
+          company_size: formData.company_size || '1-10',
+          company_description: formData.company_description || null,
+          role: 'trader',
+          onboarding_completed: true
+        }).eq('id', userId),
+        timeoutPromise
+      ]);
 
-        const insertPromise = supabase
-          .from('companies')
-          .insert(insertData)
-          .select('id')
-          .single();
+      if (profileErr) console.warn("Profile sync issues:", profileErr.message);
 
-        const { data: newCompany, error: companyErr } = await Promise.race([insertPromise, timeoutPromise]);
-
-        if (companyErr) {
-          logError('createCompany', companyErr, {
-            table: 'companies',
-            companyId: profileCompanyId,
-            userId: userId
-          });
-          throw new Error(`Failed to create company: ${companyErr.message || 'Unknown error'}`);
-        }
-        finalCompanyId = newCompany.id;
-
-        // Note: profileCompanyId will be updated via kernel when profile is updated below
-      }
-
-      // Update profile with company information
-      const profileUpdate = {
-        company_id: finalCompanyId,
-        company_name: formData.company_name,
-        business_type: formData.business_type,
-        country: formData.country,
-        city: formData.city,
-        phone: formData.phone,
-        business_email: formData.business_email,
-        website: formData.website,
-        year_established: formData.year_established,
-        company_size: formData.company_size,
-        company_description: formData.company_description
-      };
-
-      const profilePromise = supabase
-        .from('profiles')
-        .upsert({
-          id: userId,
-          ...profileUpdate
-        }, { onConflict: 'id' });
-
-      const { error: profileErr } = await Promise.race([profilePromise, timeoutPromise]);
-
-      if (profileErr) {
-        logError('updateProfile', profileErr, {
-          table: 'profiles',
-          companyId: finalCompanyId,
-          userId: userId
-        });
-        throw new Error(`Failed to save profile: ${profileErr.message || 'Unknown error'}`);
-      }
       toast.success('Company information saved successfully!');
-
-      // ✅ PWA FIX: Invalidate kernel state to force refetch
-      // This ensures UI reflects new company data immediately without hard refresh
       if (typeof window !== 'undefined' && window.dispatchEvent) {
-        window.dispatchEvent(new CustomEvent('company-profile-updated', {
-          detail: { companyId: finalCompanyId }
-        }));
+        window.dispatchEvent(new CustomEvent('company-profile-updated', { detail: { companyId: finalCompanyId } }));
       }
 
-      // Redirect back to where user came from, or to dashboard
-      // Small delay to show success message
       setTimeout(() => {
         setIsSaving(false);
         navigate(returnUrl);
       }, 800);
     } catch (error) {
-      logError('saveCompanyInfo', error, {
-        table: 'companies',
-        companyId: profileCompanyId,
-        userId: userId
-      });
-      const errorMessage = error?.message || error?.error?.message || 'Failed to save company information. Please try again.';
-      toast.error(errorMessage);
-      setIsSaving(false); // Ensure saving state is cleared on error
-    } finally {
+      logError('saveCompanyInfo', error, { profileCompanyId, userId });
+      toast.error(error.message || 'Failed to save company information');
       setIsSaving(false);
     }
   };
 
-  const handleAddTeamMember = async () => {
-    if (!newTeamMember.email || !profileCompanyId) {
-      toast.error('Please enter an email address');
-      return;
-    }
-
-    setIsAddingTeamMember(true);
-    try {
-      const { error } = await supabase
-        .from('company_team')
-        .insert({
-          company_id: profileCompanyId,
-          member_email: newTeamMember.email,
-          role_label: newTeamMember.role,
-          created_by: userId
-        });
-
-      if (error) throw error;
-
-      toast.success('Team member added');
-      setNewTeamMember({ email: '', role: 'member' });
-      // Reload data
-      const shouldRefresh = isStale || !lastLoadTimeRef.current || (Date.now() - lastLoadTimeRef.current > 30000);
-      if (shouldRefresh) {
-        loadData();
-      }
-    } catch (err) {
-      toast.error('Failed to add team member');
-    } finally {
-      setIsAddingTeamMember(false);
-    }
-  };
-
-  const handleRemoveTeamMember = async (memberId) => {
-    if (!confirm('Are you sure you want to remove this team member?')) return;
-
-    try {
-      const { error } = await supabase
-        .from('company_team')
-        .delete()
-        .eq('id', memberId);
-
-      if (error) throw error;
-
-      toast.success('Team member removed');
-      // Reload data
-      const shouldRefresh = isStale || !lastLoadTimeRef.current || (Date.now() - lastLoadTimeRef.current > 30000);
-      if (shouldRefresh) {
-        loadData();
-      }
-    } catch (err) {
-      toast.error('Failed to remove team member');
-    }
-  };
-
-  // ✅ STALE-WHILE-REVALIDATE: Only show skeleton on first load
-  // If we have formData (company_name), keep showing it during background refresh
-  if (isLoading && !formData.company_name) {
-    return <CardSkeleton count={3} />;
-  }
-
-  // ✅ KERNEL MIGRATION: Use ErrorState component for errors
-  if (error) {
-    return (
-      <ErrorState
-        message={error}
-        onRetry={() => {
-          setError(null);
-          const shouldRefresh = isStale || !lastLoadTimeRef.current || (Date.now() - lastLoadTimeRef.current > 30000);
-          if (shouldRefresh) {
-            loadData();
-          }
-        }}
-      />
-    );
-  }
-
-  // Make all fields optional - no blocking
-  const requiredFieldsFilled = true; // Always allow save
+  if (isLoading && !formData.company_name) return <CardSkeleton count={3} />;
+  if (error) return <ErrorState message={error} onRetry={loadData} />;
 
   return (
     <div className="os-page os-stagger space-y-10 max-w-[1600px] mx-auto pb-24 px-4 py-8">
-      {/* 1. Header & Identity Summary */}
+      {/* Header & Identity Summary */}
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
         <div className="space-y-4">
           <div className="flex items-center gap-5">
@@ -852,19 +369,13 @@ export default function CompanyInfo() {
 
         <div className="flex items-center gap-4">
           <Surface variant="panel" className="px-6 py-4 flex items-center gap-6">
-            <div className="flex items-center gap-3">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <div className="space-y-0.5">
-                <div className="text-xs font-semibold uppercase tracking-wider text-os-text-secondary">Status</div>
-                <div className="text-xs font-bold text-emerald-600 dark:text-emerald-400">Profile Active</div>
-              </div>
-            </div>
+            <TrustScoreCard score={trustData?.trust_score} size="sm" />
             <div className="w-px h-8 bg-os-stroke" />
             <Button
               variant="ghost"
               onClick={handleSubmit}
               disabled={isSaving}
-              className="h-10 px-5 gap-3 text-os-accent font-semibold bg-os-accent/10 hover:bg-os-accent/20 transition-all rounded-lg border border-os-accent/20"
+              className="h-10 px-5 gap-3 text-white font-bold bg-os-accent hover:bg-os-accent/90 transition-all rounded-lg shadow-os-sm border-none"
             >
               <Save className={cn("w-3.5 h-3.5", isSaving && "animate-spin")} />
               {isSaving ? "Saving..." : "Save Changes"}
@@ -876,9 +387,7 @@ export default function CompanyInfo() {
       <div className="grid lg:grid-cols-12 gap-8">
         {/* Left Column: Core Identity Management */}
         <div className="lg:col-span-8 space-y-8">
-
-          {/* A. Universal Profile Flow */}
-          <Surface variant="glass" className="p-8 relative">
+          <Surface variant="ivory" className="p-8 relative" overflow="visible">
             <div className="space-y-8 relative z-10">
               <div className="flex items-center gap-4 border-b border-os-stroke pb-5">
                 <div className="p-2.5 bg-os-accent/10 rounded-lg border border-os-accent/20">
@@ -893,20 +402,14 @@ export default function CompanyInfo() {
               <div className="grid md:grid-cols-2 gap-8">
                 <div className="space-y-5">
                   <div className="space-y-2">
-                    <Label className="text-sm font-semibold">Company Name</Label>
-                    <Input
-                      value={formData.company_name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, company_name: e.target.value }))}
-                      className="h-12"
-                      placeholder="e.g. Afrikoni Trading Ltd"
-                    />
+                    <Label htmlFor="company_name" className="text-sm font-semibold">Company Name</Label>
+                    <Input id="company_name" value={formData.company_name} onChange={(e) => setFormData(prev => ({ ...prev, company_name: e.target.value }))} className={cn("h-12", errors.company_name && "border-red-500")} placeholder="e.g. Afrikoni Trading Ltd" />
+                    {errors.company_name && <p className="text-[10px] text-red-500 font-bold uppercase">{errors.company_name}</p>}
                   </div>
                   <div className="space-y-3">
-                    <Label className="text-sm font-semibold opacity-80">Business Type</Label>
+                    <Label htmlFor="business_type" className="text-sm font-semibold opacity-80">Business Type</Label>
                     <Select value={formData.business_type} onValueChange={(v) => setFormData(prev => ({ ...prev, business_type: v }))}>
-                      <SelectTrigger className="h-12 bg-white/50 backdrop-blur-sm border-os-stroke hover:border-os-accent/30 transition-all">
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
+                      <SelectTrigger className="h-12 bg-os-surface-solid border-os-stroke"><SelectValue placeholder="Select type" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="manufacturer">Manufacturer</SelectItem>
                         <SelectItem value="wholesaler">Wholesaler</SelectItem>
@@ -919,151 +422,73 @@ export default function CompanyInfo() {
 
                 <div className="space-y-5">
                   <div className="space-y-2">
-                    <Label className="text-sm font-semibold">Country</Label>
-                    <CountrySelect
-                      value={formData.country}
-                      onValueChange={(v) => setFormData(prev => ({ ...prev, country: v }))}
-                      countries={AFRICAN_COUNTRIES}
-                    />
+                    <Label htmlFor="country" className="text-sm font-semibold">Country</Label>
+                    <SearchableSelect value={formData.country} onValueChange={(v) => setFormData(prev => ({ ...prev, country: v, city: '' }))} options={AFRICAN_COUNTRIES} placeholder="Select country" className={cn("bg-os-surface-solid", errors.country ? "border-red-500" : "")} />
                   </div>
                   <div className="space-y-2">
-                    <Label className="text-sm font-semibold">City</Label>
-                    <Input
-                      value={formData.city}
-                      onChange={(e) => setFormData(prev => ({ ...prev, city: e.target.value }))}
-                      className="h-12"
-                      placeholder="e.g. Lagos, Nairobi, Accra"
-                    />
+                    <Label htmlFor="city" className="text-sm font-semibold">City</Label>
+                    <SearchableSelect value={formData.city} onValueChange={(v) => setFormData(prev => ({ ...prev, city: v }))} options={CITY_BY_COUNTRY[formData.country] || []} placeholder="Select city" icon={MapPin} allowCustom={true} className="bg-os-surface-solid" />
                   </div>
                 </div>
               </div>
             </div>
           </Surface>
 
-          {/* B. Visual Identity & Brand DNA */}
-          <div className="grid md:grid-cols-2 gap-8">
-            <Surface variant="glass" className="p-8 space-y-6">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-os-text-secondary flex items-center gap-2">
-                <ImageIcon className="w-4 h-4 text-os-accent" />
-                Company Logo
-              </h3>
-
-              <div className="flex flex-col items-center gap-6">
-                <div className="relative group/logo">
-                  <div className="w-36 h-36 rounded-2xl bg-os-surface-solid border-2 border-dashed border-os-stroke flex items-center justify-center overflow-hidden transition-all group-hover/logo:border-os-accent/40">
-                    {logoUrl ? (
-                      <img src={logoUrl} className="w-full h-full object-cover" width="96" height="96" loading="lazy" />
-                    ) : (
-                      <Building className="w-10 h-10 text-os-text-secondary opacity-40" />
-                    )}
-                    {uploadingLogo && (
-                      <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
-                        <Loader2 className="w-8 h-8 text-white animate-spin" />
-                      </div>
-                    )}
-                  </div>
-                  <input type="file" onChange={handleLogoUpload} className="hidden" id="logo-up" accept="image/*" />
-                  <label htmlFor="logo-up" className="absolute -bottom-2 -right-2 p-2.5 bg-os-accent text-black rounded-lg cursor-pointer hover:scale-110 transition-transform shadow-os-lg">
-                    <Upload className="w-4 h-4" />
-                  </label>
-                </div>
-                <div className="text-center">
-                  <p className="text-xs text-os-text-secondary">Square image recommended (e.g. 400×400px)</p>
-                </div>
-              </div>
-            </Surface>
-
-            <Surface variant="glass" className="p-8 space-y-6">
-              <h3 className="text-sm font-bold uppercase tracking-wider text-os-text-secondary flex items-center gap-2">
-                <Globe className="w-4 h-4 text-emerald-500" />
-                Contact Details
-              </h3>
+          {/* Contact Details Surface */}
+          <Surface variant="ivory" className="p-8 space-y-6">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-os-text-secondary flex items-center gap-2">
+              <Globe className="w-4 h-4 text-emerald-500" />
+              Contact Details
+            </h3>
+            <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label className="text-sm font-semibold">Business Email</Label>
-                  <Input
-                    value={formData.business_email}
-                    onChange={(e) => setFormData(prev => ({ ...prev, business_email: e.target.value }))}
-                    placeholder="contact@yourcompany.com"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-sm font-semibold">Website</Label>
-                  <Input
-                    value={formData.website}
-                    onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))}
-                    placeholder="https://yourcompany.com"
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-sm font-semibold">Phone Number</Label>
-                  <Input
-                    value={formData.phone}
-                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-                    placeholder="+234 800 000 0000"
-                  />
-                </div>
+                <div className="space-y-1.5"><Label htmlFor="business_email" className="text-sm font-semibold">Business Email</Label><Input id="business_email" value={formData.business_email} onChange={(e) => setFormData(prev => ({ ...prev, business_email: e.target.value }))} placeholder="contact@company.com" /></div>
+                <div className="space-y-1.5"><Label htmlFor="website" className="text-sm font-semibold">Website</Label><Input id="website" value={formData.website} onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))} placeholder="https://company.com" /></div>
               </div>
-            </Surface>
-          </div>
+              <div className="space-y-4">
+                <div className="space-y-1.5"><Label htmlFor="phone" className="text-sm font-semibold">Phone Number</Label><Input id="phone" value={formData.phone} onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))} placeholder="+234..." /></div>
+              </div>
+            </div>
+          </Surface>
+
+          {/* Logo Upload Surface */}
+          <Surface variant="ivory" className="p-8 space-y-6">
+            <h3 className="text-sm font-bold uppercase tracking-wider text-os-text-secondary flex items-center gap-2">
+              <ImageIcon className="w-4 h-4 text-os-accent" />
+              Visual Identity
+            </h3>
+            <div className="flex flex-col items-center gap-6">
+              <div className="relative group/logo">
+                <div className="w-36 h-36 rounded-2xl bg-os-surface-solid border-2 border-dashed border-os-stroke flex items-center justify-center overflow-hidden">
+                  {logoUrl ? <img src={logoUrl} className="w-full h-full object-cover" /> : <Building className="w-10 h-10 text-os-text-secondary opacity-40" />}
+                  {uploadingLogo && <div className="absolute inset-0 bg-black/60 flex items-center justify-center"><Loader2 className="w-8 h-8 text-white animate-spin" /></div>}
+                </div>
+                <input type="file" onChange={handleLogoUpload} className="hidden" id="logo-up" accept="image/*" />
+                <label htmlFor="logo-up" className="absolute -bottom-2 -right-2 p-2.5 bg-os-accent text-black rounded-lg cursor-pointer shadow-os-lg"><Upload className="w-4 h-4" /></label>
+              </div>
+            </div>
+          </Surface>
         </div>
 
-        {/* Right Column: AI Audit & Team Matrix */}
+        {/* Right Column */}
         <div className="lg:col-span-4 space-y-8">
-
-          {/* AI Auditor Feedback */}
-          <Surface variant="glass" className="p-6 border border-os-accent/20 bg-os-accent/5">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-os-accent/20 rounded-lg border border-os-accent/30">
-                <Activity className="w-4 h-4 text-os-accent" />
-              </div>
-              <h3 className="text-sm font-semibold text-os-accent">Profile Tip</h3>
-            </div>
-            <p className="text-sm text-os-text-secondary leading-relaxed">
-              Adding a detailed company description and verified contact info increases your <span className="text-os-accent font-semibold">buyer trust score</span> by up to 22%.
-            </p>
-            <div className="pt-4 border-t border-os-accent/10 mt-4">
-              <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-os-text-secondary">
-                <span>Profile Completeness</span>
-                <span className="text-emerald-600 dark:text-emerald-400">Good</span>
-              </div>
-            </div>
+          <TrustScoreCard score={trustData?.trust_score} variant="sidebar" />
+          <Surface variant="ivory" className="p-6 border border-os-accent/20 bg-os-accent/5">
+            <div className="flex items-center gap-3 mb-4"><Activity className="w-4 h-4 text-os-accent" /><h3 className="text-sm font-semibold text-os-accent">Profile Tip</h3></div>
+            <p className="text-sm text-os-text-secondary leading-relaxed">Verified contact info increases your trust score.</p>
           </Surface>
-
-          {/* Team Capacity Node */}
-          <Surface variant="glass" className="p-6 space-y-6 h-full">
-            <div className="flex items-center justify-between border-b border-os-stroke pb-4">
-              <h3 className="text-sm font-bold">Your Team</h3>
-              <Users className="w-4 h-4 text-os-text-secondary" />
-            </div>
-
+          <Surface variant="ivory" className="p-6 space-y-4">
+            <div className="flex items-center justify-between border-b pb-4"><h3 className="text-sm font-bold">Your Team</h3><Users className="w-4 h-4 text-os-text-secondary" /></div>
             <div className="space-y-3">
               {teamMembers.map((member) => (
-                <div key={member.id} className="flex items-center justify-between p-3 bg-os-surface-solid border border-os-stroke rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-os-accent/10 flex items-center justify-center font-bold text-os-accent border border-os-accent/20 uppercase text-sm">
-                      {member.member_email?.[0] || 'U'}
-                    </div>
-                    <div>
-                      <div className="text-sm font-semibold">{member.member_email?.split('@')[0] || 'Team Member'}</div>
-                      <div className="text-xs text-os-text-secondary capitalize">{member.role_label}</div>
-                    </div>
-                  </div>
-                  <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400 text-xs">Active</Badge>
+                <div key={member.id} className="flex items-center justify-between p-3 bg-os-surface-solid border rounded-lg text-sm">
+                  <span>{member.member_email}</span>
+                  <Badge variant="outline">Member</Badge>
                 </div>
               ))}
-
-              <Button
-                variant="ghost"
-                onClick={() => navigate('/dashboard/team-members')}
-                className="w-full h-12 border border-dashed border-os-stroke rounded-lg hover:bg-os-accent/5 hover:text-os-accent hover:border-os-accent/30 transition-all font-semibold gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                Add Team Member
-              </Button>
+              <Button variant="ghost" onClick={() => navigate('/dashboard/team-members')} className="w-full border border-dashed text-xs font-bold gap-2"><Plus className="w-3 h-3" />Manage Team</Button>
             </div>
           </Surface>
-
         </div>
       </div>
     </div>

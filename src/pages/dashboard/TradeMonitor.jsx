@@ -38,10 +38,25 @@ const statusLabels = {
     cancelled: { label: "Cancelled", tone: "neutral" },
 };
 
+import { useViewPermissions } from '@/hooks/useViewPermissions';
+
 export default function TradeMonitor({ viewMode = 'buy' }) {
     const { profileCompanyId, isSystemReady } = useDashboardKernel();
     const { interfaceMode } = useOSSettings();
+    const { isSourcing, isDistribution } = useViewPermissions();
     const navigate = useNavigate();
+
+    // 🛡️ UNIFIED TRADER GUARD: Prevent Mode Drift
+    useEffect(() => {
+        const isSourcingRoute = ['buy', 'rfqs'].includes(viewMode);
+        const isDistributionRoute = ['sell', 'rfqs-received'].includes(viewMode);
+
+        if (isSourcing && isDistributionRoute) {
+            navigate('/dashboard');
+        } else if (isDistribution && isSourcingRoute) {
+            navigate('/dashboard');
+        }
+    }, [isSourcing, isDistribution, viewMode, navigate]);
 
     const isSimple = interfaceMode === 'simple';
 

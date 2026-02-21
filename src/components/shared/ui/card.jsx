@@ -2,12 +2,12 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
-const Card = React.forwardRef(({ 
-  className, 
-  hover = false, 
+const Card = React.forwardRef(({
+  className,
+  hover = false,
   selected = false,
   gradientHeader = false,
-  ...props 
+  ...props
 }, ref) => {
   const cardContent = (
     <div
@@ -63,7 +63,7 @@ CardTitle.displayName = 'CardTitle';
 const CardDescription = React.forwardRef(({ className, ...props }, ref) => (
   <p
     ref={ref}
-      className={cn('text-os-sm text-afrikoni-deep', className)}
+    className={cn('text-os-sm text-afrikoni-deep', className)}
     {...props}
   />
 ));

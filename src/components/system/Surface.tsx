@@ -9,10 +9,12 @@ interface SurfaceProps extends Omit<HTMLMotionProps<"div">, "onDrag" | "onDragSt
   variant?: SurfaceVariant;
   glow?: boolean | GlowIntensity;
   hover?: boolean;
+  overflow?: 'hidden' | 'visible' | 'auto';
+  layout?: boolean;
 }
 
 const variantClasses: Record<SurfaceVariant, string> = {
-  panel: 'bg-os-card border border-os-stroke rounded-os-md shadow-os-md',
+  panel: 'bg-os-surface-solid border border-os-stroke rounded-os-md shadow-os-md',
   soft: 'bg-os-card/40 border border-os-stroke/50 rounded-os-md shadow-os-sm backdrop-blur-xl',
   glass: 'glass-surface',
   flat: 'bg-os-surface-solid border border-os-stroke rounded-os-md',
@@ -39,6 +41,8 @@ export function Surface({
   variant = 'panel',
   glow = false,
   hover = false,
+  overflow = 'hidden',
+  layout = false,
   className,
   children,
   ...props
@@ -49,15 +53,22 @@ export function Surface({
       ? ''
       : glowClasses[glow as GlowIntensity];
 
+  const overflowClass = overflow === 'hidden'
+    ? 'overflow-hidden'
+    : overflow === 'visible'
+      ? 'overflow-visible'
+      : 'overflow-auto';
+
   return (
     <motion.div
-      layout
+      layout={layout}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
       className={cn(
         variantClasses[variant],
         glowClass,
         hover && 'hover:translate-y-[-2px] hover:shadow-os-md-xl transition-all duration-300 cursor-pointer',
-        'text-os-text-primary overflow-hidden',
+        'text-os-text-primary',
+        overflowClass,
         className
       )}
       {...props}

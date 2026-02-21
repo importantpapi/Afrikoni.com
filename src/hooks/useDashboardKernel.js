@@ -63,22 +63,34 @@ export function useDashboardKernel() {
       });
     }
 
+    const role = profile?.role || 'trader';
+
     return {
       profileCompanyId,
       userId: user?.id || null,
-      user,        // ✅ FIX: Export user object for consumption
-      profile,     // ✅ FIX: Export profile object for consumption
+      user,
+      profile,
       isAdmin: !!profile?.is_admin,
       isSystemReady,
       canLoadData,
-      capabilities,
-      isPreWarming, // ✅ FULL-STACK SYNC: Export pre-warming state
-      // ✅ FULL-STACK SYNC: Standardize isHybrid
-      isHybrid: capabilities?.can_buy === true && capabilities?.can_sell === true,
+      capabilities: {
+        ...capabilities,
+        // ✅ FORENSIC REFACTOR: Move from role-based to permission-based UI
+        canSell: ['seller', 'trader', 'admin'].includes(role),
+        canBuy: true, // Everyone can buy in Unified Trader model
+        isVerifiedTrader: role === 'trader' && (profile?.verification_tier || 0) >= 2,
+        displayRole: role === 'trader' ? 'Unified Trader' : role
+      },
+      isPreWarming,
+      isOnboardingComplete: !!profile?.onboarding_completed,
+      // ✅ UNIFIED TRADER: Everyone is a hybrid trader
+      role,
+      isHybrid: true,
       organization,
-      orgLoading
+      orgLoading,
+      stats: handshakeData?.counts || { active_trades: 0, pending_quotes: 0, unread_notifications: 0 }
     };
-  }, [user, profile, authReady, authLoading, capabilities, organization, orgLoading]);
+  }, [user, profile, authReady, authLoading, capabilities, organization, orgLoading, handshakeData]);
 
   // ✅ NETWORK RECOVERY: Listen for online event to re-trigger handshake
   useEffect(() => {

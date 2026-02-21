@@ -9,6 +9,7 @@
 ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS verified BOOLEAN DEFAULT false;
 ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS country TEXT;
 ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS logo_url TEXT;
+ALTER TABLE public.companies ADD COLUMN IF NOT EXISTS owner_email TEXT;
 
 -- 2. Define the Sovereign Identity Handler
 CREATE OR REPLACE FUNCTION public.handle_new_user() 
@@ -39,11 +40,13 @@ BEGIN
   INSERT INTO public.companies (
     company_name,
     verified,
+    owner_email,
     created_at
   )
   VALUES (
     v_display_name,
     false,
+    new.email,
     now()
   )
   RETURNING id INTO v_company_id;
@@ -96,19 +99,41 @@ CREATE TRIGGER on_auth_user_created
 
 -- 4. Infrastructure Protection (RLS check for companies)
 ALTER TABLE public.companies ENABLE ROW LEVEL SECURITY;
-DROP POLICY IF EXISTS "Companies are viewable by participants" ON public.companies;
-CREATE POLICY "Companies are viewable by participants" ON public.companies
-  FOR SELECT TO authenticated
-  USING (true); -- Public directory of business actors is essential for B2B
 
-DROP POLICY IF EXISTS "Users can update their own company" ON public.companies;
-CREATE POLICY "Users can update their own company" ON public.companies
+-- CLEAN SLATE: Remove all existing policies to prevent conflicts
+DO $$ 
+BEGIN
+    EXECUTE (
+        SELECT string_agg('DROP POLICY IF EXISTS ' || quote_ident(policyname) || ' ON public.companies;', ' ')
+        FROM pg_policies 
+        WHERE tablename = 'companies' AND schemaname = 'public'
+    );
+END $$;
+
+-- A. BROAD READ: Necessary for B2B portal functionality
+CREATE POLICY "companies_read_all_authenticated" ON public.companies
+  FOR SELECT TO authenticated
+  USING (true);
+
+-- B. UNBLOCK CREATION: The "Catch-22" Fix
+-- This allows authenticated users to create a company if they don't have one.
+CREATE POLICY "companies_insert_authenticated" ON public.companies
+  FOR INSERT TO authenticated
+  WITH CHECK (true);
+
+-- C. SOVEREIGN UPDATE: Link via Profile OR Owner Email
+-- This ensures that if the trigger failed but owner_email was set, the user can still manage it.
+CREATE POLICY "companies_update_owner" ON public.companies
   FOR UPDATE TO authenticated
   USING (
     id IN (SELECT company_id FROM public.profiles WHERE id = auth.uid())
+    OR 
+    owner_email = (SELECT email FROM auth.users WHERE id = auth.uid())
   )
   WITH CHECK (
     id IN (SELECT company_id FROM public.profiles WHERE id = auth.uid())
+    OR 
+    owner_email = (SELECT email FROM auth.users WHERE id = auth.uid())
   );
 
 -- 5. RELATIONSHIP CANONICALIZATION (Fixes PostgREST Ambiguity)

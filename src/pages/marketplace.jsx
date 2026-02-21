@@ -421,14 +421,14 @@ export default function Marketplace() {
           categories (
             name
           ),
-          companies!products_company_id_fkey!inner (
+          companies!products_company_id_fkey (
             company_name,
             country,
             verified,
             logo_url
           )
         `, { count: 'exact' })
-        .eq('status', 'active');
+        .or('status.eq.active,status.eq.published');
       // .eq('companies.verified', true); // Temporarily relaxed for 'One Flow' visibility audit
 
       if (selectedFilters.category) {

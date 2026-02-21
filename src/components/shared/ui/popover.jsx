@@ -38,9 +38,9 @@ export const Popover = ({ children, open: controlledOpen, onOpenChange }) => {
         if (child.type === PopoverContent) {
           return open
             ? React.cloneElement(child, {
-                ref: contentRef,
-                className: cn(child.props.className, 'absolute top-full mt-2 left-0')
-              })
+              ref: contentRef,
+              className: cn(child.props.className, 'absolute top-full mt-2 left-0')
+            })
             : null;
         }
         return child;
