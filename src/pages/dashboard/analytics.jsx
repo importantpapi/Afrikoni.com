@@ -88,45 +88,45 @@ export default function DashboardAnalytics() {
 
       if (showBuyer && companyId) {
         if (abortSignal?.aborted) return;
-        const [ordersRes, rfqsRes, quotesRes] = await Promise.all([
-          supabase.from('orders').select('*').eq('buyer_company_id', companyId).gte('created_at', startDate),
+        const [tradesRes, rfqsRes, quotesRes] = await Promise.all([
+          supabase.from('trades').select('*').eq('buyer_company_id', companyId).gte('created_at', startDate),
           supabase.from('rfqs').select('*').eq('buyer_company_id', companyId).gte('created_at', startDate),
           supabase.from('quotes').select('*, rfqs!inner(buyer_company_id)').eq('rfqs.buyer_company_id', companyId).gte('quotes.created_at', startDate)
         ]);
 
-        const orders = ordersRes.data || [];
+        const trades = tradesRes.data || [];
         const rfqs = rfqsRes.data || [];
         const quotes = quotesRes.data || [];
 
         buyerStats = {
-          totalOrders: orders.length,
+          totalOrders: trades.filter(t => t.trade_type === 'order').length,
           totalRFQs: rfqs.length,
-          totalSpent: orders.reduce((sum, o) => sum + (parseFloat(o?.total_amount) || 0), 0),
-          openRfqs: rfqs.filter(r => ['pending_review', 'matched'].includes(r.status)).length,
-          chart: orders.map(o => ({ date: format(new Date(o.created_at), 'MMM d'), orders: 1 }))
+          totalSpent: trades.reduce((sum, t) => sum + (parseFloat(t?.total_amount || t?.target_price) || 0), 0),
+          openRfqs: rfqs.filter(r => ['pending_review', 'matched', 'open'].includes(r.status)).length,
+          chart: trades.map(t => ({ date: format(new Date(t.created_at), 'MMM d'), orders: 1 }))
         };
       }
 
       if (showSeller && companyId) {
         if (abortSignal?.aborted) return;
-        const [ordersRes, rfqsRes, quotesRes] = await Promise.all([
-          supabase.from('orders').select('*').eq('seller_company_id', companyId).gte('created_at', startDate),
+        const [tradesRes, rfqsRes, quotesRes] = await Promise.all([
+          supabase.from('trades').select('*').eq('seller_company_id', companyId).gte('created_at', startDate),
           supabase.from('rfqs').select('*, matched_supplier_ids').gte('created_at', startDate),
           supabase.from('quotes').select('*, rfqs!inner(*)').eq('supplier_company_id', companyId).gte('created_at', startDate)
         ]);
 
-        const orders = ordersRes.data || [];
+        const trades = tradesRes.data || [];
         const matchedRfqs = (rfqsRes.data || []).filter(r => r.matched_supplier_ids?.includes(companyId));
         const quotes = quotesRes.data || [];
         const winRate = quotes.length > 0 ? Math.round((quotes.filter(q => q.status === 'accepted').length / quotes.length) * 100) : 0;
 
         sellerStats = {
-          totalSales: orders.length,
+          totalSales: trades.filter(t => t.trade_type === 'order').length,
           rfqsReceived: matchedRfqs.length,
           quotesSent: quotes.length,
-          totalRevenue: orders.reduce((sum, o) => sum + (parseFloat(o.total_amount) || 0), 0),
+          totalRevenue: trades.reduce((sum, t) => sum + (parseFloat(t.total_amount || t.target_price) || 0), 0),
           winRate,
-          chart: orders.map(o => ({ date: format(new Date(o.created_at), 'MMM d'), revenue: parseFloat(o.total_amount) || 0 }))
+          chart: trades.map(t => ({ date: format(new Date(t.created_at), 'MMM d'), revenue: parseFloat(t.total_amount || t.target_price) || 0 }))
         };
       }
 

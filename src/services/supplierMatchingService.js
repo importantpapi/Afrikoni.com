@@ -47,9 +47,9 @@ export async function matchSuppliersToRFQ(rfqData, limit = 10) {
  */
 export function explainMatch(match) {
   if (!match) return '';
-  
+
   const { match_score, match_reasons = [] } = match;
-  
+
   if (match_score >= 80) {
     return `🎯 Perfect Match (${match_score}/100) - ${match_reasons.join(', ')}`;
   } else if (match_score >= 60) {
@@ -139,15 +139,24 @@ export async function notifyMatchedSuppliers(rfqId, suppliers) {
  */
 export async function storeMatchedSuppliers(rfqId, supplierIds) {
   try {
+    // 1. Get current metadata to avoid overwriting other fields
+    const { data: trade } = await supabase
+      .from('trades')
+      .select('metadata')
+      .eq('id', rfqId)
+      .single();
+
+    const currentMetadata = trade?.metadata || {};
+
+    // 2. Update with new matched_at and suppliers
     const { error } = await supabase
       .from('trades')
       .update({
         matched_supplier_ids: supplierIds,
-        metadata: supabase.rpc('jsonb_set', {
-          target: supabase.rpc('COALESCE', ['metadata', '{}']),
-          path: '{matched_at}',
-          value: JSON.stringify(new Date().toISOString())
-        })
+        metadata: {
+          ...currentMetadata,
+          matched_at: new Date().toISOString()
+        }
       })
       .eq('id', rfqId);
 
@@ -206,7 +215,7 @@ export async function getMatchStatistics(rfqId) {
 
 function calculateAvgResponseTime(rfqCreated, quotes) {
   if (!quotes || quotes.length === 0) return 'N/A';
-  
+
   const responseTimes = quotes.map(q => {
     const rfqTime = new Date(rfqCreated);
     const quoteTime = new Date(q.created_at);
@@ -214,7 +223,7 @@ function calculateAvgResponseTime(rfqCreated, quotes) {
   });
 
   const avgHours = responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length;
-  
+
   if (avgHours < 24) {
     return `${Math.round(avgHours)}h`;
   } else {

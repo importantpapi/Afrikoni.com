@@ -19,7 +19,7 @@ export default defineConfig({
     __BUILD_VERSION__: JSON.stringify(BUILD_TIMESTAMP),
   },
   build: {
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 1400,
     minify: 'esbuild',
     rollupOptions: {
       output: {
@@ -35,11 +35,30 @@ export default defineConfig({
           }
           return `assets/[name]-${BUILD_TIMESTAMP}.[hash].[ext]`;
         },
-        manualChunks: {
-          vendor: ['react', 'react-dom', 'react-router-dom'],
-          ui: ['framer-motion', 'lucide-react', 'clsx', 'tailwind-merge'],
-          supabase: ['@supabase/supabase-js'],
-          charts: ['recharts']
+        manualChunks(id) {
+          if (!id) return;
+
+          // Large third-party libraries
+          if (id.includes('node_modules/heic2any')) return 'heic2any';
+          if (id.includes('node_modules/recharts')) return 'charts';
+          if (id.includes('node_modules/@supabase/supabase-js')) return 'supabase';
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom') || id.includes('node_modules/react-router')) return 'vendor-react';
+          if (id.includes('node_modules/framer-motion') || id.includes('node_modules/lucide-react')) return 'vendor-ui';
+          if (id.includes('node_modules/date-fns')) return 'vendor-date';
+
+          // Internal code partitions to reduce oversized entry chunk
+          if (id.includes('/src/pages/dashboard/')) return 'app-dashboard';
+          if (id.includes('/src/pages/')) return 'app-pages';
+          if (id.includes('/src/components/')) {
+            const match = id.match(/\/src\/components\/([^/]+)\//);
+            if (match?.[1]) {
+              const segment = match[1].replace(/[^a-z0-9_-]/gi, '-').toLowerCase();
+              return `app-components-${segment}`;
+            }
+            return 'app-components';
+          }
+          if (id.includes('/src/services/')) return 'app-services';
+          if (id.includes('/src/hooks/')) return 'app-hooks';
         },
       },
     },
@@ -72,4 +91,3 @@ try {
 } catch (err) {
   console.error('[Vite] Failed to generate meta.json:', err);
 }
-

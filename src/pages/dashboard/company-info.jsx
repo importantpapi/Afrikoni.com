@@ -28,6 +28,7 @@ import { toast } from 'sonner';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/shared/ui/tabs';
 import { useTrustScore } from '@/hooks/useTrustScore';
 import TrustScoreCard from '@/components/trust/TrustScoreCard';
+import SuccessScreen from '@/components/shared/ui/SuccessScreen';
 
 // NOTE: DashboardLayout is provided by WorkspaceDashboard - don't import here
 
@@ -127,6 +128,7 @@ export default function CompanyInfo() {
   const [newTeamMember, setNewTeamMember] = useState({ email: '', role: 'member' });
   const [isAddingTeamMember, setIsAddingTeamMember] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showSuccess, setShowSuccess] = useState(false);
 
   if (!isSystemReady) {
     return (
@@ -293,18 +295,22 @@ export default function CompanyInfo() {
         finalCompanyId = newCompany.id;
       }
 
-      // 3. SECURE LINKING (RPC)
+      // 3. SECURE LINKING (RPC - Hardened Version)
+      // This ensures the profile is linked and the company owner_email is secured
       const { error: linkErr } = await Promise.race([
-        supabase.rpc('link_user_to_company', {
-          target_user_id: String(userId),
+        supabase.rpc('ensure_company_link', {
           target_company_id: String(finalCompanyId)
         }),
         timeoutPromise
       ]);
 
       if (linkErr) {
-        console.warn('[CompanyInfo] RPC Link failed, using direct update fallback', linkErr);
-        await supabase.from('profiles').update({ company_id: finalCompanyId }).eq('id', userId);
+        console.warn('[CompanyInfo] ensure_company_link RPC failed, using direct update fallback', linkErr);
+        // Fallback for older schema environments
+        await supabase.from('profiles').update({
+          company_id: finalCompanyId,
+          updated_at: new Date().toISOString()
+        }).eq('id', userId);
       }
 
       // 4. SECONDARY SYNC (Hardened)
@@ -327,21 +333,40 @@ export default function CompanyInfo() {
 
       if (profileErr) console.warn("Profile sync issues:", profileErr.message);
 
-      toast.success('Company information saved successfully!');
       if (typeof window !== 'undefined' && window.dispatchEvent) {
         window.dispatchEvent(new CustomEvent('company-profile-updated', { detail: { companyId: finalCompanyId } }));
       }
 
-      setTimeout(() => {
-        setIsSaving(false);
-        navigate(returnUrl);
-      }, 800);
+      setShowSuccess(true);
+      // Removed immediate navigate, let user interact with SuccessScreen
     } catch (error) {
       logError('saveCompanyInfo', error, { profileCompanyId, userId });
       toast.error(error.message || 'Failed to save company information');
       setIsSaving(false);
     }
   };
+
+  if (showSuccess) {
+    return (
+      <div className="os-page py-12">
+        <SuccessScreen
+          title="Company Identity Secured"
+          message="Your corporate profile has been updated across the Afrikoni Trade OS."
+          theme="emerald"
+          icon={ShieldCheck}
+          nextSteps={[
+            { label: "Identity visible in Verified Producer Directory", icon: <Building className="w-4 h-4" /> },
+            { label: "Trust Score recalculated based on profile depth", icon: <Activity className="w-4 h-4" /> },
+            { label: "Platform capabilities unlocked based on business type", icon: <Zap className="w-4 h-4" /> }
+          ]}
+          primaryAction={() => navigate(returnUrl)}
+          primaryActionLabel="Continue to Dashboard"
+          secondaryAction={() => setShowSuccess(false)}
+          secondaryActionLabel="Edit Profile Further"
+        />
+      </div>
+    );
+  }
 
   if (isLoading && !formData.company_name) return <CardSkeleton count={3} />;
   if (error) return <ErrorState message={error} onRetry={loadData} />;
@@ -403,7 +428,7 @@ export default function CompanyInfo() {
                 <div className="space-y-5">
                   <div className="space-y-2">
                     <Label htmlFor="company_name" className="text-sm font-semibold">Company Name</Label>
-                    <Input id="company_name" value={formData.company_name} onChange={(e) => setFormData(prev => ({ ...prev, company_name: e.target.value }))} className={cn("h-12", errors.company_name && "border-red-500")} placeholder="e.g. Afrikoni Trading Ltd" />
+                    <Input id="company_name" name="company_name" value={formData.company_name} onChange={(e) => setFormData(prev => ({ ...prev, company_name: e.target.value }))} className={cn("h-12", errors.company_name && "border-red-500")} placeholder="e.g. Afrikoni Trading Ltd" />
                     {errors.company_name && <p className="text-[10px] text-red-500 font-bold uppercase">{errors.company_name}</p>}
                   </div>
                   <div className="space-y-3">
@@ -442,11 +467,11 @@ export default function CompanyInfo() {
             </h3>
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-4">
-                <div className="space-y-1.5"><Label htmlFor="business_email" className="text-sm font-semibold">Business Email</Label><Input id="business_email" value={formData.business_email} onChange={(e) => setFormData(prev => ({ ...prev, business_email: e.target.value }))} placeholder="contact@company.com" /></div>
-                <div className="space-y-1.5"><Label htmlFor="website" className="text-sm font-semibold">Website</Label><Input id="website" value={formData.website} onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))} placeholder="https://company.com" /></div>
+                <div className="space-y-1.5"><Label htmlFor="business_email" className="text-sm font-semibold">Business Email</Label><Input id="business_email" name="business_email" value={formData.business_email} onChange={(e) => setFormData(prev => ({ ...prev, business_email: e.target.value }))} placeholder="contact@company.com" /></div>
+                <div className="space-y-1.5"><Label htmlFor="website" className="text-sm font-semibold">Website</Label><Input id="website" name="website" value={formData.website} onChange={(e) => setFormData(prev => ({ ...prev, website: e.target.value }))} placeholder="https://company.com" /></div>
               </div>
               <div className="space-y-4">
-                <div className="space-y-1.5"><Label htmlFor="phone" className="text-sm font-semibold">Phone Number</Label><Input id="phone" value={formData.phone} onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))} placeholder="+234..." /></div>
+                <div className="space-y-1.5"><Label htmlFor="phone" className="text-sm font-semibold">Phone Number</Label><Input id="phone" name="phone" value={formData.phone} onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))} placeholder="+234..." /></div>
               </div>
             </div>
           </Surface>
@@ -463,7 +488,7 @@ export default function CompanyInfo() {
                   {logoUrl ? <img src={logoUrl} className="w-full h-full object-cover" /> : <Building className="w-10 h-10 text-os-text-secondary opacity-40" />}
                   {uploadingLogo && <div className="absolute inset-0 bg-black/60 flex items-center justify-center"><Loader2 className="w-8 h-8 text-white animate-spin" /></div>}
                 </div>
-                <input type="file" onChange={handleLogoUpload} className="hidden" id="logo-up" accept="image/*" />
+                <input type="file" name="logo" onChange={handleLogoUpload} className="hidden" id="logo-up" accept="image/*" />
                 <label htmlFor="logo-up" className="absolute -bottom-2 -right-2 p-2.5 bg-os-accent text-black rounded-lg cursor-pointer shadow-os-lg"><Upload className="w-4 h-4" /></label>
               </div>
             </div>

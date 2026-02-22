@@ -32,10 +32,10 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning, c
         .from('quotes')
         .select(`
           *,
-          supplier:companies!supplier_id(company_name, trust_score, country)
+          supplier:companies!supplier_company_id(company_name, trust_score, country)
         `)
         .eq('trade_id', trade.id)
-        .order('price_per_unit', { ascending: true });
+        .order('unit_price', { ascending: true });
 
       if (error) throw error;
       setQuotes(data || []);
@@ -58,7 +58,7 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning, c
 
     await onNextStep(TRADE_STATE.CONTRACTED, {
       selectedQuoteId: quoteId,
-      supplierId: quote.supplier_id,
+      supplierId: quote.supplier_company_id,
       totalPrice: quote.total_price,
       currency: quote.currency,
       contractId: contractResult.contract?.id
@@ -150,7 +150,7 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning, c
               {/* Price */}
               <div className="text-right">
                 <p className="text-os-2xl font-bold">
-                  {quote.currency} {quote.price_per_unit}
+                  {quote.currency} {quote.unit_price}
                 </p>
                 <p className="text-os-xs mt-1">
                   per {trade.quantity_unit}
@@ -226,7 +226,7 @@ export default function QuoteReviewPanel({ trade, onNextStep, isTransitioning, c
           <p>
             <TrendingDown className="w-4 h-4 inline mr-1" />
             <strong>Best pricing:</strong> The first option is {(
-              (1 - quotes[0].price_per_unit / quotes[quotes.length - 1].price_per_unit) * 100
+              (1 - quotes[0].unit_price / quotes[quotes.length - 1].unit_price) * 100
             ).toFixed(0)}% lower than the highest bid.
           </p>
         </div>

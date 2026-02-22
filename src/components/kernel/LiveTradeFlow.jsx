@@ -68,14 +68,14 @@ export function LiveTradeFlow() {
             return (
               <div
                 key={t.id}
-                onClick={() => navigate(`/dashboard/trade/${t.id}`)}
+                onClick={() => navigate(`/dashboard/trades/${t.id}`)}
                 className="group relative flex flex-col gap-2 p-3 rounded-os-sm hover:bg-gray-100/50 dark:hover:bg-white/5 border border-transparent hover:border-gray-200 dark:hover:border-white/10 transition-all cursor-pointer"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${isStalled ? 'bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400' :
-                        pct === 100 ? 'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' :
-                          'bg-os-accent/10 text-os-accent'
+                      pct === 100 ? 'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' :
+                        'bg-os-accent/10 text-os-accent'
                       }`}>
                       <Package className="w-4 h-4" />
                     </div>
@@ -96,7 +96,7 @@ export function LiveTradeFlow() {
                   </div>
                   <div className="flex flex-col items-end">
                     <span className={`text-os-xs font-bold uppercase px-1.5 py-0.5 rounded border ${isStalled ? 'bg-red-50 dark:bg-red-900/10 border-red-200 dark:border-red-900/30 text-red-600 dark:text-red-400' :
-                        'bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400'
+                      'bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400'
                       }`}>
                       {t.status}
                     </span>
@@ -117,8 +117,8 @@ export function LiveTradeFlow() {
                   {t.milestones.slice(0, 4).map((m, idx) => (
                     <div key={idx} className="flex flex-col items-center gap-1">
                       <div className={`w-1.5 h-1.5 rounded-full ${m.status === 'completed' ? (isStalled ? 'bg-red-400' : 'bg-emerald-400') :
-                          m.status === 'active' ? 'bg-os-accent animate-pulse' :
-                            'bg-gray-200 dark:bg-gray-800'
+                        m.status === 'active' ? 'bg-os-accent animate-pulse' :
+                          'bg-gray-200 dark:bg-gray-800'
                         }`} />
                     </div>
                   ))}

@@ -6,6 +6,7 @@
 import { supabase } from '@/api/supabaseClient';
 import { emitTradeEvent, TRADE_EVENT_TYPE } from './tradeEvents';
 import { notifyQuoteSubmitted } from '@/services/notificationService';
+import { logTradeEvent } from './tradeKernel';
 
 /**
  * Get all open RFQs available to suppliers
@@ -21,13 +22,13 @@ export async function getAvailableRFQs(filters = {}) {
         quantity,
         quantity_unit,
         target_price,
-        target_price_currency,
+        currency,
         status,
         created_at,
         buyer_company_id,
         companies!buyer_company_id (
           id,
-          name,
+          company_name,
           country,
           trust_score
         )
@@ -73,7 +74,7 @@ export async function getRFQDetails(rfqId) {
         *,
         companies!buyer_company_id (
           id,
-          name,
+          company_name,
           country,
           trust_score,
           verification_status
@@ -114,6 +115,7 @@ export async function submitQuote({
   leadTime, // days
   deliveryIncoterms, // EXW, FOB, CIF, etc.
   deliveryLocation,
+  moq,
   paymentTerms, // Net 30, Net 60, etc.
   certificates = [],
   notes = ''
@@ -152,7 +154,6 @@ export async function submitQuote({
       return { success: false, error: 'RFQ not found or no longer open' };
     }
 
-    const { logTradeEvent } = await import('./tradeKernel');
     // Create quote
     const { data: quote, error: createError } = await supabase
       .from('quotes')
@@ -168,6 +169,7 @@ export async function submitQuote({
         lead_time_days: leadTime,
         incoterms: deliveryIncoterms,
         delivery_location: deliveryLocation,
+        moq: moq || null,
         payment_terms: paymentTerms,
         certificates: certificates,
         notes: notes,
@@ -210,7 +212,7 @@ export async function getQuotesForRFQ(rfqId) {
         *,
         companies!supplier_company_id (
           id,
-          name,
+          company_name,
           country,
           trust_score,
           verification_status

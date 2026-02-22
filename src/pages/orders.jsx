@@ -110,9 +110,9 @@ function OrdersInner() {
           <div className="space-y-4">
             {Array.isArray(orders) && orders.map(order => {
               const otherCompany = companies.find(
-                c => c.id === (user.company_id === order.buyer_company_id ? order.seller_company_id : order.buyer_company_id)
+                c => c.id === (profile?.company_id === order.buyer_company_id ? order.seller_company_id : order.buyer_company_id)
               );
-              const isBuyer = user.company_id === order.buyer_company_id;
+              const isBuyer = profile?.company_id === order.buyer_company_id;
 
               return (
                 <Link key={order.id} to={createPageUrl('OrderDetail') + '?id=' + order.id}>

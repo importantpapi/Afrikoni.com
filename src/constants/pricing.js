@@ -16,37 +16,37 @@
 // These fees are SUCCESS-BASED - only charged when deal completes
 //
 // IMPORTANT: The database trigger `compute_trade_revenue_ledger()` enforces
-// a flat 8% commission rate on all escrow payments (server-side override).
+// a flat 4% commission rate on all escrow payments (server-side override).
 // The tiered rates below are the PLANNED future model once volume-based
-// pricing is implemented. For now, all trades are charged 8%.
+// pricing is implemented. For now, all trades are charged 4%.
 //
-// Current server-enforced rate: 8% (see 20260213_enterprise_revenue.sql)
+// Current server-enforced rate: 4% (see 20260222_set_platform_fee_to_4_percent.sql)
 
-export const SERVER_ENFORCED_RATE = 0.08; // 8% — canonical rate
+export const SERVER_ENFORCED_RATE = 0.04; // 4% — canonical rate
 
 export const TRANSACTION_FEES = {
-  // Under $1,000: 4% (minimum $20) — PLANNED, currently 8%
+  // Under $1,000: 4% (minimum $20) — PLANNED, currently 4%
   TIER_1: {
     maxAmount: 1000,
     rate: 0.04,
     minimum: 20,
     label: 'Small Trade',
   },
-  // $1,000 - $10,000: 3.5% — PLANNED, currently 8%
+  // $1,000 - $10,000: 3.5% — PLANNED, currently 4%
   TIER_2: {
     maxAmount: 10000,
     rate: 0.035,
     minimum: null,
     label: 'Standard Trade',
   },
-  // $10,000 - $50,000: 3% — PLANNED, currently 8%
+  // $10,000 - $50,000: 3% — PLANNED, currently 4%
   TIER_3: {
     maxAmount: 50000,
     rate: 0.03,
     minimum: null,
     label: 'Growth Trade',
   },
-  // $50,000+: 2.5% (negotiable for enterprise) — PLANNED, currently 8%
+  // $50,000+: 2.5% (negotiable for enterprise) — PLANNED, currently 4%
   TIER_4: {
     maxAmount: Infinity,
     rate: 0.025,
@@ -61,13 +61,13 @@ export const TRANSACTION_FEES = {
  * @returns {object} { rate, fee, tier }
  */
 export function calculateTransactionFee(amount) {
-  // Always use server-enforced flat 8% rate
+  // Always use server-enforced flat 4% rate
   const rate = SERVER_ENFORCED_RATE;
   const fee = Math.round(amount * rate * 100) / 100;
 
   return {
     rate,
-    ratePercent: '8.0%',
+    ratePercent: '4.0%',
     fee,
     tier: 'Standard',
     netToSeller: Math.round((amount - fee) * 100) / 100,

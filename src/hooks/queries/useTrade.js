@@ -13,9 +13,8 @@ async function fetchTrade(tradeId) {
         .from('trades')
         .select(`
       *,
-      buyer:companies!trades_buyer_company_id_fkey(*),
-      seller:companies!trades_seller_company_id_fkey(*),
-      product:products(*),
+      buyer:companies!buyer_company_id(*),
+      seller:companies!seller_company_id(*),
       shipments(*),
       escrows(*),
       payments(*)

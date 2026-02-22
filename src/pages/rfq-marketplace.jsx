@@ -47,16 +47,16 @@ export default function RFQMarketplace() {
       // Apply sorting
       const sortField = sortBy.startsWith('-') ? sortBy.slice(1) : sortBy;
       const ascending = !sortBy.startsWith('-');
-      
+
       const [rfqsResult, catsRes] = await Promise.all([
         paginateQuery(
           supabase
-            .from('rfqs')
-            .select('*, categories(*), companies(*)')
-            .eq('status', 'open')
+            .from('trades')
+            .select('*, categories(*), companies!buyer_company_id(*)')
+            .eq('trade_type', 'rfq')
             .order(sortField, { ascending }),
-          { 
-            page: pagination.page, 
+          {
+            page: pagination.page,
             pageSize: 20,
             orderBy: sortField,
             ascending
@@ -64,9 +64,9 @@ export default function RFQMarketplace() {
         ),
         supabase.from('categories').select('*')
       ]);
-      
+
       const rfqsRes = { data: rfqsResult.data, error: rfqsResult.error };
-      
+
       setPagination(prev => ({
         ...prev,
         ...rfqsResult,
@@ -80,51 +80,51 @@ export default function RFQMarketplace() {
       const rfqIds = (rfqsRes.data || []).map(rfq => rfq.id);
       let quotesCountMap = {};
       let avgPriceMap = {};
-      
+
       if (rfqIds.length > 0) {
         const { data: quotesData } = await supabase
           .from('quotes')
-          .select('rfq_id')
-          .in('rfq_id', rfqIds);
-        
+          .select('trade_id')
+          .in('trade_id', rfqIds);
+
         quotesCountMap = Array.isArray(quotesData) ? quotesData.reduce((acc, quote) => {
-          if (quote && quote.rfq_id) {
-            acc[quote.rfq_id] = (acc[quote.rfq_id] || 0) + 1;
+          if (quote && quote.trade_id) {
+            acc[quote.trade_id] = (acc[quote.trade_id] || 0) + 1;
           }
           return acc;
         }, {}) : {};
-        
+
         // Get average quote price
         const { data: quotesWithPrice } = await supabase
           .from('quotes')
-          .select('rfq_id, price')
-          .in('rfq_id', rfqIds)
-          .not('price', 'is', null);
-        
+          .select('trade_id, unit_price')
+          .in('trade_id', rfqIds)
+          .not('unit_price', 'is', null);
+
         const priceSumMap = {};
         const priceCountMap = {};
-        
+
         if (Array.isArray(quotesWithPrice)) {
           quotesWithPrice.forEach(quote => {
-            const rfqId = quote?.rfq_id;
+            const rfqId = quote?.trade_id;
             if (rfqId) {
               if (!priceSumMap[rfqId]) {
                 priceSumMap[rfqId] = 0;
                 priceCountMap[rfqId] = 0;
               }
-              priceSumMap[rfqId] += parseFloat(quote?.price || 0);
+              priceSumMap[rfqId] += parseFloat(quote?.unit_price || 0);
               priceCountMap[rfqId] += 1;
             }
           });
         }
-        
+
         Object.keys(priceSumMap).forEach(rfqId => {
           if (priceCountMap[rfqId] > 0) {
             avgPriceMap[rfqId] = priceSumMap[rfqId] / priceCountMap[rfqId];
           }
         });
       }
-      
+
       const enrichedRfqs = Array.isArray(rfqsRes.data) ? rfqsRes.data.map(rfq => {
         if (!rfq) return null;
         const quoteCount = quotesCountMap[rfq.id] || 0;
@@ -136,7 +136,7 @@ export default function RFQMarketplace() {
           timeRemaining: getTimeRemaining(rfq.delivery_deadline || rfq.expires_at)
         };
       }).filter(Boolean) : [];
-      
+
       setRfqs(enrichedRfqs);
       setCategories(catsRes.data || []);
     } catch (error) {
@@ -149,14 +149,15 @@ export default function RFQMarketplace() {
 
   const filteredRFQs = Array.isArray(rfqs) ? rfqs.filter(rfq => {
     if (!rfq) return false;
-    if (searchQuery && !rfq?.title?.toLowerCase().includes(searchQuery.toLowerCase()) && 
-        !rfq?.description?.toLowerCase().includes(searchQuery.toLowerCase())) {
+    if (searchQuery && !rfq?.title?.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      !rfq?.description?.toLowerCase().includes(searchQuery.toLowerCase())) {
       return false;
     }
     if (categoryFilter !== 'all' && rfq?.category_id !== categoryFilter) {
       return false;
     }
-    if (statusFilter !== 'all' && rfq?.status !== statusFilter) {
+    const normalizedStatus = statusFilter === 'open' ? 'rfq_open' : statusFilter;
+    if (statusFilter !== 'all' && rfq?.status !== normalizedStatus) {
       return false;
     }
     return true;
@@ -164,11 +165,11 @@ export default function RFQMarketplace() {
 
   const getStatusBadge = (status) => {
     const variants = {
-      open: 'bg-green-100 text-green-700',
+      rfq_open: 'bg-green-100 text-green-700',
       closed: 'bg-afrikoni-cream text-afrikoni-deep',
       awarded: 'bg-blue-100 text-blue-700'
     };
-    return variants[status] || variants.open;
+    return variants[status] || variants.rfq_open;
   };
 
   return (
@@ -383,7 +384,7 @@ export default function RFQMarketplace() {
                           {aiSummaries[rfq.id].explanation}
                         </AISummaryBox>
                       )}
-                      
+
                       <div className="grid grid-cols-2 gap-4 pt-4 border-t border-os-accent/20">
                         <div>
                           <p className="text-os-xs text-afrikoni-deep/70 mb-1">Quantity</p>
@@ -420,8 +421,8 @@ export default function RFQMarketplace() {
                             )}
                           </p>
                           {rfq?.competition_level && (
-                            <Badge 
-                              variant={rfq.competition_level === 'Low' ? 'default' : rfq.competition_level === 'Medium' ? 'secondary' : 'destructive'} 
+                            <Badge
+                              variant={rfq.competition_level === 'Low' ? 'default' : rfq.competition_level === 'Medium' ? 'secondary' : 'destructive'}
                               className="text-os-xs mt-1"
                             >
                               {rfq.competition_level} Competition
@@ -456,4 +457,3 @@ export default function RFQMarketplace() {
     </>
   );
 }
-

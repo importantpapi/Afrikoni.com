@@ -13,7 +13,8 @@ import { Textarea } from '@/components/shared/ui/textarea';
 import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import ErrorState from '@/components/shared/ui/ErrorState';
 import EmptyState from '@/components/shared/ui/EmptyState';
-import { MessageSquare, FileText, DollarSign, MapPin, Calendar, RefreshCw } from 'lucide-react';
+import { MessageSquare, FileText, DollarSign, MapPin, Calendar, RefreshCw, Send } from 'lucide-react';
+import QuoteSubmissionForm from '@/components/trade/QuoteSubmissionForm';
 
 /**
  * Rebuilt RFQ detail view with kernel-safe data access.
@@ -160,6 +161,18 @@ export default function RFQDetail() {
               icon={Calendar}
             />
           </div>
+
+          {isSeller && rfq.status === 'open' && (
+            <div className="mt-8 pt-6 border-t border-os-stroke">
+              <QuoteSubmissionForm
+                rfq={rfq}
+                onQuoteSubmitted={() => {
+                  toast.success('Quote submitted successfully!');
+                  loadData();
+                }}
+              />
+            </div>
+          )}
         </Surface>
 
         <Surface variant="panel" className="p-5 space-y-3">

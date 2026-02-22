@@ -277,7 +277,7 @@ export default function SupplierQuoteSubmission() {
                           <div>
                             <p className="text-gray-500">Buyer</p>
                             <p className="font-semibold text-gray-900 dark:text-[#F5F0E8]">
-                              {rfq.companies?.name}
+                              {rfq.companies?.company_name || rfq.companies?.name}
                             </p>
                           </div>
                           <div>
@@ -341,7 +341,7 @@ export default function SupplierQuoteSubmission() {
               <div>
                 <p className="text-gray-600">Buyer Company</p>
                 <p className="font-bold text-gray-900 dark:text-[#F5F0E8]">
-                  {selectedRfq?.companies?.name}
+                  {selectedRfq?.companies?.company_name || selectedRfq?.companies?.name}
                 </p>
               </div>
             </div>

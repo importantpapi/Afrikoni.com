@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 /**
  * AFRIKONI FX ARBITRAGE ENGINE
@@ -54,10 +55,44 @@ Deno.serve(async (req: Request) => {
     }
 
     try {
+        if (req.method !== 'POST') {
+            return new Response(JSON.stringify({ error: 'Method not allowed' }), {
+                status: 405,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+        }
+
+        const authHeader = req.headers.get('Authorization');
+        if (!authHeader) {
+            return new Response(JSON.stringify({ error: 'Authorization required' }), {
+                status: 401,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+        }
+
+        const supabaseUrl = Deno.env.get('SUPABASE_URL');
+        const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+        if (!supabaseUrl || !serviceRoleKey) {
+            return new Response(JSON.stringify({ error: 'Supabase not configured' }), {
+                status: 500,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+        }
+
+        const supabase = createClient(supabaseUrl, serviceRoleKey);
+        const token = authHeader.replace('Bearer ', '');
+        const { data: authData, error: authError } = await supabase.auth.getUser(token);
+        if (authError || !authData?.user) {
+            return new Response(JSON.stringify({ error: 'Invalid authorization' }), {
+                status: 401,
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+            });
+        }
+
         const { amount, currency, origin_country, destination_country }: ArbitrageRequest = await req.json();
 
-        if (!amount || !currency) {
-            throw new Error("Missing amount or currency");
+        if (!amount || amount <= 0 || !currency || !origin_country || !destination_country) {
+            throw new Error("Missing or invalid fields: amount, currency, origin_country, destination_country");
         }
 
         const isAfricanTrade = isIntraAfrica(origin_country, destination_country);

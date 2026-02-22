@@ -58,51 +58,36 @@ export default function RFQDetail() {
     }
 
     try {
-      const [rfqsRes, companiesRes, quotesRes] = await Promise.all([
-        supabase.from('rfqs').select('*'),
-        supabase.from('companies').select('*'),
-        supabase.from('quotes').select('*')
-      ]);
+      const { data: foundRFQ, error: rfqError } = await supabase
+        .from('trades')
+        .select('*, companies!buyer_company_id(*)')
+        .eq('id', rfqId)
+        .eq('trade_type', 'rfq')
+        .single();
 
-      if (rfqsRes.error) {
-        console.error('Error loading RFQs:', rfqsRes.error);
-        throw rfqsRes.error;
-      }
-      if (companiesRes.error) {
-        console.error('Error loading companies:', companiesRes.error);
-        throw companiesRes.error;
-      }
-      if (quotesRes.error) {
-        console.error('Error loading quotes:', quotesRes.error);
-        throw quotesRes.error;
-      }
-
-      const foundRFQ = Array.isArray(rfqsRes.data) && rfqsRes.data.length > 0 ? rfqsRes.data[0] : null;
-      if (!foundRFQ) {
+      if (rfqError || !foundRFQ) {
+        console.error('Error loading RFQ:', rfqError);
         toast.error('RFQ not found');
         navigate('/dashboard');
         return;
       }
 
       setRfq(foundRFQ);
-      const buyerCompany = Array.isArray(companiesRes.data) ? companiesRes.data.find(c => c.id === foundRFQ.buyer_company_id) : null;
-      setBuyer(buyerCompany);
-      setQuotes(Array.isArray(quotesRes.data) ? quotesRes.data : []);
+      setBuyer(foundRFQ.companies);
 
-      try {
-        const { data: trade, error: tradeError } = await supabase
-          .from('trades')
-          .select('id, status')
-          .or(`rfq_id.eq.${foundRFQ.id},id.eq.${foundRFQ.id}`)
-          .maybeSingle?.() ?? { data: null, error: null };
-        if (!tradeError && trade?.id) {
-          setLinkedTradeId(trade.id);
-          setLinkedTradeStatus(trade.status);
-        }
-      } catch {
-        setLinkedTradeId(null);
-        setLinkedTradeStatus(null);
+      const { data: quotesData, error: quotesError } = await supabase
+        .from('quotes')
+        .select('*')
+        .eq('rfq_id', foundRFQ.id);
+
+      if (quotesError) {
+        console.error('Error loading quotes:', quotesError);
+      } else {
+        setQuotes(quotesData || []);
       }
+
+      setLinkedTradeId(foundRFQ.id);
+      setLinkedTradeStatus(foundRFQ.status);
     } catch (error) {
       // Error logged (removed for production)
       toast.error('Failed to load RFQ');
@@ -112,7 +97,7 @@ export default function RFQDetail() {
   };
 
   const handleSubmitQuote = async () => {
-    if (!user || !user.company_id) {
+    if (!user || !profile?.company_id) {
       toast.error('Please login first');
       return;
     }
@@ -123,7 +108,7 @@ export default function RFQDetail() {
     }
 
     // Security: Verify user is authenticated and has a company
-    if (!user || !user.company_id) {
+    if (!user || !profile?.company_id) {
       toast.error('Please complete your company information to submit quotes');
       navigate('/dashboard/company-info');
       return;
@@ -147,7 +132,7 @@ export default function RFQDetail() {
       const totalPrice = pricePerUnit * quantity;
       const { error } = await supabase.from('quotes').insert({
         rfq_id: rfq.id,
-        supplier_company_id: user.company_id, // Always from authenticated user
+        supplier_company_id: profile.company_id, // Always from authenticated user
         price_per_unit: pricePerUnit,
         total_price: totalPrice,
         currency: 'USD',
@@ -171,7 +156,7 @@ export default function RFQDetail() {
 
   const handleAwardQuote = async (quoteId, supplierCompanyId) => {
     // Security: Verify user is the buyer of this RFQ
-    if (!user || !user.company_id || user.company_id !== rfq.buyer_company_id) {
+    if (!user || !profile?.company_id || profile.company_id !== rfq.buyer_company_id) {
       toast.error('Unauthorized: Only the RFQ buyer can award quotes');
       return;
     }
@@ -290,7 +275,7 @@ export default function RFQDetail() {
   const { capabilities } = useCapability();
 
   if (!rfq) return null;
-  const isBuyer = user?.company_id === rfq.buyer_company_id;
+  const isBuyer = profile?.company_id === rfq.buyer_company_id;
   const isSeller = capabilities?.can_sell === true && capabilities?.sell_status === 'approved';
   const lifecycleStatus = linkedTradeStatus || 'UNLINKED';
   const isRfqOpen = lifecycleStatus === 'rfq_open';
@@ -351,7 +336,7 @@ export default function RFQDetail() {
           </CardContent>
         </Card>
 
-        {isSeller && isRfqOpen && !quotes.find(q => q.supplier_company_id === user.company_id) && (
+        {isSeller && isRfqOpen && !quotes.find(q => q.supplier_company_id === profile?.company_id) && (
           <Card className="border-os-accent/20 mb-6">
             <CardHeader>
               <CardTitle>Submit a Quote</CardTitle>

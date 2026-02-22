@@ -19,6 +19,7 @@ import { useViewPermissions } from '@/hooks/useViewPermissions';
 export default function TradeOSSidebar({
   capabilities,
   isAdmin = false,
+  isActivated = false,
   notificationCounts = {},
   onClose,
   sidebarOpen = true,
@@ -60,6 +61,7 @@ export default function TradeOSSidebar({
     workspaceMode,
     notificationCounts,
     isAdmin,
+    isActivated,
     isSourcing,
     isDistribution
   });
@@ -69,7 +71,7 @@ export default function TradeOSSidebar({
     <aside
       className={`
         relative h-full bg-os-bg border-r border-os-accent/20
-        flex flex-col overflow-y-auto overflow-x-visible
+        flex flex-col overflow-x-visible
         shadow-[8px_0_40px_rgba(0,0,0,0.12)]
         ${sidebarOpen ? 'w-[240px]' : 'w-[88px]'}
         ${sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
@@ -98,7 +100,7 @@ export default function TradeOSSidebar({
         )}
 
         {!sidebarOpen && (
-          <div className="absolute left-14 px-3 py-1.5 bg-white dark:bg-gray-900 border border-os-accent/30 rounded-lg text-os-xs font-semibold text-os-accent opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-[60] shadow-os-lg">
+          <div className="absolute left-14 px-3 py-1.5 bg-white dark:bg-gray-900 border border-os-accent/30 rounded-lg text-os-xs font-semibold text-os-accent opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-[1200] shadow-os-lg">
             AFRIKONI
             <div className="text-os-xs text-os-text-secondary dark:text-gray-400 font-normal mt-0.5">Trade. Trust. Thrive.</div>
           </div>

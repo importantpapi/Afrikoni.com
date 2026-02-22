@@ -150,7 +150,7 @@ export const emailTemplates = {
       
       <p>Your funds are protected by Trade Shield escrow until you confirm satisfaction.</p>
     `;
-    return baseTemplate(content, 'View Order', `https://afrikoni.com/dashboard/orders/${data.orderId || ''}`);
+    return baseTemplate(content, 'View Order', `https://afrikoni.com/dashboard/trades/${data.orderId || ''}`);
   },
 
   /**
@@ -216,7 +216,7 @@ export const emailTemplates = {
         <li>Once buyer confirms, funds will be released to your account</li>
       </ol>
     `;
-    return baseTemplate(content, 'View Order', `https://afrikoni.com/dashboard/orders/${data.orderId || ''}`);
+    return baseTemplate(content, 'View Order', `https://afrikoni.com/dashboard/trades/${data.orderId || ''}`);
   },
 
   /**
@@ -237,7 +237,7 @@ export const emailTemplates = {
       
       <p>Track your shipment and update the order status once you receive it. Your payment will be released to the supplier after you confirm delivery.</p>
     `;
-    return baseTemplate(content, 'Track Order', `https://afrikoni.com/dashboard/orders/${data.orderId || ''}`);
+    return baseTemplate(content, 'Track Order', `https://afrikoni.com/dashboard/trades/${data.orderId || ''}`);
   },
 
   /**
@@ -263,7 +263,7 @@ export const emailTemplates = {
       
       <p>Please respond promptly to help us resolve this quickly. You can add comments and evidence in the dispute details.</p>
     `;
-    return baseTemplate(content, 'View Dispute', `https://afrikoni.com/dashboard/orders/${orderId || ''}`);
+    return baseTemplate(content, 'View Dispute', `https://afrikoni.com/dashboard/trades/${orderId || ''}`);
   },
 
   /**
@@ -348,7 +348,7 @@ export const emailTemplates = {
       
       <p>If you have any questions, please contact our support team.</p>
     `;
-    return baseTemplate(content, 'View Order Details', `https://afrikoni.com/dashboard/orders/${data.orderId || ''}`);
+    return baseTemplate(content, 'View Order Details', `https://afrikoni.com/dashboard/trades/${data.orderId || ''}`);
   },
 
   /**
@@ -372,7 +372,7 @@ export const emailTemplates = {
       
       <p>If there are any issues with your order, please open a dispute within 48 hours.</p>
     `;
-    return baseTemplate(content, 'Confirm Delivery', `https://afrikoni.com/dashboard/orders/${data.orderId || ''}`);
+    return baseTemplate(content, 'Confirm Delivery', `https://afrikoni.com/dashboard/trades/${data.orderId || ''}`);
   },
 
   /**
@@ -391,7 +391,7 @@ export const emailTemplates = {
       
       <p>Thank you for being a trusted supplier on Afrikoni!</p>
     `;
-    return baseTemplate(content, 'View Order', `https://afrikoni.com/dashboard/orders/${data.orderId || ''}`);
+    return baseTemplate(content, 'View Order', `https://afrikoni.com/dashboard/trades/${data.orderId || ''}`);
   },
 
   /**
@@ -484,7 +484,7 @@ export const emailTemplates = {
    */
   contactSubmission: (data) => {
     const { name, email, category, subject, message, attachments = [], submissionDate } = data;
-    
+
     // Determine priority badge color based on category
     let priorityColor = '#D4A574'; // Default gold
     let priorityText = 'Normal';
@@ -495,7 +495,7 @@ export const emailTemplates = {
       priorityColor = '#F59E0B'; // Orange for medium priority
       priorityText = 'Medium Priority';
     }
-    
+
     const content = `
       <div style="background: linear-gradient(135deg, #8B4513 0%, #A0522D 100%); padding: 30px; border-radius: 8px 8px 0 0; text-align: center; margin-bottom: 0;">
         <div style="display: inline-block; background: rgba(255, 255, 255, 0.2); padding: 12px 24px; border-radius: 50px; margin-bottom: 15px;">

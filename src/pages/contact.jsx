@@ -11,6 +11,8 @@ import { MessageCircle, Mail, Phone, MapPin, Clock, Upload, Image as ImageIcon, 
 import { toast } from 'sonner';
 import { supabase, supabaseHelpers } from '@/api/supabaseClient';
 import OptimizedImage from '@/components/OptimizedImage';
+import { createNotification } from '@/services/notificationService';
+import { sendEmail } from '@/services/emailService';
 
 export default function Contact() {
   const { trackPageView } = useAnalytics();
@@ -98,9 +100,6 @@ export default function Contact() {
       // This runs in the background and doesn't affect form submission success
       (async () => {
         try {
-          const { createNotification } = await import('@/services/notificationService');
-          const { sendEmail } = await import('@/services/emailService');
-          
           // Create structured email subject
           const emailSubject = formData.subject 
             ? `📧 Contact Form: ${formData.subject}` 
@@ -442,4 +441,3 @@ export default function Contact() {
     </>
   );
 }
-

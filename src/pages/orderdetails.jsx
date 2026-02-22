@@ -34,7 +34,7 @@ export default function OrderDetail() {
   const loadData = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const orderId = urlParams.get('id');
-    
+
     // Security: Validate UUID format
     if (!orderId || !isValidUUID(orderId)) {
       toast.error('Invalid order ID');
@@ -95,7 +95,7 @@ export default function OrderDetail() {
     }
 
     // Security: Verify user is the buyer of this order
-    if (!user || !user.company_id || user.company_id !== order.buyer_company_id) {
+    if (!user || !profile?.company_id || profile.company_id !== order.buyer_company_id) {
       toast.error('Unauthorized: Only the order buyer can process payment');
       return;
     }
@@ -159,10 +159,10 @@ export default function OrderDetail() {
 
   if (!order) return null;
 
-  const isBuyer = user?.company_id === order.buyer_company_id;
-  const isSeller = user?.company_id === order.seller_company_id;
+  const isBuyer = profile?.company_id === order.buyer_company_id;
+  const isSeller = profile?.company_id === order.seller_company_id;
   const displayStatus = linkedTradeStatus || 'UNLINKED';
-  const platformFeeRate = 0.08;
+  const platformFeeRate = 0.04;
   const totalAmountNumber = Number(order.total_amount) || 0;
   const platformFeeAmount = totalAmountNumber * platformFeeRate;
   const supplierPayoutEstimate = totalAmountNumber - platformFeeAmount;
@@ -226,7 +226,7 @@ export default function OrderDetail() {
                 </div>
                 <div className="mt-4 pt-4 border-t-2 border-os-accent/30 space-y-3 bg-afrikoni-cream/30 p-4 rounded-lg">
                   <div className="flex items-center justify-between">
-                    <span className="text-os-base font-semibold text-afrikoni-chestnut">Afrikoni Fee (8%):</span>
+                    <span className="text-os-base font-semibold text-afrikoni-chestnut">Afrikoni Fee (4%):</span>
                     <span className="text-os-xl font-bold text-afrikoni-chestnut">
                       ${platformFeeAmount.toFixed(2)}
                     </span>

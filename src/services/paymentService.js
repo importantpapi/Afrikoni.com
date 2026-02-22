@@ -7,6 +7,7 @@ import { supabase } from '@/api/supabaseClient';
 
 const STRIPE_PUBLISHABLE_KEY = import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY;
 const BACKEND_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+const ALLOW_SIMULATED_PAYMENTS = import.meta.env.VITE_ALLOW_SIMULATED_PAYMENTS === 'true';
 
 /**
  * Create a Payment Intent on the backend
@@ -23,7 +24,18 @@ export async function createPaymentIntent(escrowId, amount, currency = 'USD') {
       }
     });
 
-    if (error) throw error;
+    if (error) {
+      // Controlled simulation mode for local development only.
+      if (ALLOW_SIMULATED_PAYMENTS && (error.status === 404 || error.message?.includes('not found'))) {
+        console.warn('[paymentService] create-payment-intent missing - using simulation secret');
+        return {
+          clientSecret: 'pi_simulated_secret_' + Math.random().toString(36).slice(2),
+          paymentIntentId: 'pi_simulated_' + Math.random().toString(36).slice(2),
+          publishableKey: STRIPE_PUBLISHABLE_KEY || 'pk_test_simulation'
+        };
+      }
+      throw error;
+    }
 
     return {
       clientSecret: data.clientSecret,
@@ -32,7 +44,7 @@ export async function createPaymentIntent(escrowId, amount, currency = 'USD') {
     };
   } catch (error) {
     console.error('Failed to create payment intent:', error);
-    throw new Error('Payment initialization failed');
+    throw new Error('Payment initialization failed: ' + error.message);
   }
 }
 
@@ -50,7 +62,17 @@ export async function confirmPayment(paymentIntentId, paymentMethodId) {
       }
     });
 
-    if (error) throw error;
+    if (error) {
+      if (ALLOW_SIMULATED_PAYMENTS && (error.status === 404 || error.message?.includes('not found'))) {
+        console.warn('[paymentService] confirm-stripe-payment missing - simulating success');
+        return {
+          success: true,
+          status: 'succeeded',
+          message: 'Payment simulated successfully'
+        };
+      }
+      throw error;
+    }
 
     return {
       success: data.success,
@@ -59,7 +81,7 @@ export async function confirmPayment(paymentIntentId, paymentMethodId) {
     };
   } catch (error) {
     console.error('Payment confirmation failed:', error);
-    throw new Error('Payment confirmation failed');
+    throw new Error('Payment confirmation failed: ' + error.message);
   }
 }
 

@@ -451,7 +451,7 @@ Deno.serve(async (req) => {
     });
 
     y -= 12;
-    page.drawText("Platform commission (8%) is deducted upon release.", {
+    page.drawText("Platform commission (4%) is deducted upon release.", {
       x: 50,
       y,
       size: 9,

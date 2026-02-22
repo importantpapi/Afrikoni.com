@@ -1,4 +1,5 @@
 import { supabase } from '@/api/supabaseClient';
+import { sendEmail } from './emailService';
 
 /**
  * Notification Templates
@@ -92,9 +93,6 @@ async function getUserNotificationPreferences(userId, companyId) {
  */
 async function sendEmailNotification(email, title, message, link, type = 'default') {
   try {
-    // Import email service dynamically to avoid loading if not configured
-    const { sendEmail } = await import('./emailService');
-
     // Map notification types to email templates
     const templateMap = {
       'order': 'orderConfirmation',
@@ -476,7 +474,7 @@ export async function notifyOrderStatusChange(orderId, newStatus, buyerCompanyId
       title: template.title,
       message: template.message,
       type: 'order',
-      link: `/dashboard/orders/${orderId}`,
+      link: `/dashboard/trades/${orderId}`,
       related_id: orderId,
       sendEmail: true // Order updates are important, send email
     });
@@ -489,7 +487,7 @@ export async function notifyOrderStatusChange(orderId, newStatus, buyerCompanyId
       title: template.title,
       message: template.message,
       type: 'order',
-      link: `/dashboard/orders/${orderId}`,
+      link: `/dashboard/trades/${orderId}`,
       related_id: orderId,
       sendEmail: true
     });
@@ -691,9 +689,8 @@ export async function notifyPaymentEvent(orderId, companyId, eventType, amount, 
     title: template.title,
     message: `${template.message}: ${currency} ${amount}`,
     type: 'payment',
-    link: `/dashboard/orders/${orderId}`,
+    link: `/dashboard/trades/${orderId}`,
     related_id: orderId,
     sendEmail: true // Payment events are critical, always send email
   });
 }
-

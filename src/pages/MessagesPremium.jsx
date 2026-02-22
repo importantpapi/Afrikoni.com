@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   MessageSquare, Send, Paperclip, Search, MoreVertical, Phone, Video, MapPin,
@@ -46,9 +46,14 @@ export default function MessagesPremium() {
   const inputRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
+  const { conversationId } = useParams();
   const [searchParams] = useSearchParams();
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [productContext, setProductContext] = useState(null);
+  const [tradeEvents, setTradeEvents] = useState([]);
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingUsers, setTypingUsers] = useState({});
+  const typingTimeoutRef = useRef(null);
 
   // Smart back navigation
   const handleBack = () => {
@@ -122,18 +127,34 @@ export default function MessagesPremium() {
       const { data: newConv, error: convError } = await supabase
         .from('conversations')
         .insert({
-          buyer_company_id: companyId,
-          seller_company_id: recipientCompanyId,
           subject: subject,
           related_to: relatedTo,
           related_type: relatedType,
           last_message: '',
-          last_message_at: new Date().toISOString()
+          last_message_at: new Date().toISOString(),
+          // Legacy columns preserved for backward compatibility if needed, 
+          // but canonical logic now uses participants table.
+          buyer_company_id: companyId,
+          seller_company_id: recipientCompanyId
         })
         .select('id')
         .single();
 
       if (convError) throw convError;
+
+      // Seed Participants (Resilient fallback)
+      try {
+        await supabase
+          .from('conversation_participants')
+          .insert([
+            { conversation_id: newConv.id, company_id: companyId, role: 'buyer' },
+            { conversation_id: newConv.id, company_id: recipientCompanyId, role: 'supplier' }
+          ]);
+      } catch (err) {
+        // Silently skip if table is missing or relationship cache is stale.
+        // The conversation is already created using stabilized buyer/seller columns.
+        console.warn('[Messaging] Participants table not available, relying on stabilized columns.');
+      }
 
       setSelectedConversation(newConv.id);
 
@@ -185,7 +206,7 @@ export default function MessagesPremium() {
   }, []);
 
   useEffect(() => {
-    const conversationParam = searchParams.get('conversation');
+    const conversationParam = conversationId || searchParams.get('conversation');
     const recipientParam = searchParams.get('recipient');
     const productParam = searchParams.get('product');
     const productTitleParam = searchParams.get('productTitle');
@@ -256,99 +277,96 @@ export default function MessagesPremium() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Real-time subscription for new messages - creates notifications and shows toast
+  // Real-time subscription for new messages and PRESENCE (typing indicators)
   useEffect(() => {
-    if (!companyId) return;
+    if (!companyId || !selectedConversation) return;
 
-    const channel = supabase
-      .channel('messages-realtime')
+    // 1. Message Subscription
+    const messageChannel = supabase
+      .channel(`room-messages-${selectedConversation}`)
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
           table: 'messages',
-          filter: `receiver_company_id=eq.${companyId}`
+          filter: `conversation_id=eq.${selectedConversation}`
         },
         async (payload) => {
           const newMessage = payload.new;
 
-          // Get sender company info for toast
-          let senderCompanyName = 'Someone';
-          try {
-            const { data: senderCompany } = await supabase
-              .from('companies')
-              .select('company_name')
-              .eq('id', newMessage.sender_company_id)
-              .maybeSingle();
-            if (senderCompany) {
-              senderCompanyName = senderCompany.company_name;
-            }
-          } catch (err) {
-            // Ignore error
-          }
+          // Prevent duplicate if we already have it (from local insert)
+          setMessages(prev => {
+            const prevArray = Array.isArray(prev) ? prev : [];
+            if (prevArray.some(m => m.id === newMessage.id)) return prevArray;
+            return [...prevArray, newMessage];
+          });
 
-          // If this message is for the currently selected conversation, add it to the UI
-          if (newMessage.conversation_id === selectedConversation) {
-            setMessages(prev => {
-              const prevArray = Array.isArray(prev) ? prev : [];
-              return [...prevArray, newMessage];
-            });
-
-            // Mark as read if viewing the conversation
-            if (companyId === newMessage.receiver_company_id) {
-              await supabase
-                .from('messages')
-                .update({ read: true })
-                .eq('id', newMessage.id);
-            }
-
-            // Don't show toast if viewing conversation - message is already visible
-            // Toasts are for UI feedback, not business events
-          } else {
-            // Message is for a different conversation
-            // Don't show toast - notification bell will handle it
-            // Toasts are for UI feedback (saved, sent, error), not business events
-          }
-
-          // Create notification only if user is NOT viewing this conversation
-          // Core principle: Notifications trigger action, not mirror data
-          try {
-            // Check if this is the first message in the conversation
-            const { data: messageCount } = await supabase
+          // Mark as read if received by us
+          if (companyId === newMessage.receiver_company_id && !newMessage.read) {
+            await supabase
               .from('messages')
-              .select('id', { count: 'exact' })
-              .eq('conversation_id', newMessage.conversation_id);
-
-            const isFirstMessage = (messageCount?.length || 0) <= 1;
-
-            await notifyNewMessage(
-              newMessage.id,
-              newMessage.conversation_id,
-              newMessage.receiver_company_id,
-              newMessage.sender_company_id,
-              {
-                activeConversationId: selectedConversation, // Pass current conversation
-                isFirstMessage: isFirstMessage
-              }
-            );
-          } catch (error) {
-            // Silently fail - notification creation is not critical
-            if (import.meta.env.DEV) {
-              console.warn('Notification creation failed:', error);
-            }
+              .update({ read: true })
+              .eq('id', newMessage.id);
           }
 
-          // Refresh conversations to update unread counts
+          // Refresh list for last message preview
           loadUserAndConversations();
         }
       )
       .subscribe();
 
+    // 2. Presence Subscription (Typing Indicators)
+    const presenceChannel = supabase.channel(`presence-${selectedConversation}`, {
+      config: { presence: { key: companyId } }
+    });
+
+    presenceChannel
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceChannel.presenceState();
+        const typing = {};
+        Object.keys(state).forEach(key => {
+          if (key !== companyId) {
+            const userState = state[key][0];
+            if (userState.isTyping) {
+              typing[key] = true;
+            }
+          }
+        });
+        setTypingUsers(typing);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await presenceChannel.track({
+            isTyping: isTyping,
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(messageChannel);
+      supabase.removeChannel(presenceChannel);
     };
-  }, [companyId, selectedConversation, navigate]);
+  }, [companyId, selectedConversation, isTyping]);
+
+  // Fetch Trade Events when conversation context is a trade/rfq
+  useEffect(() => {
+    const selectedConv = conversations.find(c => c.id === selectedConversation);
+    if (selectedConversation && (selectedConv?.related_type === 'trade' || selectedConv?.related_type === 'rfq') && selectedConv?.related_to) {
+      const fetchEvents = async () => {
+        const { data } = await supabase
+          .from('trade_events')
+          .select('*')
+          .eq('trade_id', selectedConv.related_to)
+          .order('created_at', { ascending: false });
+        setTradeEvents(data || []);
+      };
+      fetchEvents();
+    } else {
+      setTradeEvents([]);
+    }
+  }, [selectedConversation, conversations]);
 
   // ✅ STABILITY: Wait for system ready before loading data
   useEffect(() => {
@@ -368,20 +386,38 @@ export default function MessagesPremium() {
       }
       setCompanyId(userCompanyId);
 
-      // Load conversations
-      const { data: conversationsData, error } = await supabase
-        .from('conversations')
-        .select(`
-          *,
-          buyer_company:buyer_company_id(*),
-          seller_company:seller_company_id(*)
-        `)
-        .or(`buyer_company_id.eq.${userCompanyId},seller_company_id.eq.${userCompanyId}`)
-        .order('last_message_at', { ascending: false });
+      // Load conversations with Resilient Scaling
+      let convAttempt;
+      try {
+        // Primary: Canonical Trade Columns
+        convAttempt = await supabase
+          .from('conversations')
+          .select(`
+            *,
+            buyer_company:buyer_company_id(*),
+            seller_company:seller_company_id(*)
+          `)
+          .or(`buyer_company_id.eq.${userCompanyId},seller_company_id.eq.${userCompanyId}`)
+          .order('last_message_at', { ascending: false });
 
-      if (error && error.code !== 'PGRST116') throw error;
+        if (convAttempt.error && convAttempt.error.message.includes('column "buyer_company_id" does not exist')) {
+          throw convAttempt.error;
+        }
+      } catch (err) {
+        // Fallback: Legacy/WhatsApp Infrastructure
+        console.warn('[Messaging] Canonical conversation columns not in cache, falling back to identity ledger.');
+        convAttempt = await supabase
+          .from('conversations')
+          .select('*')
+          .eq('user_id', user?.id)
+          .order('last_message_at', { ascending: false });
+      }
 
-      // Format conversations
+      const { data: conversationsData, error } = convAttempt;
+
+      if (error) throw error;
+
+      // Format conversations identifying the OTHER participant
       const formattedConversations = (conversationsData || []).map(conv => {
         const otherCompany = userCompanyId === conv.buyer_company_id
           ? conv.seller_company
@@ -395,11 +431,11 @@ export default function MessagesPremium() {
           subject: conv.subject || '',
           verified: otherCompany?.verified || false,
           country: otherCompany?.country || '',
-          role: otherCompany?.role || ''
+          role: userCompanyId === conv.buyer_company_id ? 'Supplier' : 'Buyer'
         };
       });
 
-      setConversations(Array.isArray(formattedConversations) ? formattedConversations : []);
+      setConversations(formattedConversations);
     } catch (error) {
       console.error('Error loading conversations:', error);
       toast.error(error?.message || t('messages.loading') || 'Failed to load conversations');
@@ -489,10 +525,7 @@ export default function MessagesPremium() {
 
   const [attachments, setAttachments] = useState([]);
   const [uploadingFile, setUploadingFile] = useState(false);
-  const [typingUsers, setTypingUsers] = useState({});
   const [messageSearchQuery, setMessageSearchQuery] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  const typingTimeoutRef = useRef(null);
   const fileInputRef = useRef(null);
   const [aiSuggestionsOpen, setAiSuggestionsOpen] = useState(true);
   const [showTranslation, setShowTranslation] = useState(false);
@@ -721,20 +754,49 @@ export default function MessagesPremium() {
         }))
       } : null;
 
-      // Insert message
-      const { data: newMsg, error } = await supabase
-        .from('messages')
-        .insert({
-          conversation_id: selectedConversation,
-          sender_company_id: companyId,
-          receiver_company_id: receiverCompanyId,
-          sender_user_email: user?.email || '',
-          content: newMessage.trim() || (attachments.length > 0 ? `Sent ${attachments.length} file(s)` : ''),
-          payload: payload,
-          read: false
-        })
-        .select()
-        .single();
+      // Insert message (Resilient fallback for schema cache)
+      const messageData = {
+        conversation_id: selectedConversation,
+        sender_company_id: companyId,
+        receiver_company_id: receiverCompanyId,
+        sender_user_email: user?.email || '',
+        direction: 'outbound', // Requirement from legacy schema
+        read: false
+      };
+
+      const finalContent = newMessage.trim() || (attachments.length > 0 ? `Sent ${attachments.length} file(s)` : '');
+
+      let insertAttempt;
+      try {
+        // Attempt with new canonical columns
+        insertAttempt = await supabase
+          .from('messages')
+          .insert({
+            ...messageData,
+            content: finalContent,
+            payload: payload
+          })
+          .select()
+          .single();
+
+        if (insertAttempt.error && insertAttempt.error.message.includes('column "payload" does not exist')) {
+          throw insertAttempt.error;
+        }
+      } catch (err) {
+        // Fallback to legacy structure if schema cache is stale
+        console.warn('[Messaging] Canonical columns not in cache, falling back to legacy structure.');
+        insertAttempt = await supabase
+          .from('messages')
+          .insert({
+            ...messageData,
+            body: finalContent, // Maps to legacy 'body'
+            entities: payload    // Maps to legacy 'entities'
+          })
+          .select()
+          .single();
+      }
+
+      const { data: newMsg, error } = insertAttempt;
 
       if (error) throw error;
 
@@ -833,36 +895,36 @@ export default function MessagesPremium() {
 
       {/* FORENSIC SENTINEL: Security Alert Modal */}
       {leakageWarning && (
-          <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 backdrop-blur-2xl">
-            <Surface variant="glass" className="border-red-500/30 rounded-[2rem] max-w-md w-full p-10 text-center shadow-2xl shadow-red-900/40 relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-red-600 via-orange-500 to-red-600" />
-              <div className="w-20 h-20 rounded-os-lg bg-os-red/10 border border-os-red/20 flex items-center justify-center mx-auto mb-6 shadow-os-lg shadow-red-500/5">
-                <Shield className="w-10 h-10 text-os-red" />
-              </div>
-              <h3 className="text-os-2xl font-black tracking-tight mb-3 italic">{leakageWarning.title}</h3>
-              <p className="text-os-muted mb-8 leading-relaxed font-medium">
-                {leakageWarning.message}
-              </p>
-              <div className="flex flex-col gap-4">
-                <Button
-                  className="w-full bg-white text-black hover:bg-white/90 font-bold py-4 rounded-lg shadow-lg"
-                  onClick={() => setLeakageWarning(null)}
-                >
-                  Edit My Message
-                </Button>
-                <button
-                  className="text-xs text-red-500/70 hover:text-red-400 font-semibold underline"
-                  onClick={() => {
-                    setLeakageWarning(null);
-                    handleSendMessage(true);
-                  }}
-                >
-                  Send Anyway (I understand the risk)
-                </button>
-              </div>
-            </Surface>
-          </div>
-        )}
+        <div className="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center p-4 backdrop-blur-2xl">
+          <Surface variant="glass" className="border-red-500/30 rounded-[2rem] max-w-md w-full p-10 text-center shadow-2xl shadow-red-900/40 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-red-600 via-orange-500 to-red-600" />
+            <div className="w-20 h-20 rounded-os-lg bg-os-red/10 border border-os-red/20 flex items-center justify-center mx-auto mb-6 shadow-os-lg shadow-red-500/5">
+              <Shield className="w-10 h-10 text-os-red" />
+            </div>
+            <h3 className="text-os-2xl font-black tracking-tight mb-3 italic">{leakageWarning.title}</h3>
+            <p className="text-os-muted mb-8 leading-relaxed font-medium">
+              {leakageWarning.message}
+            </p>
+            <div className="flex flex-col gap-4">
+              <Button
+                className="w-full bg-white text-black hover:bg-white/90 font-bold py-4 rounded-lg shadow-lg"
+                onClick={() => setLeakageWarning(null)}
+              >
+                Edit My Message
+              </Button>
+              <button
+                className="text-xs text-red-500/70 hover:text-red-400 font-semibold underline"
+                onClick={() => {
+                  setLeakageWarning(null);
+                  handleSendMessage(true);
+                }}
+              >
+                Send Anyway (I understand the risk)
+              </button>
+            </div>
+          </Surface>
+        </div>
+      )}
 
       {/* Header Area */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 shrink-0">
@@ -890,11 +952,11 @@ export default function MessagesPremium() {
         <div className="flex items-center gap-4">
           <Surface variant="panel" className="px-5 py-2.5 flex items-center gap-4">
             <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Encrypted & Secure
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              Institutional Privacy
             </div>
             <div className="w-px h-6 bg-os-stroke" />
-            <Badge variant="outline" className="border-os-stroke text-xs font-semibold text-os-text-secondary">Trade Protection Active</Badge>
+            <Badge variant="outline" className="border-os-stroke text-xs font-semibold text-os-text-secondary">Official Trade Channel</Badge>
           </Surface>
         </div>
       </div>
@@ -912,6 +974,8 @@ export default function MessagesPremium() {
               <div className="relative group">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-os-text-secondary group-focus-within:text-os-accent transition-colors" />
                 <Input
+                  id="conversation-search"
+                  name="conversation-search"
                   placeholder="Search conversations..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -999,15 +1063,22 @@ export default function MessagesPremium() {
                   </div>
                 </div>
                 <div className="bg-os-accent/5 border-b border-os-accent/10 px-6 py-2.5 flex items-center gap-3">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-os-accent"> <Shield className="w-3.5 h-3.5" /> End-to-end encrypted </div>
+                  <div className="flex items-center gap-2 text-xs font-semibold text-os-accent"> <Shield className="w-3.5 h-3.5" /> Secure Channel </div>
                   <div className="w-px h-4 bg-os-accent/20" />
-                  <p className="text-xs text-os-text-secondary">Messages are protected and only visible to you and your trade partner.</p>
+                  <p className="text-xs text-os-text-secondary">Conversation verified and isolated to authorized trade participants only.</p>
                 </div>
                 {selectedConversation && (
                   <div className="px-8 py-3 border-b border-os-stroke bg-white/[0.01]">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-os-muted" />
-                      <Input placeholder="Search messages in this conversation..." value={messageSearchQuery} onChange={(e) => setMessageSearchQuery(e.target.value)} className="pl-10 text-os-xs bg-os-accent/5 border-os-stroke" />
+                      <Input
+                        id="message-search"
+                        name="message-search"
+                        placeholder="Search messages in this conversation..."
+                        value={messageSearchQuery}
+                        onChange={(e) => setMessageSearchQuery(e.target.value)}
+                        className="pl-10 text-os-xs bg-os-accent/5 border-os-stroke"
+                      />
                     </div>
                   </div>
                 )}
@@ -1028,7 +1099,9 @@ export default function MessagesPremium() {
                   {filteredMessages.map((msg, idx) => {
                     const isMine = msg.sender_company_id === companyId;
                     const showAvatar = idx === 0 || filteredMessages[idx - 1].sender_company_id !== msg.sender_company_id;
-                    const msgAttachments = msg.payload?.attachments || [];
+                    // Resilient attachment access (Canonical payload or Legacy entities)
+                    const msgPayload = msg.payload || msg.entities || {};
+                    const msgAttachments = msgPayload.attachments || [];
 
                     return (
                       <motion.div key={msg.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={cn("flex gap-4 group", isMine ? "flex-row-reverse" : "flex-row")}>
@@ -1043,7 +1116,11 @@ export default function MessagesPremium() {
                             </span>
                           )}
                           <div className={cn("p-5 rounded-os-lg shadow-os-md relative group transition-all", isMine ? "bg-white text-black rounded-tr-sm" : "bg-os-accent/5 text-white border border-os-stroke rounded-tl-sm backdrop-blur-md")}>
-                            {msg.content && <p className="text-os-sm font-medium leading-relaxed tracking-tight">{msg.content}</p>}
+                            {(msg.content || msg.body) && (
+                              <p className="text-os-sm font-medium leading-relaxed tracking-tight">
+                                {msg.content || msg.body}
+                              </p>
+                            )}
                             {msgAttachments.length > 0 && (
                               <div className="mt-4 grid grid-cols-1 gap-3">
                                 {msgAttachments.map((att, attIdx) => {
@@ -1078,14 +1155,16 @@ export default function MessagesPremium() {
 
                   {/* Typing Indicator */}
                   <AnimatePresence>
-                    {isTyping && (
+                    {Object.keys(typingUsers).length > 0 && (
                       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="px-8 py-2 flex items-center gap-3">
                         <div className="flex gap-1">
                           <div className="w-1.5 h-1.5 rounded-full bg-os-accent animate-bounce" style={{ animationDelay: '0ms' }} />
                           <div className="w-1.5 h-1.5 rounded-full bg-os-accent animate-bounce" style={{ animationDelay: '150ms' }} />
                           <div className="w-1.5 h-1.5 rounded-full bg-os-accent animate-bounce" style={{ animationDelay: '300ms' }} />
                         </div>
-                        <span className="text-os-xs font-black uppercase tracking-widest text-os-accent opacity-60">Peer is transmitting...</span>
+                        <span className="text-os-xs font-black uppercase tracking-widest text-os-accent opacity-60">
+                          {Object.keys(typingUsers).length === 1 ? 'Peer is transmitting...' : 'Multiple peers transmitting...'}
+                        </span>
                       </motion.div>
                     )}
                   </AnimatePresence>
@@ -1112,7 +1191,9 @@ export default function MessagesPremium() {
                   <div className="flex items-end gap-6">
                     <div className="flex-1 relative group">
                       <textarea
-                        placeholder="Enter transmission payload..."
+                        id="message-input"
+                        name="message"
+                        placeholder="Enter your message..."
                         value={newMessage}
                         onChange={(e) => {
                           setNewMessage(e.target.value);
@@ -1127,7 +1208,15 @@ export default function MessagesPremium() {
                         className="w-full bg-white/[0.03] border-os-stroke rounded-os-lg p-6 pr-16 min-h-[100px] max-h-48 text-os-sm font-medium tracking-tight focus:ring-2 focus:ring-os-accent/20 focus:border-os-accent/40 transition-all resize-none scrollbar-none"
                       />
                       <div className="absolute right-4 bottom-4 flex items-center gap-2">
-                        <input type="file" ref={fileInputRef} onChange={handleAttachmentSelect} multiple className="hidden" />
+                        <input
+                          id="file-upload"
+                          name="attachments"
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleFileUpload}
+                          multiple
+                          className="hidden"
+                        />
                         <Button variant="ghost" size="icon" onClick={() => fileInputRef.current?.click()} className="h-10 w-10 rounded-os-sm hover:bg-os-accent/10 text-os-muted hover:text-white border border-transparent hover:border-os-stroke">
                           <Paperclip className="w-5 h-5" />
                         </Button>
@@ -1135,10 +1224,10 @@ export default function MessagesPremium() {
                     </div>
                     <Button
                       onClick={() => handleSendMessage()}
-                      disabled={(!newMessage.trim() && attachments.length === 0) || sending}
+                      disabled={(!newMessage.trim() && attachments.length === 0) || isSending}
                       className="h-16 w-16 rounded-os-lg bg-os-accent hover:bg-os-accent/90 text-black shadow-os-lg shadow-os-accent/10 hover:scale-105 active:scale-95 transition-all shrink-0 p-0"
                     >
-                      {sending ? <Loader2 className="w-6 h-6 animate-spin" /> : <Send className="w-6 h-6" />}
+                      {isSending ? <Loader2 className="w-6 h-6 animate-spin" /> : <Send className="w-6 h-6" />}
                     </Button>
                   </div>
 
@@ -1146,10 +1235,10 @@ export default function MessagesPremium() {
                     <div className="flex items-center gap-4 text-os-xs font-black uppercase tracking-[0.2em] text-os-muted opacity-40">
                       <div className="flex items-center gap-2">
                         <ShieldCheck className="w-3 h-3" />
-                        E2E Encrypted Internal Uplink
+                        Regulatory Compliance Active
                       </div>
                       <span className="opacity-20">|</span>
-                      <span>Payload: {newMessage.length} bits</span>
+                      <span>B2B Protocol 2.0</span>
                     </div>
                     <div className="flex items-center gap-3">
                       {productContext && (
@@ -1171,15 +1260,15 @@ export default function MessagesPremium() {
                     <Shell className="w-12 h-12 text-os-muted relative z-10 animate-pulse" />
                   </div>
                   <div className="space-y-3">
-                    <h3 className="text-os-2xl font-black tracking-tight text-white">Select Node</h3>
-                    <p className="text-os-sm font-medium text-os-muted leading-relaxed italic">Synchronize with institutional peers across the pan-African trade matrix.</p>
+                    <h3 className="text-os-2xl font-black tracking-tight text-white">Select a Conversation</h3>
+                    <p className="text-os-sm font-medium text-os-muted leading-relaxed italic">Connect with verified trade partners across the pan-African marketplace.</p>
                   </div>
                   <div className="flex flex-col gap-3">
                     <div className="p-4 rounded-os-md bg-white/[0.02] border border-os-stroke flex items-center gap-4 text-left">
                       <ShieldCheck className="w-5 h-5 text-emerald-500/50" />
                       <div>
-                        <p className="text-os-xs font-black uppercase tracking-widest text-white">Secure Encryption</p>
-                        <p className="text-os-xs text-os-muted font-bold">Standard protocol active</p>
+                        <p className="text-os-xs font-black uppercase tracking-widest text-white">Secure Communication</p>
+                        <p className="text-os-xs text-os-muted font-bold">Standard security protocol active</p>
                       </div>
                     </div>
                   </div>
@@ -1197,8 +1286,8 @@ export default function MessagesPremium() {
                     <Sparkles className="w-5 h-5 text-os-accent" />
                   </div>
                   <div>
-                    <h4 className="text-os-sm font-black tracking-tight text-white uppercase italic">Strategic Intelligence</h4>
-                    <p className="text-os-xs font-black tracking-[0.2em] text-os-muted uppercase">Operational Support Module</p>
+                    <h4 className="text-os-sm font-black tracking-tight text-white uppercase italic">Afrikoni Message Assistant</h4>
+                    <p className="text-os-xs font-black tracking-[0.2em] text-os-muted uppercase">Institutional Trade Support</p>
                   </div>
                 </div>
 
@@ -1211,14 +1300,16 @@ export default function MessagesPremium() {
                       disabled={isGeneratingSuggestion}
                       className="w-full h-10 text-os-xs font-black uppercase tracking-widest border-os-accent/30 text-os-accent hover:bg-os-accent/10 rounded-os-sm"
                     >
-                      {isGeneratingSuggestion ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> : <Terminal className="w-3.5 h-3.5 mr-2" />}
-                      Synthesize Response
+                      {isGeneratingSuggestion ? <Loader2 className="w-3.5 h-3.5 animate-spin mr-2" /> : <Sparkles className="w-3.5 h-3.5 mr-2" />}
+                      Draft Professional Response
                     </Button>
                   </div>
 
                   {aiDraft && (
                     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-4">
                       <textarea
+                        id="ai-suggestion-draft"
+                        name="ai-draft"
                         value={aiDraft}
                         readOnly
                         className="w-full bg-black/20 border border-os-accent/20 rounded-os-md p-5 text-os-xs font-medium tracking-tight text-white/90 min-h-[120px] focus:outline-none scrollbar-none"
@@ -1230,7 +1321,7 @@ export default function MessagesPremium() {
                         }}
                         className="w-full h-12 bg-white text-black font-black text-os-xs tracking-widest uppercase rounded-os-sm hover:bg-white/90 transition-all"
                       >
-                        Execute Draft
+                        Use Draft
                       </Button>
                     </motion.div>
                   )}
@@ -1241,42 +1332,36 @@ export default function MessagesPremium() {
                 <div>
                   <div className="flex items-center gap-3 mb-6">
                     <Activity className="w-4 h-4 text-os-accent" />
-                    <h3 className="text-os-xs font-black uppercase tracking-[0.3em] text-os-muted">Execution Timeline</h3>
+                    <h3 className="text-os-xs font-black uppercase tracking-[0.3em] text-os-muted">Context Intelligence</h3>
                   </div>
 
                   <div className="space-y-8 relative before:absolute before:left-2 before:top-2 before:bottom-2 before:w-[1px] before:bg-os-accent/5">
-                    {[
-                      { step: 'Quote Issuance', status: 'completed', date: 'JAN 15' },
-                      { step: 'Escrow Lock', status: 'completed', date: 'JAN 16' },
-                      { step: 'Asset Transit', status: 'active', date: 'JAN 18' },
-                      { step: 'Vessel Arrival', status: 'pending', date: 'EST. JAN 22' },
-                      { step: 'Capital Release', status: 'pending', date: 'PROJ. JAN 23' }
-                    ].map((item, idx) => (
-                      <div key={idx} className="relative pl-8 group">
-                        <div className={cn(
-                          "absolute left-0 top-1 w-4 h-4 rounded-full border-2 transition-all group-hover:scale-110",
-                          item.status === 'completed' ? "bg-emerald-500 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.3)]" :
-                            item.status === 'active' ? "bg-os-accent border-os-accent/50 shadow-[0_0_15px_rgba(212,169,55,0.3)]" :
-                              "bg-transparent border-os-stroke"
-                        )} />
-                        <div className="space-y-1">
-                          <p className={cn(
-                            "text-os-xs font-black tracking-tight",
-                            item.status === 'pending' ? "text-os-muted" : "text-white"
-                          )}>{item.step}</p>
-                          <p className="text-os-xs font-black tracking-widest text-os-muted opacity-40 uppercase">{item.date}</p>
+                    {tradeEvents.length > 0 ? (
+                      tradeEvents.map((event, idx) => (
+                        <div key={idx} className="relative pl-8 group">
+                          <div className="absolute left-0 top-1 w-4 h-4 rounded-full border-2 bg-emerald-500 border-emerald-500/50 shadow-[0_0_15px_rgba(16,185,129,0.3)] transition-all group-hover:scale-110" />
+                          <div className="space-y-1">
+                            <p className="text-os-xs font-black tracking-tight text-white capitalize">{event.event_name.replace(/_/g, ' ')}</p>
+                            <p className="text-os-xs font-black tracking-widest text-os-muted opacity-40 uppercase">
+                              {format(new Date(event.created_at), 'MMM d')}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      ))
+                    ) : (
+                      <p className="text-os-xs text-os-muted font-medium italic leading-relaxed">
+                        Messaging context is automatically linked to the active trade rail. All communications are logged for dispute resolution and insurance coverage.
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <Surface variant="panel" className="bg-white/[0.02] border-emerald-500/10 p-6 space-y-4">
                   <div className="flex items-center gap-3">
                     <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-os-xs font-black uppercase tracking-widest text-emerald-500">Node Status: Verified</span>
+                    <span className="text-os-xs font-black uppercase tracking-widest text-emerald-500">Company Status: Verified</span>
                   </div>
-                  <p className="text-os-xs text-os-muted font-medium italic leading-relaxed">Counterparty terminal identification confirmed via institutional KYC protocols. Standard trade warranties active.</p>
+                  <p className="text-os-xs text-os-muted font-medium italic leading-relaxed">Company identity confirmed via institutional KYC protocols. Standard trade warranties active.</p>
                 </Surface>
               </div>
             </Surface>

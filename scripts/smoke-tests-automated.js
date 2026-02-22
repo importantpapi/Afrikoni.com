@@ -1,11 +1,11 @@
 /**
- * Automated Smoke Tests for RFQ System
- * Tests all critical user flows programmatically
+ * Automated Smoke Tests for RFQ System (current architecture)
+ * Validates critical RFQ/Quote/Notification rails without browser automation.
  */
 
 import { createClient } from '@supabase/supabase-js';
 import { config } from 'dotenv';
-import { readFileSync } from 'fs';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
@@ -20,6 +20,8 @@ if (!supabaseUrl || !supabaseKey) {
 }
 
 const supabase = createClient(supabaseUrl, supabaseKey);
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 console.log('🧪 RFQ System - Automated Smoke Tests\n');
 console.log('='.repeat(60));
@@ -33,159 +35,112 @@ function logSmokeTest(name, passed, details = '') {
   return passed;
 }
 
+function readRepoFile(...parts) {
+  const filePath = join(__dirname, '..', ...parts);
+  if (!fs.existsSync(filePath)) return null;
+  return fs.readFileSync(filePath, 'utf-8');
+}
+
 // Smoke Test 1: RFQ Creation Flow (Code Verification)
 async function smokeTest1_RFQCreation() {
   console.log('\n📝 SMOKE TEST 1: RFQ Creation Flow\n');
 
-  const fs = await import('fs');
-  const { fileURLToPath } = await import('url');
-  const { dirname, join } = await import('path');
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = dirname(__filename);
+  const rfqCreate = readRepoFile('src', 'pages', 'dashboard', 'rfqs', 'new.jsx');
 
-  const rfqCreatePath = join(__dirname, '..', 'src', 'pages', 'rfq', 'create.jsx');
-  
-  if (!fs.existsSync(rfqCreatePath)) {
-    logSmokeTest('RFQ Create Page', false, 'File not found');
+  if (!rfqCreate) {
+    logSmokeTest('RFQ Create Page', false, 'File not found: src/pages/dashboard/rfqs/new.jsx');
     return false;
   }
 
-  const rfqCreate = fs.readFileSync(rfqCreatePath, 'utf-8');
+  const hasSubmitHandler = rfqCreate.includes('handleSubmit') && rfqCreate.includes('onSubmit={handleSubmit}');
+  const hasCreateCall = rfqCreate.includes('createRFQ(');
+  const hasSupplierMatchFlow = rfqCreate.includes('matchSuppliersToRFQ') && rfqCreate.includes('notifyMatchedSuppliers');
+  const hasCoreFields = ['title', 'description', 'quantity', 'unit', 'target_price', 'delivery_location']
+    .every(field => rfqCreate.includes(field));
 
-  // Check for 4-step flow
-  const hasSteps = rfqCreate.includes('currentStep') && 
-                   rfqCreate.includes('setCurrentStep') &&
-                   (rfqCreate.match(/Step \d+/g) || []).length >= 3;
-  
-  // Check for all required fields
-  const requiredFields = [
-    'productName', 'category', 'quantity', 'unit',
-    'delivery_country', 'timeline', 'specifications',
-    'incoterms', 'purchase_type', 'order_value_range',
-    'company_name', 'buyer_role'
-  ];
+  logSmokeTest('RFQ Create Page Exists', true, 'dashboard/rfqs/new.jsx found');
+  logSmokeTest('Submission Handler', hasSubmitHandler, hasSubmitHandler ? 'Form submit wired' : 'Missing handleSubmit wiring');
+  logSmokeTest('RFQ Insert Flow', hasCreateCall, hasCreateCall ? 'createRFQ() called' : 'Missing createRFQ call');
+  logSmokeTest('Supplier Match + Notify Flow', hasSupplierMatchFlow, hasSupplierMatchFlow ? 'Matching + notifications wired' : 'Missing matching/notification flow');
+  logSmokeTest('Core RFQ Fields', hasCoreFields, hasCoreFields ? 'Core form fields present' : 'Core fields missing in form state');
 
-  const hasAllFields = requiredFields.every(field => rfqCreate.includes(field));
-  
-  // Check for submission logic
-  const hasSubmission = rfqCreate.includes('handleSubmit') || 
-                       rfqCreate.includes('submitRFQ') ||
-                       rfqCreate.includes('.insert');
-
-  logSmokeTest('RFQ Create Page Exists', true, 'File found');
-  logSmokeTest('4-Step Flow', hasSteps, hasSteps ? 'Multi-step form implemented' : 'Missing step logic');
-  logSmokeTest('All Required Fields', hasAllFields, hasAllFields ? 'All fields present' : 'Missing fields');
-  logSmokeTest('Submission Logic', hasSubmission, hasSubmission ? 'Submit function exists' : 'Missing submit');
-
-  return hasSteps && hasAllFields && hasSubmission;
+  return hasSubmitHandler && hasCreateCall && hasSupplierMatchFlow && hasCoreFields;
 }
 
-// Smoke Test 2: Admin Review Interface
-async function smokeTest2_AdminReview() {
-  console.log('\n👤 SMOKE TEST 2: Admin Review Interface\n');
+// Smoke Test 2: RFQ Operations Interface (current monitor/detail pages)
+async function smokeTest2_RFQOperations() {
+  console.log('\n👤 SMOKE TEST 2: RFQ Operations Interface\n');
 
-  const fs = await import('fs');
-  const { fileURLToPath } = await import('url');
-  const { dirname, join } = await import('path');
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = dirname(__filename);
+  const tradeMonitor = readRepoFile('src', 'pages', 'dashboard', 'TradeMonitor.jsx');
+  const rfqDetail = readRepoFile('src', 'pages', 'dashboard', 'rfqs', '[id].jsx');
 
-  const adminReviewPath = join(__dirname, '..', 'src', 'pages', 'dashboard', 'admin', 'rfq-review.jsx');
-  
-  if (!fs.existsSync(adminReviewPath)) {
-    logSmokeTest('Admin Review Page', false, 'File not found');
-    return false;
-  }
+  const monitorExists = !!tradeMonitor;
+  const detailExists = !!rfqDetail;
 
-  const adminReview = fs.readFileSync(adminReviewPath, 'utf-8');
+  const hasRfqMode = monitorExists && tradeMonitor.includes("viewMode=\"rfqs\"") || (tradeMonitor || '').includes("'rfqs'");
+  const hasRfqFetch = detailExists && rfqDetail.includes(".from('rfqs')") && rfqDetail.includes('.single()');
+  const hasQuoteFetch = detailExists && rfqDetail.includes(".from('quotes')");
+  const hasQuoteSubmission = detailExists && rfqDetail.includes('QuoteSubmissionForm');
 
-  // Check for key features
-  const hasList = adminReview.includes('rfqs') && adminReview.includes('.select');
-  const hasDetailView = adminReview.includes('selectedRFQ') || adminReview.includes('rfq detail');
-  const hasActions = adminReview.includes('Approve') && 
-                     adminReview.includes('Reject') &&
-                     adminReview.includes('Clarification');
-  const hasMatching = adminReview.includes('matched_supplier_ids') || 
-                     adminReview.includes('supplier shortlist');
-  const hasNotes = adminReview.includes('internal_notes') || adminReview.includes('internal notes');
+  logSmokeTest('RFQ Monitor Page', monitorExists, monitorExists ? 'TradeMonitor exists' : 'Missing TradeMonitor');
+  logSmokeTest('RFQ Detail Page', detailExists, detailExists ? 'rfqs/[id].jsx exists' : 'Missing RFQ detail page');
+  logSmokeTest('RFQ Detail Data Load', hasRfqFetch, hasRfqFetch ? 'RFQ select query present' : 'Missing RFQ select query');
+  logSmokeTest('Quote List Data Load', hasQuoteFetch, hasQuoteFetch ? 'Quotes select query present' : 'Missing quote select query');
+  logSmokeTest('Supplier Quote Entry', hasQuoteSubmission, hasQuoteSubmission ? 'QuoteSubmissionForm wired' : 'Quote form not wired');
 
-  logSmokeTest('Admin Review Page Exists', true, 'File found');
-  logSmokeTest('RFQ List View', hasList, hasList ? 'List functionality present' : 'Missing list');
-  logSmokeTest('Detail View', hasDetailView, hasDetailView ? 'Detail view present' : 'Missing detail');
-  logSmokeTest('Action Buttons', hasActions, hasActions ? 'All actions present' : 'Missing actions');
-  logSmokeTest('Supplier Matching', hasMatching, hasMatching ? 'Matching feature present' : 'Missing matching');
-  logSmokeTest('Internal Notes', hasNotes, hasNotes ? 'Notes feature present' : 'Missing notes');
-
-  return hasList && hasDetailView && hasActions && hasMatching && hasNotes;
+  return monitorExists && detailExists && hasRfqFetch && hasQuoteFetch && hasQuoteSubmission;
 }
 
 // Smoke Test 3: Supplier Quote Submission
 async function smokeTest3_SupplierQuotes() {
   console.log('\n💰 SMOKE TEST 3: Supplier Quote Submission\n');
 
-  const fs = await import('fs');
-  const { fileURLToPath } = await import('url');
-  const { dirname, join } = await import('path');
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = dirname(__filename);
+  const quoteForm = readRepoFile('src', 'components', 'trade', 'QuoteSubmissionForm.jsx');
+  const quoteService = readRepoFile('src', 'services', 'quoteService.js');
 
-  const quotePath = join(__dirname, '..', 'src', 'pages', 'dashboard', 'rfqs', '[id].jsx');
-  
-  if (!fs.existsSync(quotePath)) {
-    logSmokeTest('Quote Submission Page', false, 'File not found');
+  if (!quoteForm || !quoteService) {
+    logSmokeTest('Quote Submission Modules', false, 'Quote form or service file missing');
     return false;
   }
 
-  const quotePage = fs.readFileSync(quotePath, 'utf-8');
+  const hasSubmitAction = quoteForm.includes('onSubmit={handleSubmit}') && quoteForm.includes('submitQuote({');
+  const hasIncotermsField = quoteForm.includes('incoterms');
+  const hasMoqField = quoteForm.includes('Minimum Order Quantity') || quoteForm.includes('moq');
+  const hasDuplicateGuard = quoteService.includes('already submitted a quote');
+  const hasStatusWrite = quoteService.includes("status: 'submitted'");
 
-  // Check for quote form fields
-  const hasNewFields = quotePage.includes('incoterms') && 
-                       quotePage.includes('moq') &&
-                       quotePage.includes('quote_submitted');
-  const hasQuoteForm = quotePage.includes('quoteForm') || quotePage.includes('Submit Quote');
-  const hasConfirmation = quotePage.includes('confirmed') || quotePage.includes('confirmation');
-  const hasLocking = quotePage.includes('quote_submitted') && 
-                     (quotePage.includes('locked') || quotePage.includes('cannot edit'));
+  logSmokeTest('Quote Submission Form Exists', true, 'QuoteSubmissionForm + quoteService found');
+  logSmokeTest('Quote Submit Wiring', hasSubmitAction, hasSubmitAction ? 'submitQuote called from form' : 'Missing submit wiring');
+  logSmokeTest('Incoterms Field', hasIncotermsField, hasIncotermsField ? 'Incoterms present' : 'Incoterms missing');
+  logSmokeTest('MOQ Field', hasMoqField, hasMoqField ? 'MOQ input present' : 'MOQ missing');
+  logSmokeTest('Duplicate Quote Guard', hasDuplicateGuard, hasDuplicateGuard ? 'Duplicate submit blocked' : 'No duplicate guard');
+  logSmokeTest('Quote Status Persistence', hasStatusWrite, hasStatusWrite ? 'Quote status written on insert' : 'No status persistence');
 
-  logSmokeTest('Quote Page Exists', true, 'File found');
-  logSmokeTest('New Fields (incoterms, moq)', hasNewFields, hasNewFields ? 'All new fields present' : 'Missing fields');
-  logSmokeTest('Quote Form', hasQuoteForm, hasQuoteForm ? 'Form present' : 'Missing form');
-  logSmokeTest('Confirmation Checkbox', hasConfirmation, hasConfirmation ? 'Confirmation present' : 'Missing confirmation');
-  logSmokeTest('Quote Locking', hasLocking, hasLocking ? 'Locking logic present' : 'Missing locking');
-
-  return hasNewFields && hasQuoteForm && hasConfirmation && hasLocking;
+  return hasSubmitAction && hasIncotermsField && hasMoqField && hasDuplicateGuard && hasStatusWrite;
 }
 
 // Smoke Test 4: Notification System
 async function smokeTest4_Notifications() {
   console.log('\n📬 SMOKE TEST 4: Notification System\n');
 
-  const fs = await import('fs');
-  const { fileURLToPath } = await import('url');
-  const { dirname, join } = await import('path');
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = dirname(__filename);
+  const notifService = readRepoFile('src', 'services', 'notificationService.js');
+  const quoteService = readRepoFile('src', 'services', 'quoteService.js');
 
-  const notifPath = join(__dirname, '..', 'src', 'utils', 'rfqNotifications.js');
-  
-  if (!fs.existsSync(notifPath)) {
-    logSmokeTest('Notification Helper', false, 'File not found');
+  if (!notifService || !quoteService) {
+    logSmokeTest('Notification Service', false, 'notificationService or quoteService missing');
     return false;
   }
 
-  const notifHelper = fs.readFileSync(notifPath, 'utf-8');
+  const hasCreateNotification = notifService.includes('createNotification');
+  const hasRfqNotifyHelpers = notifService.includes('notifyRFQCreated') && notifService.includes('notifyQuoteSubmitted');
+  const hasQuoteTriggerNotify = quoteService.includes('notifyQuoteSubmitted');
 
-  const hasFunction = notifHelper.includes('sendRFQNotification');
-  const hasAllTypes = ['rfq_submitted', 'rfq_matched', 'rfq_clarification', 'rfq_rejected']
-    .every(type => notifHelper.includes(type));
-  const hasMessages = notifHelper.includes('title') && notifHelper.includes('message');
+  logSmokeTest('Notification Service Exists', true, 'notificationService.js found');
+  logSmokeTest('Create Notification Core', hasCreateNotification, hasCreateNotification ? 'createNotification present' : 'Missing createNotification');
+  logSmokeTest('RFQ/Quote Notification Helpers', hasRfqNotifyHelpers, hasRfqNotifyHelpers ? 'RFQ/quote helpers present' : 'Missing helper(s)');
+  logSmokeTest('Quote Submission Triggers Notification', hasQuoteTriggerNotify, hasQuoteTriggerNotify ? 'Quote flow triggers notifyQuoteSubmitted' : 'Quote flow missing notification trigger');
 
-  logSmokeTest('Notification Helper Exists', true, 'File found');
-  logSmokeTest('Send Function', hasFunction, hasFunction ? 'Function present' : 'Missing function');
-  logSmokeTest('All 4 Notification Types', hasAllTypes, hasAllTypes ? 'All types defined' : 'Missing types');
-  logSmokeTest('Message Templates', hasMessages, hasMessages ? 'Templates present' : 'Missing templates');
-
-  return hasFunction && hasAllTypes && hasMessages;
+  return hasCreateNotification && hasRfqNotifyHelpers && hasQuoteTriggerNotify;
 }
 
 // Smoke Test 5: Quote Locking (Database Trigger)
@@ -193,38 +148,28 @@ async function smokeTest5_QuoteLocking() {
   console.log('\n🔒 SMOKE TEST 5: Quote Locking (Database)\n');
 
   try {
-    // Check if trigger exists by trying to query trigger info
-    // Since we can't directly query triggers via Supabase API, we verify the migration was applied
-    const fs = await import('fs');
-    const { fileURLToPath } = await import('url');
-    const { dirname, join } = await import('path');
-    const __filename = fileURLToPath(import.meta.url);
-    const __dirname = dirname(__filename);
-    
-    const migrationPath = join(__dirname, '..', 'supabase', 'migrations', '20250116000000_extend_quotes_table.sql');
-    
-    if (!fs.existsSync(migrationPath)) {
-      logSmokeTest('Migration File', false, 'Migration file not found');
+    const migration = readRepoFile('supabase', 'migrations', '20250116000000_extend_quotes_table.sql');
+
+    if (!migration) {
+      logSmokeTest('Migration File', false, 'Missing 20250116000000_extend_quotes_table.sql');
       return false;
     }
 
-    const migration = fs.readFileSync(migrationPath, 'utf-8');
-    const hasTrigger = migration.includes('prevent_quote_edit_after_submit') &&
-                       migration.includes('trg_prevent_quote_edit') &&
-                       migration.includes('CREATE TRIGGER');
+    const hasTrigger = migration.includes('prevent_quote_edit_after_submit')
+      && migration.includes('trg_prevent_quote_edit')
+      && migration.includes('CREATE TRIGGER');
 
-    // Verify quote_submitted status is allowed
     const { error } = await supabase
       .from('quotes')
       .select('id')
-      .eq('status', 'quote_submitted')
+      .in('status', ['quote_submitted', 'submitted'])
       .limit(1);
 
     const statusAllowed = !error || (!error.message.includes('constraint') && !error.message.includes('check'));
 
-    logSmokeTest('Migration File Exists', true, 'File found');
-    logSmokeTest('Trigger Definition', hasTrigger, hasTrigger ? 'Trigger defined' : 'Missing trigger');
-    logSmokeTest('quote_submitted Status', statusAllowed, statusAllowed ? 'Status allowed' : 'Status not allowed');
+    logSmokeTest('Migration File Exists', true, 'Quote-lock migration found');
+    logSmokeTest('Trigger Definition', hasTrigger, hasTrigger ? 'Trigger defined' : 'Missing trigger definition');
+    logSmokeTest('Submitted Status Allowed', statusAllowed, statusAllowed ? 'Submitted statuses accepted' : 'Submitted status rejected');
 
     return hasTrigger && statusAllowed;
   } catch (err) {
@@ -233,49 +178,27 @@ async function smokeTest5_QuoteLocking() {
   }
 }
 
-// Smoke Test 6: Notifications Fire (Code Verification)
+// Smoke Test 6: Notification Calls in RFQ Create Flow
 async function smokeTest6_NotificationsFire() {
   console.log('\n📬 SMOKE TEST 6: Notifications Fire (Code)\n');
 
-  const fs = await import('fs');
-  const { fileURLToPath } = await import('url');
-  const { dirname, join } = await import('path');
-  const __filename = fileURLToPath(import.meta.url);
-  const __dirname = dirname(__filename);
+  const rfqCreate = readRepoFile('src', 'pages', 'dashboard', 'rfqs', 'new.jsx');
+  const supplierMatcher = readRepoFile('src', 'services', 'supplierMatchingService.js');
 
-  // Check RFQ creation calls notification
-  const rfqCreatePath = join(__dirname, '..', 'src', 'pages', 'rfq', 'create.jsx');
-  const adminReviewPath = join(__dirname, '..', 'src', 'pages', 'dashboard', 'admin', 'rfq-review.jsx');
-
-  let allPass = true;
-
-  if (fs.existsSync(rfqCreatePath)) {
-    const rfqCreate = fs.readFileSync(rfqCreatePath, 'utf-8');
-    const callsNotification = rfqCreate.includes('sendRFQNotification') ||
-                              rfqCreate.includes('rfq_submitted');
-    logSmokeTest('RFQ Creation Calls Notification', callsNotification, 
-      callsNotification ? 'Notification called' : 'Missing notification call');
-    if (!callsNotification) allPass = false;
+  if (!rfqCreate || !supplierMatcher) {
+    logSmokeTest('Notification Flow Files', false, 'RFQ create or supplier matching file missing');
+    return false;
   }
 
-  if (fs.existsSync(adminReviewPath)) {
-    const adminReview = fs.readFileSync(adminReviewPath, 'utf-8');
-    const callsOnMatch = adminReview.includes('sendRFQNotification') &&
-                         (adminReview.includes('rfq_matched') || adminReview.includes('rfq_matched'));
-    const callsOnReject = adminReview.includes('rfq_rejected');
-    const callsOnClarification = adminReview.includes('rfq_clarification');
-    
-    logSmokeTest('Admin Match Calls Notification', callsOnMatch, 
-      callsOnMatch ? 'Notification called' : 'Missing notification call');
-    logSmokeTest('Admin Reject Calls Notification', callsOnReject,
-      callsOnReject ? 'Notification called' : 'Missing notification call');
-    logSmokeTest('Admin Clarification Calls Notification', callsOnClarification,
-      callsOnClarification ? 'Notification called' : 'Missing notification call');
-    
-    if (!callsOnMatch || !callsOnReject || !callsOnClarification) allPass = false;
-  }
+  const createCallsNotify = rfqCreate.includes('notifyMatchedSuppliers(');
+  const matcherWritesNotifications = supplierMatcher.includes(".from('notifications')") && supplierMatcher.includes('.insert(');
 
-  return allPass;
+  logSmokeTest('RFQ Create Calls Supplier Notifications', createCallsNotify,
+    createCallsNotify ? 'notifyMatchedSuppliers invoked' : 'Missing notifyMatchedSuppliers call');
+  logSmokeTest('Supplier Match Inserts Notifications', matcherWritesNotifications,
+    matcherWritesNotifications ? 'notifications insert present' : 'Missing notifications insert');
+
+  return createCallsNotify && matcherWritesNotifications;
 }
 
 // Main execution
@@ -283,27 +206,26 @@ async function runSmokeTests() {
   try {
     const results = {
       test1: await smokeTest1_RFQCreation(),
-      test2: await smokeTest2_AdminReview(),
+      test2: await smokeTest2_RFQOperations(),
       test3: await smokeTest3_SupplierQuotes(),
       test4: await smokeTest4_Notifications(),
       test5: await smokeTest5_QuoteLocking(),
-      test6: await smokeTest6_NotificationsFire()
+      test6: await smokeTest6_NotificationsFire(),
     };
 
-    // Summary
     console.log('\n' + '='.repeat(60));
     console.log('\n📊 SMOKE TEST SUMMARY\n');
 
-    const passedCount = Object.values(results).filter(r => r === true).length;
+    const passedCount = Object.values(results).filter(Boolean).length;
     const totalCount = Object.keys(results).length;
 
     const testNames = {
-      test1: '1. Submit RFQ as Buyer',
-      test2: '2. Review RFQ as Admin',
-      test3: '3. Submit Quote as Supplier',
-      test4: '4. Notification System',
-      test5: '5. Quote Locking',
-      test6: '6. Notifications Fire'
+      test1: '1. Create RFQ (buyer path)',
+      test2: '2. RFQ monitor + detail operations',
+      test3: '3. Submit quote (supplier path)',
+      test4: '4. Notification service wiring',
+      test5: '5. Quote locking migration + status',
+      test6: '6. RFQ flow notification calls',
     };
 
     Object.entries(results).forEach(([test, passed]) => {
@@ -315,13 +237,12 @@ async function runSmokeTests() {
 
     if (passedCount === totalCount) {
       console.log('✅ ALL SMOKE TESTS PASSED!\n');
-      console.log('🎯 All critical user flows verified.\n');
+      console.log('🎯 Critical RFQ/Quote/Notification rails verified.\n');
     } else {
       console.log('⚠️  SOME SMOKE TESTS NEED ATTENTION\n');
       console.log('Review failed tests above.\n');
     }
 
-    // Detailed results
     console.log('📋 Detailed Results:\n');
     smokeResults.forEach(result => {
       const icon = result.passed ? '✅' : '❌';
@@ -336,4 +257,3 @@ async function runSmokeTests() {
 }
 
 runSmokeTests();
-

@@ -186,12 +186,12 @@ export default function RiskManagementDashboard() {
 
         try {
           if (user.company_id) {
-            // Get orders count
-            const { count: orders } = await supabase
-              .from('orders')
+            // Get trades count
+            const { count: trades } = await supabase
+              .from('trades')
               .select('*', { count: 'exact', head: true })
               .or(`buyer_company_id.eq.${user.company_id},seller_company_id.eq.${user.company_id}`);
-            orderCount = orders || 0;
+            orderCount = trades || 0;
 
             // RFQs use buyer_company_id, not company_id
             const { count: rfqs } = await supabase
@@ -336,13 +336,13 @@ export default function RiskManagementDashboard() {
         let productCount = 0;
 
         try {
-          // Get orders count (check both buyer and seller company IDs)
+          // Get trades count (check both buyer and seller company IDs)
           if (user.company_id) {
-            const { count: orders } = await supabase
-              .from('orders')
+            const { count: trades } = await supabase
+              .from('trades')
               .select('*', { count: 'exact', head: true })
               .or(`buyer_company_id.eq.${user.company_id},seller_company_id.eq.${user.company_id}`);
-            orderCount = orders || 0;
+            orderCount = trades || 0;
 
             // Get RFQs count - RFQs use buyer_company_id, not company_id
             const { count: rfqs } = await supabase
@@ -568,20 +568,20 @@ export default function RiskManagementDashboard() {
         .select('*')
         .gte('created_at', thirtyDaysAgo.toISOString());
 
-      // Load failed orders/payments
-      const { data: failedOrders } = await supabase
-        .from('orders')
+      // Load failed trades (disputed or cancelled)
+      const { data: failedTrades } = await supabase
+        .from('trades')
         .select('*')
-        .eq('payment_status', 'refunded')
+        .in('status', ['disputed', 'closed']) // closed can sometimes mean cancelled in some contexts, but disputed is the main risk
         .gte('created_at', thirtyDaysAgo.toISOString());
 
       // Calculate Platform Risk Score (0-100, lower is better)
-      // Based on: disputes, failed payments, high-risk audit logs
+      // Based on: disputes, failed trades, high-risk audit logs
       const disputeWeight = allDisputes?.length || 0;
-      const failedPaymentWeight = failedOrders?.length || 0;
+      const failedTradeWeight = failedTrades?.length || 0;
       const fraudWeight = fraudAlerts?.length || 0;
       const riskScore = Math.min(100, Math.round(
-        (disputeWeight * 5) + (failedPaymentWeight * 3) + (fraudWeight * 10)
+        (disputeWeight * 5) + (failedTradeWeight * 3) + (fraudWeight * 10)
       ));
 
       // Load compliance tasks (verifications pending review)

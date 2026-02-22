@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { Menu, MessageCircle, Search, Calendar, MessageSquare, Plus } from 'lucide-react';
 import { Input } from '@/components/shared/ui/input';
 import { Button } from '@/components/shared/ui/button';
@@ -25,6 +25,8 @@ export default function HybridHeader({
   setActiveView,
   userAvatar,
 }) {
+  const { lang } = useParams();
+  const language = lang || 'en';
   const isBuyerView = activeView === 'buyer';
 
   return (
@@ -110,7 +112,7 @@ export default function HybridHeader({
         <div className="flex items-center gap-4 overflow-visible">
           {/* Messages */}
           <Link
-            to="/messages"
+            to={`/${language}/dashboard/messages`}
             className="flex items-center justify-center w-10 h-10
                        rounded-lg hover:bg-afrikoni-sand/20
                        relative transition-all hover:scale-105"
@@ -148,5 +150,4 @@ export default function HybridHeader({
     </HeaderShell>
   );
 }
-
 

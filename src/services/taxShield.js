@@ -35,9 +35,8 @@ export async function predictHSCode(description) {
         }
     }
 
-    // KERNEL FIX: Removed demo fallback. 
-    // Prediction now strictly requires a matching keyword or return null for human intervention.
-    return null;
+    // No safe match found; require manual HS selection.
+    if (!bestMatch) return null;
 
     return {
         ...bestMatch,

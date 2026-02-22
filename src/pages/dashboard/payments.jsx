@@ -62,7 +62,7 @@ const Payments = () => {
 
         const { data: payments } = await supabase
           .from("payments")
-          .select("id, trade_id, amount, payment_type, status, created_at")
+          .select("id, trade_id, amount, payment_type, status, created_at, trades(product_name)")
           .order("created_at", { ascending: false })
           .limit(20);
 
@@ -295,7 +295,7 @@ const Payments = () => {
                               tx.status === 'released' ? 'good' :
                                 tx.status === 'completed' ? 'neutral' :
                                   tx.status === 'failed' ? 'error' :
-                                  tx.status === 'refunded' ? 'info' : 'neutral'
+                                    tx.status === 'refunded' ? 'info' : 'neutral'
                           }
                         />
                       </td>

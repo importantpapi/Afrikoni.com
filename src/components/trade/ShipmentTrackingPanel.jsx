@@ -21,7 +21,7 @@ const SHIPMENT_MILESTONES = [
 export default function ShipmentTrackingPanel({ trade, onNextStep, isTransitioning, capabilities, profile }) {
   const [shipment, setShipment] = useState(null);
   const [loading, setLoading] = useState(true);
-  const isSeller = profile?.company_id === trade?.seller_id;
+  const isSeller = profile?.company_id === trade?.seller_company_id;
   const isLogistics = capabilities?.can_logistics;
 
   useEffect(() => {

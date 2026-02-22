@@ -122,7 +122,7 @@ export function SampleOrderModal({ open, onOpenChange, product, supplier }) {
               trade_id: tradeData.id,
               product_id: product.id
             },
-            link: `/dashboard/trade/${tradeData.id}`
+            link: `/dashboard/trades/${tradeData.id}`
           });
       }
 
@@ -130,7 +130,7 @@ export function SampleOrderModal({ open, onOpenChange, product, supplier }) {
       onOpenChange(false);
 
       // Navigate to trade monitor
-      navigate(`/dashboard/trade/${tradeData.id}`);
+      navigate(`/dashboard/trades/${tradeData.id}`);
 
     } catch (error) {
       console.error('Sample order error:', error);

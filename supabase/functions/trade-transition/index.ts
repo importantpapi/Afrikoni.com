@@ -119,13 +119,27 @@ Deno.serve(async (req: Request) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
     if (authError || !user) throw new Error("Invalid authorization");
 
-    const { tradeId, nextState, metadata = {}, dry_run = false } = await req.json();
+    const { tradeId, nextState, metadata = {}, dry_run = false, expectedSequenceId } = await req.json();
     if (!tradeId) throw new Error("Missing tradeId");
 
     const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
     const { data: trade } = await supabase.from("trades").select("*").eq("id", tradeId).single();
 
     if (!trade) throw new Error("Trade not found");
+
+    // ✅ SEQUENCE ID VALIDATION (Institutional Rail Hardening)
+    if (!dry_run && expectedSequenceId !== undefined) {
+      if (Number(trade.sequence_id) !== Number(expectedSequenceId)) {
+        return new Response(JSON.stringify({
+          success: false,
+          decision: "BLOCK",
+          reason: "State Desync: The trade has been updated by another party. Please refresh.",
+          reason_code: "SEQUENCE_MISMATCH",
+          current_sequence_id: trade.sequence_id
+        }), { headers: corsHeaders });
+      }
+    }
+
     const tradeStatus = (trade.status || "draft") as TradeState;
     let desiredState = nextState as TradeState;
 
@@ -175,6 +189,7 @@ Deno.serve(async (req: Request) => {
     const updatePayload = {
       status: desiredState,
       updated_at: new Date().toISOString(),
+      sequence_id: (Number(trade.sequence_id) || 0) + 1,
       metadata: {
         ...existingMetadata,
         ...metadata,
@@ -184,7 +199,13 @@ Deno.serve(async (req: Request) => {
       }
     };
 
-    const { data: updatedTrade, error: uErr } = await supabase.from("trades").update(updatePayload).eq("id", tradeId).select().single();
+    const { data: updatedTrade, error: uErr } = await supabase
+      .from("trades")
+      .update(updatePayload)
+      .eq("id", tradeId)
+      .eq("sequence_id", trade.sequence_id) // Extra safety check at UPDATE time
+      .select()
+      .single();
     if (uErr) throw uErr;
 
     await logTradeEvent(supabase, tradeId, "state_transition", tradeStatus, desiredState, user.id, actorRole, { success: true, decision: "ALLOW" }, metadata);
@@ -199,10 +220,20 @@ function isValidTransition(from: TradeState, to: TradeState) {
   return (TRADE_TRANSITIONS[from] || []).includes(to);
 }
 
+function getBuyerCompanyId(trade: any) {
+  return trade?.buyer_company_id ?? trade?.buyer_id ?? null;
+}
+
+function getSellerCompanyId(trade: any) {
+  return trade?.seller_company_id ?? trade?.seller_id ?? null;
+}
+
 function resolveActorRole({ profile, trade }: any) {
+  const buyerCompanyId = getBuyerCompanyId(trade);
+  const sellerCompanyId = getSellerCompanyId(trade);
   if (profile?.is_admin) return "admin";
-  if (profile?.company_id === trade.buyer_id) return "buyer";
-  if (profile?.company_id === trade.seller_id) return "seller";
+  if (profile?.company_id && profile.company_id === buyerCompanyId) return "buyer";
+  if (profile?.company_id && profile.company_id === sellerCompanyId) return "seller";
   return "unknown";
 }
 
@@ -226,10 +257,16 @@ function enforceRoleGuard(role: string, next: TradeState): any {
 async function validateStateEntryConditions({ supabase, trade, nextState, metadata }: any) {
   // ✅ HANDSHAKE GATE: Enforce Verification for Contracts
   if (nextState === "contracted") {
-    const { data: buyer } = await supabase.from("companies").select("verification_status").eq("id", trade.buyer_id).single();
-    const { data: seller } = await supabase.from("companies").select("verification_status").eq("id", trade.seller_id).single();
+    const buyerCompanyId = getBuyerCompanyId(trade);
+    const sellerCompanyId = getSellerCompanyId(trade);
 
-    if (buyer?.verification_status !== "VERIFIED" || seller?.verification_status !== "VERIFIED") {
+    const { data: buyer } = await supabase.from("companies").select("verification_status").eq("id", buyerCompanyId).single();
+    const { data: seller } = await supabase.from("companies").select("verification_status").eq("id", sellerCompanyId).single();
+
+    const buyerVerified = String(buyer?.verification_status || "").toUpperCase() === "VERIFIED";
+    const sellerVerified = String(seller?.verification_status || "").toUpperCase() === "VERIFIED";
+
+    if (!buyerVerified || !sellerVerified) {
       return {
         valid: false,
         reason: "Both parties must be VERIFIED before signing a contract. Please complete your profile verification.",
@@ -307,20 +344,22 @@ async function executeStateSideEffects({ supabase, trade, nextState, metadata }:
   // ========================================================================
   // ACCEPTED → Release bank escrow to seller
   // ========================================================================
-  // The buyer has confirmed delivery. The bank-held escrow (91.5% of trade
+  // The buyer has confirmed delivery. The bank-held escrow (96% of trade
   // value) is now released to the seller via Flutterwave Transfer API.
-  // Afrikoni's 8.5% fee was already collected at payment time (split payment)
+  // Afrikoni's 4% fee is collected at payment time (split payment)
   // so we are cash-positive regardless of when the seller is paid.
   if (nextState === "accepted") {
     try {
       const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
       const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const INTERNAL_FUNCTION_SECRET = Deno.env.get("INTERNAL_FUNCTION_SECRET") ?? "";
 
       const releaseResponse = await fetch(`${SUPABASE_URL}/functions/v1/bank-escrow-release`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+          ...(INTERNAL_FUNCTION_SECRET ? { "x-internal-function-secret": INTERNAL_FUNCTION_SECRET } : {}),
         },
         body: JSON.stringify({ trade_id: tradeId }),
       });
@@ -350,7 +389,7 @@ async function executeStateSideEffects({ supabase, trade, nextState, metadata }:
 }
 
 async function logTradeEvent(supabase: any, tradeId: string, type: string, from: string, to: string, userId: string, role: string, decision: any, payload: any) {
-  await supabase.from("trade_events").insert({
+  const primaryInsert = {
     trade_id: tradeId,
     event_type: type,
     status_from: from,
@@ -359,5 +398,22 @@ async function logTradeEvent(supabase: any, tradeId: string, type: string, from:
     actor_role: role,
     decision: decision.decision,
     payload
+  };
+
+  const { error: primaryError } = await supabase.from("trade_events").insert(primaryInsert);
+  if (!primaryError) return;
+
+  // Backward-compatible fallback for environments using the older trade_events schema.
+  await supabase.from("trade_events").insert({
+    trade_id: tradeId,
+    event_type: type,
+    triggered_by: userId,
+    metadata: {
+      status_from: from,
+      status_to: to,
+      actor_role: role,
+      decision: decision.decision,
+      ...payload,
+    }
   });
 }

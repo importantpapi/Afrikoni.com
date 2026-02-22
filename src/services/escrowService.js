@@ -24,6 +24,7 @@ import { emitTradeEvent, TRADE_EVENT_TYPE } from './tradeEvents';
 import { createPaymentIntent, initiateRefund as refundViaPaymentService } from './paymentService';
 import { validateTradeCompliance } from './complianceService';
 import { recommendRail } from './corridorOptimizer';
+import { logTradeEvent } from './tradeKernel';
 
 /**
  * Create escrow for a trade
@@ -66,7 +67,6 @@ export async function createEscrow({
     }
 
     // Log event (non-state transition)
-    const { logTradeEvent } = await import('./tradeKernel');
     await logTradeEvent(tradeId, 'escrow_created', {
       escrow_id: escrow.id,
       amount,

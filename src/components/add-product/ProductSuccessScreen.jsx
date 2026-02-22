@@ -89,27 +89,39 @@ export default function ProductSuccessScreen({ formData, onAddAnother, onViewPro
         </div>
       )}
 
-      <div className="w-full max-w-sm space-y-3 mb-8">
-        <p className="text-os-sm font-medium text-[var(--os-text-secondary)]">What's next?</p>
+      <div className="w-full max-w-sm space-y-4 mb-10">
+        <p className="text-os-xs font-bold uppercase tracking-widest text-[var(--os-text-secondary)] opacity-60">
+          Institutional Next Steps
+        </p>
 
-        <div className="space-y-2">
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 text-left border border-white/10">
-            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
-              <Eye className="w-4 h-4 text-white" />
+        <div className="space-y-3">
+          <div className="flex items-center gap-4 p-4 rounded-os-md bg-white/5 text-left border border-white/10 group hover:border-os-accent/30 transition-all">
+            <div className="w-10 h-10 rounded-full bg-os-accent/10 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+              <Eye className="w-5 h-5 text-os-accent" />
             </div>
             <div>
-              <p className="text-os-sm font-medium text-[var(--os-text-primary)]">Buyers can now find you</p>
-              <p className="text-os-xs text-[var(--os-text-secondary)]">Your product appears in search results</p>
+              <p className="text-os-sm font-bold text-[var(--os-text-primary)]">Public Visibility Active</p>
+              <p className="text-os-xs text-[var(--os-text-secondary)]">Your listing is indexed in the 2026 Global Catalog</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-white/5 text-left border border-white/10">
-            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center flex-shrink-0">
-              <Share2 className="w-4 h-4 text-white" />
+          <div className="flex items-center gap-4 p-4 rounded-os-md bg-white/5 text-left border border-white/10 group hover:border-os-accent/30 transition-all">
+            <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+              <Share2 className="w-5 h-5 text-blue-400" />
             </div>
             <div>
-              <p className="text-os-sm font-medium text-[var(--os-text-primary)]">Share your listing</p>
-              <p className="text-os-xs text-[var(--os-text-secondary)]">Send to potential buyers directly</p>
+              <p className="text-os-sm font-bold text-[var(--os-text-primary)]">Trade Outreach</p>
+              <p className="text-os-xs text-[var(--os-text-secondary)]">Share professional links with sourcing partners</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-4 p-4 rounded-os-md bg-white/5 text-left border border-white/10 group hover:border-os-accent/30 transition-all">
+            <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div>
+              <p className="text-os-sm font-bold text-[var(--os-text-primary)]">AI Optimization</p>
+              <p className="text-os-xs text-[var(--os-text-secondary)]">Afrikoni AI is enhancing your SEO metadata</p>
             </div>
           </div>
         </div>

@@ -38,6 +38,8 @@ export function useDashboardKernel() {
   // ✅ KERNEL RECOVERY: Organization/Company state
   const [organization, setOrganization] = useState(null);
   const [orgLoading, setOrgLoading] = useState(false);
+  const [hasSuccessfulTrade, setHasSuccessfulTrade] = useState(false);
+  const [activationLoading, setActivationLoading] = useState(false);
 
   const result = useMemo(() => {
     const profileCompanyId = profile?.company_id || null;
@@ -88,9 +90,11 @@ export function useDashboardKernel() {
       isHybrid: true,
       organization,
       orgLoading,
+      hasSuccessfulTrade,
+      activationLoading,
       stats: handshakeData?.counts || { active_trades: 0, pending_quotes: 0, unread_notifications: 0 }
     };
-  }, [user, profile, authReady, authLoading, capabilities, organization, orgLoading, handshakeData]);
+  }, [user, profile, authReady, authLoading, capabilities, organization, orgLoading, handshakeData, hasSuccessfulTrade, activationLoading]);
 
   // ✅ NETWORK RECOVERY: Listen for online event to re-trigger handshake
   useEffect(() => {
@@ -193,6 +197,45 @@ export function useDashboardKernel() {
     window.addEventListener('refresh-data', handleRefresh);
     return () => window.removeEventListener('refresh-data', handleRefresh);
   }, [result.profileCompanyId, handshakeData]);
+
+  // Activation state: user is considered activated after first successful trade settlement.
+  useEffect(() => {
+    let active = true;
+    const companyId = result.profileCompanyId;
+
+    if (!companyId || !result.isSystemReady) {
+      setHasSuccessfulTrade(false);
+      setActivationLoading(false);
+      return;
+    }
+
+    const loadActivationState = async () => {
+      setActivationLoading(true);
+      try {
+        const { count, error } = await supabase
+          .from('trades')
+          .select('id', { count: 'exact', head: true })
+          .or(`buyer_company_id.eq.${companyId},seller_company_id.eq.${companyId}`)
+          .in('status', ['settled', 'closed', 'completed']);
+
+        if (!active) return;
+        if (error) {
+          setHasSuccessfulTrade(false);
+          return;
+        }
+        setHasSuccessfulTrade((count || 0) > 0);
+      } catch (_) {
+        if (active) setHasSuccessfulTrade(false);
+      } finally {
+        if (active) setActivationLoading(false);
+      }
+    };
+
+    loadActivationState();
+    return () => {
+      active = false;
+    };
+  }, [result.profileCompanyId, result.isSystemReady]);
 
   // ✅ FINAL CLEANUP: Return result object with counts from handshake
   return {

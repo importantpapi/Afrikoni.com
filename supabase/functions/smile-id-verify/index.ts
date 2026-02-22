@@ -13,10 +13,6 @@ async function generateSignature(timestamp: string, partnerId: string, apiKey: s
     const dataToSign = encoder.encode(timestamp + partnerId + "sid_request");
 
     // SHA-256 HMAC for Smile ID
-    // SmileID requires HMAC-SHA256 of timestamp + partnerId + "sid_request" using apiKey
-    // But wait, the standard SmileID sign algorithm might just be: base64(rsa) or HMAC.
-    // Actually, SmileID docs specify RSA signature with a public key OR HMAC.
-    // We'll mock the signature for now since we're in MVP, but let's implement basic hashing.
     const keyInfo = await crypto.subtle.importKey(
         'raw',
         encoder.encode(apiKey),
@@ -53,9 +49,16 @@ serve(async (req) => {
         const reqBody = await req.json();
         const { verificationPayload, endpoint } = reqBody;
 
-        const SMILE_ID_API_KEY = Deno.env.get('SMILE_ID_API_KEY') || 'mock_api_key';
-        const SMILE_ID_PARTNER_ID = Deno.env.get('SMILE_ID_PARTNER_ID') || 'mock_partner_id';
+        const SMILE_ID_API_KEY = Deno.env.get('SMILE_ID_API_KEY');
+        const SMILE_ID_PARTNER_ID = Deno.env.get('SMILE_ID_PARTNER_ID');
         const SMILE_ID_API_URL = Deno.env.get('SMILE_ID_API_URL') || 'https://testapi.smileidentity.com/v1';
+
+        if (!SMILE_ID_API_KEY || !SMILE_ID_PARTNER_ID) {
+            return new Response(
+                JSON.stringify({ error: 'Smile ID integration is not configured on this environment.' }),
+                { status: 503, headers: corsHeaders }
+            );
+        }
 
         const timestamp = new Date().toISOString();
         const signature = await generateSignature(timestamp, SMILE_ID_PARTNER_ID, SMILE_ID_API_KEY);

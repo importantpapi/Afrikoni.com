@@ -132,18 +132,18 @@ export default function Products() {
       <Surface variant="glass" className="p-6 md:p-8">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="os-label">Verified Trade Catalog</div>
-            <h1 className="os-title mt-2">Products</h1>
-            <p className="text-os-sm text-os-muted">
-              {(products || []).length} professional listings active
+            <div className="os-label text-os-accent/80 font-mono tracking-widest uppercase">Verified Trade Catalog</div>
+            <h1 className="text-3xl font-bold tracking-tight text-white mb-1">Institutional Inventory</h1>
+            <p className="text-os-sm text-os-muted font-mono">
+              {(products || []).length} professional assets active on rail
             </p>
           </div>
           <Button
-            className="bg-[var(--os-text-primary)] text-[var(--os-bg)] hover:opacity-90 font-semibold"
+            className="bg-os-accent text-black hover:opacity-90 font-bold px-6 h-11 rounded-os-sm transition-all shadow-os-sm border-none"
             onClick={() => navigate('/dashboard/products/new')}
           >
             <Plus className="h-4 w-4 mr-2" />
-            Add Product
+            Lodge New Asset
           </Button>
         </div>
 

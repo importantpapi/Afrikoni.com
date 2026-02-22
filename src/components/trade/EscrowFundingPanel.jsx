@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useFlutterwave, closePaymentModal } from 'flutterwave-react-v3';
-import { Shield, Check, Lock, CreditCard, Building, Smartphone } from 'lucide-react';
+import { Shield, Check, Lock, CreditCard, Building, Smartphone, Truck, Package, ShieldCheck } from 'lucide-react';
 import { calculateTradeFees } from '@/services/revenueEngine';
 import { toast } from 'sonner';
+import SuccessScreen from '@/components/shared/ui/SuccessScreen';
 
 export default function EscrowFundingPanel({ trade, onNextStep, isTransitioning, capabilities, profile }) {
   const [loading, setLoading] = useState(false);
+  const [paid, setPaid] = useState(false);
 
   const fees = calculateTradeFees(trade.total_amount || 0);
   const productValue = fees.netSettlement;
@@ -27,13 +29,13 @@ export default function EscrowFundingPanel({ trade, onNextStep, isTransitioning,
       description: `Escrow for ${trade.product_name || trade.title || 'trade'}`,
       logo: 'https://afrikoni.com/logo.png',
     },
-    // SPLIT PAYMENT: Platform fee (8.5%) goes to Afrikoni immediately.
-    // Remaining 91.5% goes to bank escrow sub-account — held by the bank, not Afrikoni.
+    // SPLIT PAYMENT: Platform fee (4%) goes to Afrikoni immediately.
+    // Remaining 96% goes to bank escrow sub-account — held by the bank, not Afrikoni.
     // Bank releases to seller only after trade reaches ACCEPTED state.
     subaccounts: [
       {
         id: import.meta.env.VITE_FLW_BANK_ESCROW_SUBACCOUNT_ID, // Bank escrow sub-account ID
-        transaction_split_ratio: Math.round(productValue), // Seller portion (91.5%)
+        transaction_split_ratio: Math.round(productValue), // Seller portion (96%)
         transaction_charge_type: 'flat_subaccount',
         transaction_charge: productValue, // Exact amount to bank escrow
       },
@@ -57,7 +59,7 @@ export default function EscrowFundingPanel({ trade, onNextStep, isTransitioning,
         // The server-side webhook (flutterwave-webhook Edge Function) is the
         // authoritative source that updates the DB, even if browser closes.
         if (response.status === 'successful') {
-          toast.success('✅ Payment received! Your escrow is being confirmed…', { duration: 6000 });
+          setPaid(true);
           closePaymentModal();
           // Notify parent to refetch — actual DB state set by webhook only
           if (onNextStep) onNextStep('ESCROW_FUNDED');
@@ -74,6 +76,26 @@ export default function EscrowFundingPanel({ trade, onNextStep, isTransitioning,
   };
 
   // Fees calculated above config block
+
+  if (paid) {
+    return (
+      <div className="max-w-3xl mx-auto py-12">
+        <SuccessScreen
+          title="Sovereign Settlement Initialized"
+          message={`Institutional funds for ${trade.title} ($${trade.total_amount?.toLocaleString()}) are now secured in the Afrikoni Shield Rail.`}
+          theme="gold"
+          icon={ShieldCheck}
+          nextSteps={[
+            { label: "Capital secured in bank-grade escrow (Tier-1 Protection)", icon: <Lock className="w-4 h-4" /> },
+            { label: "Supplier Rail activated for immediate fulfillment", icon: <Package className="w-4 h-4" /> },
+            { label: "Tracking telemetry initialized for logistics handoff", icon: <Truck className="w-4 h-4" /> }
+          ]}
+          primaryAction={() => window.location.reload()}
+          primaryActionLabel="Review Active Rail"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl mx-auto p-8">
@@ -134,7 +156,7 @@ export default function EscrowFundingPanel({ trade, onNextStep, isTransitioning,
             <span className="font-mono">${productValue.toLocaleString()}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Platform fee (8%)</span>
+            <span className="text-gray-600">Platform fee (4%)</span>
             <span className="font-mono">${platformFee.toLocaleString()}</span>
           </div>
           <div className="flex justify-between text-os-xs">

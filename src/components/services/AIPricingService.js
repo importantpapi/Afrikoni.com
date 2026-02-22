@@ -1,30 +1,63 @@
-// AI Pricing Service - Converted from Base44 to use direct API calls
+import { callChatAsJson } from '@/ai/aiClient';
+
+// AI Pricing Service - backed by secured Edge Function AI proxy
 
 export const AIPricingService = {
   getOptimalPricing: async (productData) => {
+    const unavailable = {
+      available: false,
+      reason: 'AI pricing guidance is currently not available.',
+      suggestions: []
+    };
+
     try {
-      // TODO: Replace with your LLM API call
-      // This should analyze market data and suggest optimal pricing
-      
-      // Placeholder response
+      const basePrice = Number(productData.price || 0);
+      const fallbackBase = basePrice > 0 ? basePrice : 0;
+
+      const system = `You are a B2B pricing analyst for African trade corridors.
+Return JSON:
+{
+  "suggestions": [{"price":"number","reason":"string","confidence":"number(0-1)"}]
+}
+Rules:
+- 2 suggestions only.
+- Prices in same currency context as input.
+- Keep reasons practical, no hype.`;
+
+      const user = `Create pricing suggestions.
+product: ${productData.name || productData.title || 'Product'}
+category: ${productData.category || ''}
+basePrice: ${fallbackBase}
+currency: ${productData.currency || 'USD'}
+countryOfOrigin: ${productData.country || ''}
+targetMarket: ${productData.targetMarket || ''}`;
+
+      const { success, data } = await callChatAsJson(
+        { system, user, temperature: 0.2 },
+        { fallback: null }
+      );
+
+      if (!success || !data || !Array.isArray(data.suggestions) || data.suggestions.length === 0) {
+        return unavailable;
+      }
+
       return {
-        suggestions: [
-          {
-            price: productData.price * 0.9,
-            reason: 'Competitive pricing to increase market share',
-            confidence: 0.85
-          },
-          {
-            price: productData.price * 1.1,
-            reason: 'Premium pricing for quality positioning',
-            confidence: 0.75
-          }
-        ]
+        available: true,
+        suggestions: data.suggestions.slice(0, 2).map((suggestion, index) => {
+          const fallbackSuggestion = {
+            price: fallbackBase,
+            reason: 'AI suggestion available',
+            confidence: 0.5
+          };
+          return {
+            price: Number(suggestion.price) || fallbackSuggestion.price,
+            reason: suggestion.reason || fallbackSuggestion.reason,
+            confidence: Math.max(0, Math.min(1, Number(suggestion.confidence) || fallbackSuggestion.confidence))
+          };
+        })
       };
     } catch (error) {
-      // Error logged (removed for production)
-      throw error;
+      return unavailable;
     }
   }
 };
-

@@ -212,7 +212,7 @@ Deno.serve(async (req) => {
           amount: body.amount,
           currency: currency,
           status: "pending",
-          commission_rate: 8.00,
+          commission_rate: 4.00,
         });
       }
     }

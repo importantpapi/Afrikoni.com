@@ -45,7 +45,7 @@ export const TrustEngineService = {
             const { count: disputeCount } = await supabase
                 .from('disputes')
                 .select('*', { count: 'exact', head: true })
-                .eq('company_id', companyId);
+                .or(`company_id.eq.${companyId},raised_by_company_id.eq.${companyId},against_company_id.eq.${companyId}`);
 
             // --- ALGORITHM START ---
             let score = 0;
@@ -59,8 +59,11 @@ export const TrustEngineService = {
 
             // A. Verification (Max 40)
             let verificationScore = 0;
-            if (company.is_verified) verificationScore += 20;
-            // Mock banking check for now
+            const isVerified =
+                company.verified === true ||
+                company.is_verified === true ||
+                company.verification_status === 'verified';
+            if (isVerified) verificationScore += 20;
             if (company.metadata?.banking_verified) verificationScore += 10;
             if (company.company_kyc?.status === 'approved') verificationScore += 10;
 

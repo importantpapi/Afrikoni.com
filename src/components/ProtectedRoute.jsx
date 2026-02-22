@@ -8,7 +8,7 @@
  */
 
 import React from 'react';
-import { Navigate, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { Navigate, useNavigate, useLocation, useSearchParams, useParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthProvider';
 import { isAdmin } from '@/utils/permissions';
 // PHASE 4: Removed getDashboardRoute import (no longer using role-based routing)
@@ -32,6 +32,7 @@ export const ProtectedRoute = ({ children, requireAdmin: needsAdmin = false, req
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
+  const { lang = 'en' } = useParams();
 
   // ✅ KERNEL GUARD DEPLOYMENT: Show "Synchronizing World" if Kernel is pre-warming
   // This prevents child components from attempting to load data before Kernel is ready
@@ -43,7 +44,7 @@ export const ProtectedRoute = ({ children, requireAdmin: needsAdmin = false, req
       // 1. Redirect to login if not authenticated
       if (!user) {
         const next = searchParams.get('next') || location.pathname + location.search;
-        navigate(`/login?next=${encodeURIComponent(next)}`);
+        navigate(`/${lang}/login?next=${encodeURIComponent(next)}`);
         toast.error('Please log in to continue', { duration: 3000 });
         return;
       }
@@ -51,14 +52,14 @@ export const ProtectedRoute = ({ children, requireAdmin: needsAdmin = false, req
       // 2. Redirect to company onboarding if company_id is missing (and required)
       if (needsCompanyId && profile && !profile.company_id) {
         console.log('[ProtectedRoute] No company_id → redirecting to company onboarding');
-        navigate('/onboarding/company', { replace: true });
+        navigate(`/${lang}/onboarding/company`, { replace: true });
         return;
       }
 
       // 3. Admin Check (Authorized) - specific navigation logic if needed, 
       // but usually we just show AccessDenied component which is fine in render.
     }
-  }, [authReady, loading, capabilities?.ready, user, profile, needsCompanyId, navigate, location, searchParams]);
+  }, [authReady, loading, capabilities?.ready, user, profile, needsCompanyId, navigate, location, searchParams, lang]);
 
   // RENDER: Loading States
   if (isPreWarming) {
@@ -105,6 +106,7 @@ export const ProtectedRoute = ({ children, requireAdmin: needsAdmin = false, req
  */
 export const GuestOnlyRoute = ({ children }) => {
   const { user, profile, authReady, loading } = useAuth();
+  const { lang = 'en' } = useParams();
 
   if (!authReady || loading) {
     return <LoadingScreen message="Loading..." />;
@@ -113,9 +115,9 @@ export const GuestOnlyRoute = ({ children }) => {
   if (user) {
     // PHASE 4: Navigate to dashboard if company_id exists, else onboarding
     if (profile?.company_id) {
-      return <Navigate to="/dashboard" replace />;
+      return <Navigate to={`/${lang}/dashboard`} replace />;
     }
-    return <Navigate to="/onboarding/company" replace />;
+    return <Navigate to={`/${lang}/onboarding/company`} replace />;
   }
 
   return <>{children}</>;

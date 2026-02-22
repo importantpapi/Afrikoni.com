@@ -46,8 +46,8 @@ const cn = (...args) => {
 export const OS_Z_INDEX = {
     modal: 1300,
     systemLayer: 1200,
-    identityLayer: 1150,
-    workspaceNav: 1100, // ABOVE overlay
+    workspaceNav: 1150, // INCREASED to be above identityLayer for tooltips
+    identityLayer: 1100, // DECREASED
     overlay: 1000,      // BELOW workspaceNav
     copilot: 800,
     content: 1
@@ -79,7 +79,8 @@ export default function OSShell({
     onOpenCommandPalette,
     notificationCount = 0,
     notificationCounts = {},
-    isAdmin = false
+    isAdmin = false,
+    isActivated = false
 }) {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [copilotOpen, setCopilotOpen] = useState(false);
@@ -143,14 +144,15 @@ export default function OSShell({
                 {/* 1. Workspace Navigation (Sidebar) - Spans both rows */}
                 <div
                     className={cn(
-                        "hidden md:block row-span-2 h-full border-r border-os-stroke bg-os-surface-solid relative transition-all duration-300 overflow-hidden",
-                        "z-[1100] will-change-transform"
+                        "hidden md:block row-span-2 h-full border-r border-os-stroke bg-os-surface-solid relative transition-all duration-300",
+                        "z-[1150] will-change-transform"
                     )}
                     style={{ isolation: 'isolate' }}
                 >
                     <TradeOSSidebar
                         capabilities={capabilities}
                         isAdmin={isAdmin}
+                        isActivated={isActivated}
                         notificationCounts={notificationCounts}
                         onClose={() => setSidebarOpen(false)}
                         sidebarOpen={sidebarOpen}
@@ -160,7 +162,7 @@ export default function OSShell({
 
                 {/* 2. Identity Layer (Header) - Col 2, Row 1 */}
                 <header
-                    className="col-span-1 md:col-start-2 row-start-1 h-14 border-b border-os-stroke bg-os-surface-solid z-[1150] px-4 flex items-center pt-safe"
+                    className="col-span-1 md:col-start-2 row-start-1 h-14 border-b border-os-stroke bg-os-surface-solid z-[1100] px-4 flex items-center pt-safe"
                 >
                     <IdentityLayer
                         user={user}
@@ -253,6 +255,7 @@ export default function OSShell({
                                 <TradeOSSidebar
                                     capabilities={capabilities}
                                     isAdmin={isAdmin}
+                                    isActivated={isActivated}
                                     notificationCounts={notificationCounts}
                                     onClose={() => setSidebarOpen(false)}
                                     sidebarOpen={true}

@@ -19,27 +19,63 @@ export const FraudDetectionService = {
      */
     analyzeDocument: async (documentUrl: string, docType: string) => {
         console.log(`[FraudEngine] Analyzing document: ${docType}`);
+        const reasons: string[] = [];
+        let riskScore = 8;
 
-        // SIMULATION: In real life, this calls an OCR/ML service
-        // Here we simulate varying confidence levels
-        // KERNEL REALIGNMENT: Purged mock fraud flag. 
-        // Real detection requires historical data analysis.
-        const isSuspicious = false;
-
-        if (isSuspicious) {
+        if (!documentUrl || !/^https?:\/\//i.test(documentUrl)) {
             return {
                 flagged: true,
-                riskScore: 85,
-                reasons: ['MetaData inconsistency detected', 'Potential image manipulation'],
-                confidence: 0.92
+                riskScore: 95,
+                reasons: ['Document URL is invalid or missing'],
+                confidence: 0.99
             };
         }
 
+        const suspiciousExt = /\.(exe|js|bat|cmd|php)$/i.test(documentUrl);
+        if (suspiciousExt) {
+            reasons.push('Unsupported or executable file extension');
+            riskScore += 55;
+        }
+
+        const lowTrustHosts = ['bit.ly', 'tinyurl.com', 'drive.google.com'];
+        if (lowTrustHosts.some(host => documentUrl.includes(host))) {
+            reasons.push('Document hosted on low-trust or redirect domain');
+            riskScore += 20;
+        }
+
+        const expectedByType: Record<string, RegExp> = {
+            id: /\.(jpg|jpeg|png|pdf)$/i,
+            business_license: /\.(pdf|jpg|jpeg|png)$/i,
+            invoice: /\.(pdf|jpg|jpeg|png)$/i,
+        };
+        if (docType && expectedByType[docType] && !expectedByType[docType].test(documentUrl)) {
+            reasons.push(`Unexpected file format for ${docType}`);
+            riskScore += 25;
+        }
+
+        // Optional OCR/forgery signal (if edge function is deployed).
+        try {
+            const { data, error } = await supabase.functions.invoke('document-risk-scan', {
+                body: { documentUrl, docType }
+            });
+            if (!error && data) {
+                if (Array.isArray(data.reasons) && data.reasons.length > 0) {
+                    reasons.push(...data.reasons);
+                }
+                if (typeof data.riskScore === 'number') {
+                    riskScore = Math.max(riskScore, Math.min(100, data.riskScore));
+                }
+            }
+        } catch (_) {
+            // Non-blocking: deterministic heuristics above remain the baseline.
+        }
+
+        const flagged = riskScore >= 60 || reasons.length > 0;
         return {
-            flagged: false,
-            riskScore: 12,
-            reasons: [],
-            confidence: 0.98
+            flagged,
+            riskScore: Math.min(100, Math.max(0, riskScore)),
+            reasons,
+            confidence: flagged ? 0.82 : 0.9
         };
     },
 

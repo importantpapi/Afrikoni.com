@@ -4,7 +4,7 @@
  * ============================================================================
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Surface } from '@/components/system/Surface';
@@ -50,28 +50,6 @@ export default function QuickTradeWizard() {
         additionalNotes: '',
         hsCode: '',
     });
-
-    // Market Insights Cache
-    const [marketInsights, setMarketInsights] = useState({
-        benchmarkPrice: null,
-        loading: false
-    });
-
-    // Simple pricing benchmark (simulated for immediate response)
-    useEffect(() => {
-        if (formData.productName.length < 3 || marketInsights.loading) return;
-
-        const timer = setTimeout(async () => {
-            // Simulated benchmark fetch - preventing full AI call for speed
-            setMarketInsights({
-                benchmarkPrice: 'Calculating...',
-                loading: false
-            });
-            // Ideally this calls a real pricing API
-        }, 1500);
-
-        return () => clearTimeout(timer);
-    }, [formData.productName]);
 
     const updateField = (field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
@@ -197,7 +175,7 @@ export default function QuickTradeWizard() {
                                                     View All Requests
                                                 </Button>
                                                 <Button
-                                                    onClick={() => navigate(`/dashboard/trade/${submittedTradeId}`)}
+                                                    onClick={() => navigate(`/dashboard/trades/${submittedTradeId}`)}
                                                     className="h-14 px-8 rounded-lg bg-os-accent text-white font-bold hover:bg-os-accent/90"
                                                 >
                                                     Track this Trade

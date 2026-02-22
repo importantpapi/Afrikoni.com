@@ -178,7 +178,7 @@ export async function getContractHTML(contractId) {
 /**
  * Sign contract (buyer acceptance)
  */
-export async function signContract(contractId) {
+export async function signContract(contractId, role = 'buyer') {
   try {
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -191,12 +191,30 @@ export async function signContract(contractId) {
     if (getError) throw getError;
 
     // Update contract status
+    const updateData = role === 'buyer'
+      ? {
+        buyer_signed_by: user.id,
+        buyer_signed_at: new Date(),
+        status: contract.seller_signed_at ? 'signed' : 'generated' // Only mark 'signed' when both done? Or one?
+      }
+      : {
+        seller_signed_by: user.id,
+        seller_signed_at: new Date(),
+        status: contract.buyer_signed_at ? 'signed' : 'generated'
+      };
+
+    if (updateData.status === 'signed' || (role === 'buyer' && !contract.seller_signed_at) || (role === 'seller' && !contract.buyer_signed_at)) {
+      // Handle status logic: maybe 'partially_signed'?
+      // Let's stick to status: 'signed' if at least one signed for now, or improve it.
+      updateData.status = (contract.buyer_signed_at || updateData.buyer_signed_at) && (contract.seller_signed_at || updateData.seller_signed_at)
+        ? 'signed'
+        : 'partially_signed';
+    }
+
     const { data: updatedContract, error: updateError } = await supabase
       .from('contracts')
       .update({
-        status: 'signed',
-        buyer_signed_by: user.id,
-        buyer_signed_at: new Date(),
+        ...updateData,
         version: contract.version + 1,
         updated_at: new Date()
       })
@@ -213,6 +231,7 @@ export async function signContract(contractId) {
       metadata: {
         contract_id: contractId,
         signed_by: user.id,
+        role: role,
         signed_at: new Date()
       }
     });

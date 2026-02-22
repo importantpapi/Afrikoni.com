@@ -163,6 +163,7 @@ const TermsOfService = lazy(() => import('./pages/legal/TermsOfService'));
 const PrivacyPolicyPage = lazy(() => import('./pages/legal/PrivacyPolicy'));
 const Countries = lazy(() => import('./pages/countries'));
 const HowItWorks = lazy(() => import('./pages/how-it-works'));
+const PaymentCallbackPage = lazy(() => import('./pages/payment-callback'));
 
 /* ===== Dashboard shell ===== */
 /* ===== Dashboard shell ===== */
@@ -270,6 +271,7 @@ const ProductDetail = lazy(() => import('./pages/productdetails'));
 const CompareProducts = lazy(() => import('./pages/compare'));
 const RFQMarketplace = lazy(() => import('./pages/rfq-marketplace'));
 const RFQDetail = lazy(() => import('./pages/rfqdetails'));
+const CreateRFQ = lazy(() => import('./pages/rfq/create'));
 const Suppliers = lazy(() => import('./pages/suppliers'));
 const SupplierProfile = lazy(() => import('./pages/supplierprofile'));
 const BusinessProfile = lazy(() => import('./pages/business/[id]'));
@@ -296,6 +298,8 @@ const DisputesPublic = lazy(() => import('./pages/disputes'));
 const InspectionServices = lazy(() => import('./pages/inspection'));
 const AntiFraud = lazy(() => import('./pages/anti-fraud'));
 const ResourcesIndex = lazy(() => import('./pages/resources/index'));
+
+const Checkout = lazy(() => import('./pages/checkout'));
 
 // ✅ ENTERPRISE FIX: Mobile-specific pages
 const InboxMobile = lazy(() => import('./pages/inbox-mobile'));
@@ -326,7 +330,12 @@ const LanguageWrapper = () => {
 // Helper for smart redirects preserving path
 const SmartRedirect = ({ prefix = '/en' }) => {
   const location = useLocation();
-  return <Navigate to={`${prefix}${location.pathname}`} replace />;
+  return <Navigate to={`${prefix}${location.pathname}${location.search || ''}`} replace />;
+};
+
+const DashboardRouteRedirect = ({ target }) => {
+  const location = useLocation();
+  return <Navigate to={`/en/dashboard/${target}${location.search || ''}`} replace />;
 };
 
 // 🔒 SECURITY: Route guard — only users with is_admin=true may proceed
@@ -388,14 +397,23 @@ function AppContent() {
             <Route path="signup-surgery" element={<SignupSurgery />} />
             <Route path="forgot-password" element={<ForgotPassword />} />
             <Route path="auth/callback" element={<AuthCallback />} />
+            <Route path="payment/callback" element={<PaymentCallbackPage />} />
             <Route path="auth/post-login" element={<PostLoginRouter />} />
             <Route path="products" element={<Products />} />
             <Route path="marketplace" element={<Marketplace />} />
             <Route path="product" element={<ProductDetail />} />
             <Route path="product/:productId" element={<ProductDetail />} />
+            <Route path="checkout" element={
+              <ProtectedRoute>
+                <Checkout />
+              </ProtectedRoute>
+            } />
             <Route path="compare" element={<CompareProducts />} />
             <Route path="rfq" element={<RFQMarketplace />} />
             <Route path="rfq/detail" element={<RFQDetail />} />
+            <Route path="rfq/create" element={<CreateRFQ />} />
+            <Route path="messages" element={<Navigate to="dashboard/messages" replace />} />
+            <Route path="orders" element={<Navigate to="dashboard/orders" replace />} />
             <Route path="suppliers" element={<Suppliers />} />
             <Route path="supplier" element={<SupplierProfile />} />
             <Route path="business/:id" element={<BusinessProfile />} />
@@ -477,11 +495,13 @@ function AppContent() {
               <Route path="orders" element={<TradeMonitor viewMode="buy" />} />
               <Route path="sales" element={<TradeMonitor viewMode="sell" />} />
               <Route path="rfqs" element={<TradeMonitor viewMode="rfqs" />} />
+              <Route path="rfqs/:id" element={<TradeWorkspacePage />} />
               <Route path="rfqs/new" element={<RFQsNewPage />} />
               <Route path="supplier-rfqs" element={<TradeMonitor viewMode="rfqs-received" />} />
               <Route path="trades" element={<TradeMonitor viewMode="all" />} />
               <Route path="trades/:id" element={<TradeWorkspacePage />} />
               <Route path="messages" element={<MessagesPage />} />
+              <Route path="messages/:conversationId" element={<MessagesPage />} />
               <Route path="payments" element={<WalletPage />} />
               <Route path="revenue" element={<RevenuePage />} />
               <Route path="invoices" element={<InvoicesPage />} />
@@ -509,6 +529,7 @@ function AppContent() {
 
               {/* 4. SETTINGS & UTILITIES */}
               <Route path="settings" element={<SettingsPage />} />
+              <Route path="profile" element={<Navigate to="../settings" replace />} />
               <Route path="company-info" element={<CompanyInfoPage />} />
               <Route path="team-members" element={<TeamMembersPage />} />
               <Route path="help" element={<HelpPage />} />
@@ -548,6 +569,10 @@ function AppContent() {
           <Route path="/products" element={<SmartRedirect />} />
           <Route path="/product/*" element={<SmartRedirect />} />
           <Route path="/dashboard/*" element={<SmartRedirect />} />
+          <Route path="/messages" element={<DashboardRouteRedirect target="messages" />} />
+          <Route path="/orders" element={<DashboardRouteRedirect target="orders" />} />
+          <Route path="/rfq/create" element={<Navigate to="/en/rfq/create" replace />} />
+          <Route path="/payment/callback" element={<SmartRedirect />} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/en" replace />} />

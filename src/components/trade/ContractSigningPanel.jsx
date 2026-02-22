@@ -17,7 +17,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/shared/ui/button';
 import SuccessScreen from '@/components/shared/ui/SuccessScreen';
 
-export default function ContractSigningPanel({ trade, onNextStep, isTransitioning }) {
+export default function ContractSigningPanel({ trade, onNextStep, isTransitioning, isBuyer, isSeller, profile }) {
   const [contract, setContract] = useState(null);
   const [loading, setLoading] = useState(true);
   const [agreed, setAgreed] = useState(false);
@@ -33,7 +33,8 @@ export default function ContractSigningPanel({ trade, onNextStep, isTransitionin
       const result = await getTradeContract(trade.id);
       if (!result.success) throw new Error(result.error);
       setContract(result.contract || null);
-      setSigned(result.contract?.buyer_signed_at ? true : false);
+      const isSignedByThisUser = isBuyer ? !!result.contract?.buyer_signed_at : !!result.contract?.seller_signed_at;
+      setSigned(isSignedByThisUser);
     } catch (err) {
       console.error(err);
       // Fallback if no contract exists yet (should be created by now ideally)
@@ -47,7 +48,8 @@ export default function ContractSigningPanel({ trade, onNextStep, isTransitionin
 
     setError(null);
     try {
-      const signResult = await signContract(contract?.id);
+      const role = isBuyer ? 'buyer' : 'seller';
+      const signResult = await signContract(contract?.id, role);
       if (!signResult.success) {
         setError(signResult.error || 'Failed to sign contract');
         return;
@@ -85,7 +87,13 @@ export default function ContractSigningPanel({ trade, onNextStep, isTransitionin
         <CardContent className="p-0">
           <SuccessScreen
             title="Contract Secured"
-            message="Your digital signature has been recorded. The trade terms are now locked."
+            message="Your digital signature has been recorded and cryptographically sealed. The trade terms are now legally locked."
+            theme="emerald"
+            nextSteps={[
+              { label: "Legally binding contract generated in Document Vault", icon: <FileText className="w-4 h-4" /> },
+              { label: "Both parties notified of mutual agreement", icon: <CheckCircle2 className="w-4 h-4" /> },
+              { label: "Trade Shield protection fully enabled", icon: <ShieldCheck className="w-4 h-4" /> }
+            ]}
             primaryAction={handleContinue}
             primaryActionLabel="Proceed to Escrow"
             icon={ShieldCheck}
@@ -103,7 +111,7 @@ export default function ContractSigningPanel({ trade, onNextStep, isTransitionin
             Review & Sign Contract
           </h2>
           <p className="text-os-sm mt-1 text-os-text-secondary">
-            Review the terms of trade below. Signing initiates the binding agreement.
+            {isBuyer ? 'Verify terms and sign to initiate escrow.' : 'Verify terms and sign to accept the order.'}
           </p>
         </div>
 

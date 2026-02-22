@@ -6,6 +6,7 @@
 
 import { supabase } from '@/api/supabaseClient';
 import { emitTradeEvent, TRADE_EVENT_TYPE } from './tradeEvents';
+import { logTradeEvent } from './tradeKernel';
 
 // Logistics partners (in production, these would be real APIs)
 const LOGISTICS_PARTNERS = [
@@ -66,38 +67,37 @@ export async function createShipment({
       return { success: false, error: 'Missing required fields' };
     }
 
-      const { logTradeEvent } = await import('./tradeKernel');
-      // Create shipment
-      const { data: shipment, error } = await supabase
-        .from('shipments')
-        .insert({
-          trade_id: tradeId,
-          tracking_number: trackingNumber,
-          carrier: carrier,
-          status: 'pending',
-          pickup_scheduled_date: pickupDate,
-          estimated_delivery_date: estimatedDeliveryDate,
-          milestones: [
-            {
-              name: 'Pending',
-              timestamp: new Date().toISOString(),
-              location: null,
-              status: 'completed'
-            }
-          ],
-          created_at: new Date()
-        })
-        .select()
-        .single();
-      if (error) throw error;
-      // Log event
-      await logTradeEvent(tradeId, 'shipment_created', {
-        shipment_id: shipment.id,
+    // Create shipment
+    const { data: shipment, error } = await supabase
+      .from('shipments')
+      .insert({
+        trade_id: tradeId,
         tracking_number: trackingNumber,
-        carrier,
-        estimated_delivery_date: estimatedDeliveryDate
-      }, 'logistics');
-      return { success: true, shipment };
+        carrier: carrier,
+        status: 'pending',
+        pickup_scheduled_date: pickupDate,
+        estimated_delivery_date: estimatedDeliveryDate,
+        milestones: [
+          {
+            name: 'Pending',
+            timestamp: new Date().toISOString(),
+            location: null,
+            status: 'completed'
+          }
+        ],
+        created_at: new Date()
+      })
+      .select()
+      .single();
+    if (error) throw error;
+    // Log event
+    await logTradeEvent(tradeId, 'shipment_created', {
+      shipment_id: shipment.id,
+      tracking_number: trackingNumber,
+      carrier,
+      estimated_delivery_date: estimatedDeliveryDate
+    }, 'logistics');
+    return { success: true, shipment };
   } catch (err) {
     console.error('[logisticsService] Create shipment failed:', err);
     return { success: false, error: err.message };
@@ -210,6 +210,29 @@ export async function updateShipmentMilestone({
         timestamp: timestamp.toISOString()
       }
     });
+
+    if (inferredEventType === 'delivered') {
+      try {
+        await supabase.from('trust_receipts').insert({
+          company_id: null,
+          trade_id: shipment.trade_id,
+          milestone_type: 'delivery_confirmed',
+          reference_type: 'shipment',
+          reference_id: shipmentId,
+          receipt_code: `TR-DEL-${String(shipmentId).slice(0, 8).toUpperCase()}-${Date.now().toString(36).toUpperCase()}`,
+          metadata: {
+            shipment_id: shipmentId,
+            location,
+            carrier: shipment.carrier || null,
+            event_timestamp: timestamp.toISOString(),
+          }
+        });
+      } catch (receiptError) {
+        if (import.meta.env.DEV) {
+          console.warn('[logisticsService] Trust receipt insert failed (non-blocking):', receiptError);
+        }
+      }
+    }
 
     return { success: true, shipment: updatedShipment };
   } catch (err) {

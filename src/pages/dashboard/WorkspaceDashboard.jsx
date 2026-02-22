@@ -56,7 +56,8 @@ export default function WorkspaceDashboard() {
     capabilities,
     isSystemReady,
     isPreWarming,
-    organization
+    organization,
+    hasSuccessfulTrade
   } = useDashboardKernel();
 
   const { systemState, refresh: refreshSystemState } = useTradeSystemState();
@@ -86,6 +87,30 @@ export default function WorkspaceDashboard() {
       console.log('[WorkspaceDashboard] ✅ Kernel Synced:', { companyId: profileCompanyId });
     }
   }, [isSystemReady, profileCompanyId, location.pathname, navigate, userId, profile]);
+
+  // First-trade focus gate: keep the journey to a single, dominant quick-start path.
+  useEffect(() => {
+    if (!isSystemReady || isAdmin || hasSuccessfulTrade) return;
+    const allowedPrefixes = [
+      `/${lang}/dashboard`,
+      `/${lang}/dashboard/quick-trade`,
+      `/${lang}/dashboard/messages`,
+      `/${lang}/dashboard/payments`,
+      `/${lang}/dashboard/help`,
+      `/${lang}/dashboard/support`,
+      `/${lang}/dashboard/company-info`,
+      `/${lang}/dashboard/settings`,
+      `/${lang}/dashboard/rfqs/new`,
+      `/${lang}/dashboard/trades`,
+      `/${lang}/dashboard/orders`
+    ];
+
+    const current = location.pathname;
+    const isAllowed = allowedPrefixes.some((prefix) => current === prefix || current.startsWith(`${prefix}/`));
+    if (!isAllowed) {
+      navigate(`/${lang}/dashboard/quick-trade?corridor=NG-GH&first=true`, { replace: true });
+    }
+  }, [isSystemReady, isAdmin, hasSuccessfulTrade, location.pathname, navigate, lang]);
 
   // ===========================================================================
   // RENDER GUARDS (Standardized via Kernel)
@@ -137,6 +162,7 @@ export default function WorkspaceDashboard() {
         onOpenCommandPalette={() => { }} // Controlled within OSShell state now
         notificationCount={notificationCount}
         isAdmin={isAdmin}
+        isActivated={hasSuccessfulTrade || isAdmin}
       >
         {/* HORIZON 2026: Ambient Orb for Visual Depth */}
         <div className="os-ambient-orb" style={{ top: '10%', right: '20%', opacity: 0.4 }} />

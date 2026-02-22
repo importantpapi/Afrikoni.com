@@ -15,6 +15,8 @@ export default function NewMessageDialog({ open, onOpenChange, recipientCompany,
   const { user, profile, role, authReady } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const langMatch = location.pathname.match(/^\/(en|fr|pt|ar)(?:\/|$)/);
+  const language = langMatch?.[1] || 'en';
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -123,10 +125,15 @@ export default function NewMessageDialog({ open, onOpenChange, recipientCompany,
       onOpenChange(false);
       
       // Navigate to messages with "from" state preserved
-      navigate('/messages', { 
-        state: { from: location.pathname + location.search },
-        search: `?conversation=${conversationId}`
-      });
+      navigate(
+        {
+          pathname: `/${language}/dashboard/messages`,
+          search: `?conversation=${conversationId}`
+        },
+        {
+          state: { from: location.pathname + location.search }
+        }
+      );
     } catch (error) {
       // Error logged (removed for production)
       toast.error('Failed to send message');
@@ -173,4 +180,3 @@ export default function NewMessageDialog({ open, onOpenChange, recipientCompany,
     </Dialog>
   );
 }
-

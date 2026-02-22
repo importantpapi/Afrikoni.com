@@ -23,16 +23,16 @@ export async function getInvoices(companyId, capabilities = null, filters = {}) 
     .from('invoices')
     .select(`
       *,
-      orders(*),
+      trades(*),
       buyer_company:companies!invoices_buyer_company_id_fkey(*),
       seller_company:companies!invoices_seller_company_id_fkey(*)
     `)
     .eq(column, companyId)
     .order('created_at', { ascending: false });
-  
+
   if (filters.status) query = query.eq('status', filters.status);
   if (filters.limit) query = query.limit(filters.limit);
-  
+
   const { data, error } = await query;
   if (error) throw error;
   return data;
@@ -49,7 +49,7 @@ export async function getInvoice(invoiceId) {
     `)
     .eq('id', invoiceId)
     .single();
-  
+
   if (error) throw error;
   return data;
 }
@@ -65,12 +65,12 @@ export async function createInvoiceFromOrder(orderId, invoiceData) {
     `)
     .eq('id', orderId)
     .single();
-  
+
   if (orderError) throw orderError;
-  
+
   // Generate invoice number
   const invoiceNumber = `INV-${Date.now()}-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
-  
+
   const invoice = {
     order_id: orderId,
     buyer_company_id: order.buyer_company_id,
@@ -85,13 +85,13 @@ export async function createInvoiceFromOrder(orderId, invoiceData) {
     status: 'issued',
     billing_details: invoiceData.billing_details || {}
   };
-  
+
   const { data, error } = await supabase
     .from('invoices')
     .insert(invoice)
     .select()
     .single();
-  
+
   if (error) throw error;
   return data;
 }
@@ -106,7 +106,7 @@ export async function updateInvoiceStatus(invoiceId, status) {
     .eq('id', invoiceId)
     .select()
     .single();
-  
+
   if (error) throw error;
   return data;
 }
@@ -114,7 +114,7 @@ export async function updateInvoiceStatus(invoiceId, status) {
 export async function markInvoiceAsPaid(invoiceId, paymentData) {
   // Update invoice status
   await updateInvoiceStatus(invoiceId, 'paid');
-  
+
   // Create wallet transaction if payment data provided
   if (paymentData) {
     const { createWalletTransaction } = await import('./payments');
@@ -129,7 +129,7 @@ export async function markInvoiceAsPaid(invoiceId, paymentData) {
       metadata: paymentData.metadata
     });
   }
-  
+
   return true;
 }
 

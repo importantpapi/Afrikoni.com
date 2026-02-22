@@ -10,15 +10,17 @@
  */
 
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 
 export default function CreateRFQ() {
   const navigate = useNavigate();
+  const { lang } = useParams();
+  const language = lang || 'en';
 
   useEffect(() => {
     // ✅ KERNEL ALIGNMENT: Redirect to centralized dashboard RFQ creation
-    navigate('/dashboard/rfqs/new', { replace: true });
-  }, [navigate]);
+    navigate(`/${language}/dashboard/rfqs/new`, { replace: true });
+  }, [navigate, language]);
 
   // Show minimal loading state during redirect
   return (

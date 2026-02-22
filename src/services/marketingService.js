@@ -26,7 +26,7 @@ Why Join Afrikoni?
 ✓ Multiple Payment Options (${config.currency} or USD)
 
 Special Offer for ${targetCountry} Suppliers:
-• First 50 suppliers: Lifetime 6% commission (instead of 8%)
+• First 50 suppliers: Lifetime 3% commission (instead of 4%)
 • List 3+ products in first month: Free Verified Badge ($99 value)
 • Refer a supplier: Both get 1 month free Growth subscription
 

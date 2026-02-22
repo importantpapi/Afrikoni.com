@@ -235,7 +235,7 @@ Deno.serve(async (req) => {
           amount: body.amount,
           currency: body.currency.toUpperCase(),
           status: "pending",
-          commission_rate: 8.00, // 8% platform commission
+          commission_rate: 4.00, // 4% platform commission
         });
       }
     }

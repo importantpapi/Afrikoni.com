@@ -21,19 +21,15 @@ import {
   SelectValue,
 } from '@/components/shared/ui/select';
 import { toast } from 'sonner';
-import { Loader2, Send, DollarSign } from 'lucide-react';
+import { Loader2, Send, DollarSign, Lock } from 'lucide-react';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { submitQuote } from '@/services/quoteService';
+import SuccessScreen from '@/components/shared/ui/SuccessScreen';
+import { MessageSquare, ShieldCheck, Cpu } from 'lucide-react';
 
 const CURRENCIES = ['USD', 'NGN', 'GHS', 'KES', 'ZAR', 'EUR', 'GBP'];
-const INCOTERMS = ['EXW', 'FOB', 'CIF', 'CFR', 'DDP', 'DAP'];
-const PAYMENT_TERMS = [
-  'Net 30',
-  'Net 60',
-  'Net 90',
-  '50/50 Split',
-  'Letter of Credit',
-];
+const INCOTERMS = ['EXW', 'FCA', 'FOB', 'CFR', 'CIF', 'DAP', 'DDP'];
+const PAYMENT_TERMS = ['Advance Payment', 'Net 15', 'Net 30', 'Net 60', 'LC at Sight', 'Escrow'];
 
 export default function QuoteSubmissionForm({ rfq, onQuoteSubmitted }) {
   const { profileCompanyId, userId } = useDashboardKernel();
@@ -45,15 +41,18 @@ export default function QuoteSubmissionForm({ rfq, onQuoteSubmitted }) {
   const [deliveryIncoterms, setDeliveryIncoterms] = useState('');
   const [paymentTerms, setPaymentTerms] = useState('');
   const [deliveryLocation, setDeliveryLocation] = useState('');
+  const [minimumOrderQuantity, setMinimumOrderQuantity] = useState('');
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
 
   function handleUnitPriceChange(value) {
     setUnitPrice(value);
-    if (value && rfq?.quantity) {
-      setTotalPrice((parseFloat(value) * rfq.quantity).toFixed(2));
-    } else {
-      setTotalPrice('');
+    const parsed = parseFloat(value);
+    const quantity = parseFloat(rfq?.quantity || 0);
+
+    if (!Number.isNaN(parsed) && quantity > 0) {
+      setTotalPrice((parsed * quantity).toFixed(2));
     }
   }
 
@@ -83,6 +82,7 @@ export default function QuoteSubmissionForm({ rfq, onQuoteSubmitted }) {
         leadTime: parseInt(leadTime, 10),
         deliveryIncoterms,
         deliveryLocation: deliveryLocation || undefined,
+        moq: minimumOrderQuantity ? parseInt(minimumOrderQuantity, 10) : undefined,
         paymentTerms,
         notes,
       });
@@ -92,7 +92,7 @@ export default function QuoteSubmissionForm({ rfq, onQuoteSubmitted }) {
         return;
       }
 
-      toast.success('Quote submitted successfully!');
+      setSubmitted(true);
       onQuoteSubmitted?.();
     } catch (err) {
       console.error('[QuoteSubmissionForm] Submit error:', err);
@@ -100,6 +100,26 @@ export default function QuoteSubmissionForm({ rfq, onQuoteSubmitted }) {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  if (submitted) {
+    return (
+      <Card className="border border-white/10 bg-white/5 rounded-os-md overflow-hidden">
+        <SuccessScreen
+          title="Institutional Offer Lodged"
+          message={`Your sourcing capacity of ${rfq.quantity} ${rfq.quantity_unit} for ${rfq.title} has been committed to the Trade Rail.`}
+          theme="blue"
+          icon={ShieldCheck}
+          nextSteps={[
+            { label: "Institutional verification of terms by Afrikoni Officers", icon: <Lock className="w-4 h-4" /> },
+            { label: "Direct negotiation channel initialized", icon: <MessageSquare className="w-4 h-4" /> },
+            { label: "Trade Rail promotion pending buyer acceptance", icon: <Cpu className="w-4 h-4" /> }
+          ]}
+          primaryAction={() => window.location.href = '/dashboard/rfqs?view=sent'}
+          primaryActionLabel="View Active Rails"
+        />
+      </Card>
+    );
   }
 
   return (
@@ -137,6 +157,7 @@ export default function QuoteSubmissionForm({ rfq, onQuoteSubmitted }) {
               </Label>
               <Input
                 id="unitPrice"
+                name="unitPrice"
                 type="number"
                 min="0"
                 step="0.01"
@@ -153,6 +174,7 @@ export default function QuoteSubmissionForm({ rfq, onQuoteSubmitted }) {
               </Label>
               <Input
                 id="totalPrice"
+                name="totalPrice"
                 type="number"
                 min="0"
                 step="0.01"
@@ -190,6 +212,7 @@ export default function QuoteSubmissionForm({ rfq, onQuoteSubmitted }) {
               </Label>
               <Input
                 id="leadTime"
+                name="leadTime"
                 type="number"
                 min="1"
                 step="1"
@@ -238,15 +261,31 @@ export default function QuoteSubmissionForm({ rfq, onQuoteSubmitted }) {
           </div>
 
           {/* Delivery Location */}
-          <div className="space-y-2">
-            <Label htmlFor="deliveryLocation">Delivery Location</Label>
-            <Input
-              id="deliveryLocation"
-              type="text"
-              placeholder="e.g. Lagos, Nigeria"
-              value={deliveryLocation}
-              onChange={(e) => setDeliveryLocation(e.target.value)}
-            />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="deliveryLocation">Delivery Location</Label>
+              <Input
+                id="deliveryLocation"
+                name="deliveryLocation"
+                type="text"
+                placeholder="e.g. Lagos, Nigeria"
+                value={deliveryLocation}
+                onChange={(e) => setDeliveryLocation(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="minimumOrderQuantity">Minimum Order Quantity (MOQ)</Label>
+              <Input
+                id="minimumOrderQuantity"
+                name="minimumOrderQuantity"
+                type="number"
+                min="1"
+                step="1"
+                placeholder="Optional"
+                value={minimumOrderQuantity}
+                onChange={(e) => setMinimumOrderQuantity(e.target.value)}
+              />
+            </div>
           </div>
 
           {/* Notes */}
@@ -254,6 +293,7 @@ export default function QuoteSubmissionForm({ rfq, onQuoteSubmitted }) {
             <Label htmlFor="notes">Notes</Label>
             <Textarea
               id="notes"
+              name="notes"
               placeholder="Additional details, certifications, special conditions..."
               value={notes}
               onChange={(e) => setNotes(e.target.value)}

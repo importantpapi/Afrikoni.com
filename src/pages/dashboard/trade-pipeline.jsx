@@ -255,7 +255,7 @@ export default function TradePipeline() {
                   key={trade.id}
                   trade={trade}
                   stageLabel={PIPELINE_STAGES.find(s => s.id === mapTradeToStage(trade))?.label || 'Unknown'}
-                  onClick={() => navigate(`/dashboard/trade/${trade.id}`)}
+                  onClick={() => navigate(`/dashboard/trades/${trade.id}`)}
                 />
               ))}
             </div>

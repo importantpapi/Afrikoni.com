@@ -460,8 +460,8 @@ const legacyTranslations = {
     'transparency.title': 'Transparent & Fair Pricing',
     'transparency.subtitle': 'Afrikoni earns only when trade happens successfully — no hidden fees.',
     'transparency.transactionFee.title': 'Transaction Fee',
-    'transparency.transactionFee.description': 'An 8% fee is charged on successful transactions using Escrow (Trade Assurance).',
-    'transparency.transactionFee.badge': '8%',
+    'transparency.transactionFee.description': 'A 4% fee is charged on successful transactions using Escrow (Trade Assurance).',
+    'transparency.transactionFee.badge': '4%',
     'transparency.verificationFee.title': 'Supplier Verification',
     'transparency.verificationFee.description': 'Optional business verification to improve trust and increase buyer visibility.',
     'transparency.verificationFee.badge': 'Optional',
@@ -2543,4 +2543,3 @@ export function setCurrentLanguage(lang) {
     }
   }
 }
-

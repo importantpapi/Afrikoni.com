@@ -58,7 +58,10 @@ const VerificationReport = ({ score }) => {
             await generateForensicPDF(reportHtml, 'Afrikoni_Verification_Report.pdf');
             toast.success('Report exported successfully');
         } catch (err) {
-            toast.error('Export failed. Please try again.');
+            console.error('[VerificationCenter] Export failed:', err);
+            toast.error('Forensic Export Failed', {
+                description: 'The secure PDF engine encountered a protocol error. Please try again or contact system integrity support.'
+            });
         } finally {
             setIsExporting(false);
         }
@@ -182,8 +185,10 @@ export default function ContinentalTrustHub() {
 
             queryClient.invalidateQueries(['company', profileCompanyId]);
         } catch (error) {
-            console.error('Audit initialization error:', error);
-            toast.error('Failed to initialize audit. Check network link.');
+            console.error('[VerificationCenter] Audit initialization failure:', error);
+            toast.error('Audit Protocol Blocked', {
+                description: error.message || 'System integrity check failed. Verify your network link and try again.'
+            });
         } finally {
             setIsApplying(false);
         }
@@ -231,9 +236,9 @@ export default function ContinentalTrustHub() {
                     queryClient.invalidateQueries(['company', profileCompanyId]);
                 }
             } catch (err) {
-                console.error('DNA Extraction Error:', err);
-                toast.error('DNA Protocol Failed', {
-                    description: 'Could not resolve document optics. Try a clearer scan.'
+                console.error('[VerificationCenter] DNA Extraction Protocol Error:', err);
+                toast.error('DNA Extraction Failed', {
+                    description: err.message || 'The Vision Sentinel could not resolve document optics. Ensure your scan is clear and non-glare.'
                 });
             } finally {
                 setIsDNAExtracting(false);

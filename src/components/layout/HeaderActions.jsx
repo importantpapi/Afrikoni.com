@@ -65,7 +65,7 @@ export default function HeaderActions({ user, onLogout }) {
       {user ? (
         <>
           {/* Messages Button - Visible when logged in */}
-          <Link to="/messages">
+          <Link to="/dashboard/messages">
             <motion.div
               className="relative"
               whileHover={{ scale: 1.1 }}
@@ -79,7 +79,7 @@ export default function HeaderActions({ user, onLogout }) {
               </div>
             </motion.div>
           </Link>
-          <Link to="/orders">
+          <Link to="/dashboard/orders">
             <motion.div
               className="relative"
               whileHover={{ scale: 1.1 }}
@@ -141,11 +141,11 @@ export default function HeaderActions({ user, onLogout }) {
                       <User className="w-4 h-4" />
                       Profile
                     </Link>
-                    <Link to="/messages" className="flex items-center gap-3 px-4 py-2.5 hover:bg-os-accent/10 text-os-sm text-os-text-primary transition-colors">
+                    <Link to="/dashboard/messages" className="flex items-center gap-3 px-4 py-2.5 hover:bg-os-accent/10 text-os-sm text-os-text-primary transition-colors">
                       <MessageSquare className="w-4 h-4" />
                       Messages
                     </Link>
-                    <Link to="/orders" className="flex items-center gap-3 px-4 py-2.5 hover:bg-os-accent/10 text-os-sm text-os-text-primary transition-colors">
+                    <Link to="/dashboard/orders" className="flex items-center gap-3 px-4 py-2.5 hover:bg-os-accent/10 text-os-sm text-os-text-primary transition-colors">
                       <Package className="w-4 h-4" />
                       Orders
                     </Link>
@@ -171,7 +171,7 @@ export default function HeaderActions({ user, onLogout }) {
       ) : (
         <>
           {/* Messages CTA for logged out users */}
-          <Link to="/login?next=/messages">
+          <Link to="/login?next=/dashboard/messages">
             <Button variant="ghost" size="sm" className="flex items-center gap-2">
               <MessageSquare className="w-4 h-4" />
               <span className="hidden sm:inline">Sign in to message</span>
@@ -189,4 +189,3 @@ export default function HeaderActions({ user, onLogout }) {
     </div>
   );
 }
-

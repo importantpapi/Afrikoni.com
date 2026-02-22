@@ -67,9 +67,9 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
     // Filter by viewMode (buy/sell)
     const trades = useMemo(() => {
         if (viewMode === 'buy') {
-            return allTrades.filter(t => t.buyer_id === profileCompanyId);
+            return allTrades.filter(t => t.buyer_company_id === profileCompanyId);
         } else if (viewMode === 'sell') {
-            return allTrades.filter(t => t.seller_id === profileCompanyId);
+            return allTrades.filter(t => t.seller_company_id === profileCompanyId);
         }
         return allTrades;
     }, [allTrades, viewMode, profileCompanyId]);
@@ -141,11 +141,11 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
         <div className="os-page-layout os-stagger">
             <div className="os-header-group flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div className="space-y-2">
-                    <h1 className="">
-                        {viewMode === 'sell' ? 'Sales Ledger' : 'Active Orders'}
+                    <h1 className="tracking-tight">
+                        {viewMode === 'sell' ? 'Distribution Ledger' : 'Active Trade Rails'}
                     </h1>
-                    <p className="">
-                        You have {trades.length} active trade flows synchronized.
+                    <p className="os-label opacity-60">
+                        {trades.length} Institutional DNA sessions active on the Afrikoni Rail.
                     </p>
                 </div>
                 {viewMode === 'buy' && (
@@ -214,7 +214,7 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
                             </Button>
                             <Button
                                 variant="outline"
-                                onClick={() => navigate('/dashboard/marketplace')}
+                                onClick={() => navigate('/suppliers')}
                                 className="h-12 px-8 border-stone-200 text-stone-700 hover:bg-stone-50 rounded-full font-medium"
                             >
                                 Browse Suppliers
@@ -238,7 +238,7 @@ export default function TradeMonitor({ viewMode = 'buy' }) {
                                 variant="panel"
                                 hover
                                 className="p-6 hover:bg-os-surface transition-all group"
-                                onClick={() => navigate(`/dashboard/trade/${order.id}`)}
+                                onClick={() => navigate(`/dashboard/trades/${order.id}`)}
                             >
                                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-4">
                                     <div>

@@ -42,66 +42,148 @@ serve(async (req) => {
       )
     }
 
-    // 2. Admin / Role Check
-    // In a real scenario, we'd check if `user.id` is an Admin or the Seller of this transaction.
-    // For now, we enforce that a valid user exists.
-    // Ideally: const isAllowed = await checkRefundPermission(user.id, escrow_id);
-
     const { escrow_id, payment_intent_id, amount, reason } = await req.json()
 
-    if (!payment_intent_id || !amount) {
+    if (!escrow_id || !payment_intent_id || !amount) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields' }),
+        JSON.stringify({ error: 'Missing required fields: escrow_id, payment_intent_id, amount' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // 3. Create Refund
-    const refund = await stripe.refunds.create({
-      payment_intent: payment_intent_id,
-      amount: Math.round(amount), // Already in cents
-      reason: reason || 'requested_by_customer',
-      metadata: {
-        escrow_id,
-        reason,
-        triggered_by: user.id // Audit trail
-      }
-    })
+    const refundAmountCents = Math.round(Number(amount))
+    if (!Number.isFinite(refundAmountCents) || refundAmountCents <= 0) {
+      return new Response(
+        JSON.stringify({ error: 'Amount must be a positive integer in cents' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
 
-    // 4. Record in DB (Using Service Role for Write Access)
+    // 2. Authorize and validate via service role
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    if (escrow_id) {
-      const { data: payment } = await supabaseAdmin
-        .from('payments')
-        .select('id')
-        .eq('stripe_payment_intent_id', payment_intent_id)
-        .single()
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('company_id, is_admin')
+      .eq('id', user.id)
+      .single()
 
-      if (payment) {
-        await supabaseAdmin.from('refunds').insert({
-          escrow_id,
-          payment_id: payment.id,
-          stripe_refund_id: refund.id,
-          amount: amount / 100,
-          status: 'completed',
-          reason: reason || 'requested_by_customer',
-          metadata: {
-            stripe_refund_id: refund.id,
-            initiated_by: user.id
-          }
-        })
-      }
+    const { data: escrow, error: escrowError } = await supabaseAdmin
+      .from('escrows')
+      .select('*')
+      .eq('id', escrow_id)
+      .single()
+
+    if (escrowError || !escrow) {
+      return new Response(
+        JSON.stringify({ error: 'Escrow not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
     }
+
+    const buyerCompanyId = escrow.buyer_company_id ?? escrow.buyer_id
+    const isAdmin = profile?.is_admin === true
+    const isBuyerParty = !!profile?.company_id && !!buyerCompanyId && profile.company_id === buyerCompanyId
+
+    // Restrict refunds to admin or buyer side.
+    if (!isAdmin && !isBuyerParty) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden: refund permission denied' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const { data: payment } = await supabaseAdmin
+      .from('payments')
+      .select('id, amount, currency, escrow_id, stripe_payment_intent_id')
+      .eq('stripe_payment_intent_id', payment_intent_id)
+      .single()
+
+    if (!payment || (payment.escrow_id && payment.escrow_id !== escrow_id)) {
+      return new Response(
+        JSON.stringify({ error: 'Payment intent is not linked to the provided escrow' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const maxAmountCents = Math.round(Number(payment.amount || 0) * 100)
+    if (refundAmountCents > maxAmountCents) {
+      return new Response(
+        JSON.stringify({ error: 'Refund amount exceeds original payment amount' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const { data: existingRefund } = await supabaseAdmin
+      .from('refunds')
+      .select('id')
+      .eq('escrow_id', escrow_id)
+      .eq('status', 'completed')
+      .limit(1)
+      .maybeSingle()
+
+    if (existingRefund) {
+      return new Response(
+        JSON.stringify({ error: 'Refund already completed for this escrow' }),
+        { status: 409, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // 3. Create refund on Stripe
+    const refund = await stripe.refunds.create({
+      payment_intent: payment_intent_id,
+      amount: refundAmountCents,
+      reason: reason || 'requested_by_customer',
+      metadata: {
+        escrow_id,
+        reason,
+        triggered_by: user.id
+      }
+    })
+
+    // 4. Persist refund + audit artifacts
+    await supabaseAdmin.from('refunds').insert({
+      escrow_id,
+      payment_id: payment.id,
+      stripe_refund_id: refund.id,
+      amount: refundAmountCents / 100,
+      status: 'completed',
+      reason: reason || 'requested_by_customer',
+      metadata: {
+        stripe_refund_id: refund.id,
+        initiated_by: user.id
+      }
+    })
+
+    await supabaseAdmin.from('trade_events').insert({
+      trade_id: escrow.trade_id || null,
+      event_type: 'refund_initiated',
+      payload: {
+        escrow_id,
+        stripe_refund_id: refund.id,
+        initiated_by: user.id,
+        amount: refundAmountCents / 100,
+        currency: payment.currency || escrow.currency || 'USD'
+      }
+    }).then(() => { })
+
+    await supabaseAdmin
+      .from('escrows')
+      .update({
+        status: 'refunded',
+        refunded_at: new Date().toISOString(),
+        balance: 0
+      })
+      .eq('id', escrow_id)
 
     return new Response(
       JSON.stringify({
         refundId: refund.id,
         status: refund.status,
-        amount: refund.amount / 100,
+        amount: refundAmountCents / 100,
         created: refund.created
       }),
       {

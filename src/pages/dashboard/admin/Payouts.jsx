@@ -50,26 +50,38 @@ export default function AdminPayouts() {
         const toastId = toast.loading(`${action === 'approve' ? 'Approving' : 'Rejecting'} request...`);
 
         try {
-            const newStatus = action === 'approve' ? 'processing' : 'failed';
-            // In a real automated system, we might trigger a transfer here.
-            // For MVP Admin, we just mark it as processing (manual transfer initiated) or failed.
+            const note = window.prompt(
+                action === 'approve'
+                    ? 'Add payout execution note (optional):'
+                    : 'Add rejection reason (required):',
+                ''
+            ) || '';
 
-            const { error } = await supabase
-                .from('wallet_transactions')
-                .update({
-                    status: newStatus,
-                    processed_at: new Date().toISOString(),
-                    processed_by: user?.id
-                })
-                .eq('id', id);
+            if (action === 'reject' && !note.trim()) {
+                throw new Error('Rejection reason is required');
+            }
+
+            const { data, error } = await supabase.functions.invoke('process-payout-request', {
+                body: {
+                    transactionId: id,
+                    action,
+                    note: note.trim() || null
+                }
+            });
 
             if (error) throw error;
+            if (!data?.success) throw new Error(data?.error || 'Payout workflow failed');
 
-            toast.success(`Request ${newStatus}`, { id: toastId });
+            toast.success(
+                action === 'approve'
+                    ? `Transfer initiated${data?.transferReference ? ` (${data.transferReference})` : ''}`
+                    : 'Payout request rejected',
+                { id: toastId }
+            );
             fetchRequests();
         } catch (err) {
             console.error('Error updating payout:', err);
-            toast.error('Failed to update request', { id: toastId });
+            toast.error(err?.message || 'Failed to update request', { id: toastId });
         } finally {
             setProcessingId(null);
         }

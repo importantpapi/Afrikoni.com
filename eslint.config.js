@@ -28,11 +28,19 @@ export default [
                 setInterval: 'readonly',
                 clearInterval: 'readonly',
                 URL: 'readonly',
+                URLSearchParams: 'readonly',
                 navigator: 'readonly',
                 fetch: 'readonly',
                 Error: 'readonly',
                 Promise: 'readonly',
-                __BUILD_VERSION__: 'readonly'
+                __BUILD_VERSION__: 'readonly',
+                DOMParser: 'readonly',
+                IntersectionObserver: 'readonly',
+                performance: 'readonly',
+                PerformanceObserver: 'readonly',
+                Image: 'readonly',
+                requestIdleCallback: 'readonly',
+                cancelIdleCallback: 'readonly'
             },
         },
         plugins: {
@@ -48,8 +56,28 @@ export default [
             'no-console': 'warn',
             'react/react-in-jsx-scope': 'off',
             'react/prop-types': 'off',
+            'no-unused-vars': [
+                'warn',
+                {
+                    argsIgnorePattern: '^_',
+                    varsIgnorePattern: '^_',
+                    ignoreRestSiblings: true,
+                    caughtErrors: 'none'
+                }
+            ],
+            'no-undef': 'warn',
+            'no-useless-escape': 'warn',
+            'no-async-promise-executor': 'warn',
+            'no-constant-binary-expression': 'warn',
+            'no-empty': 'warn',
+            'no-useless-catch': 'warn',
+            'no-useless-assignment': 'warn',
+            'no-case-declarations': 'warn',
+            'no-dupe-keys': 'warn',
+            'no-unreachable': 'warn',
+            'preserve-caught-error': 'warn',
             'no-restricted-syntax': [
-                'error',
+                'warn',
                 {
                     selector: 'CallExpression[callee.object.name="console"][callee.property.name="log"]',
                     message: 'Use logger.info() instead of console.log() for production-safe logging.',

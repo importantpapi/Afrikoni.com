@@ -46,9 +46,9 @@ export function SourcingDashboard() {
     ];
 
     const quickActions = [
-        { label: t('dashboard.create_rfq_label'), sub: t('dashboard.create_rfq_sub'), icon: Globe, link: `/${language}/dashboard/rfqs/new`, color: "text-os-blue", bg: "bg-os-blue/10" },
-        { label: t('dashboard.browse_suppliers_label'), sub: t('dashboard.browse_suppliers_sub'), icon: Package, link: `/${language}/suppliers`, color: "text-os-green", bg: "bg-os-green/10" },
-        { label: t('dashboard.my_orders_label'), sub: t('dashboard.my_orders_sub'), icon: Ship, link: `/${language}/dashboard/trades`, color: "text-purple-500", bg: "bg-purple-500/10" },
+        { label: t('dashboard.create_rfq_label'), sub: t('dashboard.create_rfq_sub'), icon: Globe, link: `/dashboard/rfqs/new`, color: "text-os-blue", bg: "bg-os-blue/10" },
+        { label: t('dashboard.browse_suppliers_label'), sub: t('dashboard.browse_suppliers_sub'), icon: Package, link: `/suppliers`, color: "text-os-green", bg: "bg-os-green/10" },
+        { label: t('dashboard.my_orders_label'), sub: t('dashboard.my_orders_sub'), icon: Ship, link: `/dashboard/trades?view=buy`, color: "text-purple-500", bg: "bg-purple-500/10" },
     ];
 
     return (
@@ -90,12 +90,12 @@ export function SourcingDashboard() {
                     <Surface variant="panel" className="p-2">
                         <div className="p-6 border-b border-os-stroke flex justify-between items-center">
                             <h2 className="text-os-xl font-bold">My Active Purchases</h2>
-                            <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/trades')}>View All</Button>
+                            <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/trades?view=buy')}>View All</Button>
                         </div>
                         {activeDeals.length > 0 ? (
                             <div className="divide-y divide-os-stroke">
                                 {activeDeals.slice(0, 3).map((trade) => (
-                                    <div key={trade.id} onClick={() => navigate(`/dashboard/trade/${trade.id}`)} className="p-6 hover:bg-os-surface cursor-pointer flex justify-between items-center group">
+                                    <div key={trade.id} onClick={() => navigate(`/dashboard/trades/${trade.id}`)} className="p-6 hover:bg-os-surface cursor-pointer flex justify-between items-center group">
                                         <div className="flex items-center gap-4">
                                             <Box className="w-6 h-6 text-os-text-secondary" />
                                             <div>

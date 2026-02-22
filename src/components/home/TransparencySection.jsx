@@ -11,8 +11,8 @@ export default function TransparencySection() {
     {
       icon: Percent,
       title: t('transparency.transactionFee.title') || 'Transaction Fee',
-      description: t('transparency.transactionFee.description') || 'An 8% fee is charged on successful transactions using Escrow (Trade Assurance).',
-      percentage: t('transparency.transactionFee.badge') || '8%',
+      description: t('transparency.transactionFee.description') || 'A 4% fee is charged on successful transactions using Escrow (Trade Assurance).',
+      percentage: t('transparency.transactionFee.badge') || '4%',
       color: 'text-blue-600',
       badgeColor: 'bg-blue-100 text-blue-700'
     },
@@ -173,4 +173,3 @@ export default function TransparencySection() {
     </div>
   );
 }
-

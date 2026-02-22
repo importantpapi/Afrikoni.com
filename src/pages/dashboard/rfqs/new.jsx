@@ -397,12 +397,16 @@ export default function IntakeEngine() {
             >
               <div className="space-y-10 text-center">
                 {/* Header */}
-                <div className="space-y-3">
-                  <h1 className="text-4xl md:text-5xl font-semibold tracking-tight text-stone-900">
-                    New Sourcing Request
+                <div className="space-y-4">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 bg-os-accent/10 border border-os-accent/20 rounded-full">
+                    <Sparkles className="w-3 h-3 text-os-accent" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-os-accent">AI-Powered Sourcing Rail</span>
+                  </div>
+                  <h1 className="text-4xl md:text-5xl font-bold tracking-tight text-stone-900">
+                    Initialize Sourcing Protocol
                   </h1>
-                  <p className="text-xl text-stone-500 font-normal">
-                    Tell us what you need. We'll handle the rest.
+                  <p className="text-xl text-stone-500 font-light max-w-2xl mx-auto">
+                    Define your procurement parameters. Our sovereign rail handles the global supplier matching and fulfillment synchronization.
                   </p>
                 </div>
 

@@ -13,10 +13,10 @@ import { cn } from '@/lib/utils';
 export default function KernelControlPlane({ companyId }) {
   const navigate = useNavigate();
   const { data: kernelData, loading: kernelLoading } = useKernelState();
-  
+
   // ✅ REACT QUERY: Get trade data
   const { data: { activeTrades = [], pipelineValue = 0 } = {}, isLoading: tradesLoading } = useTrades();
-  
+
   // Keep useTradeKernelState for other metrics (trustScore, escrow, etc) until fully migrated
   const {
     trustScore,
@@ -174,7 +174,7 @@ export default function KernelControlPlane({ companyId }) {
                 key={item.id}
                 onClick={() => {
                   // Navigate based on event type
-                  if (item.type === 'trade') navigate(`/dashboard/trade/${item.relatedId}`);
+                  if (item.type === 'trade') navigate(`/dashboard/trades/${item.relatedId}`);
                   else if (item.type === 'rfq') navigate(`/dashboard/rfqs/${item.relatedId}`);
                   else if (item.type === 'shipment') navigate(`/dashboard/shipments/${item.relatedId}`);
                 }}

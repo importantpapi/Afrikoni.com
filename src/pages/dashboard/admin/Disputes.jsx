@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/api/supabaseClient';
 import { useAuth } from '@/contexts/AuthProvider';
 import { Surface } from '@/components/system/Surface';
@@ -13,6 +14,10 @@ import { Textarea } from '@/components/shared/ui/textarea';
 
 export default function AdminDisputes() {
     const { user } = useAuth();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const { lang } = useParams();
+    const language = lang || 'en';
     const [disputes, setDisputes] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [processingId, setProcessingId] = useState(null);
@@ -73,26 +78,18 @@ export default function AdminDisputes() {
         const toastId = toast.loading('Updating dispute status...');
 
         try {
-            let newStatus = 'in_review';
-            if (resolutionAction === 'resolve') newStatus = 'resolved';
-            if (resolutionAction === 'escalate') newStatus = 'escalated';
-            if (resolutionAction === 'reject') newStatus = 'resolved'; // Rejecting often means resolving in favor of defendant or dismissing
-
-            const { error } = await supabase
-                .from('disputes')
-                .update({
-                    status: newStatus,
-                    resolution_notes: resolutionNote,
-                    resolved_at: newStatus === 'resolved' ? new Date().toISOString() : null,
-                    resolved_by: user?.id
-                })
-                .eq('id', selectedDispute.id);
+            const { data, error } = await supabase.functions.invoke('resolve-dispute-workflow', {
+                body: {
+                    disputeId: selectedDispute.id,
+                    action: resolutionAction,
+                    resolutionNote: resolutionNote.trim()
+                }
+            });
 
             if (error) throw error;
+            if (!data?.success) throw new Error(data?.error || 'Dispute workflow failed');
 
-            // If resolving, we might want to trigger notifications or move funds (complex logic omitted for MVP)
-
-            toast.success(`Dispute ${newStatus}`, { id: toastId });
+            toast.success(`Dispute ${data.status}`, { id: toastId });
             setSelectedDispute(null);
             fetchDisputes();
         } catch (err) {
@@ -110,6 +107,25 @@ export default function AdminDisputes() {
             case 'resolved': return <Badge variant="success">Resolved</Badge>;
             default: return <Badge variant="secondary">{status}</Badge>;
         }
+    };
+
+    const handleMessageParties = (dispute) => {
+        const search = dispute?.trade_id ? `?trade=${encodeURIComponent(dispute.trade_id)}` : '';
+        navigate(
+            {
+                pathname: `/${language}/dashboard/messages`,
+                search,
+            },
+            {
+                state: {
+                    from: location.pathname + location.search,
+                    context: {
+                        disputeId: dispute.id,
+                        tradeId: dispute.trade_id || null,
+                    },
+                },
+            }
+        );
     };
 
     return (
@@ -212,7 +228,7 @@ export default function AdminDisputes() {
                                                 </Button>
                                                 <Button
                                                     variant="ghost"
-                                                    onClick={() => toast.info('Messaging not implemented in MVP admin')}
+                                                    onClick={() => handleMessageParties(dispute)}
                                                     className="w-full text-blue-600"
                                                 >
                                                     <MessageCircle className="w-4 h-4 mr-2" /> Message Parties

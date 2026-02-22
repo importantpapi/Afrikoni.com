@@ -3,8 +3,9 @@ import { supabase } from '@/api/supabaseClient';
 import { Surface } from '@/components/system/Surface';
 import { Button } from '@/components/shared/ui/button';
 import { Badge } from '@/components/shared/ui/badge';
-import { Loader2, CheckCircle, XCircle, Upload, FileText, UserCheck, Shield, Award, TrendingUp } from 'lucide-react';
+import { Loader2, CheckCircle, XCircle, Upload, FileText, UserCheck, Shield, Award, TrendingUp, Clock } from 'lucide-react';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
+import SuccessScreen from '@/components/shared/ui/SuccessScreen';
 
 const VERIFICATION_STEPS = [
   { id: 'business_registration', title: 'Business Registration', desc: 'Upload business license or certificate', icon: FileText, required: true },
@@ -14,11 +15,26 @@ const VERIFICATION_STEPS = [
   { id: 'bank_verification', title: 'Bank Account', desc: 'Verify business bank account', icon: TrendingUp, required: true }
 ];
 
-export default function VerificationPanel({ onComplete }) {
+const COMPLIANCE_BY_COUNTRY = {
+  'Nigeria': [
+    { id: 'cac_status_report', title: 'CAC Status Report', desc: 'Active status report from Corporate Affairs Commission', icon: FileText, required: true },
+    { id: 'soncap_cert', title: 'SONCAP Certificate', desc: 'Standard Organization of Nigeria Compliance', icon: Award, required: false }
+  ],
+  'Kenya': [
+    { id: 'kra_compliance', title: 'KRA Tax Compliance', desc: 'Recent KRA TCC (Tax Compliance Certificate)', icon: Shield, required: true },
+    { id: 'kebs_std', title: 'KEBS Standards', desc: 'Kenya Bureau of Standards PVoC', icon: Award, required: false }
+  ],
+  'Egypt': [
+    { id: 'goat_cert', title: 'GOEIC Registration', desc: 'General Organization for Export & Import Control', icon: FileText, required: true }
+  ]
+};
+
+export default function VerificationPanel({ onComplete, country = 'Nigeria' }) {
   const { profileCompanyId, userId, organization } = useDashboardKernel();
   const [verifications, setVerifications] = useState([]);
   const [uploading, setUploading] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     if (!profileCompanyId) return;
@@ -66,15 +82,40 @@ export default function VerificationPanel({ onComplete }) {
     return { status: v.status, doc: v.document_path };
   };
 
-  if (loading) return <div className="p-8 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>;
+  if (showSuccess) {
+    return (
+      <SuccessScreen
+        title="Verification Documents Submitted"
+        message="Your compliance documents have been received and are now under institutional review."
+        theme="blue"
+        icon={Shield}
+        nextSteps={[
+          { label: "Manual audit by Afrikoni Compliance Council (24-48h)", icon: <Clock className="w-4 h-4 text-amber-500" /> },
+          { label: "Trust Score recalculated upon validation", icon: <TrendingUp className="w-4 h-4 text-emerald-500" /> },
+          { label: "Tier-2 Trade Limits unlocked upon verification", icon: <Award className="w-4 h-4 text-blue-500" /> }
+        ]}
+        primaryAction={() => setShowSuccess(false)}
+        primaryActionLabel="Review Documents"
+        secondaryAction={onComplete}
+        secondaryActionLabel="Continue to Dashboard"
+      />
+    );
+  }
 
-  const allRequiredComplete = VERIFICATION_STEPS.filter(s => s.required).every(s => getStepStatus(s).status === 'verified');
+  if (loading) return <div className="p-8 text-center"><Loader2 className="w-6 h-6 animate-spin mx-auto text-os-accent" /></div>;
+
+  const countrySteps = COMPLIANCE_BY_COUNTRY[country] || [];
+  const combinedSteps = [...VERIFICATION_STEPS, ...countrySteps];
+  const allRequiredComplete = combinedSteps.filter(s => s.required).every(s => getStepStatus(s).status === 'verified' || getStepStatus(s).status === 'pending');
 
   return (
     <Surface variant="panel" className="p-6 space-y-6">
-      <h2 className="text-xl font-bold mb-2 flex items-center gap-2"><Shield className="w-5 h-5 text-os-accent" /> Verification & Compliance</h2>
+      <div className="flex items-center justify-between mb-2">
+        <h2 className="text-xl font-bold flex items-center gap-2"><Shield className="w-5 h-5 text-os-accent" /> Verification & Compliance</h2>
+        {country && <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20">{country} Specific Protocol</Badge>}
+      </div>
       <div className="space-y-4">
-        {VERIFICATION_STEPS.map((step) => {
+        {combinedSteps.map((step) => {
           const { status, doc } = getStepStatus(step);
           const Icon = step.icon;
           return (
@@ -87,7 +128,7 @@ export default function VerificationPanel({ onComplete }) {
               {status === 'verified' ? (
                 <Badge className="bg-emerald-100 text-emerald-700"><CheckCircle className="w-4 h-4 mr-1" /> Verified</Badge>
               ) : status === 'pending' ? (
-                <Badge className="bg-amber-100 text-amber-700"><Clock className="w-4 h-4 mr-1" /> Pending</Badge>
+                <Badge className="bg-amber-100 text-amber-700"><CheckCircle className="w-4 h-4 mr-1" /> Pending</Badge>
               ) : (
                 <Button size="sm" onClick={() => handleUpload(step)} disabled={!!uploading}>
                   {uploading === step.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4 mr-1" />} Upload
@@ -97,9 +138,16 @@ export default function VerificationPanel({ onComplete }) {
           );
         })}
       </div>
-      {allRequiredComplete ? (
-        <div className="mt-4 flex items-center gap-2 text-emerald-600 font-bold"><CheckCircle className="w-5 h-5" /> All required steps complete</div>
-      ) : null}
+      {allRequiredComplete && (
+        <div className="mt-8 pt-6 border-t border-os-stroke flex justify-center">
+          <Button
+            onClick={() => setShowSuccess(true)}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold h-12 px-8 shadow-lg shadow-emerald-900/20"
+          >
+            Confirm Submission for Audit
+          </Button>
+        </div>
+      )}
     </Surface>
   );
 }

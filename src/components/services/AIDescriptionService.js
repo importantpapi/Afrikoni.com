@@ -1,13 +1,12 @@
 // AI Description Service - Converted from Base44 to use direct API calls
 // Replace with your preferred LLM service (OpenAI, Anthropic, etc.)
+import { callChatAsJson } from '@/ai/aiClient';
 
 export const AIDescriptionService = {
   // Detect category from product title and description
   detectCategory: async (title, description = '') => {
     try {
       // Use AI to detect category from product information
-      const { callChatAsJson } = await import('@/ai/aiClient');
-      
       const system = `You are a category detection assistant for Afrikoni B2B marketplace.
 Given a product title and description, determine the most appropriate B2B product category.
 Respond with a JSON object containing:
@@ -74,41 +73,44 @@ Determine the best B2B category for this product.`;
 
   generateProductDescription: async (productInfo) => {
     try {
-      // TODO: Replace with your LLM API call
-      // Example with OpenAI:
-      /*
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.VITE_OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: 'gpt-4',
-          messages: [{
-            role: 'system',
-            content: 'You are a professional B2B product description writer for African markets.'
-          }, {
-            role: 'user',
-            content: `Generate a professional B2B product description for: ${productInfo.title} in category ${productInfo.category} from ${productInfo.country}`
-          }],
-          response_format: { type: 'json_object' }
-        })
-      });
-      const data = await response.json();
-      return JSON.parse(data.choices[0].message.content);
-      */
+      const system = `You are an Afrikoni B2B listing writer for cross-border African trade.
+Return JSON with:
+{
+  "optimized_title": "string",
+  "full_description": "string",
+  "selling_points": ["string", "string", "string", "string"]
+}
+Rules:
+- Keep language simple and trust-oriented.
+- Mention quality, lead time clarity, and trade reliability.
+- Do not invent certifications.`;
 
-      // Placeholder response for now
-      return {
+      const user = `Create a B2B product listing.
+Title: ${productInfo.title || 'Product'}
+Category: ${productInfo.category || 'General Products'}
+Country: ${productInfo.country || 'Africa'}
+Description context: ${productInfo.description || ''}`;
+
+      const fallback = {
         optimized_title: productInfo.title,
-        full_description: `High-quality ${productInfo.title} from ${productInfo.country || 'Africa'}. Perfect for B2B buyers looking for reliable suppliers.`,
+        full_description: `Reliable ${productInfo.title || 'product'} supply from ${productInfo.country || 'Africa'} with clear specs and delivery timelines for B2B buyers.`,
         selling_points: [
-          'Premium quality',
-          'Competitive pricing',
-          'Fast delivery',
-          'Bulk discounts available'
+          'Quality checks before shipment',
+          'Clear lead-time commitments',
+          'Transparent pricing terms',
+          'Bulk order support'
         ]
+      };
+
+      const { success, data } = await callChatAsJson({ system, user }, { fallback });
+      if (!success || !data) return fallback;
+
+      return {
+        optimized_title: data.optimized_title || fallback.optimized_title,
+        full_description: data.full_description || fallback.full_description,
+        selling_points: Array.isArray(data.selling_points) && data.selling_points.length > 0
+          ? data.selling_points.slice(0, 4)
+          : fallback.selling_points
       };
     } catch (error) {
       // Error logged (removed for production)
@@ -118,24 +120,68 @@ Determine the best B2B category for this product.`;
 
   generateRFQFromBrief: async (brief) => {
     try {
-      // TODO: Replace with your LLM API call for RFQ structuring.
-      // For now, return a simple, Africa-focused placeholder.
       const qty = brief.quantity || '';
       const unit = brief.unit || 'pieces';
-      const country = brief.target_country || brief.delivery_location?.split(',').pop()?.trim() || 'an African country';
+      const country = brief.target_country || brief.delivery_location?.split(',').pop()?.trim() || '';
 
-      return {
-        title: brief.title || `Request for ${qty ? `${qty} ${unit} of goods` : 'quotation'}`,
+      const fallback = {
+        title: brief.title || `Request for ${qty ? `${qty} ${unit}` : 'quotation'}`,
         description:
           brief.description ||
-          `We are looking for reliable suppliers who can provide this product with consistent quality, clear packaging and on-time delivery to ${country}. Please include pricing, lead time and available certifications in your quote.`,
+          `We are sourcing reliable supply with clear quality specs and delivery timeline${country ? ` to ${country}` : ''}. Include price, lead time, and available certifications.`,
         quantity: qty || '',
         unit,
         delivery_location: brief.delivery_location || '',
-        target_country: brief.target_country || country,
+        target_country: country || ''
+      };
+
+      const system = `You structure buyer briefs into clear B2B RFQs for African cross-border trade.
+Return JSON:
+{
+  "title": "string",
+  "description": "string",
+  "quantity": "string|number",
+  "unit": "string",
+  "delivery_location": "string",
+  "target_country": "string"
+}
+Rules:
+- Keep language simple and operational.
+- Do not invent product certifications or legal guarantees.
+- Keep title under 90 characters.`;
+
+      const user = `Convert this buyer brief into RFQ JSON:
+title: ${brief.title || ''}
+description: ${brief.description || ''}
+quantity: ${brief.quantity || ''}
+unit: ${brief.unit || ''}
+delivery_location: ${brief.delivery_location || ''}
+target_country: ${brief.target_country || ''}`;
+
+      const { success, data } = await callChatAsJson(
+        { system, user, temperature: 0.2 },
+        { fallback }
+      );
+
+      if (!success || !data) return fallback;
+
+      return {
+        title: data.title || fallback.title,
+        description: data.description || fallback.description,
+        quantity: data.quantity ?? fallback.quantity,
+        unit: data.unit || fallback.unit,
+        delivery_location: data.delivery_location || fallback.delivery_location,
+        target_country: data.target_country || fallback.target_country,
       };
     } catch (error) {
-      throw error;
+      return {
+        title: brief.title || 'Request for quotation',
+        description: brief.description || 'Please share your best quote including lead time and quality details.',
+        quantity: brief.quantity || '',
+        unit: brief.unit || 'pieces',
+        delivery_location: brief.delivery_location || '',
+        target_country: brief.target_country || ''
+      };
     }
   },
 
@@ -170,4 +216,3 @@ Determine the best B2B category for this product.`;
     }
   },
 };
-

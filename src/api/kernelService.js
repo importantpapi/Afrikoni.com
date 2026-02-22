@@ -213,7 +213,7 @@ export async function fetchTradeCopilot() {
             id: `act-${trade.id}-submit`,
             title: `Submit RFQ for ${trade.product_name || 'Goods'}`,
             description: 'Draft RFQ is ready. Submit to network to get quotes.',
-            action: `/dashboard/trade/${trade.id}`,
+            action: `/dashboard/trades/${trade.id}`,
             priority: 'high',
             type: 'action'
           });
@@ -223,7 +223,7 @@ export async function fetchTradeCopilot() {
             id: `act-${trade.id}-fund`,
             title: `Fund Escrow for ${trade.product_name}`,
             description: 'Seller accepted quote. Fund escrow to start production.',
-            action: `/dashboard/trade/${trade.id}`,
+            action: `/dashboard/trades/${trade.id}`,
             priority: 'high',
             type: 'finance'
           });

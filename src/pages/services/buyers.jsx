@@ -465,7 +465,7 @@ export default function BuyersService() {
                 <CardHeader>
                   <CardTitle className="text-os-xl">Transaction Fee</CardTitle>
                   <div className="text-3xl font-bold text-os-accent mt-2">
-                    8%
+                    4%
                   </div>
                   <p className="text-os-sm text-afrikoni-deep/70 mt-1">
                     Only on successful orders

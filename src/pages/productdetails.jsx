@@ -148,16 +148,14 @@ export default function ProductDetail() {
       await supabase.from('products').update({ views: (foundProduct.views || 0) + 1 }).eq('id', foundProduct.id);
 
       addToViewHistory(foundProduct.id, 'product', {
-        title: foundProduct.title,
+        title: foundProduct.name,
         category_id: foundProduct.category_id,
         country: foundProduct.country_of_origin,
         price: foundProduct.price_min || foundProduct.price
       });
 
       if (user?.id) {
-        try {
-          await trackProductView(foundProduct.id, { profile_id: user.id, source_page: 'product_detail' });
-        } catch { /* silent */ }
+        trackProductView(foundProduct.id, { profile_id: user.id, source_page: 'product_detail' }).catch(() => { });
       }
 
       const similarityRes = await supabase
@@ -175,11 +173,10 @@ export default function ProductDetail() {
         if (reviewsRes.data) setReviews(reviewsRes.data);
       }
 
-      // Load Q&A
       try {
         const { data: qData } = await supabase
           .from('product_questions')
-          .select('*, profiles(full_name, avatar_url)')
+          .select('*, profiles!asked_by(full_name, avatar_url)')
           .eq('product_id', foundProduct.id)
           .order('created_at', { ascending: false });
         if (qData) setQuestions(qData);
@@ -213,31 +210,7 @@ export default function ProductDetail() {
       navigate(`/${language}/login?redirect=${encodeURIComponent(window.location.pathname)}&intent=buy`);
       return;
     }
-    const toastId = toast.loading('Creating trade...');
-    try {
-      const result = await createTrade({
-        trade_type: 'order',
-        buyer_id: user.company_id,
-        created_by: user.id,
-        title: product.title,
-        description: product.description || `Direct purchase of ${product.title}`,
-        category_id: product.category_id,
-        quantity: product.min_order_quantity || 1,
-        quantity_unit: product.unit || 'pieces',
-        target_price: product.price || product.price_min,
-        currency: product.currency || 'USD',
-        status: TRADE_STATE.CONTRACTED,
-        metadata: { product_id: product.id, supplier_id: supplier?.id, initiator: 'buy_now_button' }
-      });
-      if (result.success) {
-        toast.success('Trade started!', { id: toastId });
-        navigate(`/${language}/dashboard/one-flow/${result.data.id}`);
-      } else {
-        toast.error(result.error || 'Failed to start trade', { id: toastId });
-      }
-    } catch (err) {
-      toast.error('Something went wrong', { id: toastId });
-    }
+    navigate(`/${language}/checkout?product=${product.id}`);
   };
 
   const handleSubmitQuestion = async () => {

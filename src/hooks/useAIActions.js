@@ -128,7 +128,7 @@ export function useAIActions() {
                             priority: 'urgent',
                             title: `Shipment delayed ${daysOverdue}d`,
                             description: `Trade #${trade.id.slice(0, 8)} - Contact logistics partner`,
-                            path: `/dashboard/trade/${trade.id}`,
+                            path: `/dashboard/trades/${trade.id}`,
                             actionLabel: 'Contact Logistics',
                             metadata: {
                                 timeLeft: `${daysOverdue}d overdue`,
@@ -190,7 +190,7 @@ export function useAIActions() {
                         priority: 'recommended',
                         title: 'Upload trade documents',
                         description: `Trade #${trade.id.slice(0, 8)} - Required for escrow release`,
-                        path: `/dashboard/trade/${trade.id}`,
+                        path: `/dashboard/trades/${trade.id}`,
                         actionLabel: 'Upload Docs',
                     });
                 }

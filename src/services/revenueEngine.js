@@ -3,18 +3,18 @@
  * 
  * The commercial heart of the Afrikoni Trade Protocol.
  * Responsible for:
- * 1. Calculating the 8% Take-Rate (Platform + FX + Service)
+ * 1. Calculating the 4% Take-Rate (Platform + FX + Service)
  * 2. Gating "Secure" assets (Certificates) behind fees ($25/flow)
  * 3. Managing Currency Netting Spreads
  */
 
 export const REVENUE_CONFIG = {
-    TAKE_RATE_PCT: 0.08,             // 8% Total Base
-    VOLATILITY_BUFFER_PCT: 0.005,    // 0.5% Safety Buffer for Corridor Spikes
+    TAKE_RATE_PCT: 0.04,             // 4% Total Base
+    VOLATILITY_BUFFER_PCT: 0.0,      // No automatic uplift: keep canonical take-rate at 4%
     BREAKDOWN: {
-        ESCROW_FEE: 0.05,   // 5% Platform/Escrow
-        SERVICE_FEE: 0.018, // 1.8% Service Margin
-        FX_SPREAD: 0.012    // 1.2% FX Padding (Base)
+        ESCROW_FEE: 0.025,  // 2.5% Platform/Escrow
+        SERVICE_FEE: 0.009, // 0.9% Service Margin
+        FX_SPREAD: 0.006    // 0.6% FX Padding (Base)
     },
     DOCUMENT_FEE_USD: 25.00,
     ONE_FLOW_PACK_ID: 'one_flow_pack_v1'

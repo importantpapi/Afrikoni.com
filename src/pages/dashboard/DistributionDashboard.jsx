@@ -43,9 +43,9 @@ export function DistributionDashboard() {
     ];
 
     const quickActions = [
-        { label: "Manage Products", sub: "Update inventory", icon: Package, link: `/${language}/dashboard/products`, color: "text-os-blue", bg: "bg-os-blue/10" },
-        { label: "View RFQs", sub: "Review buyer requests", icon: FileText, link: `/${language}/dashboard/supplier-rfqs`, color: "text-os-green", bg: "bg-os-green/10" },
-        { label: "Sales Analytics", sub: "Track performance", icon: BarChart3, link: `/${language}/dashboard/analytics`, color: "text-purple-500", bg: "bg-purple-500/10" },
+        { label: "Manage Products", sub: "Update inventory", icon: Package, link: `/dashboard/products`, color: "text-os-blue", bg: "bg-os-blue/10" },
+        { label: "View RFQs", sub: "Review buyer requests", icon: FileText, link: `/dashboard/supplier-rfqs`, color: "text-os-green", bg: "bg-os-green/10" },
+        { label: "Sales Analytics", sub: "Track performance", icon: BarChart3, link: `/dashboard/analytics`, color: "text-purple-500", bg: "bg-purple-500/10" },
     ];
 
     return (
@@ -87,12 +87,12 @@ export function DistributionDashboard() {
                     <Surface variant="panel" className="p-2">
                         <div className="p-6 border-b border-os-stroke flex justify-between items-center">
                             <h2 className="text-os-xl font-bold">Orders Received</h2>
-                            <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/trades')}>View All</Button>
+                            <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/trades?view=sell')}>View All</Button>
                         </div>
                         {activeDeals.length > 0 ? (
                             <div className="divide-y divide-os-stroke">
                                 {activeDeals.slice(0, 3).map((trade) => (
-                                    <div key={trade.id} onClick={() => navigate(`/dashboard/trade/${trade.id}`)} className="p-6 hover:bg-os-surface cursor-pointer flex justify-between items-center group">
+                                    <div key={trade.id} onClick={() => navigate(`/dashboard/trades/${trade.id}`)} className="p-6 hover:bg-os-surface cursor-pointer flex justify-between items-center group">
                                         <div className="flex items-center gap-4">
                                             <ShoppingCart className="w-6 h-6 text-os-text-secondary" />
                                             <div>

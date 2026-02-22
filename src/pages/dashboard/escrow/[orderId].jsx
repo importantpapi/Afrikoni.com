@@ -11,6 +11,7 @@ import { supabase } from '@/api/supabaseClient';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import HighRiskFallbackCard from '@/components/shared/HighRiskFallbackCard';
 
 export default function EscrowDetail() {
   const { orderId } = useParams();
@@ -233,6 +234,10 @@ export default function EscrowDetail() {
           <div className="text-os-xs text-os-muted">
             Funds are held in escrow until both sides approve milestones or final settlement is confirmed.
           </div>
+          <HighRiskFallbackCard
+            title="Payment or release issue?"
+            description="If payment confirmation or escrow release is delayed, contact support and share the order ID and payment reference."
+          />
         </Surface>
       </div>
     </div>

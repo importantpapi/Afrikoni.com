@@ -17,6 +17,7 @@ import { SpinnerWithTimeout } from '@/components/shared/ui/SpinnerWithTimeout';
 import { CardSkeleton } from '@/components/shared/ui/skeletons';
 import ErrorState from '@/components/shared/ui/ErrorState';
 import RequireCapability from '@/guards/RequireCapability';
+import HighRiskFallbackCard from '@/components/shared/HighRiskFallbackCard';
 
 function VerificationMarketplaceInner() {
   // ✅ KERNEL MIGRATION: Use unified Dashboard Kernel
@@ -27,6 +28,7 @@ function VerificationMarketplaceInner() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [company, setCompany] = useState(null);
   const [hasExistingPurchase, setHasExistingPurchase] = useState(false);
+  const [latestPurchase, setLatestPurchase] = useState(null);
 
   // ✅ KERNEL MIGRATION: Use isSystemReady for loading state
   if (!isSystemReady) {
@@ -68,33 +70,19 @@ function VerificationMarketplaceInner() {
 
       setCompany(companyData);
 
-      // Check for existing purchase
-      // ✅ TOTAL VIBRANIUM RESET: Replace .maybeSingle() with .single() wrapped in try/catch
-      let purchase = null;
-      try {
-        const { data, error: purchaseError } = await supabase
-          .from('verification_purchases')
-          .select('*')
-          .eq('company_id', profileCompanyId)
-          .eq('status', 'completed')
-          .single();
+      // Check for existing pending/completed purchase to prevent duplicate charges/requests
+      const { data: purchases, error: purchaseError } = await supabase
+        .from('verification_purchases')
+        .select('id, status, lifecycle_state, payment_method, payment_id, created_at')
+        .eq('company_id', profileCompanyId)
+        .in('status', ['pending', 'completed'])
+        .order('created_at', { ascending: false })
+        .limit(1);
 
-        if (purchaseError) {
-          // Handle PGRST116 (not found) - purchase doesn't exist yet, this is OK
-          if (purchaseError.code !== 'PGRST116') {
-            throw purchaseError;
-          }
-        } else {
-          purchase = data;
-        }
-      } catch (error) {
-        // PGRST116 (not found) is expected - purchase may not exist yet
-        if (error?.code !== 'PGRST116') {
-          throw error;
-        }
-      }
-
-      setHasExistingPurchase(!!purchase);
+      if (purchaseError) throw purchaseError;
+      const latest = purchases?.[0] || null;
+      setLatestPurchase(latest);
+      setHasExistingPurchase((purchases?.length || 0) > 0);
     } catch (err) {
       console.error('[VerificationMarketplace] Error loading data:', err);
       setError(err.message || 'Failed to load data');
@@ -116,97 +104,84 @@ function VerificationMarketplaceInner() {
 
     setIsProcessing(true);
     try {
-      // In production, this would integrate with payment gateway
-      // For now, we'll simulate the purchase
-      const paymentData = {
-        method: 'stripe',
-        paymentId: `mock_verification_${Date.now()}`
-      };
+      let purchaseId = latestPurchase?.status === 'pending' ? latestPurchase.id : null;
 
-      // Create verification purchase
-      const { data: purchase, error: purchaseError } = await supabase
-        .from('verification_purchases')
-        .insert({
-          company_id: companyId,
-          purchase_type: 'fast_track',
-          amount: 99.00,
-          currency: 'USD',
-          status: 'completed',
-          payment_method: paymentData.method,
-          payment_id: paymentData.paymentId,
-          processed_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-
-      if (purchaseError) throw purchaseError;
-
-      // Create revenue transaction
-      await supabase.from('revenue_transactions').insert({
-        transaction_type: 'verification_fee',
-        amount: 99.00,
-        currency: 'USD',
-        company_id: companyId,
-        description: 'Fast-track verification purchase',
-        status: 'completed',
-        processed_at: new Date().toISOString()
-      });
-
-      // Update company verification status to pending (fast-track)
-      await supabase
-        .from('companies')
-        .update({
-          verification_status: 'pending',
-          verified: false // Will be verified after admin review
-        })
-        .eq('id', companyId);
-
-      // Create or update verification record
-      // ✅ TOTAL VIBRANIUM RESET: Replace .maybeSingle() with .single() wrapped in try/catch
-      let existingVerification = null;
-      try {
-        const { data, error: verifError } = await supabase
-          .from('verifications')
+      if (!purchaseId) {
+        const { data: createdPurchase, error: purchaseError } = await supabase
+          .from('verification_purchases')
+          .insert({
+            company_id: profileCompanyId,
+            purchase_type: 'fast_track',
+            amount: 99.00,
+            currency: 'USD',
+            status: 'pending',
+            lifecycle_state: 'initiated',
+            payment_method: 'flutterwave',
+            payment_id: null,
+            processed_at: null,
+            metadata: {
+              initiated_at: new Date().toISOString(),
+              channel: 'verification-marketplace'
+            }
+          })
           .select('id')
-          .eq('company_id', companyId)
           .single();
 
-        if (verifError) {
-          // Handle PGRST116 (not found) - verification doesn't exist yet, this is OK
-          if (verifError.code !== 'PGRST116') {
-            console.error('[VerificationMarketplace] Error checking existing verification:', verifError);
-          }
-        } else {
-          existingVerification = data;
-        }
-      } catch (error) {
-        // PGRST116 (not found) is expected - verification may not exist yet
-        if (error?.code !== 'PGRST116') {
-          console.error('[VerificationMarketplace] Error checking existing verification:', error);
-        }
+        if (purchaseError) throw purchaseError;
+        purchaseId = createdPurchase?.id || null;
       }
 
-      if (!existingVerification) {
-        await supabase.from('verifications').insert({
-          company_id: companyId,
-          status: 'pending',
-          trade_assurance_enabled: true
-        });
-      } else {
+      const { data: paymentData, error: paymentError } = await supabase.functions.invoke('process-flutterwave-payment', {
+        body: {
+          amount: 99.00,
+          currency: 'USD',
+          orderType: 'verification',
+          customerEmail: company?.email || company?.owner_email || 'billing@afrikoni.com',
+          customerName: company?.company_name || 'Afrikoni Company',
+          metadata: {
+            company_id: profileCompanyId,
+            verification_purchase_id: purchaseId,
+            purchase_type: 'fast_track'
+          }
+        }
+      });
+
+      if (paymentError || !paymentData?.success || !paymentData?.paymentUrl) {
         await supabase
-          .from('verifications')
+          .from('verification_purchases')
           .update({
             status: 'pending',
-            trade_assurance_enabled: true
+            lifecycle_state: 'payment_initialization_failed',
+            updated_at: new Date().toISOString(),
+            metadata: {
+              initialization_error: paymentError?.message || paymentData?.error || 'payment_init_failed'
+            }
           })
-          .eq('company_id', companyId);
+          .eq('id', purchaseId);
+        throw new Error(paymentData?.error || paymentError?.message || 'Payment initialization failed');
       }
 
-      toast.success('Fast-track verification purchased! Your verification will be prioritized.');
-      await loadData();
+      await supabase
+        .from('verification_purchases')
+        .update({
+          status: 'pending',
+          lifecycle_state: 'payment_pending',
+          payment_method: 'flutterwave',
+          payment_id: paymentData.transactionRef || null,
+          updated_at: new Date().toISOString(),
+          metadata: {
+            tx_ref: paymentData.transactionRef || null,
+            provider: 'flutterwave',
+            initiated_at: new Date().toISOString()
+          }
+        })
+        .eq('id', purchaseId);
+
+      toast.success('Redirecting to secure payment...');
+      window.location.href = paymentData.paymentUrl;
     } catch (err) {
       console.error('[VerificationMarketplace] Error processing purchase:', err);
-      toast.error('Failed to process purchase. Please try again.');
+      toast.error(err?.message || 'Failed to process purchase. Please try again.');
     } finally {
       setIsProcessing(false);
     }
@@ -286,8 +261,10 @@ function VerificationMarketplaceInner() {
                   <span className="text-os-muted">one-time</span>
                 </div>
                 {hasExistingPurchase && (
-                  <Badge className="mt-2 bg-emerald-500/10 text-emerald-500 border-emerald-500/20">
-                    Purchase Completed - Verification Pending
+                  <Badge className="mt-2 bg-amber-500/10 text-amber-500 border-amber-500/20">
+                    {latestPurchase?.status === 'completed'
+                      ? 'Payment confirmed - Verification under review'
+                      : 'Payment pending - complete checkout to continue'}
                   </Badge>
                 )}
               </div>
@@ -329,20 +306,26 @@ function VerificationMarketplaceInner() {
                 </div>
                 <Button
                   onClick={handlePurchase}
-                  disabled={isProcessing || hasExistingPurchase}
+                  disabled={isProcessing || latestPurchase?.status === 'completed'}
                   className="w-full bg-os-accent hover:bg-[#C5A028] text-black font-bold h-12 shadow-os-md hover:shadow-os-lg transition-all"
                 >
                   {isProcessing ? (
                     'Processing...'
+                  ) : latestPurchase?.status === 'completed' ? (
+                    'Payment Completed'
                   ) : hasExistingPurchase ? (
-                    'Purchase Completed'
+                    'Continue Payment'
                   ) : (
                     <>
-                      Purchase Fast-Track Verification
+                      Start Fast-Track Verification
                       <ArrowRight className="w-4 h-4 ml-2" />
                     </>
                   )}
                 </Button>
+                <HighRiskFallbackCard
+                  title="Verification payment stuck?"
+                  description="If checkout fails or verification remains pending, contact support with your company name and payment reference."
+                />
               </div>
             </Surface>
 
@@ -439,4 +422,3 @@ export default function VerificationMarketplace() {
     </>
   );
 }
-

@@ -13,6 +13,7 @@ import { FileText, CheckCircle2, AlertCircle, Plus, ShieldAlert } from 'lucide-r
 import { supabase } from '@/api/supabaseClient';
 import { useDashboardKernel } from '@/hooks/useDashboardKernel';
 import { toast } from 'sonner';
+import HighRiskFallbackCard from '@/components/shared/HighRiskFallbackCard';
 
 const statusTone = {
   in_review: 'pending',
@@ -233,6 +234,11 @@ export default function Disputes() {
           ))}
         </div>
       )}
+
+      <HighRiskFallbackCard
+        title="Dispute escalation needs human support?"
+        description="If a dispute blocks payment or delivery, contact support and include dispute ID, trade ID, and evidence files."
+      />
 
       {/* ✅ FORENSIC FIX: File Dispute Modal — previously did not exist */}
       <Dialog open={showModal} onOpenChange={setShowModal}>

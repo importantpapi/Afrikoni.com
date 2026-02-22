@@ -1,25 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import { getPostLoginRedirect } from '@/lib/post-login-redirect';
-import { getUserRoles, getBusinessProfile, getLastSelectedRole } from '@/lib/supabase-auth-helpers';
 import { supabase } from '@/api/supabaseClient';
 
 vi.mock('@/api/supabaseClient', () => {
   return {
     supabase: {
-      auth: {
-        getUser: vi.fn(),
-      },
       from: vi.fn(),
     },
   };
 });
-
-vi.mock('@/lib/supabase-auth-helpers', () => ({
-  getUserRoles: vi.fn(),
-  getBusinessProfile: vi.fn(),
-  getLastSelectedRole: vi.fn(),
-}));
 
 describe('getPostLoginRedirect', () => {
   const mockedSupabase = supabase as any;
@@ -28,49 +18,64 @@ describe('getPostLoginRedirect', () => {
     vi.clearAllMocks();
   });
 
-  it('redirects unverified users to verify-email-prompt', async () => {
-    mockedSupabase.auth.getUser.mockResolvedValue({
-      data: { user: { email_confirmed_at: null } },
+  it('redirects users without a company to onboarding', async () => {
+    mockedSupabase.from.mockReturnValue({
+      select: () => ({
+        eq: () => ({
+          single: vi.fn().mockResolvedValue({
+            data: { company_id: null },
+            error: null,
+          }),
+        }),
+      }),
     });
-    (getUserRoles as any).mockResolvedValue(['buyer']);
-
     const path = await getPostLoginRedirect('user-id');
-    expect(path).toBe('/verify-email-prompt');
+    expect(path).toBe('/onboarding/company');
   });
 
-  it('redirects single-role users directly to their dashboard', async () => {
-    mockedSupabase.auth.getUser.mockResolvedValue({
-      data: { user: { email_confirmed_at: '2024-01-01T00:00:00Z' } },
+  it('redirects users with a company to dashboard', async () => {
+    mockedSupabase.from.mockReturnValue({
+      select: () => ({
+        eq: () => ({
+          single: vi.fn().mockResolvedValue({
+            data: { company_id: 'company-123' },
+            error: null,
+          }),
+        }),
+      }),
     });
-    (getUserRoles as any).mockResolvedValue(['buyer']);
-
     const path = await getPostLoginRedirect('user-id');
-    expect(path).toBe('/buyer/dashboard');
+    expect(path).toBe('/dashboard');
   });
 
-  it('redirects multi-role users to select-role when no last role', async () => {
-    mockedSupabase.auth.getUser.mockResolvedValue({
-      data: { user: { email_confirmed_at: '2024-01-01T00:00:00Z' } },
+  it('falls back to onboarding on query error', async () => {
+    mockedSupabase.from.mockReturnValue({
+      select: () => ({
+        eq: () => ({
+          single: vi.fn().mockResolvedValue({
+            data: null,
+            error: { message: 'query failed' },
+          }),
+        }),
+      }),
     });
-    (getUserRoles as any).mockResolvedValue(['buyer', 'seller']);
-    (getLastSelectedRole as any).mockResolvedValue(null);
-
     const path = await getPostLoginRedirect('user-id');
-    expect(path).toBe('/select-role');
+    expect(path).toBe('/onboarding/company');
   });
 
-  it('redirects seller/logistics with pending business profile to account-pending', async () => {
-    mockedSupabase.auth.getUser.mockResolvedValue({
-      data: { user: { email_confirmed_at: '2024-01-01T00:00:00Z' } },
+  it('falls back to onboarding when no profile is returned', async () => {
+    mockedSupabase.from.mockReturnValue({
+      select: () => ({
+        eq: () => ({
+          single: vi.fn().mockResolvedValue({
+            data: null,
+            error: null,
+          }),
+        }),
+      }),
     });
-    (getUserRoles as any).mockResolvedValue(['seller']);
-    (getBusinessProfile as any).mockResolvedValue({
-      data: { verification_status: 'pending' },
-    });
-
     const path = await getPostLoginRedirect('user-id');
-    expect(path).toBe('/account-pending');
+    expect(path).toBe('/onboarding/company');
   });
 });
-
 

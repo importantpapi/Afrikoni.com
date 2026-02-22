@@ -299,7 +299,7 @@ export default function SupplierAcquisitionPage() {
                   <Gift className="w-8 h-8 text-os-accent mb-4" />
                   <h3 className="text-os-xl font-semibold mb-2">Founding Supplier Status</h3>
                   <p className="text-afrikoni-text-dark/70 mb-4">
-                    First 50 suppliers get lifetime reduced commission (6% instead of 8%)
+                    First 50 suppliers get lifetime reduced commission (3% instead of 4%)
                   </p>
                   <Badge className="bg-os-accent text-afrikoni-chestnut">Limited Time</Badge>
                 </CardContent>

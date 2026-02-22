@@ -6,7 +6,7 @@
 
 // Commission rates (%)
 export const COMMISSION_RATES = {
-  STANDARD: 8, // Standard deals
+  STANDARD: 4, // Standard deals
   ASSISTED: 12, // Afrikoni-assisted deals
   HIGH_VALUE: 5, // Deals > $50,000 (lower rate, higher absolute value)
   MINIMUM: 50 // Minimum commission in USD
@@ -237,4 +237,3 @@ BEFORE UPDATE ON public.commissions
 FOR EACH ROW
 EXECUTE FUNCTION update_commissions_updated_at();
 `;
-

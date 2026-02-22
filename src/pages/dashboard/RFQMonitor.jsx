@@ -69,15 +69,15 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
     const handleDeleteRFQ = async (e, rfqId) => {
         e.stopPropagation();
         if (!window.confirm("Are you sure you want to delete this RFQ? This action cannot be undone.")) return;
-        
+
         try {
             const { error: delError } = await supabase
                 .from('trades')
                 .delete()
                 .eq('id', rfqId)
-                .eq('buyer_id', profileCompanyId)
+                .eq('buyer_company_id', profileCompanyId)
                 .eq('trade_type', 'rfq');
-            
+
             if (delError) throw delError;
             toast.success("RFQ deleted successfully");
             refetch();
@@ -230,8 +230,8 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
                             <Sparkles className="h-5 w-5 text-os-accent" />
                         </div>
                         <div>
-                        <h3 className="text-os-base font-semibold text-[var(--os-text-primary)]">Quick RFQ</h3>
-                        <p className="text-os-xs text-os-muted">Describe what you need in plain language — we'll help structure it.</p>
+                            <h3 className="text-os-base font-semibold text-[var(--os-text-primary)]">Quick RFQ</h3>
+                            <p className="text-os-xs text-os-muted">Describe what you need in plain language — we'll help structure it.</p>
                         </div>
                     </div>
                     <Textarea
@@ -287,9 +287,9 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
                             </div>
 
                             <div className="max-w-md mx-auto relative z-10">
-<h3 className="text-os-xl font-bold text-[var(--os-text-primary)] mb-3">Monitoring for Opportunities</h3>
-                        <p className="text-os-muted mb-8">
-                            We're actively monitoring incoming requests. You'll be notified as soon as a new RFQ matches your profile.
+                                <h3 className="text-os-xl font-bold text-[var(--os-text-primary)] mb-3">Monitoring for Opportunities</h3>
+                                <p className="text-os-muted mb-8">
+                                    We're actively monitoring incoming requests. You'll be notified as soon as a new RFQ matches your profile.
                                 </p>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
@@ -337,7 +337,7 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
                                 key={rfq.id}
                                 variant="panel"
                                 className="p-5 hover:bg-os-surface-2 transition-all cursor-pointer group relative overflow-hidden"
-                                onClick={() => navigate(viewMode === 'supplier' ? `/dashboard/one-flow/${rfq.id}` : `/dashboard/trade/${rfq.id}`)}
+                                onClick={() => navigate(`/dashboard/trades/${rfq.id}`)}
                             >
                                 {viewMode === 'supplier' && (
                                     <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 blur-2xl -z-10" />
@@ -367,7 +367,7 @@ export default function RFQMonitor({ viewMode = 'buyer' }) {
                                     <div className="flex flex-col items-end justify-between self-stretch gap-2">
                                         <span className="text-os-xs text-os-muted font-medium bg-os-surface-1 px-2 py-1 rounded-md border border-os-stroke"><Clock className="h-3 w-3 inline mr-1 opacity-70" /> {format(new Date(rfq.created_at), 'MMM d')}</span>
                                         <div className="flex items-center gap-2">
-                                            <Button variant="ghost" size="sm" className="md:opacity-0 md:group-hover:opacity-100 transition-all md:translate-x-1 md:group-hover:translate-x-0 h-8 text-os-xs font-bold text-os-accent" onClick={(e) => { e.stopPropagation(); navigate(viewMode === 'supplier' ? `/dashboard/one-flow/${rfq.id}` : `/dashboard/trade/${rfq.id}`); }}>
+                                            <Button variant="ghost" size="sm" className="md:opacity-0 md:group-hover:opacity-100 transition-all md:translate-x-1 md:group-hover:translate-x-0 h-8 text-os-xs font-bold text-os-accent" onClick={(e) => { e.stopPropagation(); navigate(`/dashboard/trades/${rfq.id}`); }}>
                                                 {viewMode === 'supplier' ? "Send Quote" : "View Details"} <ChevronRight className="h-3.5 w-3.5 ml-1" />
                                             </Button>
                                             {viewMode === 'buyer' && (

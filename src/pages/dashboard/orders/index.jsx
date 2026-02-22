@@ -32,26 +32,22 @@ export default function OrderHistory() {
         try {
             setLoading(true);
             let query = supabase
-                .from('orders')
+                .from('trades')
                 .select(`
                     *,
                     seller:companies!seller_company_id(company_name, country),
-                    buyer:companies!buyer_company_id(company_name, country),
-                    items:order_items(count)
+                    buyer:companies!buyer_company_id(company_name, country)
                 `)
                 .order('created_at', { ascending: false });
 
-            // If buyer, show orders where we are buyer
+            // Filter by role/company
             if (capabilities.can_buy && !capabilities.can_sell) {
                 query = query.eq('buyer_company_id', profileCompanyId);
             }
-            // If seller, show orders where we are seller
             else if (capabilities.can_sell && !capabilities.can_buy) {
                 query = query.eq('seller_company_id', profileCompanyId);
             }
-            // If hybrid, show both (OR condition not easily doable with simple eq, might need to filter client side or explicit OR)
             else {
-                // For hybrid, we want (buyer_id = my_id OR seller_id = my_id)
                 query = query.or(`buyer_company_id.eq.${profileCompanyId},seller_company_id.eq.${profileCompanyId}`);
             }
 
@@ -59,7 +55,7 @@ export default function OrderHistory() {
             if (error) throw error;
             setOrders(data || []);
         } catch (err) {
-            console.error('Failed to load orders:', err);
+            console.error('Failed to load trades:', err);
         } finally {
             setLoading(false);
         }
@@ -151,7 +147,7 @@ export default function OrderHistory() {
                         : "You haven't placed or received any orders yet."}
                     icon={Package}
                     actionLabel={capabilities.can_buy ? "Browse Marketplace" : "Share Products"}
-                    onAction={() => navigate(capabilities.can_buy ? '/dashboard/rfq/create' : '/dashboard/products')}
+                    onAction={() => navigate(capabilities.can_buy ? '/dashboard/rfqs/new' : '/dashboard/products')}
                 />
             ) : (
                 <div className="space-y-3">
@@ -160,7 +156,7 @@ export default function OrderHistory() {
                         const counterparty = isBuying ? order.seller : order.buyer;
 
                         return (
-                            <Link key={order.id} to={`/dashboard/orders/${order.id}`}>
+                            <Link key={order.id} to={`/dashboard/trades/${order.id}`}>
                                 <Surface className="p-4 hover:border-os-accent/50 transition-colors group cursor-pointer">
                                     <div className="flex items-start justify-between">
                                         <div className="flex items-start gap-4">

@@ -50,7 +50,7 @@ export default function QuickRFQBar() {
 
       // Fallback: try client-side AI
       const { AIDescriptionService } = await import('@/components/services/AIDescriptionService');
-      const fallback = AIDescriptionService.generateRFQFromBrief({
+      const fallback = await AIDescriptionService.generateRFQFromBrief({
         title: text,
         description: text,
       });

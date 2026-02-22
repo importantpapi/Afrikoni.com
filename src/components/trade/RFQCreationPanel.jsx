@@ -25,7 +25,7 @@ export default function RFQCreationPanel({ trade, onNextStep, isTransitioning, c
 
   const [errors, setErrors] = useState({});
 
-  const isPublished = trade?.status === TRADE_STATE.RFQ_CREATED;
+  const isPublished = trade?.status === TRADE_STATE.RFQ_OPEN;
 
   function validate() {
     const newErrors = {};
@@ -39,7 +39,7 @@ export default function RFQCreationPanel({ trade, onNextStep, isTransitioning, c
   async function handlePublish() {
     if (!validate()) return;
 
-    await onNextStep(TRADE_STATE.RFQ_CREATED, {
+    await onNextStep(TRADE_STATE.RFQ_OPEN, {
       title: formData.title,
       description: formData.description,
       quantity: formData.quantity,
@@ -69,6 +69,7 @@ export default function RFQCreationPanel({ trade, onNextStep, isTransitioning, c
               <Label htmlFor="title" className="">Product Title *</Label>
               <Input
                 id="title"
+                name="title"
                 value={formData.title}
                 onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                 placeholder="e.g., Premium Grade A Cocoa Beans"
@@ -82,6 +83,7 @@ export default function RFQCreationPanel({ trade, onNextStep, isTransitioning, c
               <Label htmlFor="description" className="">Description *</Label>
               <Textarea
                 id="description"
+                name="description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Describe the product in detail..."
@@ -97,6 +99,7 @@ export default function RFQCreationPanel({ trade, onNextStep, isTransitioning, c
                 <Label htmlFor="quantity" className="">Quantity *</Label>
                 <Input
                   id="quantity"
+                  name="quantity"
                   type="number"
                   value={formData.quantity}
                   onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
@@ -107,11 +110,12 @@ export default function RFQCreationPanel({ trade, onNextStep, isTransitioning, c
               </div>
 
               <div>
-                <Label htmlFor="unit" className="">Unit</Label>
                 <select
+                  id="unit"
+                  name="unit"
                   value={formData.quantity_unit}
                   onChange={(e) => setFormData({ ...formData, quantity_unit: e.target.value })}
-                  className="w-full px-3 py-2 border rounded-lg"
+                  className="w-full px-3 py-2 border rounded-lg bg-os-surface-solid border-white/10 text-white"
                 >
                   <option>pieces</option>
                   <option>kg</option>
@@ -127,11 +131,12 @@ export default function RFQCreationPanel({ trade, onNextStep, isTransitioning, c
               <Label htmlFor="target_price" className="">Target Price (Optional)</Label>
               <Input
                 id="target_price"
+                name="target_price"
                 type="number"
                 value={formData.target_price}
                 onChange={(e) => setFormData({ ...formData, target_price: e.target.value })}
                 placeholder="Leave blank to see all offers"
-                className="placeholder:text-white/40"
+                className="placeholder:text-white/40 bg-white/5 border-white/10 text-white"
               />
             </div>
 

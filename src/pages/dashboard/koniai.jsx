@@ -39,6 +39,8 @@ export default function KoniAIHub() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
+  const langMatch = location.pathname.match(/^\/(en|fr|pt|ar)(?:\/|$)/);
+  const language = langMatch?.[1] || 'en';
   const [company, setCompany] = useState(null);
   const [categories, setCategories] = useState([]);
   const [countries, setCountries] = useState([]);
@@ -107,7 +109,7 @@ export default function KoniAIHub() {
       // ✅ KERNEL MIGRATION: Use profileCompanyId from kernel
       // Load company
       if (profileCompanyId) {
-        const { data: companyData } = await supabase
+        const { data: companyData, error: companyError } = await supabase
           .from('companies')
           .select('*')
           .eq('id', profileCompanyId)
@@ -763,10 +765,15 @@ export default function KoniAIHub() {
                         <Button
                           size="sm"
                           className="hover:bg-os-accentDark"
-                          onClick={() => navigate('/messages', { 
-                            state: { from: location.pathname + location.search },
-                            search: `?recipient=${buyer.id}`
-                          })}
+                          onClick={() => navigate(
+                            {
+                              pathname: `/${language}/dashboard/messages`,
+                              search: `?recipient=${buyer.id}`
+                            },
+                            {
+                              state: { from: location.pathname + location.search }
+                            }
+                          )}
                         >
                           <MessageSquare className="w-3 h-3 mr-1" />
                           Reach Out
@@ -803,4 +810,3 @@ export default function KoniAIHub() {
     </div>
   );
 }
-

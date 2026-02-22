@@ -613,7 +613,7 @@ export default function Navbar({ user, onLogout }) {
                   <Bookmark className="w-5 h-5" />
                 </Link>
                 <Link
-                  to="/messages"
+                  to={`/${language}/dashboard/messages`}
                   className="p-2 rounded-md hover:bg-os-accent/10 transition-colors text-os-text-secondary hover:text-os-accent"
                 >
                   <MessageSquare className="w-5 h-5" />
@@ -926,4 +926,3 @@ export default function Navbar({ user, onLogout }) {
     </nav >
   );
 }
-

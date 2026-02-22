@@ -10,6 +10,7 @@ export const getRoleNavigation = ({
     workspaceMode = 'simple',
     notificationCounts = {},
     isAdmin = false,
+    isActivated = false,
     isSourcing = true,
     isDistribution = false
 }) => {
@@ -30,20 +31,37 @@ export const getRoleNavigation = ({
                     icon: LayoutDashboard,
                     activeMatch: (path) => path === '/dashboard' || path === '/dashboard/'
                 },
+                !isActivated && {
+                    id: 'quick-start',
+                    label: 'Start Trade in <30s (NG -> GH)',
+                    path: '/dashboard/quick-trade?corridor=NG-GH&first=true',
+                    icon: Sparkles,
+                    activeMatch: (path) => path.startsWith('/dashboard/quick-trade')
+                },
                 {
                     id: 'pipeline',
                     label: 'Trade Pipeline',
                     path: '/dashboard/trade-pipeline',
                     icon: GitBranch,
-                    activeMatch: (path) => path.startsWith('/dashboard/trade-pipeline')
+                    activeMatch: (path) => path.startsWith('/dashboard/trade-pipeline'),
+                    hidden: !isActivated
                 },
                 // --- SOURCING TOOLS ---
                 isSourcing && {
                     id: 'rfqs',
-                    label: 'My RFQs',
+                    label: 'Sourcing Inquiries',
                     path: '/dashboard/rfqs',
                     icon: FileText,
-                    activeMatch: (path) => path.startsWith('/dashboard/rfqs') && !path.includes('/new')
+                    activeMatch: (path) => path.startsWith('/dashboard/rfqs') && !path.includes('/new'),
+                    hidden: !isActivated
+                },
+                isSourcing && {
+                    id: 'orders-buying',
+                    label: 'My Orders',
+                    path: '/dashboard/orders',
+                    icon: ShoppingCart,
+                    badge: notificationCounts.buying_orders || 0,
+                    activeMatch: (path) => path.startsWith('/dashboard/trades') || path.startsWith('/dashboard/orders')
                 },
                 // --- DISTRIBUTION TOOLS ---
                 isDistribution && {
@@ -51,29 +69,33 @@ export const getRoleNavigation = ({
                     label: 'Inventory',
                     path: '/dashboard/products',
                     icon: Package,
-                    activeMatch: (path) => path.startsWith('/dashboard/products')
+                    activeMatch: (path) => path.startsWith('/dashboard/products'),
+                    hidden: !isActivated
                 },
                 isDistribution && {
                     id: 'orders',
                     label: 'Orders Received',
-                    path: '/dashboard/orders',
+                    path: '/dashboard/sales',
                     icon: ShoppingCart,
                     badge: notificationCounts.orders || 0,
-                    activeMatch: (path) => path.startsWith('/dashboard/orders')
+                    activeMatch: (path) => path.startsWith('/dashboard/trades') || path.startsWith('/dashboard/orders'),
+                    hidden: !isActivated
                 },
                 isDistribution && {
                     id: 'rfqs-received',
                     label: 'RFQs Received',
                     path: '/dashboard/supplier-rfqs',
                     icon: FileText,
-                    activeMatch: (path) => path.startsWith('/dashboard/supplier-rfqs')
+                    activeMatch: (path) => path.startsWith('/dashboard/supplier-rfqs'),
+                    hidden: !isActivated
                 },
                 {
                     id: 'marketplace',
                     label: 'Marketplace',
                     path: '/marketplace',
                     icon: Globe,
-                    activeMatch: (path) => path.startsWith('/marketplace')
+                    activeMatch: (path) => path.startsWith('/marketplace'),
+                    hidden: !isActivated
                 },
                 // --- COMMON SHARED TOOLS ---
                 {
@@ -87,7 +109,7 @@ export const getRoleNavigation = ({
                 {
                     id: 'payments',
                     label: 'Payments',
-                    path: '/dashboard/wallet',
+                    path: '/dashboard/payments',
                     icon: Wallet,
                     activeMatch: (path) => path.startsWith('/dashboard/wallet') || path.startsWith('/dashboard/payments')
                 },
@@ -103,9 +125,10 @@ export const getRoleNavigation = ({
                     label: 'Logistics',
                     path: '/dashboard/shipments',
                     icon: Truck,
-                    activeMatch: (path) => path.startsWith('/dashboard/shipments')
+                    activeMatch: (path) => path.startsWith('/dashboard/shipments'),
+                    hidden: !isActivated
                 }
-            ].filter(Boolean)
+            ].filter(item => item && !item.hidden)
         },
         {
             id: 'intelligence',
@@ -117,23 +140,27 @@ export const getRoleNavigation = ({
                     label: 'Analytics',
                     path: '/dashboard/analytics',
                     icon: BarChart3,
-                    activeMatch: (path) => path.startsWith('/dashboard/analytics')
+                    activeMatch: (path) => path.startsWith('/dashboard/analytics'),
+                    hidden: !isActivated
                 },
                 {
                     id: 'performance',
                     label: 'Performance Metrics',
                     path: '/dashboard/performance',
                     icon: Target,
-                    activeMatch: (path) => path.startsWith('/dashboard/performance')
+                    activeMatch: (path) => path.startsWith('/dashboard/performance'),
+                    hidden: !isActivated
                 },
                 {
                     id: 'koniai',
                     label: 'KoniAI Assistant',
                     path: '/dashboard/koniai',
                     icon: Sparkles,
-                    activeMatch: (path) => path.startsWith('/dashboard/koniai')
+                    activeMatch: (path) => path.startsWith('/dashboard/koniai'),
+                    hidden: !isActivated
                 }
-            ].filter(Boolean)
+            ].filter(item => item && !item.hidden),
+            hidden: !isActivated
         },
         {
             id: 'trust-compliance',
@@ -145,7 +172,8 @@ export const getRoleNavigation = ({
                     label: 'Reviews & Trust',
                     path: '/dashboard/reviews',
                     icon: Star,
-                    activeMatch: (path) => path.startsWith('/dashboard/reviews')
+                    activeMatch: (path) => path.startsWith('/dashboard/reviews'),
+                    hidden: !isActivated
                 },
                 {
                     id: 'disputes',
@@ -159,16 +187,18 @@ export const getRoleNavigation = ({
                     label: 'KYC Verification',
                     path: '/dashboard/kyc',
                     icon: Shield,
-                    activeMatch: (path) => path.startsWith('/dashboard/kyc')
+                    activeMatch: (path) => path.startsWith('/dashboard/kyc'),
+                    hidden: !isActivated
                 },
                 {
                     id: 'compliance',
                     label: 'Compliance',
                     path: '/dashboard/compliance',
                     icon: Lock,
-                    activeMatch: (path) => path.startsWith('/dashboard/compliance')
+                    activeMatch: (path) => path.startsWith('/dashboard/compliance'),
+                    hidden: !isActivated
                 }
-            ].filter(Boolean)
+            ].filter(item => item && !item.hidden)
         },
         {
             id: 'settings-section',

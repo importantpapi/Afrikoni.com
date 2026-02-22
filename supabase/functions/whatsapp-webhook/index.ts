@@ -23,6 +23,156 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+type SupportedLanguage = 'en' | 'fr' | 'pt' | 'ar';
+
+const COUNTRY_LANGUAGE_MAP: Record<string, SupportedLanguage> = {
+    GHANA: 'en',
+    NIGERIA: 'en',
+    KENYA: 'en',
+    UGANDA: 'en',
+    TANZANIA: 'en',
+    SOUTH_AFRICA: 'en',
+    BELGIUM: 'fr',
+    FRANCE: 'fr',
+    SENEGAL: 'fr',
+    COTE_DIVOIRE: 'fr',
+    "CÔTE_DIVOIRE": 'fr',
+    CAMEROON: 'fr',
+    MALI: 'fr',
+    BURKINA_FASO: 'fr',
+    BENIN: 'fr',
+    TOGO: 'fr',
+    MOROCCO: 'ar',
+    ALGERIA: 'ar',
+    TUNISIA: 'ar',
+    EGYPT: 'ar',
+    MOZAMBIQUE: 'pt',
+    ANGOLA: 'pt',
+    CABO_VERDE: 'pt',
+    GUINEA_BISSAU: 'pt',
+};
+
+const MESSAGES: Record<string, Record<SupportedLanguage, string>> = {
+    ask_name: {
+        en: "Let's get you set up first! What is your full name?",
+        fr: "Commençons votre inscription. Quel est votre nom complet ?",
+        pt: "Vamos configurar sua conta primeiro. Qual é o seu nome completo?",
+        ar: "لنبدأ إعداد حسابك أولاً. ما اسمك الكامل؟",
+    },
+    ask_role: {
+        en: "Thanks, {{name}}! 👋\n\nAre you a:\n1️⃣ BUYER (I want to buy products)\n2️⃣ SELLER (I want to sell products)\n3️⃣ BOTH\n\nReply with 1, 2, or 3.",
+        fr: "Merci, {{name}} ! 👋\n\nVous êtes :\n1️⃣ ACHETEUR\n2️⃣ VENDEUR\n3️⃣ LES DEUX\n\nRépondez 1, 2 ou 3.",
+        pt: "Obrigado, {{name}}! 👋\n\nVocê é:\n1️⃣ COMPRADOR\n2️⃣ VENDEDOR\n3️⃣ AMBOS\n\nResponda com 1, 2 ou 3.",
+        ar: "شكرًا {{name}}! 👋\n\nهل أنت:\n1️⃣ مشتري\n2️⃣ بائع\n3️⃣ كلاهما\n\nرد بـ 1 أو 2 أو 3.",
+    },
+    ask_company: {
+        en: "Great! What is the name of your company or business?",
+        fr: "Parfait ! Quel est le nom de votre entreprise ?",
+        pt: "Ótimo! Qual é o nome da sua empresa ou negócio?",
+        ar: "ممتاز! ما اسم شركتك أو نشاطك التجاري؟",
+    },
+    ask_country: {
+        en: "Thanks! What country are you based in? 🌍\n\n(e.g., Ghana, Nigeria, Belgium, etc.)",
+        fr: "Merci ! Dans quel pays êtes-vous basé ? 🌍\n\n(ex: Ghana, Nigeria, Belgique...)",
+        pt: "Obrigado! Em que país você está? 🌍\n\n(ex.: Gana, Nigéria, Bélgica...)",
+        ar: "شكرًا! في أي دولة تعمل؟ 🌍\n\n(مثال: غانا، نيجيريا، بلجيكا...)",
+    },
+    ask_sell_products: {
+        en: "Perfect! Now tell me: What do you sell? 📦\n\n(e.g., Cocoa beans, shea butter, textiles)\n\nOr send photos of your products! 📸",
+        fr: "Parfait ! Dites-moi ce que vous vendez 📦\n\n(ex: fèves de cacao, beurre de karité, textiles)\n\nOu envoyez des photos ! 📸",
+        pt: "Perfeito! Agora me diga: o que você vende? 📦\n\n(ex.: cacau, manteiga de karité, têxteis)\n\nOu envie fotos dos seus produtos! 📸",
+        ar: "ممتاز! أخبرني الآن ماذا تبيع؟ 📦\n\n(مثل: حبوب الكاكاو، زبدة الشيا، المنسوجات)\n\nأو أرسل صورًا لمنتجاتك! 📸",
+    },
+    ask_buy_products: {
+        en: "Perfect! What products are you looking to buy? 🛒\n\n(e.g., Cocoa beans from Ghana)",
+        fr: "Parfait ! Quels produits cherchez-vous à acheter ؟ 🛒",
+        pt: "Perfeito! Quais produtos você está procurando para comprar? 🛒",
+        ar: "ممتاز! ما المنتجات التي تريد شراءها؟ 🛒",
+    },
+    account_setup_error: {
+        en: "I encountered an error setting up your account. Please try again later.",
+        fr: "Une erreur est survenue lors de la création de votre compte. Réessayez plus tard.",
+        pt: "Ocorreu um erro ao criar sua conta. Tente novamente mais tarde.",
+        ar: "حدث خطأ أثناء إعداد حسابك. يرجى المحاولة لاحقًا.",
+    },
+    rfq_drafting: {
+        en: "Drafting your RFQ... One moment...",
+        fr: "Rédaction de votre RFQ... Un instant...",
+        pt: "Preparando sua RFQ... Um momento...",
+        ar: "جار إعداد طلب العرض الخاص بك... لحظة من فضلك...",
+    },
+    rfq_saved_draft: {
+        en: "I've saved your request as a draft. You can complete it in your dashboard!",
+        fr: "Votre demande a été enregistrée en brouillon. Vous pouvez la finaliser sur votre tableau de bord.",
+        pt: "Salvei sua solicitação como rascunho. Você pode finalizá-la no painel.",
+        ar: "تم حفظ طلبك كمسودة. يمكنك إكماله من لوحة التحكم.",
+    },
+    yes_no_prompt: {
+        en: "Please reply \"Yes\" to confirm, or \"No\" to cancel.",
+        fr: "Répondez \"Oui\" pour confirmer ou \"Non\" pour annuler.",
+        pt: "Responda \"Sim\" para confirmar ou \"Não\" para cancelar.",
+        ar: "يرجى الرد بـ \"نعم\" للتأكيد أو \"لا\" للإلغاء.",
+    },
+    tell_name_first: {
+        en: "Tell me your name first!",
+        fr: "Dites-moi d'abord votre nom !",
+        pt: "Primeiro diga seu nome!",
+        ar: "أخبرني باسمك أولاً!",
+    },
+    checking_shipments: {
+        en: "Checking your shipments, {{name}}...",
+        fr: "Je vérifie vos expéditions, {{name}}...",
+        pt: "Verificando seus envios, {{name}}...",
+        ar: "جار التحقق من شحناتك، {{name}}...",
+    },
+    generic_help: {
+        en: "Hi {{name}}! I'm Koni. How can I help with {{intent}}?",
+        fr: "Bonjour {{name}} ! Je suis Koni. Comment puis-je aider pour {{intent}} ?",
+        pt: "Olá {{name}}! Eu sou a Koni. Como posso ajudar com {{intent}}?",
+        ar: "مرحباً {{name}}! أنا كوني. كيف يمكنني المساعدة في {{intent}}؟",
+    },
+    generic_help_anon: {
+        en: "Hi! I'm Koni. Please tell me your name to get started!",
+        fr: "Bonjour ! Je suis Koni. Dites-moi votre nom pour commencer.",
+        pt: "Olá! Eu sou a Koni. Diga seu nome para começar.",
+        ar: "مرحباً! أنا كوني. أخبرني باسمك للبدء.",
+    },
+};
+
+function normalizeCountry(country: string) {
+    return country.trim().toUpperCase().replace(/[\s-]+/g, "_");
+}
+
+function detectLanguageFromCountry(country?: string | null): SupportedLanguage {
+    if (!country) return "en";
+    const normalized = normalizeCountry(country);
+    return COUNTRY_LANGUAGE_MAP[normalized] || "en";
+}
+
+function detectLanguageFromText(text?: string | null): SupportedLanguage {
+    if (!text) return "en";
+    if (/[\u0600-\u06FF]/.test(text)) return "ar";
+    if (/\b(bonjour|merci|acheteur|vendeur|entreprise)\b/i.test(text)) return "fr";
+    if (/\b(ol[aá]|obrigad|comprador|vendedor|empresa)\b/i.test(text)) return "pt";
+    return "en";
+}
+
+function t(key: string, language: SupportedLanguage, vars: Record<string, string> = {}) {
+    const template = MESSAGES[key]?.[language] || MESSAGES[key]?.en || "";
+    return Object.entries(vars).reduce((acc, [k, v]) => acc.replaceAll(`{{${k}}}`, v), template);
+}
+
+async function fetchImageAsBase64(mediaUrl: string) {
+    const response = await fetch(mediaUrl, {
+        headers: { Authorization: `Bearer ${WHATSAPP_ACCESS_TOKEN}` }
+    });
+    if (!response.ok) throw new Error(`Failed to fetch media: ${response.status}`);
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    let binary = "";
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    return btoa(binary);
+}
+
 async function classifyIntent(message: string) {
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash:generateContent?key=${GEMINI_API_KEY}`;
     const systemPrompt = `You are the KoniAI Intent Classifier for Afrikoni WhatsApp. 
@@ -267,6 +417,11 @@ async function main(req: Request) {
             .maybeSingle();
 
         let currentSession = session;
+        const sessionState = (currentSession?.state_data as any) || {};
+        let preferredLanguage: SupportedLanguage =
+            sessionState.language ||
+            detectLanguageFromCountry((profile as any)?.country) ||
+            detectLanguageFromText(body);
         
         // Create conversation record
         let conversationId = null;
@@ -313,7 +468,7 @@ async function main(req: Request) {
                 .insert({
                     phone_number: cleanPhone,
                     current_intent: 'ONBOARDING',
-                    state_data: { step: 'AWAITING_NAME' }
+                    state_data: { step: 'AWAITING_NAME', language: preferredLanguage }
                 })
                 .select()
                 .single();
@@ -341,7 +496,7 @@ async function main(req: Request) {
                 await supabase.from('whatsapp_sessions').update({
                     state_data: { ...state, step: 'AWAITING_ROLE', full_name: name }
                 }).eq('id', currentSession.id);
-                responseMessage = `Thanks, ${name}! 👋\n\nAre you a:\n1️⃣ BUYER (I want to buy products)\n2️⃣ SELLER (I want to sell products)\n3️⃣ BOTH\n\nReply with 1, 2, or 3.`;
+                responseMessage = t('ask_role', preferredLanguage, { name });
             } else if (state.step === 'AWAITING_ROLE') {
                 const roleChoice = body.trim();
                 let role = 'buyer';
@@ -355,27 +510,26 @@ async function main(req: Request) {
                     state_data: { ...state, step: 'AWAITING_COMPANY', role: role }
                 }).eq('id', currentSession.id);
                 
-                responseMessage = role === 'seller' || role === 'hybrid' 
-                    ? `Great! What is the name of your company or business?`
-                    : `Perfect! What is your company name?`;
+                responseMessage = t('ask_company', preferredLanguage);
                     
             } else if (state.step === 'AWAITING_COMPANY') {
                 const companyName = body.trim();
                 await supabase.from('whatsapp_sessions').update({
                     state_data: { ...state, step: 'AWAITING_COUNTRY', company_name: companyName }
                 }).eq('id', currentSession.id);
-                responseMessage = `Thanks! What country are you based in? 🌍\n\n(e.g., Ghana, Nigeria, Belgium, etc.)`;
+                responseMessage = t('ask_country', preferredLanguage);
                 
             } else if (state.step === 'AWAITING_COUNTRY') {
                 const country = body.trim();
+                preferredLanguage = detectLanguageFromCountry(country);
                 await supabase.from('whatsapp_sessions').update({
-                    state_data: { ...state, step: 'AWAITING_PRODUCTS', country: country }
+                    state_data: { ...state, step: 'AWAITING_PRODUCTS', country: country, language: preferredLanguage }
                 }).eq('id', currentSession.id);
                 
                 if (state.role === 'seller' || state.role === 'hybrid') {
-                    responseMessage = `Perfect! Now tell me: What do you sell? 📦\n\n(e.g., "Cocoa beans, shea butter, textiles")\n\nOr send photos of your products! 📸`;
+                    responseMessage = t('ask_sell_products', preferredLanguage);
                 } else {
-                    responseMessage = `Perfect! What products are you looking to buy? 🛒\n\n(e.g., "Cocoa beans from Ghana")`;
+                    responseMessage = t('ask_buy_products', preferredLanguage);
                 }
                 
             } else if (state.step === 'AWAITING_PRODUCTS') {
@@ -434,7 +588,7 @@ async function main(req: Request) {
 
                 if (authError) {
                     console.error('[WhatsApp Webhook] Auth Error:', authError);
-                    responseMessage = `I encountered an error setting up your account. Please try again later.`;
+                    responseMessage = t('account_setup_error', preferredLanguage);
                 } else {
                     // Create company and profile
                     const { data: company } = await supabase
@@ -553,7 +707,7 @@ async function main(req: Request) {
                     current_intent: 'IDLE'
                 }).eq('phone_number', cleanPhone);
             } else {
-                responseMessage = `Please reply "Yes" to confirm, or "No" to cancel.`;
+                responseMessage = t('yes_no_prompt', preferredLanguage);
             }
         }
         // ========================================================================
@@ -579,7 +733,7 @@ async function main(req: Request) {
                 const classification = await classifyIntent(body);
                 if (classification.intent === 'CREATE_RFQ') {
                     if (profile && profile.company_id) {
-                        responseMessage = `Drafting your RFQ... One moment...`;
+                        responseMessage = t('rfq_drafting', preferredLanguage);
 
                         // 1. Extract fields using Gemini
                         const extracted = await extractRFQFields(body);
@@ -588,7 +742,7 @@ async function main(req: Request) {
                         const { data: newTrade, error: tradeError } = await supabase
                             .from('trades')
                             .insert({
-                                buyer_id: profile.company_id,
+                                buyer_company_id: profile.company_id,
                                 created_by: profile.id,
                                 trade_type: 'rfq',
                                 title: extracted.title || body.substring(0, 50),
@@ -609,7 +763,7 @@ async function main(req: Request) {
                                 company_id: profile.company_id,
                                 draft_data: { original_message: body, intent: classification.intent, source: 'whatsapp' }
                             });
-                            responseMessage = `I've saved your request as a draft. You can complete it in your dashboard!`;
+                            responseMessage = t('rfq_saved_draft', preferredLanguage);
                         } else {
                             responseMessage = `🚀 *RFQ Published!*
                             
@@ -619,24 +773,31 @@ Top suppliers are being notified via WhatsApp right now!`;
                         }
                     } else if (profile) {
                         // Profile exists but no company_id? Ask for company name
-                        responseMessage = `What is the name of your company or business?`;
+                        responseMessage = t('ask_company', preferredLanguage);
                         await supabase.from('whatsapp_sessions').upsert({
                             phone_number: cleanPhone,
                             current_intent: 'ONBOARDING',
-                            state_data: { step: 'AWAITING_COMPANY', full_name: profile.full_name }
+                            state_data: { step: 'AWAITING_COMPANY', full_name: profile.full_name, language: preferredLanguage }
                         });
                     } else {
-                        responseMessage = `Let's get you set up first! What is your full name?`;
+                        responseMessage = t('ask_name', preferredLanguage);
                         await supabase.from('whatsapp_sessions').upsert({
                             phone_number: cleanPhone,
                             current_intent: 'ONBOARDING',
-                            state_data: { step: 'AWAITING_NAME' }
+                            state_data: { step: 'AWAITING_NAME', language: preferredLanguage }
                         });
                     }
                 } else if (classification.intent === 'TRACK_ORDER') {
-                    responseMessage = profile ? `Checking your shipments, ${profile.full_name}...` : `Tell me your name first!`;
+                    responseMessage = profile
+                        ? t('checking_shipments', preferredLanguage, { name: profile.full_name || "Trader" })
+                        : t('tell_name_first', preferredLanguage);
                 } else {
-                    responseMessage = profile ? `Hi ${profile.full_name}! I'm Koni. How can I help with ${classification.intent.replace('_', ' ')}?` : `Hi! I'm Koni. Please tell me your name to get started!`;
+                    responseMessage = profile
+                        ? t('generic_help', preferredLanguage, {
+                            name: profile.full_name || "Trader",
+                            intent: classification.intent.replace('_', ' ')
+                        })
+                        : t('generic_help_anon', preferredLanguage);
                 }
             }
         }

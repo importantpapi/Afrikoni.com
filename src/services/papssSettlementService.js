@@ -10,6 +10,7 @@
  */
 
 import { supabase } from '@/api/supabaseClient';
+const ALLOW_SIMULATED_SETTLEMENTS = import.meta.env.VITE_ALLOW_SIMULATED_SETTLEMENTS === 'true';
 
 export async function initiatePAPSSSettlement(tradeId, amount, fromCurrency, toCurrency) {
     try {
@@ -19,7 +20,21 @@ export async function initiatePAPSSSettlement(tradeId, amount, fromCurrency, toC
             body: { tradeId, amount, fromCurrency, toCurrency }
         });
 
-        if (error) throw error;
+        if (error) {
+            // Controlled simulation mode for local development only.
+            if (ALLOW_SIMULATED_SETTLEMENTS && (error.status === 404 || error.message?.includes('not found'))) {
+                console.warn('[PAPSS] papss-clearing missing - simulating settlement');
+                return {
+                    success: true,
+                    settlementId: `SIM-PAPSS-${tradeId.slice(0, 8)}`,
+                    clearedAt: new Date().toISOString(),
+                    exchangeRate: 1.0,
+                    netAmount: amount,
+                    isSimulation: true
+                };
+            }
+            throw error;
+        }
 
         // Use the settlement ID returned by the Edge Function — never generate client-side
         if (!data?.settlementId) {
